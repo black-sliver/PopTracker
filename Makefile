@@ -76,6 +76,7 @@ $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DI
 	$(WIN32STRIP) $@
 	mkdir -p dist/tmp-win32/poptracker/packs
 	cp -r assets dist/tmp-win32/poptracker/
+	cp LICENSE README.md dist/tmp-win32/poptracker/
 	cp $(WIN32_BUILD_DIR)/*.exe $(WIN32_BUILD_DIR)/*.dll dist/tmp-win32/poptracker/
 	rm -f dist/poptracker_win32_x86-64.zip
 	(cd dist/tmp-win32 && \

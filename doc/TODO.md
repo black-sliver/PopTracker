@@ -1,6 +1,6 @@
 # PopTracker TODO
 
-Check OUTLINE.md to get an overview of everything.
+Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 
 ## Help wanted
 - OSX binaries
@@ -55,7 +55,7 @@ Check OUTLINE.md to get an overview of everything.
 - some code should be moved between Widget <-> Container <-> containers
 - `relayout` should probably be virtual, travel down and do stuff as expected unless overridden
 - populate hgrow/vgrow in the same step as minsize/maxsize
-- see [src/ui/OUTLINE.md#Concepts](src/ui/OUTLINE.md#Concepts)
+- see [UILIB.md#Concepts](UILIB.md#Concepts)
 - for correct auto-sizing we will need
   - allow variable size X/Y: `_growX`,`_growY`
   - detected min size: `_minSize`
