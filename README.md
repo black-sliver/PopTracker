@@ -21,6 +21,8 @@ if you want to join in on the development journey.
 
 Check [doc/PACKS.md](doc/PACKS.md) if you want to write a gamepack for this tracker.
 
+Upstream URL is https://github.com/black-sliver/PopTracker/
+
 ## Building from source
 See [BUILD.md](BUILD.md).
 
