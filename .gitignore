@@ -1,0 +1,23 @@
+# exclude build output
+build/
+dist/
+
+# exclude cache files
+*~
+.DS_Store
+thumbs.db
+
+# exclude unused and scratch pad files
+.trash
+img
+util
+
+# exclude project files
+nbproject
+
+# exclude packs (they are separate projects)
+packs
+
+# exclude tool chain dependant files
+win32-lib
+win32-lib-src

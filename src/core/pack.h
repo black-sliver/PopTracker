@@ -1,0 +1,60 @@
+#ifndef _CORE_PACK_H
+#define _CORE_PACK_H
+
+#include <string>
+#include <vector>
+#include <json/json.hpp>
+
+class Pack {
+public:
+    struct VariantInfo {
+        std::string variant;
+        std::string name;
+    };
+    struct Info {
+        std::string path;
+        std::string uid;
+        std::string version;
+        std::string platform;
+        std::string gameName;
+        std::string packName;
+        std::vector<VariantInfo> variants;
+    };
+    
+    Pack(const std::string& path);
+    bool isValid() const { return _manifest.type() == nlohmann::json::value_t::object; } // TODO: also check if init.lua exists?
+    
+    void setVariant(const std::string& variant);
+    const std::string& getPath() const { return _path; }
+    const std::string& getUID() const { return _uid; }
+    const std::string& getVariant() const { return _variant; }
+    const std::string& getName() const { return _name; }
+    const std::string& getGameName() const { return _gameName; }
+    const std::string& getVariantName() const { return _variantName; }
+    std::string getVariantTitle() const { return _variantName.empty() ? _gameName : (_gameName + "-" + _variantName); }
+    
+    Info getInfo() const;
+    
+    bool ReadFile(const std::string& file, std::string& out) const;
+    
+    bool variantHasFlag(const std::string& flag);
+    std::string getPlatform() const;
+    std::string getVersion() const;
+    
+    static std::vector<Info> ListAvailable();
+    static Info Find(std::string uid, std::string version="");
+    static void addSearchPath(const std::string& path);
+    
+protected:
+    std::string _path;
+    std::string _variant;
+    std::string _uid;
+    std::string _name;
+    std::string _gameName;
+    std::string _variantName;
+    nlohmann::json _manifest;
+    
+    static std::vector<std::string> _searchPaths;
+};
+
+#endif // _CORE_PACK_H
