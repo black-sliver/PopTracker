@@ -44,7 +44,7 @@ public:
     
     virtual void setMinSize(Size size) override;
     
-    Position getOuterPosition() const;
+    Position getPlacementPosition() const;
     int getDisplay() const;
     std::string getDisplayName() const;
     Position getPositionOnDisplay() const;

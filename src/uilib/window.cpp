@@ -1,5 +1,6 @@
 #include "window.h"
 #include "../core/assets.h"
+#include <SDL2/SDL_syswm.h>
 
 namespace Ui {
 
@@ -120,16 +121,22 @@ const Position& Window::getPosition() const
     SDL_GetWindowPosition(_win, &tmp.left, &tmp.top);
     return tmp;
 }
-Position Window::getOuterPosition() const
+Position Window::getPlacementPosition() const
 {
-    Position tmp;
-    SDL_GetWindowPosition(_win, &tmp.left, &tmp.top);
+    // this returns window coordinates to use in create_window to restore the window
+    // NOTE: window position differs between creation and after on X11 by
+    //       ~title bar + border. This works around it.
     
-    // NOTE: on X11 window position while creating is different than after
-    //       creation, by ~title bar + border, this works around it
+    Position pos;
     int offX=0, offY=0;
-    SDL_GetWindowBordersSize(_win, &offY, &offX, nullptr, nullptr);
-    return { tmp.left - offX, tmp.top - offY };
+    SDL_GetWindowPosition(_win, &pos.left, &pos.top);
+    
+    SDL_SysWMinfo wminfo = {0};
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWindowWMInfo(_win, &wminfo) && wminfo.subsystem == SDL_SYSWM_X11) {
+        SDL_GetWindowBordersSize(_win, &offY, &offX, nullptr, nullptr);
+    }
+    return { pos.left - offX, pos.top - offY };
 }
 void Window::setPosition(const Position& pos)
 {

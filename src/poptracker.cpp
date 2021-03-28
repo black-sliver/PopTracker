@@ -197,7 +197,7 @@ bool PopTracker::frame()
     
     if (!res) {
         // application is going to exit
-        auto pos = _win->getOuterPosition();
+        auto pos = _win->getPlacementPosition();
         auto size = _win->getSize();
         auto disppos = _win->getPositionOnDisplay();
         _config["format_version"] = 1;
