@@ -16,7 +16,6 @@
 
 class PopTracker final : public App {
 private:
-    static constexpr char VERSION_STRING[] = "0.1.0";
 
     Ui::Ui *_ui = nullptr;
     Ui::DefaultTrackerWindow *_win = nullptr;
@@ -48,6 +47,7 @@ public:
     virtual ~PopTracker();
     
     static constexpr const char APPNAME[] = "PopTracker";
+    static constexpr const char VERSION_STRING[] = "0.1.0";
     
 protected:
     virtual bool start();
