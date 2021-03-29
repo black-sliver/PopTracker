@@ -8,9 +8,12 @@
 
 ### Manifest
 
-The only things of consequence are platform and variants:
+The only things of consequence right now are:
     
     {
+        "name": "<Readable Name>",
+        "package_uid": "<unique string for saves>",
+        "package_version": "<unique string for open and saves>",
         "platform": "<platform>",
         "variants": {
             "<some_variant_uid>": {
@@ -22,7 +25,12 @@ The only things of consequence are platform and variants:
         }
     }
 
-Other fields TBD.
+Other fields:
+
+    {
+        "game_name": "<Readable Name>",
+        "author": "<Readbale Names>"
+    }
 
 Each pack can have multiple variants (e.g. map or compact).
 
@@ -92,6 +100,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
 * `closure(LuaItem,key,value) .PropertyChangedFunc`: called when :Set is called and the value changed
 * `:Set(key,value)`: write to property store (NOTE: property store == .ItemState)
 * `:Get(key)`: read from property store. not sure what this is good for if we have `.ItemState`
+* `:SetOverlay`: set overlay text (see JsonItem), only available in PopTracker
 
 *Probably more to come.*
 
@@ -101,6 +110,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
 * `bool .Active`: enable/disable item
 * `int .CurrentStage`: set/get stage for staged items
 * `int .AcquiredCount`: set/get current amount for consumables
+* `:SetOverlay`: set overlay text (like count, for non-consumables), only available in PopTracker
 
 *Probably more to come.*
 
