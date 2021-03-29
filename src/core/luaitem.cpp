@@ -23,6 +23,17 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"ItemState")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _itemState.ref);
         return 1;
+    } else if (strcmp(key,"Icon")==0) {
+        lua_pushstring(L, _img.c_str());
+        return 1;
+    } else if (strcmp(key,"IconMods")==0) {
+        std::string imgMods;
+        for (auto& mod: _imgMods) {
+            if (!imgMods.empty()) imgMods += ", ";
+            imgMods += mod;
+        }
+        lua_pushstring(L, imgMods.c_str());
+        return 1;
     } else if (strcmp(key,"OnLeftClickFunc")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _onLeftClickFunc.ref);
         return 1;
@@ -50,9 +61,6 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"PotentialIcon")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _potentialIcon.ref);
         return 1;
-    } else if (strcmp(key,"Icon")==0) {
-        lua_pushstring(L, _img.c_str());
-        return 1;
     }
     
     return 0;
@@ -63,11 +71,25 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     _L = L;
     if (strcmp(key,"Name")==0) {
         _name = luaL_checkstring(L, -1);
-        // TODO: clean up lua stack
         return true;
     } else if (strcmp(key,"ItemState")==0) {
         if (_itemState.valid()) luaL_unref(L, LUA_REGISTRYINDEX, _itemState.ref);
         _itemState.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
+        return true;
+    } else if (strcmp(key,"Icon")==0) {
+        std::string s = luaL_checkstring(L,-1);
+        if (_img != s) {
+            _img = s;
+            onChange.emit(this);
+        }
+        return true;
+    } else if (strcmp(key,"IconMods")==0) {
+        std::string s = luaL_checkstring(L,-1);
+        auto mods = commasplit(s);
+        if (_imgMods != mods) {
+            _imgMods = mods;
+            onChange.emit(this);
+        }
         return true;
     } else if (strcmp(key,"OnLeftClickFunc")==0) {
         _onLeftClickFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
@@ -97,17 +119,8 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
         if (_potentialIcon.valid()) luaL_unref(L, LUA_REGISTRYINDEX, _potentialIcon.ref);
         _potentialIcon.ref = luaL_ref(L, LUA_REGISTRYINDEX);
         return true;
-    } else if (strcmp(key,"Icon")==0) {
-        std::string s = luaL_checkstring(L,-1);
-        // TODO: clean up lua stack
-        if (_img != s) {
-            _img = s;
-            onChange.emit(this);
-        }
-        return true;
     }
     
-    // TODO: clean up lua stack
     return false;
 }
 

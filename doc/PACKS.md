@@ -87,6 +87,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
 
 `use ImageRef = string`
 * `ImageRef .Icon`: change the icon. Use `ImageReference:FromPackRelativePath`.
+* `string .IconMods`: icon modifier, see JSON's img_mods. Only available in PopTracker, 0.11.0+
 * `string .Name`: item's name
 * `object .ItemState`: (any) object to track internal state in lua
 * `closure(LuaItem) .OnLeftClickFunc`: called when left-clicking
