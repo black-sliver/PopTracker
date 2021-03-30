@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
+#include <errno.h>
 
 
 #if defined(_WIN32) && !defined(WIN32)
@@ -214,7 +215,7 @@ static int mkdir_recursive(const char *dir, mode_t mode=0750) {
         return -1;
     }
     size_t len = strlen(dir);
-    char *tmp = (char*)malloc(len); memcpy(tmp, dir, len+1);
+    char *tmp = (char*)malloc(len+1); memcpy(tmp, dir, len+1);
     char *p = NULL;
     
     if(tmp[len - 1] == '/') tmp[len - 1] = 0;
