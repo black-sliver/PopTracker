@@ -197,13 +197,19 @@ TrackerView::~TrackerView()
 void TrackerView::relayout()
 {
     const LayoutNode node = _tracker->getLayout(_layoutRoot);
-    if (node.getType() != "") addLayoutNode(this, node);
     _relayoutRequired = false;
+    if (node.getType() != "") addLayoutNode(this, node);
+    updateLocations();
 }
 
 void TrackerView::render(Renderer renderer, int offX, int offY)
 {
-    if (_relayoutRequired) relayout();
+    if (_relayoutRequired) {
+        auto oldSize = _size;
+        setSize({300,200}); // FIXME: we should really fix relayout() at some point
+        relayout();
+        setSize(oldSize);
+    }
     // store global coordinates for overlay calculations
     _absX = offX+_pos.left;
     _absY = offY+_pos.top;
@@ -214,6 +220,10 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
+    _mapTooltip = nullptr;
+    _mapTooltipOwner = nullptr;
+    _items.clear();
+    _maps.clear();
     _layoutRefs.clear();
     clearChildren();
     _relayoutRequired = true;
@@ -226,6 +236,11 @@ void TrackerView::updateLocations()
         for (auto& w: mappair.second) {
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
                 int state = calculateLocationState(pair.first);
+                if (_maps.size()<1) {
+                    printf("TrackerView: UI changed during updateLocations()\n");
+                    fprintf(stderr, "cybuuuuuu!!\n");
+                    return;
+                }
                 w->setLocationState(pair.first, state);
             }
         }
@@ -433,7 +448,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setLocationSize(map.getLocationSize());
             w->setLocationBorder(map.getLocationBorderTickness());
             for (const auto& pair : _tracker->getMapLocations(mapname)) {
-                int state = calculateLocationState(pair.first);
+                int state = 0; // this is done later to avoid calling into Lua
                 w->addLocation(pair.first, pair.second.getX(), pair.second.getY(), state);
             }
             container->addChild(w);
@@ -541,7 +556,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
 
 void TrackerView::setSize(Size size)
 {
-    if (size == _size) return;
+    //if (size == _size) return;
     // TODO: resize on next frame?
     SimpleContainer::setSize(size);
 }
