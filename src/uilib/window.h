@@ -37,10 +37,10 @@ public:
     void Raise();
     void setTitle(const std::string& title);
     
-    virtual const Position& getPosition() const;
-    virtual void setPosition(const Position& pos);
-    virtual int getLeft() const { return getPosition().left; }
-    virtual int getTop() const { return getPosition().top; }
+    virtual const Position& getPosition() const override;
+    virtual void setPosition(const Position& pos) override;
+    virtual int getLeft() const override { return getPosition().left; }
+    virtual int getTop() const override { return getPosition().top; }
     
     virtual void setMinSize(Size size) override;
     

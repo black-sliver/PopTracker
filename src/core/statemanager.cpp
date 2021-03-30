@@ -10,7 +10,7 @@ std::string StateManager::_dir;
 static std::string sanitize(std::string s)
 {
     if (s.empty()) return "_";
-    if (std::count(s.begin(), s.end(), '.') == s.length()) return "_";
+    if ((size_t)std::count(s.begin(), s.end(), '.') == s.length()) return "_";
     std::replace(s.begin(), s.end(), '/', '_');
     std::replace(s.begin(), s.end(), '\\', '_');
     std::replace(s.begin(), s.end(), ':', '_');
