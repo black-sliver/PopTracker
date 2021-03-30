@@ -12,6 +12,13 @@ Unpack gamepacks to `EXEDIR/packs`, `Documents/PopTracker/packs` (ZIPs not yet s
 It will also find packs installed in EmoTracker.
 Use the Load button in the top left corner to load a pack.
 
+Do not load untrusted packs until some sort of fuzzing is done.
+
+Binary release is Windows 64bit only at the moment,
+should compile on most unix-like OS (see [Building from source](#building-from-source)).
+We are looking for someone building OSX binaries.
+[WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
+
 Check
 [BUILD.md](BUILD.md),
 [CONTRIBUTING.md](CONTRIBUTING.md),
@@ -22,6 +29,9 @@ if you want to join in on the development journey.
 Check [doc/PACKS.md](doc/PACKS.md) if you want to write a gamepack for this tracker.
 
 Upstream URL is https://github.com/black-sliver/PopTracker/
+
+## Screenshot
+![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
 
 ## Building from source
 See [BUILD.md](BUILD.md).
@@ -34,6 +44,7 @@ See [BUILD.md](BUILD.md).
 
 ## Auto-tracking
 ### SNES
-Requires QUsb2Snes (flash cart, emu, snes mini) or usb2snes (flash cart only). See their respective documentation.
+Requires [QUsb2Snes](https://usb2snes.com) (flash cart, emu, snes mini) or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only). See their respective documentation.
+
 ### Other systems
 No work has been done for other systems yet.
