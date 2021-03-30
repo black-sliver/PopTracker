@@ -182,6 +182,9 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
 
 void MapWidget::addLocation(const std::string& id, int x, int y, int state)
 {
+    if (_locations.find(id) != _locations.end()) {
+        fprintf(stderr, "Duplicate location ID: %s\n", id.c_str());
+    }
     _locations[id] = {x,y,state}; // can't use map if names are not unique
 }
 void MapWidget::setLocationState(const std::string& id, int state)
