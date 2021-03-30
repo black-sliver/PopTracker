@@ -99,7 +99,7 @@ void Dock::relayout()
         }
     }
     if (nUndefined) {
-        // second pass applies minSize of floaters depending on expeected layout
+        // second pass applies minSize of floaters depending on expected layout
         // NOTE: this is still not perfect
         dockIt = _docks.begin();
         childIt = _children.begin();
@@ -166,6 +166,11 @@ void Dock::relayout()
             if (!nUndefined && *childIt == _children.back()) {
                 (*childIt)->setWidth(right-left);
             }
+#   if 1 // work-around until we truly populate autosizing through all levels
+            else {
+                (*childIt)->setWidth((*childIt)->getMinSize().width);
+            }
+#   endif
 #endif
             if (*dockIt == Direction::LEFT) {
                 (*childIt)->setLeft(left);
@@ -184,6 +189,11 @@ void Dock::relayout()
             if (!nUndefined && *childIt == _children.back()) {
                 (*childIt)->setHeight(bottom-top);
             }
+#   if 1 // work-around until we truly populate autosizing through all levels
+            else {
+                (*childIt)->setHeight((*childIt)->getMinSize().height);
+            }
+#   endif
 #endif
             if (*dockIt == Direction::UP) {
                 (*childIt)->setTop(top);
