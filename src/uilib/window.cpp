@@ -54,9 +54,12 @@ Window::~Window()
     printf("Destroying window...\n");
     // NOTE: we have to destroy children before destroying the renderer
     clearChildren();
-    TTF_CloseFont(_font);
-    SDL_DestroyRenderer(_ren);
-    SDL_DestroyWindow(_win);
+    if (_font) TTF_CloseFont(_font);
+    if (_ren) SDL_DestroyRenderer(_ren);
+    if (_win) SDL_DestroyWindow(_win);
+    _font = nullptr;
+    _ren = nullptr;
+    _win = nullptr;
 }
 
 void Window::clear()

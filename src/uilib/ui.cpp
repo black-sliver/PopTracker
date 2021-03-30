@@ -25,7 +25,7 @@ Ui::Ui(const char *name)
 {
     _name = name;
     
-    printf("Init SDL...\n");
+    printf("Ui: Init SDL...\n");
     if (SDL_WasInit(SDL_INIT_VIDEO)) fprintf(stderr, "Warning: SDL already initialized!\n");
 #if 0
     else SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
@@ -50,8 +50,10 @@ Ui::Ui(const char *name)
 
 Ui::~Ui()
 {
+    printf("Ui: Destroying UI...\n");
     for (auto win: _windows)
         delete win.second;
+    printf("Ui: Destroying SDL...\n");
     TTF_Quit();
     SDL_Quit();
 }
@@ -92,7 +94,10 @@ bool Ui::render()
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
             /* handle your event here */
-            if (ev.type == SDL_QUIT) return false;
+            if (ev.type == SDL_QUIT) {
+                printf("Ui: Quit\n");
+                return false;
+            }
             if (ev.type == SDL_MOUSEBUTTONUP) {
                 int button = ev.button.button;
                 int x = ev.button.x;
@@ -125,6 +130,7 @@ bool Ui::render()
                     if (_windows.begin() != _windows.end() && _windows.begin()->first == ev.window.windowID) {
                         // Quit application when closing main window
                         // TODO: handle this through a callback
+                        printf("Ui: Main window closed\n");
                         return false;
                     }
                     auto winit = _windows.find(ev.window.windowID);
