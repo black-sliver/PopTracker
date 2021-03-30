@@ -214,11 +214,8 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
-    for (const auto& child: _children) {
-        delete child;
-    }
-    _children.clear();
     _layoutRefs.clear();
+    clearChildren();
     _relayoutRequired = true;
 }
 

@@ -44,8 +44,8 @@ LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FONT font, FONT small
 void LoadPackWidget::update()
 {
     auto availablePacks = Pack::ListAvailable();
-    _packs->clear();
-    _variants->clear();
+    _packs->clearChildren();
+    _variants->clearChildren();
     _curPackLabel = nullptr;
     _curVariantLabel = nullptr;
     for (auto& pack : availablePacks) {
@@ -61,7 +61,7 @@ void LoadPackWidget::update()
             if (_curPackLabel) _curPackLabel->setBackground({32,32,32});
             _curPackLabel = (Label*)s;
             _curPackLabel->setBackground({64,64,64});
-            _variants->clear();
+            _variants->clearChildren();
             for (auto& variant: pack.variants) {
                 auto lbl = new Label(0,0,0,0, _font, " " + variant.name); // TODO: button instead of label
                 lbl->setGrow(1,0);

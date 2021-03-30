@@ -53,10 +53,7 @@ Window::~Window()
 {
     printf("Destroying window...\n");
     // NOTE: we have to destroy children before destroying the renderer
-    for (auto& child : _children) {
-        delete child;
-    }
-    _children.clear();
+    clearChildren();
     TTF_CloseFont(_font);
     SDL_DestroyRenderer(_ren);
     SDL_DestroyWindow(_win);

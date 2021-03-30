@@ -15,7 +15,7 @@ namespace Ui {
 class Container : public Widget {
 public:
     virtual ~Container() {
-        clear();
+        clearChildren();
     }
     virtual void addChild(Widget* child) {
         if (!child) return;
@@ -40,7 +40,11 @@ public:
             }
         }
     }
-    virtual void clear() {
+    virtual void clearChildren() {
+        if (_hoverChild) {
+            _hoverChild->onMouseLeave.emit(_hoverChild);
+            _hoverChild = nullptr;
+        }
         for (auto& child : _children) {
             delete child;
         }
