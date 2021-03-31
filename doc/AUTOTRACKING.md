@@ -15,14 +15,22 @@ If you find a non-working case, please report.
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])`
 * `:RemoveMemoryWatch(name)`
 * callback signature:
-`func(Segment)`
+`function(Segment)` (see [type Segment](#type-segment))
 
 
 ### global AutoTracker
-`int :ReadU8(baseaddr,offset)` may return 0 if not yet cached. This may be slow.
+Reading from AutoTracker may be slower than reading from Segment (watch callback argument). `baseaddr`+`offset` is the absolute memory address.
+* `int :ReadU8(baseaddr[,offset])` read 8bit unsigned integer, may return 0 if not yet cached
+* `int :ReadU16(baseaddr[,offset])` as above, 16bit
+* `int :ReadU24(baseaddr[,offset])` as above, 24bit
+* `int :ReadU32(baseaddr[,offset])` as above, 32bit
 
 ### type Segment
-`int :ReadUInt8(address)` may return 0 if not yet cached. This is better.
+Reading from Segment (watch callback argument) is preferred. `address` is the absolute memory address.
+* `int :ReadUInt8(address)` read 8bit unsigned integer, may return 0 if not yet cached
+* `int :ReadUInt16(address)` as above, 16bit
+* `int :ReadUInt24(address)` as above, 24bit
+* `int :ReadUInt32(address)` as above, 32bit
 
 
 ## Example
