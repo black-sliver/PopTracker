@@ -22,6 +22,7 @@ public:
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
     bool AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
+    bool RemoveMemoryWatch(const std::string& name);
     void resetWatches();
     
     bool autoTrack();

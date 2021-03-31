@@ -13,6 +13,7 @@
 const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, LoadScript, const char*),
     LUA_METHOD(ScriptHost, AddMemoryWatch, const char*, int, int, LuaRef, int),
+    LUA_METHOD(ScriptHost, RemoveMemoryWatch, const char*),
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
 };
 
@@ -92,6 +93,8 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
     if (interval==0) interval=500; /*orig:1000*/ // default
     if (addr<0 || len<1) return false; // invalid
     
+    RemoveMemoryWatch(name);
+    
     // AutoTracker watches are dumb, so we need to keep track of the state
     Watch w;
     w.callback = callback.ref;
@@ -115,6 +118,55 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
         return true;
     }
     
+    return false;
+}
+
+bool ScriptHost::RemoveMemoryWatch(const std::string& name)
+{
+    // TODO: use a map instead?
+    for (auto it=_watches.begin(); it!=_watches.end(); it++) {
+        if (it->name == name) {
+            bool split = false;
+            auto name = it->name;
+            auto addr = it->addr;
+            auto len = it->len;
+            _watches.erase(it);
+            // NOTE: AutoTracker::RemoveWatch takes a simple byte range at the moment
+            for (const auto& other: _watches) {
+                if (other.addr<=addr && other.addr+other.len>=addr+len) {
+                    // entire range still being watched
+                    split = false;
+                    len = 0;
+                    break;
+                } else if (other.addr<=addr && other.addr+other.len>addr) {
+                    // start still being watched
+                    size_t n = other.addr + other.len - addr;
+                    addr += n;
+                    len -= n;
+                    if (!len) break;
+                } else if (other.addr<addr+len && other.addr+other.len>=addr+len) {
+                    // end still being watched
+                    len = other.addr-addr;
+                    if (!len) break;
+                } else if (other.addr>addr && other.addr+other.len<addr+len) {
+                    // some range in the middle still being watched, not implemented
+                    split = true;
+                    len = 0;
+                }
+            }
+            if (split) {
+                fprintf(stderr, "WARNING: RemoveWatch: splitting existing byte ranges not implemented\n");
+            }
+            if (len) {
+                _autoTracker->removeWatch(addr,len);
+                printf("Removed watch %s, range <0x%06x,0x%02x>\n",
+                        name.c_str(), (unsigned)addr, (unsigned)len);
+            } else {
+                printf("Removed watch %s\n", name.c_str());
+            }
+            return true;
+        }
+    }
     return false;
 }
 

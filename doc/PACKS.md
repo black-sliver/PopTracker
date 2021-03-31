@@ -64,6 +64,7 @@ The following interfaces are provided:
 
 * `bool :LoadScript(luafilename)`: load and execute a lua script
 * `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
+* `bool :RemoveMemoryWatch(name)`: remove memory watch by name
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 
 

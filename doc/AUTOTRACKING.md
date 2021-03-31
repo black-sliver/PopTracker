@@ -12,9 +12,9 @@ If you find a non-working case, please report.
 ## Interface
 
 ### global ScriptHost
-`:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])`
-
-callback signature:
+* `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])`
+* `:RemoveMemoryWatch(name)`
+* callback signature:
 `func(Segment)`
 
 

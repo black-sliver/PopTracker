@@ -76,6 +76,15 @@ public:
         }
         return false;
     }
+    bool removeWatch(unsigned addr, unsigned len)
+    {
+        if (len<0) return false;
+        if (addr<=0xffffff && _snes) {
+            _snes->removeWatch((uint32_t)addr, len);
+            return true;
+        }
+        return false;
+    }
     void setInterval(unsigned ms) {
         if (_snes)
             _snes->setUpdateInterval(ms);
