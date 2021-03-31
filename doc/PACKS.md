@@ -64,7 +64,7 @@ The following interfaces are provided:
 
 * `bool :LoadScript(luafilename)`: load and execute a lua script
 * `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
-* `bool :RemoveMemoryWatch(name)`: remove memory watch by name
+* `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 
 
@@ -81,14 +81,14 @@ The following interfaces are provided:
 
 ### global PopVersion
 
-a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
+a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 
 
 ### type LuaItem
 
 `use ImageRef = string`
 * `ImageRef .Icon`: change the icon. Use `ImageReference:FromPackRelativePath`.
-* `string .IconMods`: icon modifier, see JSON's img_mods. Only available in PopTracker, 0.11.0+
+* `string .IconMods`: icon modifier, see JSON's img_mods. Only available in PopTracker, since 0.11.0
 * `string .Name`: item's name
 * `object .ItemState`: (any) object to track internal state in lua
 * `closure(LuaItem) .OnLeftClickFunc`: called when left-clicking
@@ -96,7 +96,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
 * **TODO**: Middle, Forward, Backward or a generalized onClick(button)
 * `closure(LuaItem,string code) .CanProvideCodeFunc`: called to determine if item has code
 * `closure(LuaItem,string code) .ProvidesCodeFunc`: called to track progress, closure should returns 1 if code is provided (can provide && active)
-* `closure(LuaItem,string code) .AdvanceToCodeFunc`: called to change item's stage to provide code (probably for auto-tracking?)
+* `closure(LuaItem,string code) .AdvanceToCodeFunc`: called to change item's stage to provide code (not in use yet)
 * `closure(LuaItem) .SaveFunc`: called when saving, closure should return a lua object that works in LoadFunc
 * `closure(LuaItem,object data) .LoadFunc`: called when loading, data as returned by `SaveFunc`
 * `closure(LuaItem,key,value) .PropertyChangedFunc`: called when :Set is called and the value changed
@@ -148,7 +148,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
                 "img": "path/to/img.png",
                 "disabled_img": "path/to/disabled.png", // optionel, grey img if missing
                 "codes": "check_identifier",
-                "secondary_codes": "state_identifier",
+                "secondary_codes": "state_identifier", // unused at the moment
                 "inherit_codes": false,
                 "img_mods": "@disabled",
                 "disabled_img_mods": "..."
@@ -173,7 +173,7 @@ a string in the form of `"1.0.0"` -- TODO: move to Tracker.PopVersion ?
             "codes": "check_identifier"
           }
   + adds `disabled_img`: override img when off
-  + adds `disabled_img_mods`: like img_mods but for off. Special "none" disables default mods. FIXME: or does **any** value disable default?
+  + adds `disabled_img_mods`: like `img_mods` but for off. Defaults to `img_mods` + `"@disabled"`). Any value (e.g. `"none"`) disables defaults.
 
 * `"consumable"`:
   + has count (0 = off)
@@ -194,14 +194,14 @@ Maps are referenced by name in layouts.
     [
         {
             "name": "map_identifier",
-            "location_size": 24, // (relative?) size of locations on the map
+            "location_size": 24, // size of locations on the map, unit is pixels of img
             "location_border_thickness": 2, // border around the locations
             "img": "path/to/img.png"
         },
         ...
     ]
 
-TODO: we want to add more stuff, like displaying numbers besides locations
+**TODO**: we want to add more stuff, like displaying numbers besides locations
 
 ### Locations
 
@@ -259,7 +259,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
 Each `map_location` is a square on the map and shows a popup with individual chests.
 
 **Rules:**
-Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (or `secondary_code`?).
+Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
 
 Rules inside `[` `]` are optional (i.e. glitches work around this rule).
 
@@ -318,9 +318,9 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "orientation": "{horizontal,vertical}", // how to orient children
         "max_height":  integer, // maximum height in px
         "max_width":   integer, // maximum width in px
-        "item_margin": "<horizontal>,<vertical>", // margin in px ?
+        "item_margin": "<horizontal>,<vertical>", // margin in px
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD
-        "dropshadow":  bool // enable/disable drop shadow
+        "dropshadow":  bool // enable/disable drop shadow, not implemented yet
     }
 
 **Type:**
