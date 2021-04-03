@@ -58,6 +58,7 @@ The following interfaces are provided:
 * `bool :AddLayouts(jsonfilename)`: load layouts from json
 * `int :ProviderCountForCode(code)`: number of items that provide the code (sum of count for consumables)
 * `mixed :FindObjectForCode(string)`: returns items for `code` or location section for `@location/section`
+* `void :UiHint(name,string)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0
 
 
 ### global ScriptHost
@@ -334,4 +335,11 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 * `"map"`: has optional `"maps"` which is array of map ids, if missing all maps are added
 * `"layout"`: pastes a different named object here (`"key": "name_of_layout"`)
 * `"recentpins"`: pinned items, uses `{"style":"{wrapped,?}","compact":bool}`
+
+
+## Ui Hints
+
+Instead of allowing LUA direct access to the UI/Widgets, there is a "Hints" interface. See [global Tracker](#global-tracker).
+
+* `"ActivateTab"`: value = tab name, since 0.11.0
 

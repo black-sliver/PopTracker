@@ -132,6 +132,16 @@ void Tabs::setTabName(int index, const std::string& name)
         }
     }
 }
+bool Tabs::setActiveTab(const std::string& name)
+{
+    for (auto btn: _buttons) {
+        if (btn->getText() == name) {
+            btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+            return true;
+        }
+    }
+    return false;
+}
 void Tabs::relayout()
 {
     _buttonbox->relayout();

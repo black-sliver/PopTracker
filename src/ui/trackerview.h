@@ -39,6 +39,7 @@ protected:
     int _absY=0;
     std::map<std::string, std::list<Item*>> _items;
     std::map<std::string, std::list<MapWidget*>> _maps;
+    std::list< std::pair<std::string,std::string> > _missedHints;
     
     void updateLayout(const std::string& layout);
     void updateState(const std::string& check);

@@ -55,10 +55,12 @@ public:
     int ProviderCountForCode(const std::string& code);
     Object FindObjectForCode(const char* code);
     LuaItem *CreateLuaItem();
+    void UiHint(const std::string& name, const std::string& value);
     
     Signal<const LocationSection&> onLocationSectionChanged;
     Signal<const std::string&> onLayoutChanged;
     Signal<const std::string&> onStateChanged;
+    Signal<const std::string&, const std::string&> onUiHint;
     
     const LayoutNode& getLayout(const std::string& name) const;
     bool hasLayout(const std::string& name) const;

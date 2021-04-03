@@ -12,6 +12,7 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, AddLayouts, const char*),
     LUA_METHOD(Tracker, ProviderCountForCode, const char*),
     LUA_METHOD(Tracker, FindObjectForCode, const char*),
+    LUA_METHOD(Tracker, UiHint, const char*, const char*),
 };
 
 static LayoutNode blankLayoutNode = LayoutNode::FromJSON(json({}));
@@ -168,6 +169,11 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
     }
     printf("Did not find object for code \"%s\".\n", code);
     return nullptr;
+}
+
+void Tracker::UiHint(const std::string& name, const std::string& value)
+{
+    onUiHint.emit(this, name, value);
 }
 
 int Tracker::Lua_Index(lua_State *L, const char* key) {

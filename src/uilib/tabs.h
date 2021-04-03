@@ -23,6 +23,8 @@ public:
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setSize(Size size) override;
     virtual void setTabName(int index, const std::string& name);
+    virtual bool setActiveTab(const std::string& name);
+    
 protected:
     void relayout();
     HBox* _buttonbox;

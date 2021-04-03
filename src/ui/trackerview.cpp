@@ -185,6 +185,7 @@ TrackerView::~TrackerView()
     _tracker->onLayoutChanged -= this;
     _tracker->onStateChanged -= this;
     _tracker->onLocationSectionChanged -= this;
+    _tracker->onUiHint -= this;
     _tracker = nullptr;
     
     for (auto pair: _items) {
@@ -198,7 +199,12 @@ void TrackerView::relayout()
 {
     const LayoutNode node = _tracker->getLayout(_layoutRoot);
     _relayoutRequired = false;
+    _tracker->onUiHint -= this; // stop recording hints
     if (node.getType() != "") addLayoutNode(this, node);
+    for (const auto& pair : _missedHints) { // replay missed layout hints
+        _tracker->onUiHint.emit(_tracker, pair.first, pair.second);
+    }
+    _missedHints.clear();
     updateLocations();
 }
 
@@ -220,6 +226,7 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
+    _tracker->onUiHint -= this;
     _mapTooltip = nullptr;
     _mapTooltipOwner = nullptr;
     _items.clear();
@@ -227,6 +234,11 @@ void TrackerView::updateLayout(const std::string& layout)
     _layoutRefs.clear();
     clearChildren();
     _relayoutRequired = true;
+    
+    // record "missed" hints during update to replay them later
+    _tracker->onUiHint += { this, [this] (void* s, const std::string& name, const std::string& value) {
+        _missedHints.push_back({name,value});
+    }};
 }
 
 void TrackerView::updateLocations()
@@ -356,6 +368,11 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             }
         }
         container->addChild(w);
+        _tracker->onUiHint += {this, [this,w](void* s, const std::string& name, const std::string& value) {
+            if (name == "ActivateTab") {
+                w->setActiveTab(value);
+            }
+        }};
     }
     else if (node.getType() == "group") {
         Container *w = new Group(0,0,0,0,_font,node.getHeader());
