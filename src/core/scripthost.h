@@ -28,7 +28,7 @@ public:
     bool autoTrack();
     AutoTracker* getAutoTracker() { return _autoTracker; }
     
-    struct Watch
+    struct MemoryWatch
     {
         int callback;
         int addr;
@@ -42,7 +42,7 @@ protected:
     lua_State *_L;
     Pack *_pack;
     Tracker *_tracker;
-    std::list<Watch> _watches;
+    std::list<MemoryWatch> _memoryWatches;
     AutoTracker *_autoTracker = nullptr;
     
 protected: // LUA interface implementation

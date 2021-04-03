@@ -24,7 +24,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     _autoTracker = new AutoTracker(_pack->getPlatform());
     _autoTracker->onDataChange += {this, [this](void* sender) {
         DEBUG_printf("AutoTracker: Data changed!\n");
-        for (auto& w : _watches) {
+        for (auto& w : _memoryWatches) {
             auto newData = _autoTracker->read((unsigned)w.addr, (unsigned)w.len);
             if (w.data != newData) {
                 DEBUG_printf("  %s changed\n", w.name.c_str());
@@ -96,7 +96,7 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
     RemoveMemoryWatch(name);
     
     // AutoTracker watches are dumb, so we need to keep track of the state
-    Watch w;
+    MemoryWatch w;
     w.callback = callback.ref;
     w.addr = addr;
     w.len = len;
@@ -107,14 +107,14 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
         printf("Added watch %s for <0x%06x,0x%02x>\n",
                 w.name.c_str(), (unsigned)w.addr, (unsigned)w.len);
         bool updateInterval = true;
-        for (auto& other : _watches) {
+        for (auto& other : _memoryWatches) {
             if (other.interval <= w.interval) {
                 updateInterval = false;
                 break;
             }
         }
         if (updateInterval) _autoTracker->setInterval(w.interval);
-        _watches.push_back(w);
+        _memoryWatches.push_back(w);
         return true;
     }
     
@@ -124,15 +124,15 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
 bool ScriptHost::RemoveMemoryWatch(const std::string& name)
 {
     // TODO: use a map instead?
-    for (auto it=_watches.begin(); it!=_watches.end(); it++) {
+    for (auto it=_memoryWatches.begin(); it!=_memoryWatches.end(); it++) {
         if (it->name == name) {
             bool split = false;
             auto name = it->name;
             auto addr = it->addr;
             auto len = it->len;
-            _watches.erase(it);
+            _memoryWatches.erase(it);
             // NOTE: AutoTracker::RemoveWatch takes a simple byte range at the moment
-            for (const auto& other: _watches) {
+            for (const auto& other: _memoryWatches) {
                 if (other.addr<=addr && other.addr+other.len>=addr+len) {
                     // entire range still being watched
                     split = false;
@@ -173,7 +173,7 @@ bool ScriptHost::RemoveMemoryWatch(const std::string& name)
 void ScriptHost::resetWatches()
 {
     bool changed = false;
-    for (auto& watch : _watches) {
+    for (auto& watch : _memoryWatches) {
         if (watch.data.empty()) continue;
         changed = true;
         watch.data.clear();
