@@ -147,7 +147,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
         "stages": [
             {
                 "img": "path/to/img.png",
-                "disabled_img": "path/to/disabled.png", // optionel, grey img if missing
+                "disabled_img": "path/to/disabled.png", // optional, grey img if missing
                 "codes": "check_identifier",
                 "secondary_codes": "state_identifier", // unused at the moment
                 "inherit_codes": false,
