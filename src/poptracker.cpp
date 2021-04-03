@@ -233,7 +233,7 @@ bool PopTracker::frame()
 void PopTracker::unloadTracker()
 {
     if (_tracker) {
-        StateManager::saveState(_tracker, _scriptHost, true);
+        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), true);
     }
 
     // remove references before deleting _tracker
@@ -305,7 +305,8 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     
     // run pack's init script
     bool res = _scriptHost->LoadScript("scripts/init.lua");
-    StateManager::saveState(_tracker, _scriptHost, false, "reset");
+    // save reset-state
+    StateManager::saveState(_tracker, _scriptHost, _win->getHints(), false, "reset");
     if (loadAutosave) {
         // restore previous state
         StateManager::loadState(_tracker, _scriptHost, true);

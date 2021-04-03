@@ -24,6 +24,8 @@ public:
     virtual void setSize(Size size) override;
     virtual void setTabName(int index, const std::string& name);
     virtual bool setActiveTab(const std::string& name);
+    virtual bool setActiveTab(int index);
+    virtual const std::string& getActiveTabName() const;
     
 protected:
     void relayout();

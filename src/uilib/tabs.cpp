@@ -2,6 +2,35 @@
 
 namespace Ui {
 
+// TODO: move to utility file
+#ifndef unlikely
+#define unlikely(x) __builtin_expect((x),0)
+#endif
+
+template<class T>
+static T* getFromList(std::list<T*> list, int index)
+{
+    if (unlikely(list.empty())) return nullptr;
+    if (index==0) { // 0 index = first
+        return list.front();
+    } else if (index<0) { // negative index = Nth from back
+        for (auto it = list.rbegin(); it != list.rend(); it++) {
+            index++;
+            if (index==0) {
+                return *it;
+            }
+        }
+    } else { // positive index = Nth from front
+        for (auto it = list.begin(); it != list.end(); it++) {
+            if (index==0) {
+                return *it;
+            }
+            index--;
+        }
+    }
+    return nullptr;
+}
+
 Tabs::Tabs(int x, int y, int w, int h, FONT font)
     : Container(x,y,w,h), _font(font)
 {
@@ -106,41 +135,37 @@ void Tabs::removeChild(Widget *w)
 }
 void Tabs::setTabName(int index, const std::string& name)
 {
-    if (index<0) {
-        for (auto it = _buttons.rbegin(); it != _buttons.rend(); it++) {
-            index++;
-            if (index==0) {
-                if ((*it)->getText() != name) {
-                    (*it)->setText(name);
-                    (*it)->setSize((*it)->getMinSize());
-                    relayout();
-                }
-                break;
-            }
-        }
-    } else {
-        for (auto it = _buttons.begin(); it != _buttons.end(); it++) {
-            if (index==0) {
-                if ((*it)->getText() != name) {
-                    (*it)->setText(name);
-                    (*it)->setSize((*it)->getMinSize());
-                    relayout();
-                }
-                break;
-            }
-            index--;
-        }
+    auto btn = getFromList(_buttons, index);
+    if (btn && btn->getText() != name) {
+        btn->setText(name);
+        btn->setSize(btn->getMinSize());
+        relayout();
     }
 }
 bool Tabs::setActiveTab(const std::string& name)
 {
     for (auto btn: _buttons) {
         if (btn->getText() == name) {
-            btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+            if (btn != _tabButton) btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
             return true;
         }
     }
     return false;
+}
+bool Tabs::setActiveTab(int index)
+{
+    auto btn = getFromList(_buttons, index);
+    if (btn) {
+        if (btn != _tabButton) btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+        return true;
+    }
+    return false;
+}
+static const std::string noTabName = "";
+const std::string& Tabs::getActiveTabName() const
+{
+    if (_tabButton) return _tabButton->getText();
+    return noTabName;
 }
 void Tabs::relayout()
 {

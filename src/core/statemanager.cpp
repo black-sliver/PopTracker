@@ -22,13 +22,35 @@ void StateManager::setDir(const std::string& dir)
     _dir = dir;
 }
 
-bool StateManager::saveState(Tracker* tracker, ScriptHost*, bool tofile, const std::string& name)
+static void replayHints(Tracker* tracker, json& state)
+{    
+    // replay stored ui hints
+    tracker->onUiHint.emit(tracker, "reset","reset");
+    if (state["ui_hints"].type() == json::value_t::array) {
+        for (auto& hint: state["ui_hints"]) {
+            if (hint.type() == json::value_t::array && hint.size()>=2) {
+                tracker->onUiHint.emit(tracker, to_string(hint[0],""), to_string(hint[1],""));
+            }
+        }
+    }
+}
+
+bool StateManager::saveState(Tracker* tracker, ScriptHost*,
+        std::list< std::pair<std::string,std::string> > uiHints,
+        bool tofile, const std::string& name)
 {
     if (!tracker) return false;
     auto pack = tracker->getPack();
     if (!pack) return false;
     
     auto state = tracker->saveState();
+    
+    auto jUiHints = json::array();
+    for (auto& hint: uiHints) {
+        jUiHints.push_back( {hint.first,hint.second} );
+    }
+    state["ui_hints"] = jUiHints;
+    
     if (!tofile) {
         printf("Saving state \"%s\" to RAM...\n", name.c_str());
         _states[{ pack->getUID(), pack->getVersion(),
@@ -58,6 +80,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool from
         }
         printf("\n");
         res = tracker->loadState(it->second);
+        replayHints(tracker, it->second);
     } else {
         std::string s;
         std::string filename = os_pathcat(_dir, sanitize(pack->getUID()), sanitize(pack->getVersion()), sanitize(pack->getVariant()), name+".json");
@@ -69,6 +92,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool from
         printf("\n");
         auto j = parse_jsonc(s);
         res = tracker->loadState(j);
+        replayHints(tracker, j);
     }
     if (scripthost) scripthost->resetWatches();
     printf("%s\n", res ? "ok" : "error");

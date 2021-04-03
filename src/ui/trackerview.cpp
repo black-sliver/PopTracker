@@ -223,14 +223,38 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
     Container::render(renderer, offX, offY);
 }
 
+std::list< std::pair<std::string,std::string> > TrackerView::getHints() const
+{
+    // returns list of hints to restore current Ui/Layout stage
+    std::list< std::pair<std::string,std::string> > hints;
+    for (auto& tab: _tabs) {
+        auto name = tab->getActiveTabName();
+        if (!name.empty()) hints.push_back({"ActivateTab", name});
+    }
+    for (auto& hint: _missedHints) {
+        hints.push_back(hint);
+    }
+    return hints;
+}
+
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
+    
+    // store active tabs
+    _activeTabs.clear();
+    for (const auto tab: _tabs) {
+        auto name = tab->getActiveTabName();
+        if (!name.empty()) _activeTabs.push_back(name);
+    }
+    
+    // clear ui
     _tracker->onUiHint -= this;
     _mapTooltip = nullptr;
     _mapTooltipOwner = nullptr;
     _items.clear();
     _maps.clear();
+    _tabs.clear();
     _layoutRefs.clear();
     clearChildren();
     _relayoutRequired = true;
@@ -364,13 +388,20 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
-                w->setTabName(-1, childnode.getHeader());
+                auto& name = childnode.getHeader();
+                w->setTabName(-1, name);
+                if (std::find(_activeTabs.begin(), _activeTabs.end(), name) != _activeTabs.end()) {
+                    w->setActiveTab(name);
+                }
             }
         }
         container->addChild(w);
-        _tracker->onUiHint += {this, [this,w](void* s, const std::string& name, const std::string& value) {
+        _tabs.push_back(w);
+        _tracker->onUiHint += { this, [this,w](void* s, const std::string& name, const std::string& value) {
             if (name == "ActivateTab") {
                 w->setActiveTab(value);
+            } else if (name =="reset") {
+                w->setActiveTab(0);
             }
         }};
     }

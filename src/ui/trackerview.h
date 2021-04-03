@@ -3,6 +3,7 @@
 
 #include "../uilib/simplecontainer.h"
 #include "../uilib/group.h"
+#include "../uilib/tabs.h"
 #include "mapwidget.h"
 #include "item.h"
 #include "../core/tracker.h"
@@ -20,6 +21,8 @@ public:
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setSize(Size size) override;
     void relayout();
+    
+    std::list< std::pair<std::string,std::string> > getHints() const;
     
     Signal<const std::string&> onItemHover;
     
@@ -39,6 +42,8 @@ protected:
     int _absY=0;
     std::map<std::string, std::list<Item*>> _items;
     std::map<std::string, std::list<MapWidget*>> _maps;
+    std::list<Tabs*> _tabs;
+    std::list<std::string> _activeTabs;
     std::list< std::pair<std::string,std::string> > _missedHints;
     
     void updateLayout(const std::string& layout);

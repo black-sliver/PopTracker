@@ -77,7 +77,14 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
 void TrackerWindow::setAutoTrackerState(AutoTracker::State state)
 {
 }
-    
+
+
+std::list< std::pair<std::string,std::string> > TrackerWindow::getHints() const
+{
+    if (_view) return _view->getHints();
+    return {};
+}
+
 void TrackerWindow::setSize(Size size)
 {
     printf("setSize(%d,%d)\n", size.width, size.height);

@@ -24,6 +24,8 @@ public:
     
     virtual void setAutoTrackerState(AutoTracker::State state);
     
+    std::list< std::pair<std::string,std::string> > getHints() const;
+    
     Signal<const std::string&> onMenuPressed;
     
     static const std::string MENU_LOAD;
