@@ -40,6 +40,7 @@ bool Tracker::AddItems(const std::string& file) {
         return false;
     }
     
+    _reachableCache.clear();
     for (auto& v : j) {
         if (v.type() != json::value_t::object) {
             fprintf(stderr, "Bad item\n");
@@ -48,6 +49,7 @@ bool Tracker::AddItems(const std::string& file) {
         _jsonItems.push_back(JsonItem::FromJSON(v));
         _jsonItems.back().setID(++_lastItemID);
         _jsonItems.back().onChange += {this, [this](void* sender) {
+            if (!_bulkUpdate) _reachableCache.clear();
             JsonItem* i = (JsonItem*)sender;
             onStateChanged.emit(this, i->getID());
         }};
@@ -67,6 +69,7 @@ bool Tracker::AddLocations(const std::string& file) {
         return false;
     }
     
+    _reachableCache.clear();
     for (auto& loc : Location::FromJSON(j)) {
         //loc.dump(true);
         _locations.push_back(std::move(loc)); // TODO: move constructor
@@ -147,7 +150,9 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
             std::string secname = t+1;
             // match by ID (includes all parents)
             auto& loc = getLocation(locid, true);
+#if 0
             printf("%s => %s => %s [%d]\n", code, locid.c_str(), loc.getName().c_str(), (int)loc.getSections().size());
+#endif
             for (auto& sec: loc.getSections()) {
                 if (sec.getName() != secname) continue;
                 return &sec;
@@ -325,19 +330,38 @@ int Tracker::isReachable(const LocationSection& section)
                 count = atoi(s.c_str()+p+1);
                 s = s.substr(0,p);
             }
+            auto it = _reachableCache.find(s);
+            if (it != _reachableCache.end()) {
+                if (s[0] != 0) { // value is count
+                    if (it->second >= count) continue;
+                    if (optional) {
+                        reachable = 2;
+                    } else {
+                        reachable = 0;
+                        break;
+                    }
+                } else { // value is glitched/not glitched
+                    int sub = it->second;
+                    if (!checkOnly && sub==3) sub=0; // or set checkable = true?
+                    else if (optional && sub) sub=2;
+                    if (sub==2) reachable = 2;
+                    if (sub==0) reachable = 0;
+                    if (!reachable) break;
+                }
+            }
             // '$' calls into lua
-            if (s[0] == '$') {
+            else if (s[0] == '$') {
                 // TODO: use a helper to access lua instead of having lua state here
                 lua_getglobal(_L, s.c_str()+1);
                 if (lua_pcall(_L, 0, 1, 0) != LUA_OK) {
                     fprintf(stderr, "Error running $%s:\n%s\n",
                         s.c_str()+1, lua_tostring(_L,-1));
                     // TODO: clean up lua stack?
-                } else if (lua_tonumber(_L, -1)>=count) {
-                    lua_pop(_L,1);
-                    continue;
                 } else {
+                    int n = lua_tonumber(_L, -1);
                     lua_pop(_L,1);
+                    _reachableCache[s] = n;
+                    if (n>=count) continue;
                 }
                 if (optional) {
                     reachable = 2;
@@ -357,6 +381,7 @@ int Tracker::isReachable(const LocationSection& section)
                 for (auto& subsec: subloc.getSections()) {
                     if (subsec.getName() != subsecname) continue;
                     int sub = isReachable(subsec);
+                    _reachableCache[s] = sub;
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
                     else if (optional && sub) sub=2;
                     if (sub==2) reachable = 2;
@@ -365,26 +390,11 @@ int Tracker::isReachable(const LocationSection& section)
                 }
                 if (!reachable) break;
             }
-            // other: references codes (with count)
-            else if (count>1) {
-                if (ProviderCountForCode(s) >= count) continue;
-                if (optional) {
-                    reachable = 2;
-                } else {
-                    reachable = 0;
-                    break;
-                }
-            }
-            // (without count, optimized)
+            // other: references codes (with or without count)
             else {
-                bool match = false;
-                for (const auto& item: _jsonItems) {
-                    if (item.providesCode(s)) {
-                        match = true;
-                        break;
-                    }
-                }
-                if (match) continue;
+                int n = ProviderCountForCode(s);
+                _reachableCache[s] = n;
+                if (n >= count) continue;
                 if (optional) {
                     reachable = 2;
                 } else {
@@ -406,6 +416,7 @@ LuaItem * Tracker::CreateLuaItem()
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
+        if (!_bulkUpdate) _reachableCache.clear();
         LuaItem* i = (LuaItem*)sender;
         onStateChanged.emit(this, i->getID());
     }};
@@ -458,10 +469,12 @@ json Tracker::saveState() const
 
 bool Tracker::loadState(nlohmann::json& state)
 {
+    _reachableCache.clear();
     if (state.type() != json::value_t::object) return false;
     auto& j = state["tracker"]; // state's tracker data
     if (j["format_version"] != 1) return false; // incompatible state format
     
+    _bulkUpdate = true;
     auto& jJsonItems = j["json_items"];
     if (jJsonItems.type() == json::value_t::object) {
         for (auto it=jJsonItems.begin(); it!=jJsonItems.end(); it++) {
@@ -493,6 +506,7 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
+    _bulkUpdate = false;
     
     return true;
 }

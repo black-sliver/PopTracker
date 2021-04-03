@@ -91,7 +91,8 @@ protected:
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
     std::map<std::string, Map> _maps;
-    std::map<std::string,int> _codes; // activated codes
+    std::map<std::string, int> _reachableCache;
+    bool _bulkUpdate = false;
     
 protected: // LUA interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
