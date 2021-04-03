@@ -91,9 +91,14 @@ LuaItem* ScriptHost::CreateLuaItem()
 bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval)
 {
     if (interval==0) interval=500; /*orig:1000*/ // default
-    if (addr<0 || len<1) return false; // invalid
     
     RemoveMemoryWatch(name);
+    
+    if (!callback.valid()) return false;
+    if (addr<0 || len<1) {
+        luaL_unref(_L, LUA_REGISTRYINDEX, callback.ref);
+        return false;
+    }
     
     // AutoTracker watches are dumb, so we need to keep track of the state
     MemoryWatch w;
@@ -116,9 +121,10 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
         if (updateInterval) _autoTracker->setInterval(w.interval);
         _memoryWatches.push_back(w);
         return true;
+    } else {
+        luaL_unref(_L, LUA_REGISTRYINDEX, w.callback);
+        return false;
     }
-    
-    return false;
 }
 
 bool ScriptHost::RemoveMemoryWatch(const std::string& name)
@@ -130,6 +136,7 @@ bool ScriptHost::RemoveMemoryWatch(const std::string& name)
             auto name = it->name;
             auto addr = it->addr;
             auto len = it->len;
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->callback);
             _memoryWatches.erase(it);
             // NOTE: AutoTracker::RemoveWatch takes a simple byte range at the moment
             for (const auto& other: _memoryWatches) {
