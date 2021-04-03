@@ -14,6 +14,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, LoadScript, const char*),
     LUA_METHOD(ScriptHost, AddMemoryWatch, const char*, int, int, LuaRef, int),
     LUA_METHOD(ScriptHost, RemoveMemoryWatch, const char*),
+    LUA_METHOD(ScriptHost, AddWatchForCode, const char*, const char*, LuaRef),
+    LUA_METHOD(ScriptHost, RemoveWatchForCode, const char*),
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
 };
 
@@ -44,12 +46,30 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     _autoTracker->Lua_Push(_L);
     lua_setglobal(_L, "AutoTracker");
     
+    _tracker->onStateChanged += { this, [this](void* s, const std::string& id) {
+        const auto& item = _tracker->getItemById(id);
+        for (auto& pair: _codeWatches) {
+            if (item.canProvideCode(pair.second.code)) {
+                printf("Item %s changed, which can provide code \"%s\" for watch \"%s\"\n",
+                        id.c_str(), pair.second.code.c_str(), pair.first.c_str());
+                lua_rawgeti(_L, LUA_REGISTRYINDEX, pair.second.callback);
+                lua_pushstring(_L, pair.second.code.c_str()); // arg1: code
+                if (lua_pcall(_L, 1, 0, 0)) {
+                    printf("Error calling Memory Watch Callback for %s: %s\n",
+                            pair.first.c_str(), lua_tostring(_L, -1));
+                    // TODO: clean up lua stack
+                    return;
+                }
+            }
+        }
+    }};
 }
 
 ScriptHost::~ScriptHost()
 {
     if (_autoTracker) delete _autoTracker;
     _autoTracker = nullptr;
+    _tracker->onStateChanged -= this;
 }
 
 bool ScriptHost::LoadScript(const std::string& file) 
@@ -175,6 +195,23 @@ bool ScriptHost::RemoveMemoryWatch(const std::string& name)
         }
     }
     return false;
+}
+
+bool ScriptHost::AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback)
+{
+    RemoveWatchForCode(name);
+    if (code.empty() || !callback.valid()) return false;
+    _codeWatches[name] = { callback.ref, code };
+    return true;
+}
+
+bool ScriptHost::RemoveWatchForCode(const std::string& name)
+{
+    auto it = _codeWatches.find(name);
+    if (it == _codeWatches.end()) return false;
+    luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
+    _codeWatches.erase(it);
+    return true;
 }
 
 void ScriptHost::resetWatches()

@@ -23,6 +23,8 @@ public:
     LuaItem *CreateLuaItem();
     bool AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
     bool RemoveMemoryWatch(const std::string& name);
+    bool AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
+    bool RemoveWatchForCode(const std::string& name);
     void resetWatches();
     
     bool autoTrack();
@@ -37,12 +39,18 @@ public:
         std::string name;
         std::vector<uint8_t> data;
     };
+    struct CodeWatch
+    {
+        int callback;
+        std::string code;
+    };
     
 protected:
     lua_State *_L;
     Pack *_pack;
     Tracker *_tracker;
     std::list<MemoryWatch> _memoryWatches;
+    std::map<std::string, CodeWatch> _codeWatches;
     AutoTracker *_autoTracker = nullptr;
     
 protected: // LUA interface implementation
