@@ -84,7 +84,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool from
     } else {
         std::string s;
         std::string filename = os_pathcat(_dir, sanitize(pack->getUID()), sanitize(pack->getVersion()), sanitize(pack->getVariant()), name+".json");
-        printf("Loading state \"%s\" from file...", name.c_str());
+        printf("Loading state \"%s\" from file %s...", name.c_str(), filename.c_str());
         if (!readFile(filename, s)) {
             printf(" missing\n");
             return false;
