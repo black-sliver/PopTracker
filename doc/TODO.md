@@ -10,6 +10,13 @@ Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
   - Nicer icons (I'm not an artist)
 
 ## General Stuff
+- isReachable optimizations:
+    - do not call into LUA from updateLocationState(): prebuild cache
+    - invalidate only parts of _reachableCache when toggling items?
+    - update location state on next frame instead of immediately (start of auto-tracking)
+    - try to determine if location state needs update?
+- show version somewhere in the app
+- MemoryWatch: only run callback if all bytes of a watch have been read to avoid potential races (this has to add race-free bool to SNES::readBlock)
 - auto-tracking for other systems than SNES
 - pins
 - notes
@@ -35,8 +42,9 @@ Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
   - number overlay on map (X unreachable red, Y reachable white)
 - Move (more) non-shared stuff from BaseItem to JsonItem
 - `Lua_Interface::PropertyMap` to get rid of ugly `Lua_Index` and `Lua_NewIndex`
-- build with `-D_FORTIFY_SOURCE=2`, `-pie` ?
 - Fix UI stuff
+- build with `-D_FORTIFY_SOURCE=2`, `-pie`, ASLR, RELRO ?
+- fuzz lua and json interfaces
 
 ## WASM
 - custom html, to only have canvas. Use js console for stdout and stderr
