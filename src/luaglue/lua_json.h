@@ -59,6 +59,9 @@ void json_to_lua(lua_State* L, json& j)
         case json::value_t::number_float:
             lua_pushnumber(L, j);
             break;
+        case json::value_t::boolean:
+            lua_pushboolean(L, j);
+            break;
         case json::value_t::string:
             lua_pushstring(L, j.get<std::string>().c_str());
             break;
