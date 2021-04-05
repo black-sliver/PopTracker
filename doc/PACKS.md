@@ -304,8 +304,10 @@ We probably want to add a different (additional) interface to Pop for this:
 * layouts define how the items and maps are placed in the UI
 * layout definitions are a map of `"name" => widget` where widget can be some container, a reference, an item grid/array, a single item or a (world-)map
 * the named layout `"tracker_default"` is the root object of the tracker view
+* if `"tracker_default"` is missing, `"tracker_horizontal"` or `"tracker_vertical"` is used (no way for the user to pick yet)
 * the named layout `"tracker_broadcast"` is the root object of the broadcast view
 * the named layout `"settings_popup"` is the root object of a pack/variant specific settings window
+* the named layout `"tracker_capture_item"` is not supported yet ("item picker popup" for hints)
 * containers have `"content"` which can be an array of other widgets or a json object for a single other widget
 
 the final hierarchy looks something like this: `json root -> "tracker_default" -> "content" -> "content" -> ...`
