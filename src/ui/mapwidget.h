@@ -3,6 +3,7 @@
 
 #include "../uilib/image.h"
 #include <map>
+#include <list>
 
 namespace Ui {
 
@@ -11,9 +12,13 @@ public:
     MapWidget(int x, int y, int w, int h, const char* filename);
     MapWidget(int x, int y, int w, int h, const void* data, size_t len);
     
-    struct Location {
+    struct Point {
         int x=0;
         int y=0;
+    };
+    
+    struct Location {
+        std::list<Point> pos;
         int state=1;
     };
     

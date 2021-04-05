@@ -97,25 +97,27 @@ void MapWidget::connectSignals()
         bool match = false;
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
-            int locleft = loc.x - locsize/2;
-            int loctop = loc.y - locsize/2;
-            if (locleft < 0) locleft = 0;
-            if (loctop < 0) loctop = 0;
-            if (locleft > srcw-locsize) locleft=srcw-locsize;
-            if (loctop > srch-locsize) loctop=srch-locsize;
-            if (x1 >= locleft && x1 < locleft+locsize &&
-                y1 >= loctop  && y1 < loctop+locsize)
-            {   
-                // TODO; store iterator instead of string?
-                match = true;
-                if (locIt->first != _locationHover) {
-                    _locationHover = locIt->first;
-#if 0
-                    printf("MapWidget: hover location %s\n", _locationHover.c_str());
-#endif
-                    onLocationHover.emit(this, _locationHover, absX, absY);
+            for (const auto& pos: loc.pos) {
+                int locleft = pos.x - locsize/2;
+                int loctop = pos.y - locsize/2;
+                if (locleft < 0) locleft = 0;
+                if (loctop < 0) loctop = 0;
+                if (locleft > srcw-locsize) locleft=srcw-locsize;
+                if (loctop > srch-locsize) loctop=srch-locsize;
+                if (x1 >= locleft && x1 < locleft+locsize &&
+                    y1 >= loctop  && y1 < loctop+locsize)
+                {
+                    // TODO; store iterator instead of string?
+                    match = true;
+                    if (locIt->first != _locationHover) {
+                        _locationHover = locIt->first;
+    #if 0
+                        printf("MapWidget: hover location %s\n", _locationHover.c_str());
+    #endif
+                        onLocationHover.emit(this, _locationHover, absX, absY);
+                    }
+                    break;
                 }
-                break;
             }
         }
         if (!match) {
@@ -147,45 +149,49 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
     
     for (const auto& pair : _locations) {
         const auto& loc = pair.second;
-        // calculate top left corner of squares
-        int innerx = (loc.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
-        int innery = (loc.y*dsth+srch/2)/srch - locScreenInnerH/2;
-        // fix up locations that are on the edge of the map -- we could also move this to addLocation
-        if (innerx < borderScreenSize) innerx = borderScreenSize;
-        if (innery < borderScreenSize) innery = borderScreenSize;
-        if (innerx > dstw+locScreenOuterW) innerx = dstw-locScreenOuterW;
-        if (innery > dsth+locScreenOuterH) innery = dsth-locScreenOuterH;
-        // move to drawing offset
-        innerx += dstx;
-        innery += dsty;
-        // calculate top left corner of border
-        int outerx = innerx-borderScreenSize;
-        int outery = innery-borderScreenSize;
-        
-        SDL_Rect inner = {
-            .x = innerx, .y = innery, .w = locScreenInnerW, .h = locScreenInnerH
-        };
-        SDL_Rect outer = {
-            .x = outerx, .y = outery, .w = locScreenOuterW, .h = locScreenOuterH
-        };
-        
-        int state = (int)loc.state;
-        const Widget::Color& c = (state<0 || state>=countOf(STATE_COLOR)) ?
-                STATE_COLOR[countOf(STATE_COLOR)-1] : STATE_COLOR[state];
-        
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_RenderFillRect(renderer, &outer);
-        SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-        SDL_RenderFillRect(renderer, &inner);
+        for (const auto& pos : loc.pos) {
+            // calculate top left corner of squares
+            int innerx = (pos.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
+            int innery = (pos.y*dsth+srch/2)/srch - locScreenInnerH/2;
+            // fix up locations that are on the edge of the map -- we could also move this to addLocation
+            if (innerx < borderScreenSize) innerx = borderScreenSize;
+            if (innery < borderScreenSize) innery = borderScreenSize;
+            if (innerx > dstw+locScreenOuterW) innerx = dstw-locScreenOuterW;
+            if (innery > dsth+locScreenOuterH) innery = dsth-locScreenOuterH;
+            // move to drawing offset
+            innerx += dstx;
+            innery += dsty;
+            // calculate top left corner of border
+            int outerx = innerx-borderScreenSize;
+            int outery = innery-borderScreenSize;
+
+            SDL_Rect inner = {
+                .x = innerx, .y = innery, .w = locScreenInnerW, .h = locScreenInnerH
+            };
+            SDL_Rect outer = {
+                .x = outerx, .y = outery, .w = locScreenOuterW, .h = locScreenOuterH
+            };
+
+            int state = (int)loc.state;
+            const Widget::Color& c = (state<0 || state>=countOf(STATE_COLOR)) ?
+                    STATE_COLOR[countOf(STATE_COLOR)-1] : STATE_COLOR[state];
+
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            SDL_RenderFillRect(renderer, &outer);
+            SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+            SDL_RenderFillRect(renderer, &inner);
+        }
     }
 }
 
 void MapWidget::addLocation(const std::string& id, int x, int y, int state)
 {
-    if (_locations.find(id) != _locations.end()) {
-        fprintf(stderr, "Duplicate location ID: %s\n", id.c_str());
+    auto it = _locations.find(id);
+    if (it != _locations.end()) {
+        it->second.pos.push_back( {x,y} );
+    } else {
+        _locations[id] = { { {x,y} },state};
     }
-    _locations[id] = {x,y,state}; // can't use map if names are not unique
 }
 void MapWidget::setLocationState(const std::string& id, int state)
 {
