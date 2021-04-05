@@ -227,7 +227,10 @@ SD2SNES::SD2SNES(const std::string& name)
                         unsigned long t = (unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_update).count();
                         {
                             watchlock.unlock();
-                            std::this_thread::sleep_for(std::chrono::milliseconds((t<update_interval) ? (update_interval-t) : 1));
+                            // FIXME: do multiple partial sleeps and break when destruction is requested or update_interval changed
+                            // WORK-AROUND: limit sleep time to 1sec
+                            unsigned long sleept = (t+1000<update_interval) ? 1000 : (t<update_interval) ? (update_interval-t) : 1;
+                            std::this_thread::sleep_for(std::chrono::milliseconds(sleept));
                         }
                         watchlock.lock();
                     }
