@@ -26,10 +26,13 @@ Pack::Info Pack::getInfo() const
     if (!isValid()) return {};
     
     std::vector<Pack::VariantInfo> variants;
-    auto& v =  _manifest["variants"];
-    if (v.type() == json::value_t::object) {
-        for (auto it = v.begin(); it != v.end(); ++it) {
-            variants.push_back({it.key(),to_string(it.value(),"display_name",it.key())});
+    auto vIt = _manifest.find("variants");
+    if (vIt != _manifest.end()) {
+        auto& v = vIt.value();
+        if (v.type() == json::value_t::object) {
+            for (auto it = v.begin(); it != v.end(); ++it) {
+                variants.push_back({it.key(),to_string(it.value(),"display_name",it.key())});
+            }
         }
     }
     if (variants.empty()) variants.push_back({"","Standard"});
