@@ -68,7 +68,7 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++17 $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(CPP_FLAGS) $(LD_FLAGS) `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -o $@
+	$(CPP) -std=c++17 $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(CPP_FLAGS) $(LD_FLAGS) `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -pthread -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
     # TODO: make zip a separate target
