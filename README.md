@@ -39,6 +39,7 @@ See [BUILD.md](BUILD.md).
 ## Supported/tested packs
 * [evermizer-tracker-package](https://github.com/Cyb3RGER/evermizer-tracker-package)
 * [SoM-Open-Mode-Tracker](https://github.com/Cyb3RGER/SoM-Open-Mode-Tracker)
+* [iogr_emotracker_apokalysme](https://github.com/Apokalysme/iogr_emotracker_apokalysme) v3.6
 
 *more to be tested*
 
