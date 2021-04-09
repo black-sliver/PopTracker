@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on: [push,pull_request]
+
+jobs:
+
+  test-ubuntu:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: release build
+      run: make native CONF=RELEASE
+    # TODO: run tests
