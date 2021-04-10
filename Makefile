@@ -83,14 +83,14 @@ ifneq '' '$(findstring clang,$(CC))'
 endif
 # (default) tool config
 ifeq ($(CONF), DEBUG) # DEBUG
-CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections
-LD_FLAGS = -Wl,-gc-sections -fstack-protector-all
+CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
+LD_FLAGS = -Wl,-gc-sections -fstack-protector-all -pthread
 else ifdef IS_LLVM # RELEASE, DIST with LLVM
-CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto
+CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread
 LD_FLAGS = -Wl,-gc-sections -O2 -s -flto
 else # RELEASE, DIST with GCC
-CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8
-LD_FLAGS = -Wl,-gc-sections -O2 -s -flto=8
+CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
+LD_FLAGS = -Wl,-gc-sections -O2 -s -flto=8 -pthread
 endif
 WIN32_CPP_FLAGS = $(CPP_FLAGS)
 WIN64_CPP_FLAGS = $(CPP_FLAGS)
