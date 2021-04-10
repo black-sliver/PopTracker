@@ -31,3 +31,18 @@ jobs:
     - name: Build DEBUG
       run: make native CONF=DEBUG -j2
     # TODO: run tests
+
+  test-macos:
+
+    runs-on: macos-latest
+    
+    steps:
+    - name: Install dependencies
+      run: |
+        brew install SDL2 sdl2_ttf sdl2_image
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build DEBUG
+      run: make native CONF=DEBUG -j2
+    # TODO: run tests
