@@ -1,6 +1,18 @@
-name: C/C++ CI
+name: CI
 
-on: [push,pull_request]
+on:
+  push:
+    branches-ignore:
+      - 'screenshots'
+    paths-ignore:
+      - '**.md'
+      - 'doc/**'
+  pull_request:
+    branches-ignore:
+      - 'screenshots'
+    paths-ignore:
+      - '**.md'
+      - 'doc/**'
 
 jobs:
 
@@ -9,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: install dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: release build
-      run: make native CONF=RELEASE
+    - name: Build DEBUG
+      run: make native CONF=DEBUG -j2
     # TODO: run tests
