@@ -106,18 +106,21 @@ NIX_LD_FLAGS = $(LD_FLAGS)
 
 # default target: "native"
 ifdef IS_WIN32
+  EXE = $(WIN32_EXE)
   ifeq ($(CONF), DIST)
     native: $(WIN32_ZIP)
   else
     native: $(WIN32_EXE)
   endif
 else ifdef IS_WIN64
+  EXE = $(WIN64_EXE)
   ifeq ($(CONF), DIST)
     native: $(WIN64_ZIP)
   else
     native: $(WIN64_EXE)
   endif
 else # TODO OSX .app
+  EXE = $(NIX_EXE)
   native: $(NIX_EXE)
 endif
 
@@ -231,6 +234,10 @@ $(WIN64_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN64_OBJ_DIRS)
 
 # Avoid detection/auto-cleanup of intermediates
 .OBJ_DIRS: $(NIX_OBJ_DIRS) $(WIN32_OBJ_DIRS) $(WIN64_OBJ_DIRS)
+
+test: $(EXE)
+# TODO: implement and run actual tests
+	timeout 5 $(EXE) --version
 
 clean:
 	(cd lib/lua && make -f makefile clean)

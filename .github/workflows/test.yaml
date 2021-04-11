@@ -24,13 +24,14 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
     - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Build DEBUG
       run: make native CONF=DEBUG -j2
-    # TODO: run tests
+    - name: Run tests
+      run: make test CONF=DEBUG
 
   test-macos:
 
@@ -39,10 +40,11 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew install SDL2 sdl2_ttf sdl2_image
+        brew install coreutils SDL2 sdl2_ttf sdl2_image
     - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Build DEBUG
       run: make native CONF=DEBUG -j2
-    # TODO: run tests
+    - name: Run tests
+      run: make test CONF=DEBUG
