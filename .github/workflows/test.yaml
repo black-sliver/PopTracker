@@ -48,3 +48,29 @@ jobs:
       run: make native CONF=DEBUG -j2
     - name: Run tests
       run: make test CONF=DEBUG
+
+  test-win64:
+
+    runs-on: windows-latest
+    
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: >-
+          base-devel
+          coreutils
+          make
+          mingw-w64-x86_64-toolchain
+          mingw64/mingw-w64-x86_64-SDL2
+          mingw64/mingw-w64-x86_64-SDL2_image
+          mingw64/mingw-w64-x86_64-SDL2_ttf
+          mingw64/mingw-w64-x86_64-freetype
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build DEBUG
+      shell: msys2 {0}
+      run: make native CONF=DEBUG -j2
+    - name: Run tests
+      shell: msys2 {0}
+      run: make test CONF=DEBUG

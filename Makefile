@@ -107,6 +107,12 @@ NIX_LD_FLAGS = $(LD_FLAGS)
 # default target: "native"
 ifdef IS_WIN32
   EXE = $(WIN32_EXE)
+  WIN32CC = $(CC)
+  WIN32CPP = $(CPP)
+  WIN32AR = $(AR)
+  WIN32STRIP = strip
+  # MSYS' SDL_* configure is a bloat and links full static
+  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lbrotlidec-static -lbrotlicommon-static -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN32_ZIP)
   else
@@ -114,6 +120,12 @@ ifdef IS_WIN32
   endif
 else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
+  WIN64CC = $(CC)
+  WIN64CPP = $(CPP)
+  WIN64AR = $(AR)
+  WIN64STRIP = strip
+  # MSYS' SDL_* configure is a bloat and links full static
+  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lbrotlidec-static -lbrotlicommon-static -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN64_ZIP)
   else
@@ -243,7 +255,9 @@ $(WIN64_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN64_OBJ_DIRS)
 
 test: $(EXE)
 # TODO: implement and run actual tests
-	timeout 5 $(EXE) --version
+	@echo "Testing $(EXE)"
+	@du -h $(EXE) | cut -f -1
+	@timeout 5 $(EXE) --version
 
 clean:
 	(cd lib/lua && make -f makefile clean)
