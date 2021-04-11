@@ -211,6 +211,8 @@ $(NIX_BUILD_DIR):
 	mkdir -p $@
 $(WASM_BUILD_DIR):
 	mkdir -p $@
+$(WIN32_BUILD_DIR):
+	mkdir -p $@
 $(WIN64_BUILD_DIR):
 	mkdir -p $@
 
@@ -219,16 +221,16 @@ $(DIST_DIR):
 	mkdir -p $@
 
 # Fragments
-$(NIX_OBJ_DIRS)/%/:
-	mkdir -p $(NIX_OBJ_DIRS)
+$(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
+	mkdir -p $@
 $(NIX_BUILD_DIR)/%.o: %.cpp $(HDR) | $(NIX_OBJ_DIRS)
 	$(CPP) -std=c++17 $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
-$(WIN32_OBJ_DIRS):
-	mkdir -p $(WIN32_OBJ_DIRS)
+$(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
+	mkdir -p $@
 $(WIN32_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN32_OBJ_DIRS)
 	$(WIN32CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN32_INCLUDE_DIRS) $(WIN32_CPP_FLAGS) -D_REENTRANT -c $< -o $@
-$(WIN64_OBJ_DIRS):
-	mkdir -p $(WIN64_OBJ_DIRS)
+$(WIN64_OBJ_DIRS): | $(WIN64_BUILD_DIR)
+	mkdir -p $@
 $(WIN64_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN64_OBJ_DIRS)
 	$(WIN64CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN64_INCLUDE_DIRS) $(WIN64_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 
