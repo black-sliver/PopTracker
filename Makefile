@@ -186,25 +186,29 @@ $(WIN64_ZIP): $(WIN64_EXE)
 
 # Targets' dependencies
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
-# TODO: set build path so we can build multiple configurations at once
-	(cd lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
-	mv lib/lua/$(notdir $@) $@
-	(cd lib/lua && make -f makefile clean)
+	mkdir -p $(WASM_BUILD_DIR)/lib
+	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
+	rm -rf $(WASM_BUILD_DIR)/lib
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
-# TODO: set build path so we can build multiple configurations at once
-	(cd lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc")
-	mv lib/lua/$(notdir $@) $@
-	(cd lib/lua && make -f makefile clean)
+	mkdir -p $(NIX_BUILD_DIR)/lib
+	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc")
+	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
+	rm -rf $(NIX_BUILD_DIR)/lib
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
-# TODO: set build path so we can build multiple configurations at once
-	(cd lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
-	mv lib/lua/$(notdir $@) $@
-	(cd lib/lua && make -f makefile clean)	
+	mkdir -p $(WIN32_BUILD_DIR)/lib
+	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
+	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
+	rm -rf $(WIN32_BUILD_DIR)/lib
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
-# TODO: set build path so we can build multiple configurations at once
-	(cd lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
-	mv lib/lua/$(notdir $@) $@
-	(cd lib/lua && make -f makefile clean)	
+	mkdir -p $(WIN64_BUILD_DIR)/lib
+	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
+	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
+	rm -rf $(WIN64_BUILD_DIR)/lib
 
 # Build dirs
 $(NIX_BUILD_DIR):
