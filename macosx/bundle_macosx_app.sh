@@ -1,27 +1,55 @@
 #!/bin/bash
 
+EXE=
+VERSION=
+BUNDLE_NAME_SET=no
+BUNDLE_NAME=
+
 function usage() {
-  echo "Usage: `basename $0` binary"
+  echo "Usage: `basename $0` [--version=] [--bundle-name=] binary"
 }
 
-if [ -z "$1" ]
-then
+if test $# -eq 0; then
   usage
-  exit 0
+  exit 1
 fi
 
-SRC_EXE=$1
-VERSION="0.1"
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
 
-APP_NAME=`basename $SRC_EXE`
+  case $1 in
+    --version=*)
+      VERSION=$optarg
+      ;;
+    --bundle-name=*)
+      BUNDLE_NAME=$optarg
+      BUNDLE_NAME_SET=yes
+      ;;
+    *)
+      EXE=$1
+      if test $BUNDLE_NAME_SET = no ; then
+        BUNDLE_NAME=`basename $1`
+      fi
+      ;;
+  esac
+  shift
+done
+
+echo $BUNDLE_NAME
+echo $VERSION
+
+APP_NAME=`basename $EXE`
 
 SRC_DIR=`dirname $0`
-DST_DIR=`dirname $1`
+DST_DIR=`dirname $EXE`
 
-SRC_ASSETS_DIR="$SRC_DIR/assets"
+SRC_ASSETS_DIR="$SRC_DIR/../assets"
 
-APP_BUNDLE_DIR="$SRC_EXE.app"
-APP_BUNDLE_CONTENTS_DIR="$SRC_EXE.app/Contents"
+APP_BUNDLE_DIR="$DST_DIR/$BUNDLE_NAME.app"
+APP_BUNDLE_CONTENTS_DIR="$APP_BUNDLE_DIR/Contents"
 APP_BUNDLE_MACOS_DIR="$APP_BUNDLE_CONTENTS_DIR/MacOS"
 APP_BUNDLE_FRAMEWORKS_DIR="$APP_BUNDLE_CONTENTS_DIR/Frameworks"
 APP_BUNDLE_RESOURCES_DIR="$APP_BUNDLE_CONTENTS_DIR/Resources"
@@ -44,13 +72,13 @@ cat <<EOT >> $APP_BUNDLE_INFO_PLIST
 <plist version="1.0">
 <dict>
   <key>CFBundleGetInfoString</key>
-  <string>$APP_NAME</string>
+  <string>$BUNDLE_NAME</string>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
   <key>CFBundleIdentifier</key>
   <string>com.blacksliver.$APP_NAME</string>
   <key>CFBundleName</key>
-  <string>$APP_NAME</string>
+  <string>$BUNDLE_NAME</string>
   <key>CFBundleShortVersionString</key>
   <string>$VERSION</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -62,18 +90,20 @@ cat <<EOT >> $APP_BUNDLE_INFO_PLIST
 EOT
 
 # Copy binary into app bundle
-cp $SRC_EXE $DST_EXE
+cp $EXE $DST_EXE
 cp -r $SRC_ASSETS_DIR $APP_BUNDLE_MACOS_DIR
 
 # Update dynamic paths
-# This won't work with libraries installed with brew as 
+# This won't work with libraries installed with brew.
 
-SRC_LIB_SDL2=`otool -LX $SRC_EXE | grep "libSDL2-2.0.0" | awk '{print $1}'`
-SRC_LIB_SDL2_IMAGE=`otool -LX $SRC_EXE | grep "libSDL2_image-2.0.0" | awk '{print $1}'`
-SRC_LIB_SDL2_TTF=`otool -LX $SRC_EXE | grep "libSDL2_ttf-2.0.0" | awk '{print $1}'`
+[ -d "$SRC_DIR/prebuilt-sdl" ] || exit 0
 
-SRC_LIB_FREETYPE=`otool -LX $SRC_LIB_SDL2_TTF | grep "libfreetype.6" | awk '{print $1}'`
-SRC_LIB_PNG=`otool -LX $SRC_LIB_FREETYPE | grep "libpng16.16" | awk '{print $1}'`
+SRC_LIB_SDL2="$SRC_DIR/prebuilt-sdl/libSDL2-2.0.0.dylib"
+SRC_LIB_SDL2_IMAGE="$SRC_DIR/prebuilt-sdl/libSDL2_image-2.0.0.dylib"
+SRC_LIB_SDL2_TTF="$SRC_DIR/prebuilt-sdl/libSDL2_ttf-2.0.0.dylib"
+
+SRC_LIB_FREETYPE="$SRC_DIR/prebuilt-sdl/libfreetype.6.dylib"
+SRC_LIB_PNG="$SRC_DIR/prebuilt-sdl/libpng16.16.dylib"
 
 LIB_SDL2=`basename $SRC_LIB_SDL2`
 LIB_SDL2_IMAGE=`basename $SRC_LIB_SDL2_IMAGE`
@@ -93,20 +123,11 @@ cp $SRC_LIB_SDL2_TTF $DST_LIB_SDL2_TTF
 cp $SRC_LIB_FREETYPE $DST_LIB_FREETYPE
 cp $SRC_LIB_PNG $DST_LIB_PNG
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2 $DST_LIB_SDL2
+OLD_LIB_SDL2=`otool -LX $EXE | grep "libSDL2-2.0.0" | awk '{print $1}'`
+OLD_LIB_SDL2_IMAGE=`otool -LX $EXE | grep "libSDL2_image-2.0.0" | awk '{print $1}'`
+OLD_LIB_SDL2_TTF=`otool -LX $EXE | grep "libSDL2_ttf-2.0.0" | awk '{print $1}'`
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2_TTF $DST_LIB_SDL2_TTF
-install_name_tool -change $SRC_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_LIB_SDL2_TTF
-
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2_IMAGE $DST_LIB_SDL2_IMAGE
-install_name_tool -change $SRC_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_LIB_SDL2_IMAGE
-
-install_name_tool -id @executable_path/../Frameworks/$LIB_FREETYPE $DST_LIB_FREETYPE
-install_name_tool -change $SRC_LIB_PNG @executable_path/../Frameworks/$LIB_PNG $DST_LIB_FREETYPE
-
-install_name_tool -id @executable_path/../Frameworks/$LIB_PNG $DST_LIB_PNG
-
-install_name_tool -change $SRC_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_EXE
-install_name_tool -change $SRC_LIB_SDL2_TTF @executable_path/../Frameworks/$LIB_SDL2_TTF $DST_EXE
-install_name_tool -change $SRC_LIB_SDL2_IMAGE @executable_path/../Frameworks/$LIB_SDL2_IMAGE $DST_EXE
+install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_EXE
+install_name_tool -change $OLD_LIB_SDL2_IMAGE @executable_path/../Frameworks/$LIB_SDL2_IMAGE $DST_EXE
+install_name_tool -change $OLD_LIB_SDL2_TTF @executable_path/../Frameworks/$LIB_SDL2_TTF $DST_EXE
 
