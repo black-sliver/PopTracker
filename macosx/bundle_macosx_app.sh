@@ -38,9 +38,6 @@ while test $# -gt 0; do
   shift
 done
 
-echo $BUNDLE_NAME
-echo $VERSION
-
 APP_NAME=`basename $EXE`
 
 SRC_DIR=`dirname $0`
@@ -96,36 +93,29 @@ cp -r $SRC_ASSETS_DIR $APP_BUNDLE_MACOS_DIR
 # Update dynamic paths
 # This won't work with libraries installed with brew.
 
-[ -d "$SRC_DIR/prebuilt-sdl" ] || exit 0
+# Temporary solution to retrieve the necessary libraries to produce a app bundle.
+# A more permanent solution would be to download, compile, and link against the sources directly.
+REPO_URL="https://github.com/sbzappa/prebuilt-sdl.git"
+PREBUILT_DIR="$SRC_DIR/prebuilt-sdl"
 
-SRC_LIB_SDL2="$SRC_DIR/prebuilt-sdl/libSDL2-2.0.0.dylib"
-SRC_LIB_SDL2_IMAGE="$SRC_DIR/prebuilt-sdl/libSDL2_image-2.0.0.dylib"
-SRC_LIB_SDL2_TTF="$SRC_DIR/prebuilt-sdl/libSDL2_ttf-2.0.0.dylib"
+[ -d $PREBUILT_DIR ] || git clone $REPO_URL $PREBUILT_DIR
+[ -d $PREBUILT_DIR ] || exit 1
 
-SRC_LIB_FREETYPE="$SRC_DIR/prebuilt-sdl/libfreetype.6.dylib"
-SRC_LIB_PNG="$SRC_DIR/prebuilt-sdl/libpng16.16.dylib"
+LIB_SDL2="libSDL2-2.0.0.dylib"
+LIB_SDL2_IMAGE="libSDL2_image-2.0.0.dylib"
+LIB_SDL2_TTF="libSDL2_ttf-2.0.0.dylib"
+LIB_FREETYPE="libfreetype.6.dylib"
+LIB_PNG="libpng16.16.dylib"
 
-LIB_SDL2=`basename $SRC_LIB_SDL2`
-LIB_SDL2_IMAGE=`basename $SRC_LIB_SDL2_IMAGE`
-LIB_SDL2_TTF=`basename $SRC_LIB_SDL2_TTF`
-LIB_FREETYPE=`basename $SRC_LIB_FREETYPE`
-LIB_PNG=`basename $SRC_LIB_PNG`
+cp "$PREBUILT_DIR/$LIB_SDL2" $APP_BUNDLE_FRAMEWORKS_DIR
+cp "$PREBUILT_DIR/$LIB_SDL2_IMAGE" $APP_BUNDLE_FRAMEWORKS_DIR
+cp "$PREBUILT_DIR/$LIB_SDL2_TTF" $APP_BUNDLE_FRAMEWORKS_DIR
+cp "$PREBUILT_DIR/$LIB_FREETYPE" $APP_BUNDLE_FRAMEWORKS_DIR
+cp "$PREBUILT_DIR/$LIB_PNG" $APP_BUNDLE_FRAMEWORKS_DIR
 
-DST_LIB_SDL2=$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2
-DST_LIB_SDL2_IMAGE=$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE
-DST_LIB_SDL2_TTF=$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
-DST_LIB_FREETYPE=$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
-DST_LIB_PNG=$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_PNG
-
-cp $SRC_LIB_SDL2 $DST_LIB_SDL2
-cp $SRC_LIB_SDL2_IMAGE $DST_LIB_SDL2_IMAGE
-cp $SRC_LIB_SDL2_TTF $DST_LIB_SDL2_TTF
-cp $SRC_LIB_FREETYPE $DST_LIB_FREETYPE
-cp $SRC_LIB_PNG $DST_LIB_PNG
-
-OLD_LIB_SDL2=`otool -LX $EXE | grep "libSDL2-2.0.0" | awk '{print $1}'`
-OLD_LIB_SDL2_IMAGE=`otool -LX $EXE | grep "libSDL2_image-2.0.0" | awk '{print $1}'`
-OLD_LIB_SDL2_TTF=`otool -LX $EXE | grep "libSDL2_ttf-2.0.0" | awk '{print $1}'`
+OLD_LIB_SDL2=`otool -LX $EXE | grep $LIB_SDL2 | awk '{print $1}'`
+OLD_LIB_SDL2_IMAGE=`otool -LX $EXE | grep $LIB_SDL2_IMAGE | awk '{print $1}'`
+OLD_LIB_SDL2_TTF=`otool -LX $EXE | grep $LIB_SDL2_TTF | awk '{print $1}'`
 
 install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_EXE
 install_name_tool -change $OLD_LIB_SDL2_IMAGE @executable_path/../Frameworks/$LIB_SDL2_IMAGE $DST_EXE
