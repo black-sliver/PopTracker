@@ -1,3 +1,8 @@
+/*
+ fileutil.h
+ (c) 2021 black-sliver, sbzappa
+ */
+
 #ifndef _CORE_FILEUTIL_H
 #define _CORE_FILEUTIL_H
 
