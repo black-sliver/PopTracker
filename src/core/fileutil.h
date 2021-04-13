@@ -9,6 +9,9 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(__APPLE__) && !defined(MACOS)
+#define MACOS
+#endif
 
 #if defined(_WIN32) && !defined(WIN32)
 #define WIN32
@@ -149,6 +152,25 @@ static std::string getConfigPath(const std::string& appname="", const std::strin
 #include <libgen.h> // dirname
 #include <sys/types.h> // struct passwd
 #include <pwd.h> // getpwuid
+
+#ifdef MACOS
+#include <mach-o/dyld.h>
+static std::string getAppPath()
+{
+    uint32_t bufsize = PATH_MAX;
+    char result[PATH_MAX+1]; memset(result, 0, sizeof(result)); // to make valgrind happy
+    if(_NSGetExecutablePath(result, &bufsize) == -1) {
+        fprintf(stderr, "Warning: could not get app path!\n");
+        return "";
+    }
+    result[PATH_MAX]=0;
+
+    char* slash = strrchr(result, '/');
+    if (!slash) return "";
+    *slash = 0;
+    return result;
+}
+#else
 static std::string getAppPath()
 {
     char result[PATH_MAX+1]; memset(result, 0, sizeof(result)); // to make valgrind happy
@@ -162,6 +184,8 @@ static std::string getAppPath()
     *slash = 0;
     return result;
 }
+#endif
+
 static std::string getHomePath()
 {
     const char* res = getenv("HOME");
