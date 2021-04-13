@@ -1,6 +1,3 @@
 [submodule "lib/lua"]
 	path = lib/lua
 	url = git://github.com/lua/lua
-[submodule "macosx/prebuilt-sdl"]
-	path = macosx/prebuilt-sdl
-	url = https://github.com/sbzappa/prebuilt-sdl.git
