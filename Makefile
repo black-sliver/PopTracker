@@ -63,8 +63,10 @@ WIN64CC = x86_64-w64-mingw32-gcc
 WIN64CPP = x86_64-w64-mingw32-g++
 WIN64AR = x86_64-w64-mingw32-ar
 WIN64STRIP = x86_64-w64-mingw32-strip
+
 # detect OS and compiler
 ifeq ($(OS),Windows_NT)
+  IS_WIN = yes
   ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
     IS_WIN64 = yes
   else ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
@@ -81,7 +83,9 @@ endif
 ifneq '' '$(findstring clang,$(CC))'
   IS_LLVM = yes
 endif
-# (default) tool config
+
+# tool config
+C_FLAGS = -Wall -std=c99
 ifeq ($(CONF), DEBUG) # DEBUG
 ifdef IS_LLVM # DEBUG with LLVM
 CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
@@ -90,19 +94,27 @@ else # DEBUG with GCC
 CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
 LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread
 endif
-else ifdef IS_LLVM # RELEASE, DIST with LLVM
+else ifdef IS_LLVM # RELEASE or DIST with LLVM
 CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread
 LD_FLAGS = -Wl,-dead_strip -O2 -s -flto
-else # RELEASE, DIST with GCC
+else # RELEASE or DIST with GCC
 CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
 LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
 endif
+
+# os-specific tool config
 WIN32_CPP_FLAGS = $(CPP_FLAGS)
 WIN64_CPP_FLAGS = $(CPP_FLAGS)
 NIX_CPP_FLAGS = $(CPP_FLAGS)
 WIN32_LD_FLAGS = $(LD_FLAGS)
 WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
+NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
+ifdef IS_OSX
+NIX_CPP_FLAGS += -mmacosx-version-min=10.12
+NIX_LD_FLAGS += -mmacosx-version-min=10.12
+NIX_C_FLAGS += -mmacosx-version-min=10.12
+endif
 
 # default target: "native"
 ifdef IS_WIN32
@@ -154,7 +166,7 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++17 $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -o $@
+	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
@@ -200,25 +212,25 @@ $(WIN64_ZIP): $(WIN64_EXE)
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
 	mkdir -p $(WASM_BUILD_DIR)/lib
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
-	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WASM_BUILD_DIR)/lib
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" MYCFLAGS="$(NIX_C_FLAGS)" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
-	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
 	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN32_BUILD_DIR)/lib
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN64_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
-	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" MYCFLAGS="-Wall -std=c99" MYLIBS="")
+	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib
 
@@ -240,7 +252,7 @@ $(DIST_DIR):
 $(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
 	mkdir -p $@
 $(NIX_BUILD_DIR)/%.o: %.cpp $(HDR) | $(NIX_OBJ_DIRS)
-	$(CPP) -std=c++17 $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
+	$(CPP) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
 	mkdir -p $@
 $(WIN32_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN32_OBJ_DIRS)
