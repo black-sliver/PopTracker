@@ -4,15 +4,21 @@ on:
   push:
     branches-ignore:
       - 'screenshots'
-    paths-ignore:
-      - '**.md'
-      - 'doc/**'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!doc/**'
+      - '!.github/workflows/**'
+      - '.github/workflows/test.yaml'
   pull_request:
     branches-ignore:
       - 'screenshots'
-    paths-ignore:
-      - '**.md'
-      - 'doc/**'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!doc/**'
+      - '!.github/workflows/**'
+      - '.github/workflows/test.yaml'
 
 jobs:
 

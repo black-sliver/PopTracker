@@ -1,0 +1,36 @@
+name: Build binaries
+
+on: workflow_dispatch
+
+jobs:
+
+  build-macos:
+
+    runs-on: macos-latest
+    
+    steps:
+    - name: Install dependencies
+      run: |
+        brew install coreutils SDL2 sdl2_ttf sdl2_image
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build RELEASE
+      run: make native CONF=RELEASE -j2
+    - name: Run tests
+      run: make test CONF=RELEASE
+    - name: Create bundle # TODO move this step to makefile
+      run: ./macosx/bundle_macosx_app.sh --version=0.11.0 build/darwin-x86_64/poptracker
+    - name: ZIP bundle # TODO move this step to makefile
+      run: |
+        mkdir -p dist
+        cd build/darwin-x86_64
+        ls -R
+        zip -vr ../../dist/poptracker_0-11-0_macos.zip poptracker.app -x "*.DS_Store"
+        du -h ../../dist/poptracker_0-11-0_macos.zip
+        cd ../..
+    - name: Store ZIP
+      uses: actions/upload-artifact@v2
+      with:
+        name: macos-dist
+        path: dist
