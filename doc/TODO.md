@@ -2,6 +2,9 @@
 
 Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 
+## Current Plans
+see [github projects](https://github.com/black-sliver/PopTracker/projects)
+
 ## Help wanted
 - OSX binaries
 - Custom application icon
