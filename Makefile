@@ -190,32 +190,23 @@ ifneq ($(CONF), DEBUG)
 endif
 
 $(WIN32_ZIP): $(WIN32_EXE) | $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/tmp-win32/poptracker/packs
-	cp -r assets $(DIST_DIR)/tmp-win32/poptracker/
-	cp LICENSE README.md CHANGELOG.md $(DIST_DIR)/tmp-win32/poptracker/
-	cp $(WIN32_BUILD_DIR)/*.exe $(DIST_DIR)/tmp-win32/poptracker/
-	cp $(WIN32_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win32/poptracker/ || true
-	rm -f $@
-	(cd $(DIST_DIR)/tmp-win32 && \
-	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
-	    else zip -9 -r ../$(notdir $@) poptracker ; fi && \
-	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
-	)
-	rm -rf dist/tmp-win32
-
 $(WIN64_ZIP): $(WIN64_EXE) | $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/tmp-win64/poptracker/packs
-	cp -r assets $(DIST_DIR)/tmp-win64/poptracker/
-	cp LICENSE README.md CHANGELOG.md $(DIST_DIR)/tmp-win64/poptracker/
-	cp $(WIN64_BUILD_DIR)/*.exe $(DIST_DIR)/tmp-win64/poptracker/
-	cp $(WIN64_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win64/poptracker/ || true
+$(WIN32_ZIP) $(WIN64_ZIP):
+	$(eval TGT = $(shell echo "$@" | rev | cut -d'_' -f 1 | rev | cut -d'.' -f 1))
+	$(eval TMP_DIR = $(DIST_DIR)/.tmp-$(TGT))
+	rm -rf $(TMP_DIR)
+	mkdir -p $(TMP_DIR)/poptracker/packs
+	cp -r assets $(TMP_DIR)/poptracker/
+	cp LICENSE README.md CHANGELOG.md $(TMP_DIR)/poptracker/
+	cp $(WIN32_BUILD_DIR)/*.exe $(TMP_DIR)/poptracker/
+	cp $(WIN32_BUILD_DIR)/*.dll $(TMP_DIR)/poptracker/ || true
 	rm -f $@
-	(cd $(DIST_DIR)/tmp-win64 && \
+	(cd $(TMP_DIR) && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
 	    else zip -9 -r ../$(notdir $@) poptracker ; fi && \
 	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
 	)
-	rm -rf dist/tmp-win64
+	rm -rf $(TMP_DIR)
 
 $(OSX_APP): $(NIX_EXE)
 	./macosx/bundle_macosx_app.sh --version=$(VERSION) "$(NIX_EXE)"

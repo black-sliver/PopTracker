@@ -35,3 +35,43 @@ jobs:
       with:
         name: macos-dist
         path: dist
+
+  build-msys:
+
+    runs-on: windows-latest
+    
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: >-
+          base-devel
+          coreutils
+          make
+          mingw-w64-x86_64-toolchain
+          mingw64/mingw-w64-x86_64-SDL2
+          mingw64/mingw-w64-x86_64-SDL2_image
+          mingw64/mingw-w64-x86_64-SDL2_ttf
+          mingw64/mingw-w64-x86_64-freetype
+          p7zip
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build RELEASE
+      shell: msys2 {0}
+      run: make native CONF=RELEASE -j2
+    - name: Run tests
+      shell: msys2 {0}
+      run: make test CONF=RELEASE
+    - name: Get version
+      shell: msys2 {0}
+      run: |
+        echo "POP_VERSION=`./build/win64/poptracker --version`" >> $GITHUB_ENV
+        echo "POP_NAME=poptracker_`./build/win64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+    - name: Build DIST # this builds a release ZIP
+      shell: msys2 {0}
+      run: make CONF=DIST
+    - name: Store DIST
+      uses: actions/upload-artifact@v2
+      with:
+        name: win64-msys-dist
+        path: dist
