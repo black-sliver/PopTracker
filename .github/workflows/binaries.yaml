@@ -16,27 +16,19 @@ jobs:
       with:
         submodules: recursive
     - name: Build RELEASE
-      run: make native CONF=RELEASE -j2
+      run: make native CONF=RELEASE -j3
     - name: Run tests
       run: make test CONF=RELEASE
     - name: Get version
       run: |
         echo "POP_VERSION=`./build/darwin-x86_64/poptracker --version`" >> $GITHUB_ENV
         echo "POP_NAME=poptracker_`./build/darwin-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV 
-    - name: Create bundle # TODO move this step to makefile
-      run: ./macosx/bundle_macosx_app.sh --version=${{ env.POP_VERSION }} build/darwin-x86_64/poptracker
-    - name: ZIP bundle # TODO move this step to makefile
-      run: |
-        mkdir -p dist
-        cd build/darwin-x86_64
-        ls -R
-        zip -9vr ../../dist/${{ env.POP_NAME }}_macos.zip poptracker.app -x "*.DS_Store"
-        du -h ../../dist/${{ env.POP_NAME }}_macos.zip
-        cd ../..
-    - name: Store APP
+    - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
+      run: make CONF=DIST
+    - name: Store app bundle
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ env.POP_NAME }}_macos.zip
+        name: ${{ env.POP_NAME }}_macos
         path: build/darwin-x86_64/poptracker.app
     - name: Store ZIP/DMG
       uses: actions/upload-artifact@v2

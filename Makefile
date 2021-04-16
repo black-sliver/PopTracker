@@ -36,9 +36,10 @@ HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 ifeq ($(CONF), DIST)
 VERSION := $(shell grep VERSION_STRING $(SRC_DIR)/poptracker.h | cut -d'"' -f 2 )
 VS := $(subst .,-,$(VERSION))
-# TODO OSX_APP := ...
 WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
 WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
+OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
+OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
 endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
@@ -143,7 +144,14 @@ else ifdef IS_WIN64
   else
     native: $(WIN64_EXE)
   endif
-else # TODO OSX .app
+else ifdef IS_OSX
+  EXE = $(NIX_EXE)
+  ifeq ($(CONF), DIST) # TODO dmg?
+    native: $(OSX_APP) $(OSX_ZIP)
+  else
+    native: $(NIX_EXE)
+  endif
+else
   EXE = $(NIX_EXE)
   native: $(NIX_EXE)
 endif
@@ -181,31 +189,44 @@ ifneq ($(CONF), DEBUG)
 	$(WIN64STRIP) $@
 endif
 
-$(WIN32_ZIP): $(WIN32_EXE)
+$(WIN32_ZIP): $(WIN32_EXE) | $(DIST_DIR)
 	mkdir -p $(DIST_DIR)/tmp-win32/poptracker/packs
 	cp -r assets $(DIST_DIR)/tmp-win32/poptracker/
 	cp LICENSE README.md CHANGELOG.md $(DIST_DIR)/tmp-win32/poptracker/
-	cp $(WIN32_BUILD_DIR)/*.exe $(WIN32_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win32/poptracker/
+	cp $(WIN32_BUILD_DIR)/*.exe $(DIST_DIR)/tmp-win32/poptracker/
+	cp $(WIN32_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win32/poptracker/ || true
 	rm -f $@
 	(cd $(DIST_DIR)/tmp-win32 && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
-	    else zip -9 -r ../$(notdir $@) poptracker ; fi ; \
+	    else zip -9 -r ../$(notdir $@) poptracker ; fi && \
 	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
 	)
 	rm -rf dist/tmp-win32
 
-$(WIN64_ZIP): $(WIN64_EXE)
+$(WIN64_ZIP): $(WIN64_EXE) | $(DIST_DIR)
 	mkdir -p $(DIST_DIR)/tmp-win64/poptracker/packs
 	cp -r assets $(DIST_DIR)/tmp-win64/poptracker/
 	cp LICENSE README.md CHANGELOG.md $(DIST_DIR)/tmp-win64/poptracker/
-	cp $(WIN64_BUILD_DIR)/*.exe $(WIN64_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win64/poptracker/
+	cp $(WIN64_BUILD_DIR)/*.exe $(DIST_DIR)/tmp-win64/poptracker/
+	cp $(WIN64_BUILD_DIR)/*.dll $(DIST_DIR)/tmp-win64/poptracker/ || true
 	rm -f $@
 	(cd $(DIST_DIR)/tmp-win64 && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
-	    else zip -9 -r ../$(notdir $@) poptracker ; fi ; \
+	    else zip -9 -r ../$(notdir $@) poptracker ; fi && \
 	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
 	)
 	rm -rf dist/tmp-win64
+
+$(OSX_APP): $(NIX_EXE)
+	./macosx/bundle_macosx_app.sh --version=$(VERSION) "$(NIX_EXE)"
+	
+$(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
+	rm -f $@
+	(cd $(dir $<) && \
+	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../../dist/$(notdir $@) $(notdir $<) -x!.DS_Store; \
+	    else zip -9 -r ../../dist/$(notdir $@) $(notdir $<) -x "*.DS_Store" ; fi && \
+	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
+	)
 
 
 # Targets' dependencies
