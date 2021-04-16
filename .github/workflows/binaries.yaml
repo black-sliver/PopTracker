@@ -4,6 +4,34 @@ on: workflow_dispatch
 
 jobs:
 
+  build-ubuntu:
+
+    runs-on: ubuntu-18.04
+    
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build RELEASE
+      run: make native CONF=RELEASE -j2
+    - name: Run tests
+      run: make test CONF=RELEASE
+    - name: Get version
+      run: |
+        echo "POP_VERSION=`./build/linux-x86_64/poptracker --version`" >> $GITHUB_ENV
+        echo "POP_NAME=poptracker_`./build/linux-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+    - name: Build DIST # this builds a release ZIP, maybe .deb in the future
+      run: make CONF=DIST
+    - name: Store DIST
+      uses: actions/upload-artifact@v2
+      with:
+        name: ubuntu-18-04-dist
+        path: dist
+
   build-macos:
 
     runs-on: macos-latest

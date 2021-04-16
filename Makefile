@@ -21,10 +21,13 @@ WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf
 WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lSDL2_ttf -lSDL2_image -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -static-libgcc -Wl,--high-entropy-va
 # output
+DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
+ARCH = $(shell uname -m | tr -s ' ' '-' | tr A-Z a-z)
+UNAME = $(shell uname -sm | tr -s ' ' '-' | tr A-Z a-z )
 DIST_DIR ?= dist
 BUILD_DIR ?= build
 EXE_NAME = poptracker
-NIX_BUILD_DIR = $(BUILD_DIR)/$(shell uname -s -m | tr -s ' ' '-' | tr A-Z a-z )
+NIX_BUILD_DIR = $(BUILD_DIR)/$(UNAME)
 WIN32_BUILD_DIR = $(BUILD_DIR)/win32
 WIN64_BUILD_DIR = $(BUILD_DIR)/win64
 WASM_BUILD_DIR = $(BUILD_DIR)/wasm
@@ -40,6 +43,7 @@ WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
 WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
 OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
+NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).xz
 endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
@@ -153,7 +157,11 @@ else ifdef IS_OSX
   endif
 else
   EXE = $(NIX_EXE)
-  native: $(NIX_EXE)
+  ifeq ($(CONF), DIST) # TODO deb?
+    native: $(NIX_XZ)
+  else
+    native: $(NIX_EXE)
+  endif
 endif
 
 .PHONY: all native cross wasm clean
@@ -219,6 +227,18 @@ $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
 	)
 
+$(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
+	$(eval TMP_DIR = $(DIST_DIR)/.tmp-nix)
+	rm -rf $(TMP_DIR)
+	mkdir -p $(TMP_DIR)/poptracker/packs
+	cp -r assets $(TMP_DIR)/poptracker/
+	cp LICENSE README.md CHANGELOG.md $(TMP_DIR)/poptracker/
+	cp $(NIX_EXE) $(TMP_DIR)/poptracker/
+	rm -f $@
+	(cd $(TMP_DIR) && \
+	    tar -cJf ../$(notdir $@) poptracker \
+	)
+	rm -rf $(TMP_DIR)
 
 # Targets' dependencies
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
