@@ -206,8 +206,8 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 	mkdir -p $(TMP_DIR)/poptracker/packs
 	cp -r assets $(TMP_DIR)/poptracker/
 	cp LICENSE README.md CHANGELOG.md $(TMP_DIR)/poptracker/
-	cp $(WIN32_BUILD_DIR)/*.exe $(TMP_DIR)/poptracker/
-	cp $(WIN32_BUILD_DIR)/*.dll $(TMP_DIR)/poptracker/ || true
+	cp $(dir $<)*.exe $(TMP_DIR)/poptracker/
+	cp $(dir $<)*.dll $(TMP_DIR)/poptracker/ || true
 	rm -f $@
 	(cd $(TMP_DIR) && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
