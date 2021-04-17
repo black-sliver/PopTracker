@@ -19,8 +19,8 @@
 * Pack Features
   * `LuaItem.IconMods`
   * `ScriptHost:RemoveMemoryWatch`
-  * `ScriptHost:AddWatchForCore`
-  * `ScriptHost:RemoveWatchForCore`
+  * `ScriptHost:AddWatchForCode`
+  * `ScriptHost:RemoveWatchForCode`
   * `Tracker:UiHint`
 * Fixes
   * fix some potential crashes from lua
