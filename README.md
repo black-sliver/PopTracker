@@ -8,15 +8,16 @@ This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
 
-Unpack gamepacks to `EXEDIR/packs`, `Documents/PopTracker/packs` (ZIPs not yet supported).
-It will also find packs installed in EmoTracker.
+Unpack gamepacks to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs` (ZIPs not yet supported).
+On Windows it will also find packs installed in EmoTracker.
+On macOS EXEDIR is *inside* the app bundle.
+
 Use the Load button in the top left corner to load a pack.
 
 Do not load untrusted packs until some sort of fuzzing is done.
 
-Binary release is Windows 64bit only at the moment,
+Binary release is Windows 64bit and macOS 64bit only at the moment,
 should compile on most unix-like OS (see [Building from source](#building-from-source)).
-We are looking for someone building OSX binaries.
 [WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
 
 Check

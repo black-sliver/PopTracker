@@ -1,5 +1,16 @@
 # PopTracker Changelog
 
+## v0.12.0
+
+* App Features
+  * macOS support
+  * allow locations to be on multiple points on a map
+* Pack Features
+  * support more layouts/packs
+* Fixes
+  * fix crash when listing a pack with no variants
+  * work around slow shutdown for watch with slow update interval
+
 ## v0.11.0
 
 * App Features
