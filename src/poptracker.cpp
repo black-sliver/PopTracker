@@ -251,8 +251,8 @@ void PopTracker::unloadTracker()
 #ifndef FIND_LUA_LEAKS // if we don't lua_close at exit, we can use valgrind to see if the allocated memory grew
     if (_L) lua_close(_L);
 #endif
-    delete _tracker;
     delete _scriptHost;
+    delete _tracker;
     delete _pack;
     _L = nullptr;
     _tracker = nullptr;

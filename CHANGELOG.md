@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.12.1
+
+* Fixes
+  * fix potential crash when changing packs/variants
+
 ## v0.12.0
 
 * App Features
