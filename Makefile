@@ -43,7 +43,7 @@ WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
 WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
 OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
-NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).xz
+NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).tar.xz
 endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
