@@ -5,7 +5,7 @@
 * [black-sliver](https://github.com/black-sliver)
 * [sbzappa](https://github.com/sbzappa)
 
-## Non-Code Contributors
+## Other Contributors
 
 * [Cyb3R](https://github.com/Cyb3RGER)
 

@@ -7,6 +7,7 @@ EXE=
 VERSION=
 BUNDLE_NAME_SET=no
 BUNDLE_NAME=
+APP_OWNER="com.evermizer"
 
 function usage() {
   echo "Usage: `basename $0` [--version=] [--bundle-name=] binary"
@@ -46,7 +47,9 @@ APP_NAME=`basename $EXE`
 SRC_DIR=`dirname $0`
 DST_DIR=`dirname $EXE`
 
-SRC_ASSETS_DIR="$SRC_DIR/../assets"
+ROOT_DIR="$SRC_DIR/.."
+SRC_ASSETS_DIR="$ROOT_DIR/assets"
+DOCS="$ROOT_DIR/LICENSE $ROOT_DIR/README.md $ROOT_DIR/CHANGELOG.md $ROOT_DIR/CREDITS.md"
 
 APP_BUNDLE_DIR="$DST_DIR/$BUNDLE_NAME.app"
 APP_BUNDLE_CONTENTS_DIR="$APP_BUNDLE_DIR/Contents"
@@ -76,7 +79,7 @@ cat <<EOT >> $APP_BUNDLE_INFO_PLIST
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
   <key>CFBundleIdentifier</key>
-  <string>com.blacksliver.$APP_NAME</string>
+  <string>$APP_OWNER.$APP_NAME</string>
   <key>CFBundleName</key>
   <string>$BUNDLE_NAME</string>
   <key>CFBundleShortVersionString</key>
@@ -92,6 +95,7 @@ EOT
 # Copy binary into app bundle
 cp $EXE $DST_EXE
 cp -r $SRC_ASSETS_DIR $APP_BUNDLE_MACOS_DIR
+cp -r $DOCS $APP_BUNDLE_MACOS_DIR
 
 # Update dynamic paths
 # This won't work with libraries installed with brew.

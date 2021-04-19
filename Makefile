@@ -205,7 +205,7 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 	rm -rf $(TMP_DIR)
 	mkdir -p $(TMP_DIR)/poptracker/packs
 	cp -r assets $(TMP_DIR)/poptracker/
-	cp LICENSE README.md CHANGELOG.md $(TMP_DIR)/poptracker/
+	cp LICENSE README.md CHANGELOG.md CREDITS.md $(TMP_DIR)/poptracker/
 	cp $(dir $<)*.exe $(TMP_DIR)/poptracker/
 	cp $(dir $<)*.dll $(TMP_DIR)/poptracker/ || true
 	rm -f $@
@@ -232,7 +232,7 @@ $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 	rm -rf $(TMP_DIR)
 	mkdir -p $(TMP_DIR)/poptracker/packs
 	cp -r assets $(TMP_DIR)/poptracker/
-	cp LICENSE README.md CHANGELOG.md $(TMP_DIR)/poptracker/
+	cp LICENSE README.md CHANGELOG.md CREDITS.md $(TMP_DIR)/poptracker/
 	cp $(NIX_EXE) $(TMP_DIR)/poptracker/
 	rm -f $@
 	(cd $(TMP_DIR) && \
