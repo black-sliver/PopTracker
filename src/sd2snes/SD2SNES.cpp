@@ -55,8 +55,8 @@ SD2SNES::SD2SNES(const std::string& name)
     client.clear_access_channels(websocketpp::log::alevel::all);
     client.set_access_channels(websocketpp::log::alevel::none);
 #else
-	client.set_access_channels(websocketpp::log::alevel::all);
-	client.clear_access_channels(websocketpp::log::alevel::frame_payload | websocketpp::log::alevel::frame_header);
+    client.set_access_channels(websocketpp::log::alevel::all);
+    client.clear_access_channels(websocketpp::log::alevel::frame_payload | websocketpp::log::alevel::frame_header);
 #endif
     client.clear_error_channels(websocketpp::log::elevel::all);
     client.set_error_channels(websocketpp::log::elevel::warn|websocketpp::log::elevel::rerror|websocketpp::log::elevel::fatal);
@@ -77,6 +77,7 @@ SD2SNES::SD2SNES(const std::string& name)
                 json res = json::parse(msg->get_payload());
                 auto results = res.find("Results");
                 if (results != res.end() && results->size()>0) {
+                    // FIXME: sanitize usb2snes_version and qusb2snes_version (they may be printed to terminal)
                     usb2snes_version = results->at(0).get<std::string>();
                     if (is_qusb2snes_uri && usb2snes_version.rfind("QUsb2Snes-",0)==0)
                         qusb2snes_version = usb2snes_version.substr(10);
@@ -131,6 +132,7 @@ SD2SNES::SD2SNES(const std::string& name)
                     json res = json::parse(msg->get_payload());
                     auto results = res.find("Results");
                     if (results != res.end() && results->size()>0) { // check more
+                        // FIXME: sanitize backend and backend_version (they may be printed to terminal)
                         snes_connected = true;
                         state_changed = true;
                         if (results->size()>1)
@@ -160,7 +162,6 @@ SD2SNES::SD2SNES(const std::string& name)
             }
             case Op::PING:
             {
-                //printf("Ping result\n");
                 // ignore message
                 break;
             }
@@ -196,6 +197,7 @@ SD2SNES::SD2SNES(const std::string& name)
                 break;
             }
             default:
+                // FIXME: remove control chars before printing to terminal
                 printf("unhandled message: %s\n", msg->get_payload().c_str());
         }
         
@@ -414,6 +416,7 @@ bool SD2SNES::connect(std::vector<std::string> uris)
 }
 bool SD2SNES::disconnect()
 {
+    printf("SD2SNES: disconnect\n");
     {
         std::lock_guard<std::mutex> lock(workmutex);
         std::lock_guard<std::mutex> wslock(wsmutex);
