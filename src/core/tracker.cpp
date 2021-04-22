@@ -352,8 +352,22 @@ int Tracker::isReachable(const LocationSection& section)
             // '$' calls into lua
             else if (s[0] == '$') {
                 // TODO: use a helper to access lua instead of having lua state here
-                lua_getglobal(_L, s.c_str()+1);
-                if (lua_pcall(_L, 0, 1, 0) != LUA_OK) {
+                int args = 0;
+                auto pos = s.find('|');
+                if (pos == s.npos) {
+                    lua_getglobal(_L, s.c_str()+1);
+                } else {
+                    lua_getglobal(_L, s.substr(1, pos-1).c_str());
+                    std::string::size_type next;
+                    while ((next = s.find('|', pos+1)) != s.npos) {
+                        lua_pushstring(_L, s.substr(pos+1, next-p-1).c_str());
+                        args++;
+                        pos = next;
+                    }
+                    lua_pushstring(_L, s.substr(pos+1).c_str());
+                    args++;
+                }
+                if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
                     fprintf(stderr, "Error running $%s:\n%s\n",
                         s.c_str()+1, lua_tostring(_L,-1));
                     // TODO: clean up lua stack?

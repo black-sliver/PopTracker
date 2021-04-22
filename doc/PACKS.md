@@ -264,6 +264,8 @@ Each `map_location` is a square on the map and shows a popup with individual che
 **Rules:**
 Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
 
+For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
+
 Rules inside `[` `]` are optional (i.e. glitches work around this rule).
 
 Rule-goups inside `{` `}` are a different set of rules to mark the section as "checkable but not collectible", marked blue on the map.
