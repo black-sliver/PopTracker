@@ -15,6 +15,7 @@ using json = nlohmann::json;
 #define MINIMAL_LOGGING
 //#define VERBOSE
 //#define TIME_READ
+//#ifndef DETACH_THREAD_ON_EXIT // avoid blocking on delete(). not yet implemented
 
 
 bool SD2SNES::wsConnected()
@@ -341,8 +342,28 @@ SD2SNES::SD2SNES(const std::string& name)
 SD2SNES::~SD2SNES()
 {
     disconnect();
+#ifdef DETACH_THREAD_ON_EXIT
+    {
+        #error "This needs state owned by worker on heap"
+        printf("SD2SNES: detaching worker...\n");
+        std::lock_guard<std::mutex> lock(workmutex);
+        if (worker.joinable()) worker.detach();
+    }
+#else
+    printf("SD2SNES: joining worker...\n");
     if (worker.joinable()) worker.join();
+#endif
 }
+
+bool SD2SNES::mayBlockOnExit() const
+{
+#ifdef DETACH_THREAD_ON_EXIT
+    return false;
+#else
+    return true;
+#endif
+}
+
 bool SD2SNES::connect(std::vector<std::string> uris)
 {
     {
@@ -407,6 +428,7 @@ bool SD2SNES::disconnect()
             if (ws_connecting) conn->close(websocketpp::close::status::going_away, res);
         } catch (...) {}
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return true;
 }
 bool SD2SNES::dostuff()

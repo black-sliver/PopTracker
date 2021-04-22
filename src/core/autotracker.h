@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <vector> // TODO: replace by uint8_t* ?
+#include <chrono>
+#include <thread>
 #include "../luaglue/luainterface.h"
 
 // this class is designed to wrap multiple auto-tracker back-ends
@@ -23,8 +25,24 @@ public:
     
     virtual ~AutoTracker()
     {
-        if (_snes) delete _snes;
+        bool spawnedWorkers = false;
+        
+        if (_snes) {
+            if (_snes->mayBlockOnExit()) {
+                // delete() may wait for socket timeout -> run destructor in another thread
+                auto snes = _snes;
+                std::thread([snes]() { delete snes; }).detach();
+                spawnedWorkers = true;
+            } else {
+                delete _snes;
+            }
+        }
         _snes = nullptr;
+        
+        if (spawnedWorkers) {
+            // wait a bit if we started a thread to increase readability of logs
+            std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        }
     }
     
     enum class State {

@@ -34,6 +34,8 @@ class SD2SNES {
         void setUpdateInterval(size_t interval) { update_interval = interval; }
         void clearCache();
         
+        bool mayBlockOnExit() const;
+        
     protected:
         struct Version {
             int vmajor;
