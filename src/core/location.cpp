@@ -28,6 +28,9 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
         _itemCleared = cleared;
         onChange.emit(this);
         return true;
+    } else if (strcmp(key,"CapturedItem")==0) {
+        // FIXME: implement this, see issue #12
+        return true;
     }
     return false;
 }
