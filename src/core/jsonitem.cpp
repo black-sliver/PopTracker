@@ -191,6 +191,9 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "CurrentStage")==0) {
         lua_pushinteger(L, _stage2);
         return 1;
+    } else if (strcmp(key, "MaxCount")==0) {
+        lua_pushinteger(L, _maxCount);
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
@@ -221,6 +224,16 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
             onChange.emit(this);
         }
         return true;
+    } else if (strcmp(key, "MaxCount")==0) {
+        int val = luaL_checkinteger(L, -1);
+        if (_maxCount != val) {
+            _maxCount = val;
+            if (_maxCount<_count) {
+                _count = _maxCount;
+                onChange.emit(this);
+            }
+        }
+        return true;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return false;
@@ -231,7 +244,8 @@ json JsonItem::save() const
     return {
         { "overlay", _overlay },
         { "state", { _stage1, _stage2 } },
-        { "count", _count }
+        { "count", _count },
+        { "max_count", _maxCount }
     };
 }
 bool JsonItem::load(json& j)
@@ -245,8 +259,13 @@ bool JsonItem::load(json& j)
             stage2 = to_int(state[1],stage2);
         }
         int count = to_int(j["count"],_count);
-        if (_count != count || _stage1 != stage1 || _stage2 != stage2 || _overlay != overlay) {
+        int maxCount = to_int(j["max_count"], _maxCount);
+        if (_count != count || _maxCount != maxCount
+                || _stage1 != stage1 || _stage2 != stage2
+                || _overlay != overlay)
+        {
             _count = count;
+            _maxCount = maxCount;
             _stage1 = stage1;
             _stage2 = stage2;
             _overlay = overlay;

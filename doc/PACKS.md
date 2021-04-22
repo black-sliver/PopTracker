@@ -115,6 +115,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `bool .Active`: enable/disable item
 * `int .CurrentStage`: set/get stage for staged items
 * `int .AcquiredCount`: set/get current amount for consumables
+* `int .MaxCount`: set/get max amount for consumables (available since 0.14.0)
 * `:SetOverlay`: set overlay text (like count, for non-consumables), only available in PopTracker
 
 *Probably more to come.*
