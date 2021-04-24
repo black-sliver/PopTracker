@@ -1,5 +1,22 @@
 # PopTracker Changelog
 
+## v0.14.0
+
+* App Features
+  * Accept mouse clicks when window is not focused
+  * Add support for zipped packs (no need to unpack anymore)
+  * Auto-save should now always work
+  * More debug output
+* Pack Features
+  * arguments to lua access rules
+  * `JsonItem.MaxCount` now readable and writable
+  * dummy `LocationSection.CapturedItem` to allow packs to load
+  * Make items' pink background transparent
+* Fixes
+  * don't let SNES auto-tracking block unloading packs
+  * fix bug in creating (auto-save) directories
+  * fix a memory leak when creating directories
+
 ## v0.12.1
 
 * Fixes
