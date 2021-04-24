@@ -48,7 +48,7 @@ static bool writeFile(const std::string& file, const std::string& data)
 {
     FILE* f = fopen(file.c_str(), "wb");
     if (!f) {
-        fprintf(stderr, "Cloud not open file \"%s\" for writing!", file.c_str());
+        fprintf(stderr, "Cloud not open file \"%s\" for writing: %s\n", file.c_str(), strerror(errno));
         return false;
     }
     size_t res = fwrite(data.c_str(), 1, data.length(), f);

@@ -67,7 +67,6 @@ void Tabs::addChild(Widget* w)
     Button* btn = new Button(0,0,0,0,_font,"Tab");
     btn->setSize(btn->getMinSize());
     btn->onClick += {this, [this](void* sender,int x, int y, int btn) {
-        printf("Tabs: Button Click\n");
         if ((void*)_tabButton == sender) return; // already selected
         int n=0;
         if (_tabButton) _tabButton->setState(Button::State::AUTO);

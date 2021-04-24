@@ -24,8 +24,9 @@ namespace Ui {
 Ui::Ui(const char *name)
 {
     _name = name;
-    
-    printf("Ui: Init SDL...\n");
+    SDL_version v;
+    SDL_GetVersion(&v);
+    printf("Ui: Init SDL %hhu.%hhu.%hhu...\n", v.major, v.minor, v.patch);
     if (SDL_WasInit(SDL_INIT_VIDEO)) fprintf(stderr, "Warning: SDL already initialized!\n");
 #if 0
     else SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);

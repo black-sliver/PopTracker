@@ -162,7 +162,11 @@ bool PopTracker::start()
     }};
     
     _win->onPackSelected += {this, [this](void *s, const std::string& pack, const std::string& variant) {
-        scheduleLoadTracker(pack, variant);
+        printf("Pack selected: %s:%s\n", pack.c_str(), variant.c_str());
+        if (!scheduleLoadTracker(pack, variant)) {
+            fprintf(stderr, "Error scheduling load of tracker/pack!");
+            // TODO: show error
+        }
         _win->hideOpen();
     }};
     
@@ -222,7 +226,10 @@ bool PopTracker::frame()
     // load new tracker AFTER rendering a frame
     if (!_newTracker.empty()) {
         if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
+            fprintf(stderr, "Error loading tracker/pack!\n");
             // TODO: display error
+        } else {
+            printf("Tracker loaded!\n");
         }
         _newTracker = "";
         _newVariant = "";
@@ -294,6 +301,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     Lua(_L).Push(VERSION_STRING);
     lua_setglobal(_L, "PopVersion");
     
+    printf("Updating UI\n");
     _win->setTracker(_tracker);
     if (auto at = _scriptHost->getAutoTracker()) {
         _win->setAutoTrackerState(at->getState());
@@ -304,6 +312,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     }
     
     // run pack's init script
+    printf("Running scripts/init.lua\n");
     bool res = _scriptHost->LoadScript("scripts/init.lua");
     // save reset-state
     StateManager::saveState(_tracker, _scriptHost, _win->getHints(), false, "reset");

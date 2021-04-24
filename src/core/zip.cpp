@@ -43,12 +43,9 @@ void Zip::setDir(const std::string& dir)
     if (_dir.length()>0 && _dir.back() != '/')
         _dir += '/';
     
-    while (true) {
-        // remove trailing ./ (but not ../)
-        if (_dir.length()>1 && (_dir.length()<3 || _dir[_dir.length()-3] == '/') && _dir.substr(_dir.length()-2) == "./")
-            _dir = _dir.substr(0, _dir.length()-2);
-        else
-            break;
+    // remove trailing ./ (but not ../)
+    while (_dir.length()>1 && (_dir.length()<3 || _dir[_dir.length()-3] == '/') && _dir.substr(_dir.length()-2) == "./") {
+        _dir = _dir.substr(0, _dir.length()-2);
     }
 }
 
