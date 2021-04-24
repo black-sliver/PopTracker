@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.14.1
+
+* Fixes
+  * Make items' pink background transparent (disabled/with img_mods)
+
 ## v0.14.0
 
 * App Features

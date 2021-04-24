@@ -81,6 +81,7 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFi
                 SDL_FreeSurface(surf);
                 surf = newSurf;
                 if (!surf) return;
+                SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
             }
             uint32_t key = SDL_MapRGB(surf->format, 0xff, 0x00, 0xff);
             for (int y=0; y<surf->h; y++) {
