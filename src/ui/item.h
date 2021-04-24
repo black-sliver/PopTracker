@@ -38,6 +38,7 @@ protected:
     int _quality=-1;
     int _stage1=0;
     int _stage2=0;
+    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters={});
     void freeStage(int stage1, int stage2);
     FONT _font;
     std::string _overlay;
