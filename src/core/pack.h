@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <json/json.hpp>
+#include "zip.h"
 
 class Pack {
 public:
@@ -22,6 +23,7 @@ public:
     };
     
     Pack(const std::string& path);
+    virtual ~Pack();
     bool isValid() const { return _manifest.type() == nlohmann::json::value_t::object; } // TODO: also check if init.lua exists?
     
     void setVariant(const std::string& variant);
@@ -46,6 +48,7 @@ public:
     static void addSearchPath(const std::string& path);
     
 protected:
+    Zip* _zip;
     std::string _path;
     std::string _variant;
     std::string _uid;

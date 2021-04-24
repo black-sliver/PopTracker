@@ -8,17 +8,33 @@ using nlohmann::json;
 std::vector<std::string> Pack::_searchPaths;
 
 
-Pack::Pack(const std::string& path) : _path(path)
+Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
 {
     std::string s;
-    if (ReadFile("manifest.json", s)) {
-        _manifest = parse_jsonc(s);
-        if (_manifest.type() == json::value_t::object) {
-            _uid = to_string(_manifest,"package_uid","");
-            _name = to_string(_manifest,"name", _uid);
-            _gameName = to_string(_manifest,"game_name", _name);
+    if (fileExists(path)) {
+        _zip = new Zip(path);
+        auto root = _zip->list();
+        if (root.size() == 1 && root[0].first == Zip::EntryType::DIR) {
+            _zip->setDir(root[0].second);
+        }
+        if (_zip->readFile("manifest.json", s)) {
+            _manifest = parse_jsonc(s);
+        }
+    } else {
+        if (ReadFile("manifest.json", s)) {
+            _manifest = parse_jsonc(s);
         }
     }
+    if (_manifest.type() == json::value_t::object) {
+        _uid = to_string(_manifest,"package_uid","");
+        _name = to_string(_manifest,"name", _uid);
+        _gameName = to_string(_manifest,"game_name", _name);
+    }
+}
+Pack::~Pack()
+{
+    if (_zip) delete _zip;
+    _zip = nullptr;
 }
 
 Pack::Info Pack::getInfo() const
@@ -78,29 +94,37 @@ bool Pack::ReadFile(const std::string& userfile, std::string& out) const
     std::string file;
     if (!sanitizePath(userfile, file)) return false;
     
-    out.clear();
-    FILE* f = nullptr;
-    if (!_variant.empty()) {
-        f = fopen(os_pathcat(_path,_variant,file).c_str(), "rb");
-    }
-    if (!f) {
-        f = fopen(os_pathcat(_path,file).c_str(), "rb");
-    }
-    if (!f) {
+    if (_zip) {
+        if (!_variant.empty() && _zip->readFile(_variant+"/"+file, out))
+            return true;
+        if (_zip->readFile(file, out))
+            return true;
+        return false;
+    } else {
+        out.clear();
+        FILE* f = nullptr;
+        if (!_variant.empty()) {
+            f = fopen(os_pathcat(_path,_variant,file).c_str(), "rb");
+        }
+        if (!f) {
+            f = fopen(os_pathcat(_path,file).c_str(), "rb");
+        }
+        if (!f) {
+            return false;
+        }
+        while (!feof(f)) {
+            char buf[4096];
+            size_t sz = fread(buf, 1, sizeof(buf), f);
+            if (ferror(f)) goto read_err;
+            out += std::string(buf, sz);
+        }
+        fclose(f);
+        return true;
+read_err:
+        fclose(f);
+        out.clear();
         return false;
     }
-    while (!feof(f)) {
-        char buf[4096];
-        size_t sz = fread(buf, 1, sizeof(buf), f);
-        if (ferror(f)) goto read_err;
-        out += std::string(buf, sz);
-    }
-    fclose(f);
-    return true;
-read_err:
-    fclose(f);
-    out.clear();
-    return false;
 }
 
 void Pack::setVariant(const std::string& variant)

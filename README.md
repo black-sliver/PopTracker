@@ -8,7 +8,7 @@ This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
 
-Unpack gamepacks to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs` (ZIPs not yet supported).
+Copy or unpack gamepacks to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs` (ZIPs supported starting with v0.14.0).
 On Windows it will also find packs installed in EmoTracker.
 On macOS EXEDIR is *inside* the app bundle.
 

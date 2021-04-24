@@ -16,3 +16,4 @@
 * [nlohmann::json](https://github.com/nlohmann/json)
 * [websocketpp](https://github.com/zaphoyd/websocketpp)
 * [asio](https://github.com/chriskohlhoff/asio)
+* [miniz](https://github.com/richgel999/miniz)

@@ -74,11 +74,13 @@ static std::string os_pathcat(const std::string a, const std::string b, Args... 
     return os_pathcat(os_pathcat(a,b), args...);
 }
 
+#include <sys/stat.h>
 static inline bool fileExists(const std::string& path)
 {
-    return access(path.c_str(), F_OK) == 0;
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) return false;
+    return S_ISREG(st.st_mode);
 }
-#include <sys/stat.h>
 static inline bool pathExists(const std::string& path)
 {
     struct stat st;
