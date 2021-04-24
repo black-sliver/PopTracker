@@ -13,6 +13,7 @@ protected:
     std::string _name;
     unsigned _lastRenderDuration = 0;
     uint64_t _lastFrameMicroTimestamp = 0;
+    unsigned _globalMouseButton = 0;
 public:
     Ui(const char *name);
     virtual ~Ui();

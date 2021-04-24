@@ -91,87 +91,135 @@ bool Ui::render()
         SDL_Delay(1); // let the kernel switch tasks to fill the event queue
 #endif
         bool destructiveEvent = false;
+        
+        // Work around SDL eating mouse input when switching windows
+        // read below at SDL_WINDOWEVENT_FOCUS_GAINED
+        if (_globalMouseButton) {
+            if (!SDL_GetGlobalMouseState(nullptr, nullptr)) {
+                // untracked mouse button released ...
+                SDL_Window* win = SDL_GetMouseFocus();
+                if (win) {
+                    // ... inside window -> fire event
+                    int x,y;
+                    SDL_GetMouseState(&x, &y);
+                    SDL_Event ev; memset(&ev, 0, sizeof(ev));
+                    ev.type = SDL_MOUSEBUTTONDOWN;
+                    ev.button.x = (Sint32)x;
+                    ev.button.y = (Sint32)y;
+                    ev.button.button = (Uint8) _globalMouseButton;
+                    ev.button.windowID = SDL_GetWindowID(win);
+                    SDL_PushEvent(&ev);
+                    ev.type = SDL_MOUSEBUTTONUP;
+                    SDL_PushEvent(&ev);
+                }
+                _globalMouseButton = 0;
+            }
+        }
+        
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
-            /* handle your event here */
-            if (ev.type == SDL_QUIT) {
-                printf("Ui: Quit\n");
-                return false;
-            }
-            if (ev.type == SDL_MOUSEBUTTONUP) {
-                int button = ev.button.button;
-                int x = ev.button.x;
-                int y = ev.button.y;
-                auto winIt = _windows.find(ev.button.windowID);
-                if (winIt != _windows.end()) {
-                    winIt->second->onClick.emit(winIt->second, x, y, button);
+            switch (ev.type) {
+                case SDL_QUIT: {
+                    printf("Ui: Quit\n");
+                    return false;
                 }
-            }
-            else if (ev.type == SDL_MOUSEMOTION) {
-                unsigned buttons = ev.motion.state;
-                int x = ev.motion.x;
-                int y = ev.motion.y;
-                auto winIt = _windows.find(ev.motion.windowID);
-                if (winIt != _windows.end()) {
-                    winIt->second->onMouseMove.emit(winIt->second, x, y, buttons);
+                case SDL_MOUSEBUTTONDOWN: {
+                    // clear/cancel cached "global" event (see above or below)
+                    _globalMouseButton = 0;
+                    // ignore. We click() on SDL_MOUSEBUTTONUP
+                    break;
                 }
-            }
-            else if (ev.type == SDL_WINDOWEVENT) {
-                if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                    int x = ev.window.data1;
-                    int y = ev.window.data2;
-                    auto winit = _windows.find(ev.window.windowID);
-                    if (winit != _windows.end()) {
-                        winit->second->setSize({x,y});
-                        destructiveEvent = true;
+                case SDL_MOUSEBUTTONUP: {
+                    int button = ev.button.button;
+                    int x = ev.button.x;
+                    int y = ev.button.y;
+                    auto winIt = _windows.find(ev.button.windowID);
+                    if (winIt != _windows.end()) {
+                        winIt->second->onClick.emit(winIt->second, x, y, button);
                     }
+                    break;
                 }
-                else if (ev.window.event == SDL_WINDOWEVENT_CLOSE) {
-                    if (_windows.begin() != _windows.end() && _windows.begin()->first == ev.window.windowID) {
-                        // Quit application when closing main window
-                        // TODO: handle this through a callback
-                        printf("Ui: Main window closed\n");
-                        return false;
+                case SDL_MOUSEMOTION: {
+                    unsigned buttons = ev.motion.state;
+                    int x = ev.motion.x;
+                    int y = ev.motion.y;
+                    auto winIt = _windows.find(ev.motion.windowID);
+                    if (winIt != _windows.end()) {
+                        winIt->second->onMouseMove.emit(winIt->second, x, y, buttons);
                     }
-                    auto winit = _windows.find(ev.window.windowID);
-                    if (winit != _windows.end()) {
-                        onWindowDestroyed.emit(this,winit->second);
-                        delete winit->second;
-                        _windows.erase(winit);
+                    break;
+                }
+                case SDL_WINDOWEVENT: {
+                    if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                        int x = ev.window.data1;
+                        int y = ev.window.data2;
+                        auto winit = _windows.find(ev.window.windowID);
+                        if (winit != _windows.end()) {
+                            winit->second->setSize({x,y});
+                            destructiveEvent = true;
+                        }
                     }
-                }
-                else if (ev.window.event == SDL_WINDOWEVENT_LEAVE) {
-                    // NOTE: SDL does not have one cursor per window, which is complete BS
-                    auto winit = _windows.find(ev.window.windowID);
-                    if (winit != _windows.end()) {
-                        winit->second->onMouseLeave.emit(winit->second);
+                    else if (ev.window.event == SDL_WINDOWEVENT_CLOSE) {
+                        if (_windows.begin() != _windows.end() && _windows.begin()->first == ev.window.windowID) {
+                            // Quit application when closing main window
+                            // TODO: handle this through a callback
+                            printf("Ui: Main window closed\n");
+                            return false;
+                        }
+                        auto winit = _windows.find(ev.window.windowID);
+                        if (winit != _windows.end()) {
+                            onWindowDestroyed.emit(this,winit->second);
+                            delete winit->second;
+                            _windows.erase(winit);
+                        }
                     }
-                }
-    #if 0 // this is not neccessary
-                else if (ev.window.event == SDL_WINDOWEVENT_TAKE_FOCUS) {
-                    // focus offered -> grab focus
-                    auto winit = _windows.find(ev.window.windowID);
-                    if (winit != _windows.end()) {
-                        winit->second->grabFocus();
+                    else if (ev.window.event == SDL_WINDOWEVENT_LEAVE) {
+                        // NOTE: SDL does not have one cursor per window, which is complete BS
+                        auto winit = _windows.find(ev.window.windowID);
+                        if (winit != _windows.end()) {
+                            winit->second->onMouseLeave.emit(winit->second);
+                        }
                     }
+                    else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                        // SDL eats the mouse event that was used to get focus,
+                        // which is wrong since keyboard focus != mouse focus.
+                        // We check for global mouse down on focus and
+                        // schedule to fire onClick on global mouse up
+                        unsigned button = SDL_GetGlobalMouseState(nullptr, nullptr);
+                        if (button) {
+                            SDL_Window* win = SDL_GetMouseFocus();
+                            if (win) {
+                                _globalMouseButton = button;
+                            }
+                        }
+                    }
+                    #if 0 // this is not neccessary
+                    else if (ev.window.event == SDL_WINDOWEVENT_TAKE_FOCUS) {
+                        // focus offered -> grab focus
+                        auto winit = _windows.find(ev.window.windowID);
+                        if (winit != _windows.end()) {
+                            winit->second->grabFocus();
+                        }
+                    }
+                    #endif
+                    #if 0
+                    else {
+                        printf("Ui: window event %d for %d\n", ev.window.event, ev.window.windowID);
+                    }
+                    #endif
+                    break;
                 }
-    #endif
-    #if 0
-                else {
-                    printf("Ui: window event %d for %d\n", ev.window.event, ev.window.windowID);
+                default: {
+                    #ifndef NDEBUG
+                    printf("Ui: unhandled event %d\n", ev.type);
+                    #endif
                 }
-    #endif
             }
-    #ifndef NDEBUG
-            else {
-                printf("Ui: unhandled event %d\n", ev.type);
-            }
-    #endif
         }
         t1 = SDL_GetTicks();
-    #ifndef VSYNC
+        #ifndef VSYNC
         if (destructiveEvent) break; // framebuffer destroyed -> redraw ASAP (unless VSYNC)
-    #endif
+        #endif
 #if defined __EMSCRIPTEN__ || !defined LIMIT_FPS
     } while (false); // waiting for events makes no sense in a browser context
 #else
