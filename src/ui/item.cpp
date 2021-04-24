@@ -4,27 +4,6 @@
 #include "../uilib/colorhelper.h"
 
 
-static Uint32 getPixel(SDL_Surface* surf, unsigned x, unsigned y)
-{
-    unsigned Bpp = surf->format->BytesPerPixel;
-    Uint8* p = (Uint8*)surf->pixels + y * surf->pitch + x * Bpp;
-    switch (Bpp) {
-        case 1:
-            return *p;
-        case 2:
-            return *(Uint16*)p;
-        case 3:
-            if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-                return p[0] << 16 | p[1] << 8 | p[2];
-            else
-                return p[0] | p[1] << 8 | p[2] << 16;
-        case 4:
-            return *(Uint32*)p;
-        default:
-            return 0;
-    }
-}
-
 namespace Ui {
 
 Item::Item(int x, int y, int w, int h, FONT font)
@@ -60,38 +39,7 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFi
 {
     if (!surf) return;
     // if any corner pixel is #ff00ff, make that color transparent
-    bool colorKey = false;
-    for (uint8_t n=0; !colorKey && n<4; n++) {
-        uint8_t r,g,b,a;
-        uint32_t px = getPixel(surf, (n&1) ? surf->w-1 : 0, (n&2) ? surf-> h-1 : 0);
-        SDL_GetRGBA(px, surf->format, &r, &g, &b, &a);
-        colorKey = (r==0xff && g==0x00 && b==0xff && a==0xff);
-    }
-    if (colorKey) {
-        if (filters.empty()) {
-            // we can just set a color key
-            SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 0xff, 0x00, 0xff));
-        } else {
-            // we need to modify the surface
-            if (!surf->format->Amask || surf->format->BytesPerPixel!=4) {
-                // convert to have alpha
-                auto newFmt = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
-                auto newSurf = SDL_ConvertSurface(surf, newFmt, 0);
-                SDL_FreeFormat(newFmt);
-                SDL_FreeSurface(surf);
-                surf = newSurf;
-                if (!surf) return;
-                SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
-            }
-            uint32_t key = SDL_MapRGB(surf->format, 0xff, 0x00, 0xff);
-            for (int y=0; y<surf->h; y++) {
-                uint32_t* vals = (uint32_t*)((uint8_t*)surf->pixels + y*surf->pitch);
-                for (int x=0; x<surf->w; x++) {
-                    if (vals[x] == key) vals[x] = 0;
-                }
-            }
-        }
-    }
+    surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
     // store size
     if (_autoSize.width  < surf->w) _autoSize.width  = surf->w;
     if (_autoSize.height < surf->h) _autoSize.height = surf->h;

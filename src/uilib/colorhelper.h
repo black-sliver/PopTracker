@@ -2,12 +2,34 @@
 #define _UILIB_COLORHELPER_H
 
 #include <stdint.h>
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
 
 #define BW_LUMINOSITY // modes for greyscale are BW_LUMINOSITY, BW_LIGHTNESS and BW_AVERAGE
 #define BW_DARKEN // makes the greyscale darker if defined
 
+
+static Uint32 getPixel(SDL_Surface* surf, unsigned x, unsigned y)
+{
+    unsigned Bpp = surf->format->BytesPerPixel;
+    Uint8* p = (Uint8*)surf->pixels + y * surf->pitch + x * Bpp;
+    switch (Bpp) {
+        case 1:
+            return *p;
+        case 2:
+            return *(Uint16*)p;
+        case 3:
+            if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                return p[0] << 16 | p[1] << 8 | p[2];
+            else
+                return p[0] | p[1] << 8 | p[2] << 16;
+        case 4:
+            return *(Uint32*)p;
+        default:
+            return 0;
+    }
+}
 
 
 #if defined BW_LUMINOSITY
@@ -54,7 +76,11 @@ static SDL_Color makeGreyscale(SDL_Color c)
 
 static SDL_Surface *makeGreyscale(SDL_Surface *surf)
 {
-    SDL_LockSurface(surf);
+    if (SDL_LockSurface(surf) != 0) {
+        fprintf(stderr, "Could not lock surface to make greyscale: %s\n",
+                SDL_GetError());
+        return surf;
+    }
     if (surf->format->BitsPerPixel <= 8) { // convert palette to greyscale
         int ncolors = surf->format->palette->ncolors;
         SDL_Palette* pal = SDL_AllocPalette(ncolors);
@@ -89,5 +115,58 @@ static SDL_Surface *makeGreyscale(SDL_Surface *surf)
     return surf;
 }
 
+static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uint8_t b, bool allowColorKey)
+{
+    // if any corner pixel is [r,g,b], make that color transparent
+    bool doColorKey = false;
+    if (SDL_LockSurface(surf) == 0) {
+        for (uint8_t n=0; !doColorKey && n<4; n++) {
+            uint8_t r1,g1,b1,a1;
+            uint32_t px = getPixel(surf, (n&1) ? surf->w-1 : 0, (n&2) ? surf-> h-1 : 0);
+            SDL_GetRGBA(px, surf->format, &r1, &g1, &b1, &a1);
+            doColorKey = (r1==r && g1==g && b1==b && a1==0xff);
+        }
+        SDL_UnlockSurface(surf);
+    } else {
+        fprintf(stderr, "Could not lock surface to check corners: %s\n",
+                SDL_GetError());
+    }
+    if (doColorKey) {
+        if (allowColorKey) {
+            // we can just set a color key
+            SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, r, g, b));
+        } else {
+            // we need to modify the surface
+            if (!surf->format->Amask || surf->format->BytesPerPixel!=4) {
+                // convert to have alpha
+                auto newFmt = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
+                auto newSurf = SDL_ConvertSurface(surf, newFmt, 0);
+                SDL_FreeFormat(newFmt);
+                if (!newSurf) {
+                    fprintf(stderr, "Could not create surface: %s\n",
+                            SDL_GetError());
+                    return surf;
+                }
+                SDL_FreeSurface(surf);
+                surf = newSurf;
+            }
+            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
+            if (SDL_LockSurface(surf) == 0) {
+                uint32_t key = SDL_MapRGB(surf->format, r, g, b);
+                for (int y=0; y<surf->h; y++) {
+                    uint32_t* vals = (uint32_t*)((uint8_t*)surf->pixels + y*surf->pitch);
+                    for (int x=0; x<surf->w; x++) {
+                        if (vals[x] == key) vals[x] = 0;
+                    }
+                }
+                SDL_UnlockSurface(surf);
+            } else {
+                fprintf(stderr, "Could not lock surface to make transparent: %s\n",
+                        SDL_GetError());
+            }
+        }
+    }
+    return surf;
+}
 
 #endif // _UILIB_COLORHELPER_H
