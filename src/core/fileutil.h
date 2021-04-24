@@ -246,18 +246,25 @@ static int mkdir_recursive(const char *dir, mode_t mode=0750) {
         return -1;
     }
     size_t len = strlen(dir);
-    char *tmp = (char*)malloc(len+1); memcpy(tmp, dir, len+1);
-    char *p = NULL;
+    char *tmp = (char*)malloc(len+1);
+    if (!tmp) {
+        errno = ENOMEM;
+        return -1;
+    }
+    memcpy(tmp, dir, len+1);
+    if(tmp[len-1]=='/' || tmp[len-1]==OS_DIR_SEP) tmp[len-1] = 0;
     
-    if(tmp[len - 1] == '/') tmp[len - 1] = 0;
-    for(p = tmp + 1; *p; p++) {
-        if(*p == '/') {
+    for(char *p = tmp + 1; *p; p++) {
+        if(*p=='/' || *p==OS_DIR_SEP) {
+            char c = *p;
             *p = 0;
             MKDIR(tmp, mode);
-            *p = '/';
+            *p = c;
         }
     }
-    return MKDIR(tmp, mode);
+    int res = MKDIR(tmp, mode);
+    free(tmp);
+    return res;
 }
 
 #endif // _CORE_FILEUTIL_H
