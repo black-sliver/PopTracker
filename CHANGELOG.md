@@ -1,5 +1,11 @@
 # PopTracker Changelog
 
+## v0.14.2
+
+* Pack Features
+  * work around bug in IoGR's logic with random starting location
+  * added `composite_toggle` item type
+
 ## v0.14.1
 
 * Fixes

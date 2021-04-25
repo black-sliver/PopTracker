@@ -1,5 +1,6 @@
 #include "imagefilter.h"
 #include "colorhelper.h"
+#include <stdio.h>
 
 namespace Ui {
 
