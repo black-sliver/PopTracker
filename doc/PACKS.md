@@ -188,7 +188,23 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
   + has on/off for each stage. Like progressive with `allow_disabled: true`.
 
 * `"composite_toggle"`:
-  + FIXME: this is missing
+  + is linked to two items left and right that have to be defined before
+  + lua access is through linked items' .Active only
+  + adds `"item_left": "code"` and `"item_right": "code"`
+  + adds 4 stages via
+```jsonc
+    "images": [
+        {
+            "left": false, "right": false,
+            // img, mods like stage
+        },
+        {
+            "left": true, "right": false,
+            // img, mods like stage
+        },
+        // ...
+    ]
+```
 
 
 ### Maps

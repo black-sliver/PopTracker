@@ -95,9 +95,22 @@ public:
         return (_stage1 && canProvideCode(code));
     }
     virtual std::string getCodesString() const override;
+    virtual const std::list<std::string>& getCodes(int stage) const;
     
     virtual bool changeState(BaseItem::Action action) override {
         if (_changeStateImpl(action)) {
+            onChange.emit(this);
+            return true;
+        }
+        return false;
+    }
+    virtual bool setState(int state, int stage=-1) override {
+        // NOTE: we have to override because upcasting sender from void* in onChange does not work with multiple inheritance
+        if (state<0) state = _stage1;
+        if (stage<0) stage = _stage2;
+        if (_stage1 != state || _stage2 != stage) {
+            _stage1 = state;
+            _stage2 = stage;
             onChange.emit(this);
             return true;
         }

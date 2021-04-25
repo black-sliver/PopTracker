@@ -16,6 +16,7 @@ public:
         STATIC, // this could be pseudo-type toggle with allowDisabled=false
         CONSUMABLE,
         PROGRESSIVE,
+        COMPOSITE_TOGGLE,
         // pseudo-types:
         PROGRESSIVE_TOGGLE,
         CUSTOM, // this indicates that most stuff below is useless because it's handled by lua, see TODO above
@@ -34,6 +35,7 @@ public:
         if (str == "static") return Type::STATIC;
         if (str == "consumable") return Type::CONSUMABLE;
         if (str == "progressive") return Type::PROGRESSIVE;
+        if (str == "composite_toggle") return Type::COMPOSITE_TOGGLE;
         if (str == "progressive_toggle") return Type::PROGRESSIVE_TOGGLE;
         return Type::UNKNOWN;
     }
@@ -44,6 +46,7 @@ public:
             case Type::STATIC:      return "static";
             case Type::CONSUMABLE:  return "consumable";
             case Type::PROGRESSIVE: return "progressive";
+            case Type::COMPOSITE_TOGGLE:   return "composite_toggle";
             case Type::PROGRESSIVE_TOGGLE: return "progressive_toggle";
             case Type::CUSTOM:      return "custom";
             default:                return "unknown";
@@ -109,6 +112,7 @@ public:
     }
     
     virtual bool canProvideCode(const std::string& code) const { // FIXME: make this pure?
+        if (_type == Type::COMPOSITE_TOGGLE) return false; // let referenced items provide the codes
         if (std::find(_codes.begin(), _codes.end(), code) != _codes.end()) return true;
         return false;
     }
@@ -124,6 +128,7 @@ public:
     
     // NOTE: firing events from BaseItem causes trouble with promotion from
     //       void* and multiple inheritance, so we make setters pure virtual.
+    virtual bool setState(int state, int stage=-1) = 0;
     virtual void SetOverlay(const char* text) = 0;
 };
 

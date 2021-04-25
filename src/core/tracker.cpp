@@ -47,12 +47,80 @@ bool Tracker::AddItems(const std::string& file) {
             continue; // ignore
         }
         _jsonItems.push_back(JsonItem::FromJSON(v));
-        _jsonItems.back().setID(++_lastItemID);
-        _jsonItems.back().onChange += {this, [this](void* sender) {
+        auto& item = _jsonItems.back();
+        item.setID(++_lastItemID);
+        item.onChange += {this, [this](void* sender) {
             if (!_bulkUpdate) _reachableCache.clear();
             JsonItem* i = (JsonItem*)sender;
+            if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
+                // update part items when changing composite
+                unsigned n = (unsigned)i->getActiveStage();
+                auto leftCodes = i->getCodes(1);
+                auto rightCodes = i->getCodes(2);
+                if (!leftCodes.empty()) {
+                    auto o = FindObjectForCode(leftCodes.front().c_str());
+                    if (o.type == Object::RT::JsonItem)
+                        o.jsonItem->setState((n&1)?1:0); // TODO: advanceToCode() instead?
+                    else if (o.type == Object::RT::LuaItem)
+                        o.luaItem->setState((n&1)?1:0);
+                }
+                if (!rightCodes.empty()) {
+                    auto o = FindObjectForCode(rightCodes.front().c_str());
+                    if (o.type == Object::RT::JsonItem)
+                        o.jsonItem->setState((n&2)?1:0);
+                    else if (o.type == Object::RT::LuaItem)
+                        o.luaItem->setState((n&2)?1:0);
+                }
+            }
             onStateChanged.emit(this, i->getID());
         }};
+        if (item.getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
+            // update composite when changing part items (and get initial state)
+            int n = 0;
+            auto id = item.getID();
+            auto leftCodes = item.getCodes(1);
+            auto rightCodes = item.getCodes(2);
+            auto update = [this,id](unsigned bit, bool value) {
+                for (auto& i : _jsonItems) {
+                    if (i.getID() == id) {
+                        unsigned stage = (unsigned)i.getActiveStage();
+                        i.setState(1, value ? (stage|bit) : (stage&~bit));
+                        break;
+                    }
+                }
+            };
+            if (!leftCodes.empty()) {
+                auto o = FindObjectForCode(leftCodes.front().c_str());
+                if (o.type == Object::RT::JsonItem) {
+                    if (o.jsonItem->getState()) n += 1;
+                    o.jsonItem->onChange += { this, [update](void* sender) {
+                        update(1, ((JsonItem*)sender)->getState());
+                    }};
+                }
+                else if (o.type == Object::RT::LuaItem) {
+                    if (o.luaItem->getState()) n += 1;
+                    o.luaItem->onChange += { this, [update](void* sender) {
+                        update(1, ((LuaItem*)sender)->getState());
+                    }};
+                }
+            }
+            if (!rightCodes.empty()) {
+                auto o = FindObjectForCode(rightCodes.front().c_str());
+                if (o.type == Object::RT::JsonItem) {
+                    if (o.jsonItem->getState()) n += 2;
+                    o.jsonItem->onChange += { this, [update](void* sender) {
+                        update(2, ((JsonItem*)sender)->getState());
+                    }};
+                }
+                else if (o.type == Object::RT::LuaItem) {
+                    if (o.luaItem->getState()) n += 2;
+                    o.luaItem->onChange += { this, [update](void* sender) {
+                        update(2, ((LuaItem*)sender)->getState());
+                    }};
+                }
+            }
+            item.setState(1, n);
+        }
     }
     
     onLayoutChanged.emit(this,""); // TODO: differentiate between structure and content

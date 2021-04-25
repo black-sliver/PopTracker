@@ -21,6 +21,12 @@ std::string JsonItem::getCodesString() const {
     return s;
 }
 
+const std::list<std::string>& JsonItem::getCodes(int stage) const {
+    if (_type == Type::TOGGLE) return _codes;
+    if (stage>=0 && (size_t)stage<_stages.size()) return _stages[stage].getCodes();
+    return _codes;
+}
+
 JsonItem JsonItem::FromJSONString(const std::string& j)
 {
     return FromJSON(json::parse(j, nullptr, true, true));
@@ -65,6 +71,26 @@ JsonItem JsonItem::FromJSON(json& j)
             item._stages.push_back(Stage::FromJSON(v));
         }
     }
+    
+    if (item._type == Type::COMPOSITE_TOGGLE && j["images"].type() == json::value_t::array) {
+        // we convert composite toggle to a 4-staged item and only have special
+        // code for mouse presses and for linking it to the "parts" in Tracker
+        std::string leftCode = j["item_left"];
+        std::string rightCode = j["item_right"];
+        for (uint8_t n=0; n<4; n++) {
+            for (auto& v: j["images"]) {
+                if (to_bool(v["left"],false) == !!(n&1) && to_bool(v["right"],false) == !!(n&2)) {
+                    v["codes"] = (n==3) ? leftCode+","+rightCode :
+                                 (n==2) ? rightCode : leftCode;
+                    v["inherit_codes"] = false;
+                    item._stages.push_back(Stage::FromJSON(v));
+                    break;
+                }
+            }
+        }
+        item._stage1 = 1;
+    }
+    
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
     item._count  = std::max(0,std::min(to_int(j["initial_quantity"],0), item._maxCount));
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;
@@ -174,6 +200,16 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             _count = n;
             _stage1 = (n>0);
         }
+    } else if (_type == Type::COMPOSITE_TOGGLE) {
+        unsigned n = (unsigned)_stage2;
+        if (action == Action::Primary) {
+            n ^= 1;
+        } else if (action == Action::Secondary) {
+            n ^= 2;
+        }
+        if (n >= _stages.size()) return false;
+        _stage1 = 1;
+        _stage2 = (int)n;
     } else {
         // not implemented
         printf("Unimplemented item action for type=%s\n", Type2Str(_type).c_str());

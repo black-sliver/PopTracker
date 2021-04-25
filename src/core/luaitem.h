@@ -28,6 +28,9 @@ public:
         _overlay = text;
         onChange.emit(this);
     }
+    virtual bool setState(int state, int stage=-1) override {
+        return false; // TODO: implement this?
+    }
     
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
