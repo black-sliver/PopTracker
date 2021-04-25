@@ -64,7 +64,13 @@ static std::list<std::string> commasplit(std::string&& s)
 
 static bool to_bool(const nlohmann::json& j, bool dflt)
 {
-    return (j.type() == nlohmann::json::value_t::boolean) ? j.get<bool>() : dflt;
+    if (j.type() == nlohmann::json::value_t::boolean) return j.get<bool>();
+    else if (j.type() == nlohmann::json::value_t::string) {
+        auto s = j.get<std::string>();
+        if (strcasecmp(s.c_str(), "true") == 0) return true;
+        if (strcasecmp(s.c_str(), "false") == 0) return false;
+    }
+    return dflt;
 }
 static std::string to_string(const nlohmann::json& j, const std::string& dflt)
 {
