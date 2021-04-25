@@ -16,7 +16,7 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
 };
 
 static LayoutNode blankLayoutNode = LayoutNode::FromJSON(json({}));
-static BaseItem blankItem = JsonItem::FromJSON(json({}));
+static JsonItem blankItem = JsonItem::FromJSON(json({}));
 static Map blankMap = Map::FromJSON(json({}));
 static Location blankLocation;// = Location::FromJSON(json({}));
 

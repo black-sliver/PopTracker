@@ -84,12 +84,6 @@ public:
     void setID(const std::string& id) { _id = id; }
     void setID(uint64_t id) { setID(std::to_string(id)); }
     
-    virtual void SetOverlay(const char* text) {
-        if (_overlay == text) return;
-        _overlay = text;
-        onChange.emit(this);
-    }
-    
     //virtual const std::vector<Stage>& getStages() const { return _stages; }
     
     virtual size_t getStageCount() const { return 0; }
@@ -127,6 +121,10 @@ public:
     int getCount() const { return _count; }
     int getMaxCount() const { return _maxCount; }
     const std::string& getOverlay() const { return _overlay; }
+    
+    // NOTE: firing events from BaseItem causes trouble with promotion from
+    //       void* and multiple inheritance, so we make setters pure virtual.
+    virtual void SetOverlay(const char* text) = 0;
 };
 
 #endif // _CORE_ITEM_H
