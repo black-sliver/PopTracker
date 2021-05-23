@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.14.3
+
+* Fixes
+  * make static items default to "on" for access_rules
+
 ## v0.14.2
 
 * Pack Features
