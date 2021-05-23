@@ -45,6 +45,7 @@ JsonItem JsonItem::FromJSON(json& j)
     
     if (item._type == Type::STATIC) {
         item._allowDisabled = false;
+        item._stage1 = 1;
     } else /*if (item._type == Type::TOGGLE)*/ {
         item._allowDisabled = true; // default to true
     }
