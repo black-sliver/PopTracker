@@ -103,3 +103,14 @@ jobs:
       with:
         name: win64-msys-dist
         path: dist
+    - name: Build DEBUG
+      shell: msys2 {0}
+      run: |
+        make clean
+        make native CONF=DEBUG -j2
+        7z a -mx=9 dist/poptracker-win64-debug.zip build/win64/poptracker.exe
+    - name: Store DEBUG
+      uses: actions/upload-artifact@v2
+      with:
+        name: win64-msys-debug
+        path: dist/poptracker-win64-debug.zip
