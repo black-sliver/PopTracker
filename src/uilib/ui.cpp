@@ -37,7 +37,11 @@ Ui::Ui(const char *name)
     if (TTF_Init() != 0) {
         fprintf(stderr, "Error initializing SDL_TTF: %s\n", TTF_GetError());
     }
-    
+
+#ifdef SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR /* available beginning SDL 2.0.8 */
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+#endif
+
 #if 0
     // set OpenGL defaults in case opengl renderer is used
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
