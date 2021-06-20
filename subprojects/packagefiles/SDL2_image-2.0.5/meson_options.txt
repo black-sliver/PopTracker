@@ -1,0 +1,6 @@
+option('png', type: 'feature', value: 'enabled',
+  description: 'Use libpng')
+option('jpeg', type: 'feature', value: 'enabled',
+  description: 'Use libjpeg')
+option('tiff', type: 'feature', value: 'disabled',
+  description: 'Use libtiff')

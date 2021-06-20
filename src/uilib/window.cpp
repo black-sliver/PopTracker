@@ -1,6 +1,6 @@
 #include "window.h"
 #include "../core/assets.h"
-#include <SDL2/SDL_syswm.h>
+#include <SDL_syswm.h>
 
 namespace Ui {
 

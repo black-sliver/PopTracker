@@ -4,7 +4,7 @@ extern "C" {
 #include <lualib.h>
 #include <lauxlib.h>
 }
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #include "ui/trackerwindow.h"
 #include "ui/broadcastwindow.h"
 #include "core/luaitem.h"

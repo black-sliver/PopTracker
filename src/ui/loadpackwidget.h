@@ -7,7 +7,7 @@
 #include "../uilib/hbox.h"
 #include "../uilib/label.h"
 #include "../core/signal.h"
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 
 namespace Ui {
 

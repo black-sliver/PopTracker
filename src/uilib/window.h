@@ -2,8 +2,8 @@
 #define _UILIB_WINDOW_H
 
 #include <string>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 #include "container.h"
 
 #define WINDOW_DEFAULT_POSITION {SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED}

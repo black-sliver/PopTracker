@@ -1,7 +1,7 @@
 #ifndef _UILIB_CURSOR_H
 #define _UILIB_CURSOR_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 namespace Ui {
 

@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/centricular/freetype2.git
+revision = head
+
+[provide]
+freetype2 = freetype_dep
+

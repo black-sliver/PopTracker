@@ -1,7 +1,7 @@
 #ifndef _UILIB_WIDGET_H
 #define _UILIB_WIDGET_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../core/signal.h"
 #include "size.h"
 #include "position.h"

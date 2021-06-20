@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://github.com/libsdl-org/SDL.git
+revision = head
+patch_directory = SDL2
+
+[provide]
+sdl2 = sdl2_dep
+

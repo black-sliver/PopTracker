@@ -1,7 +1,7 @@
 #ifndef _UILIB_LABEL_H
 #define _UILIB_LABEL_H
 
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 #include <string>
 #include "widget.h"
 

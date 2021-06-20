@@ -22,3 +22,8 @@ screenshots
 # exclude tool chain dependant files
 win32-lib
 win32-lib-src
+
+# ignore meson subprojects' temps
+/subprojects/*
+!/subprojects/packagefiles
+!/subprojects/*.wrap

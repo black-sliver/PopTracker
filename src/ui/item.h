@@ -5,7 +5,7 @@
 #include "../uilib/imagefilter.h"
 #include <vector>
 #include <list>
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 
 namespace Ui {
 

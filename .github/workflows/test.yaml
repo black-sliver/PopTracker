@@ -27,57 +27,46 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Install dependencies
-      run: |
-        sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: Build DEBUG
-      run: make native CONF=DEBUG -j2
-    - name: Run tests
-      run: make test CONF=DEBUG
+    - uses: actions/setup-python@v1
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install libxi-dev
+    - uses: BSFishy/meson-build@v1.0.3
+      with:
+        meson-version: 0.58.1
+        action: build #test
+    - run: ls -al build
 
   test-macos:
 
     runs-on: macos-latest
     
     steps:
-    - name: Install dependencies
-      run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: Build DEBUG
-      run: make native CONF=DEBUG -j2
-    - name: Run tests
-      run: make test CONF=DEBUG
+    - uses: actions/setup-python@v1
+    - uses: BSFishy/meson-build@v1.0.3
+      with:
+        meson-version: 0.58.1
+        action: build #test
+    - run: ls -al build
 
   test-win64:
 
     runs-on: windows-latest
     
     steps:
-    - uses: msys2/setup-msys2@v2
-      with:
-        install: >-
-          base-devel
-          coreutils
-          make
-          mingw-w64-x86_64-toolchain
-          mingw64/mingw-w64-x86_64-SDL2
-          mingw64/mingw-w64-x86_64-SDL2_image
-          mingw64/mingw-w64-x86_64-SDL2_ttf
-          mingw64/mingw-w64-x86_64-freetype
-          p7zip
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: Build DEBUG
-      shell: msys2 {0}
-      run: make native CONF=DEBUG -j2
-    - name: Run tests
-      shell: msys2 {0}
-      run: make test CONF=DEBUG
+    - uses: actions/setup-python@v1
+    - uses: BSFishy/meson-build@v1.0.3
+      with:
+        meson-version: 0.58.1
+        action: build #test
+    - run: dir build

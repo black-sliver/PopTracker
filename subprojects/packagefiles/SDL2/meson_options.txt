@@ -1,0 +1,14 @@
+option('joystick', type: 'feature', value: 'disabled',
+  description: 'Enable joystick subsystem')
+option('haptic', type: 'feature', value: 'disabled',
+  description: 'Enable haptic feedback subsystem')
+option('dynapi', type: 'feature', value: 'disabled',
+  description: 'Enable dynamic api')
+option('loadso', type: 'feature', value: 'enabled',
+  description: 'Enable the shared object loading subsystem')
+option('audio', type: 'feature', value: 'disabled',
+  description: 'Enable the audio subsystem')
+option('alsa', type: 'feature', value: 'disabled',
+  description: 'support for the ALSA audio API')
+#option('hidapi-libusb', type: 'feature', value: 'disabled',
+#  description: 'use libusb for low level joystick drivers')
