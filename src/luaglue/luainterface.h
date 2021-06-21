@@ -56,6 +56,7 @@ protected:
     virtual int Lua_Index(lua_State *L, const char *key){return 0;}
     virtual bool Lua_NewIndex(lua_State *L, const char *key){return false;}
 public:
+    virtual ~LuaInterface() {}
     static T* luaL_checkthis(lua_State *L, int narg) {
         return * (T**)luaL_checkudata(L, narg, T::Lua_Name);
     }

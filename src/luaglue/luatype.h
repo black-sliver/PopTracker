@@ -15,6 +15,7 @@ protected:
     LuaType(){}
 public:
     virtual void Lua_Push(lua_State *L) const = 0;
+    virtual ~LuaType() {}
 };
 
 #endif // _LUAGLUE_LUATYPE_H

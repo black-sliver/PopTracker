@@ -90,13 +90,14 @@ ifneq '' '$(findstring clang,$(CC))'
 endif
 
 # tool config
+#TODO: -fsanitize=address -fno-omit-frame-pointer ?
 C_FLAGS = -Wall -std=c99
 ifeq ($(CONF), DEBUG) # DEBUG
 ifdef IS_LLVM # DEBUG with LLVM
-CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
 LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread
 else # DEBUG with GCC
-CPP_FLAGS = -Wall -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
 LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread
 endif
 else ifdef IS_LLVM # RELEASE or DIST with LLVM

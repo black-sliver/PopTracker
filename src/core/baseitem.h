@@ -77,6 +77,8 @@ protected:
     int _maxCount = 0; // for consumable
     
 public:
+    virtual ~BaseItem() {}
+    
     const std::string& getName() const { return _name; }
     const std::string& getID() const { return _id; }
     const Type getType() const { return _type; }

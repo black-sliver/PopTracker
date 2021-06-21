@@ -14,6 +14,7 @@ protected:
 #ifndef __EMSCRIPTEN__
 public:
     int run() { if (!start()) return 1; while(frame()){}; return 0; }
+    virtual ~App() {}
 #else
 private:
     static App* _emInstance;
