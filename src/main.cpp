@@ -8,6 +8,7 @@ int main(int argc, char** argv)
         printf("%s\n", PopTracker::VERSION_STRING);
         return 0;
     }
+    printf("%s %s\n", PopTracker::APPNAME, PopTracker::VERSION_STRING);
     PopTracker popTracker(argc, argv);
     return popTracker.run();
 }

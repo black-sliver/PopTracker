@@ -13,11 +13,39 @@ extern "C" {
 #include "core/assets.h"
 #include "core/jsonutil.h"
 #include "core/statemanager.h"
+#include "core/log.h"
 using nlohmann::json;
 
 
 PopTracker::PopTracker(int argc, char** argv)
 {
+    std::string config;
+    std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json");
+    if (readFile(configFilename, config)) {
+        _config = parse_jsonc(config);
+    }
+    
+    if (_config["log"].type() != json::value_t::boolean)
+        _config["log"] = false;
+    
+    std::string logFilename = getConfigPath(APPNAME, "log.txt");
+    if (!_config["log"]) {
+        // disable logging, leave note
+        if (Log::RedirectStdOut(logFilename)) {
+            printf("%s %s\n", APPNAME, VERSION_STRING);
+        }
+        printf("Logging disabled. Exit application, change '\"log\":false' "
+                "to '\"log\":true' in\n  '%s'\n  and restart to enable.\n",
+                configFilename.c_str());
+        Log::UnredirectStdOut();
+    } else {
+        // enable logging
+        printf("Logging to %s\n", logFilename.c_str());
+        if (Log::RedirectStdOut(logFilename)) {
+            printf("%s %s\n", APPNAME, VERSION_STRING);
+        }
+    }
+    
     _ui = new Ui::Ui(APPNAME);
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
@@ -62,18 +90,12 @@ PopTracker::~PopTracker()
 
 bool PopTracker::start()
 {
-    std::string config;
-    json jConfig;
-    if (readFile(getConfigPath(APPNAME, std::string(APPNAME)+".json"), config)) {
-        jConfig = parse_jsonc(config);
-    }
-    
     Ui::Position pos = WINDOW_DEFAULT_POSITION;
     Ui::Size size = {0,0};
     
     // restore state from config
-    if (jConfig.type() == json::value_t::object) {
-        auto jWindow = jConfig["window"];
+    if (_config.type() == json::value_t::object) {
+        auto jWindow = _config["window"];
         if (jWindow.type() == json::value_t::object) {
             auto& jPos = jWindow["pos"];
             auto& jSize = jWindow["size"];
@@ -86,7 +108,7 @@ bool PopTracker::start()
                 size.height = to_int(jSize[1],size.height);
             }
         }
-        auto jPack = jConfig["pack"];
+        auto jPack = _config["pack"];
         if (jPack.type() == json::value_t::object) {
             std::string path = to_string(jPack["path"],"");
             std::string variant = to_string(jPack["variant"],"");
@@ -226,10 +248,10 @@ bool PopTracker::frame()
     // load new tracker AFTER rendering a frame
     if (!_newTracker.empty()) {
         if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
-            fprintf(stderr, "Error loading tracker/pack!\n");
+            fprintf(stderr, "Error loading tracker/pack!\n"); fflush(stderr);
             // TODO: display error
         } else {
-            printf("Tracker loaded!\n");
+            printf("Tracker loaded!\n"); fflush(stdout);
         }
         _newTracker = "";
         _newVariant = "";
