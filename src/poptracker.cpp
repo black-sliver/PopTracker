@@ -27,6 +27,8 @@ PopTracker::PopTracker(int argc, char** argv)
     
     if (_config["log"].type() != json::value_t::boolean)
         _config["log"] = false;
+    if (_config["software_renderer"].type() != json::value_t::boolean)
+        _config["software_renderer"] = false;
     
     std::string logFilename = getConfigPath(APPNAME, "log.txt");
     if (!_config["log"]) {
@@ -46,7 +48,7 @@ PopTracker::PopTracker(int argc, char** argv)
         }
     }
     
-    _ui = new Ui::Ui(APPNAME);
+    _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
             _broadcast = nullptr;

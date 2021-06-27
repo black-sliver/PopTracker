@@ -21,9 +21,12 @@ static uint64_t getMicroTicks()
 
 namespace Ui {
 
-Ui::Ui(const char *name)
+Ui::Ui(const char *name, bool fallbackRenderer)
 {
     _name = name;
+    _fallbackRenderer = fallbackRenderer;
+    if (_fallbackRenderer) SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+    
     SDL_version v;
     SDL_GetVersion(&v);
     printf("Ui: Init SDL %hhu.%hhu.%hhu...\n", v.major, v.minor, v.patch);

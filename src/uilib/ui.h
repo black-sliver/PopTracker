@@ -14,8 +14,9 @@ protected:
     unsigned _lastRenderDuration = 0;
     uint64_t _lastFrameMicroTimestamp = 0;
     unsigned _globalMouseButton = 0;
+    bool _fallbackRenderer = false;
 public:
-    Ui(const char *name);
+    Ui(const char *name, bool fallbackRenderer);
     virtual ~Ui();
     template <class T>
     T *createWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos={-1,-1}, const Size& size={0,0})
