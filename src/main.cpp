@@ -20,7 +20,9 @@ int main(int argc, char** argv)
     // enable stdout on windows
     if(AttachConsole(ATTACH_PARENT_PROCESS) || (openConsole && AllocConsole())) {
         freopen("CONOUT$", "w", stdout);
+        setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
         freopen("CONOUT$", "w", stderr);
+        setvbuf(stderr, NULL, _IONBF, 0);
     }
 #endif
 

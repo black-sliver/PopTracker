@@ -35,6 +35,7 @@ bool Log::RedirectStdOut(const std::string& file, bool truncate) {
     // if stdout has no underlying handle, use freopen (fileno(stdout) is -2 on windows)
     if (_oldOut < 0) {
         freopen(_logFile.c_str(), "w", stdout);
+        setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
         close(_newOut);
         _newOut = fileno(stdout);
         if (_newOut < 0) {
@@ -59,6 +60,7 @@ bool Log::RedirectStdOut(const std::string& file, bool truncate) {
     // if stderr has no underlying handle, use freopen
     if (_oldErr < 0 || _newErr < 0) {
         freopen(_logFile.c_str(), "w", stderr);
+        setvbuf(stderr, NULL, _IONBF, 0);
         close(_newErr);
         _newErr = fileno(stderr);
         if (_newErr < 0) {

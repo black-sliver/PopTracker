@@ -33,6 +33,7 @@ PopTracker::PopTracker(int argc, char** argv)
     std::string logFilename = getConfigPath(APPNAME, "log.txt");
     if (!_config["log"]) {
         // disable logging, leave note
+#if 0
         if (Log::RedirectStdOut(logFilename)) {
             printf("%s %s\n", APPNAME, VERSION_STRING);
         }
@@ -40,6 +41,7 @@ PopTracker::PopTracker(int argc, char** argv)
                 "to '\"log\":true' in\n  '%s'\n  and restart to enable.\n",
                 configFilename.c_str());
         Log::UnredirectStdOut();
+#endif
     } else {
         // enable logging
         printf("Logging to %s\n", logFilename.c_str());
@@ -248,6 +250,7 @@ bool PopTracker::frame()
     }
     
     // load new tracker AFTER rendering a frame
+    printf("Loading Tracker %s:%s!\n", _newTracker.c_str(), _newVariant.c_str()); fflush(stdout);
     if (!_newTracker.empty()) {
         if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
             fprintf(stderr, "Error loading tracker/pack!\n"); fflush(stderr);
