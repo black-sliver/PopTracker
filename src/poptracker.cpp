@@ -250,8 +250,8 @@ bool PopTracker::frame()
     }
     
     // load new tracker AFTER rendering a frame
-    printf("Loading Tracker %s:%s!\n", _newTracker.c_str(), _newVariant.c_str()); fflush(stdout);
     if (!_newTracker.empty()) {
+        printf("Loading Tracker %s:%s!\n", _newTracker.c_str(), _newVariant.c_str()); fflush(stdout);
         if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
             fprintf(stderr, "Error loading tracker/pack!\n"); fflush(stderr);
             // TODO: display error
@@ -295,24 +295,34 @@ void PopTracker::unloadTracker()
 }
 bool PopTracker::loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
 {
+    printf("Cleaning up...\n");
     unloadTracker();
     
+    printf("Loading Pack...\n");
     _pack = new Pack(pack);
+    printf("Selecting Variant...\n");
     _pack->setVariant(variant);
     
+    printf("Creating Lua State...\n");
     _L = luaL_newstate();
+    printf("Loading Lua libs...\n");
     luaL_openlibs(_L);
     
+    printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
+    printf("Registering in Lua...\n");
     Tracker::Lua_Register(_L);
     _tracker->Lua_Push(_L);
     lua_setglobal(_L, "Tracker");
     
+    printf("Creating Script Host...\n");
     _scriptHost = new ScriptHost(_pack, _L, _tracker);
+    printf("Registering in Lua...\n");
     ScriptHost::Lua_Register(_L);
     _scriptHost->Lua_Push(_L);
     lua_setglobal(_L, "ScriptHost");
     
+    printf("Registering classes in Lua...\n");
     LuaItem::Lua_Register(_L); // TODO: move this to Tracker or ScriptHost
     JsonItem::Lua_Register(_L); // ^
     LocationSection::Lua_Register(_L); // ^
