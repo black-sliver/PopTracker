@@ -93,12 +93,13 @@ endif
 #TODO: -fsanitize=address -fno-omit-frame-pointer ?
 C_FLAGS = -Wall -std=c99
 ifeq ($(CONF), DEBUG) # DEBUG
+C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
 ifdef IS_LLVM # DEBUG with LLVM
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
-LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
 else # DEBUG with GCC
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread
-LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
 endif
 else ifdef IS_LLVM # RELEASE or DIST with LLVM
 CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread
