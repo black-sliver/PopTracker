@@ -305,6 +305,12 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     
     printf("Creating Lua State...\n");
     _L = luaL_newstate();
+    if (!_L) {
+        fprintf(stderr, "Error creating Lua State!\n");
+        delete _pack;
+        _pack = nullptr;
+        return false;
+    }
     printf("Loading Lua libs...\n");
     luaL_openlibs(_L);
     
