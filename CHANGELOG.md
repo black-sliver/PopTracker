@@ -1,5 +1,20 @@
 # PopTracker Changelog
 
+## v0.15.0
+
+* Fixes
+  * Fix crash when loading packs on older CPUs:
+    make liblua build not target a specific CPU
+* App Features
+  * More verbose debug output
+  * Use --console to open a dos prompt for debug output on windows
+  * Debug output to terminal/dos prompt when starting from terminal
+  * Debug output to file:
+    run+exit app, modify `%APPDATA%\PopTracker\PopTracker.json`: `"log":true` to `"log":false`, run app
+  * Support for software renderer:
+    run+exit app, modify `%APPDATA%\PopTracker\PopTracker.json`: `"software_renderer":true` to `"software_renderer":false`, run app
+  * Don't disable compositing in X11
+
 ## v0.14.3
 
 * Fixes
