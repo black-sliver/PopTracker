@@ -91,9 +91,9 @@ endif
 
 # tool config
 #TODO: -fsanitize=address -fno-omit-frame-pointer ?
-C_FLAGS = -Wall -std=c99
+C_FLAGS = -Wall -std=c99 -D_REENTRANT
 ifeq ($(CONF), DEBUG) # DEBUG
-C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
+C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
 ifdef IS_LLVM # DEBUG with LLVM
 CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
 LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
@@ -101,12 +101,15 @@ else # DEBUG with GCC
 CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
 LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
 endif
-else ifdef IS_LLVM # RELEASE or DIST with LLVM
+else
+C_FLAGS += -O2 -fno-stack-protector -fno-common
+ifdef IS_LLVM # RELEASE or DIST with LLVM
 CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread
 LD_FLAGS = -Wl,-dead_strip -O2 -s -flto
 else # RELEASE or DIST with GCC
 CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
 LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
+endif
 endif
 
 # os-specific tool config
@@ -246,25 +249,25 @@ $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
 	mkdir -p $(WASM_BUILD_DIR)/lib
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
-	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WASM_BUILD_DIR)/lib
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" MYCFLAGS="$(NIX_C_FLAGS)" MYLIBS="")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" CFLAGS="$(NIX_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
-	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
+	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN32_BUILD_DIR)/lib
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN64_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
-	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" MYCFLAGS="$(C_FLAGS)" MYLIBS="")
+	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib
 
