@@ -46,7 +46,15 @@ See [BUILD.md](BUILD.md).
 
 ## Auto-tracking
 ### SNES
-Requires [QUsb2Snes](https://usb2snes.com) (flash cart, emu, snes mini) or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only). See their respective documentation.
+Requires [SNI](https://github.com/alttpo/sni)
+or [QUsb2Snes](https://usb2snes.com) (flash cart, emu, snes mini)
+or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only).
+See their respective documentation.
+
+### PC
+We do not allow direct access to process memory or sockets from LUA. Instead
+[UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables"
+starting with v0.16.
 
 ### Other systems
 No work has been done for other systems yet.
