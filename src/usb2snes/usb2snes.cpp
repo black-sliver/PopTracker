@@ -1,4 +1,4 @@
-#include "SD2SNES.h"
+#include "usb2snes.h"
 #include <cstdio>
 #include <thread>
 #include <mutex>
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <ctime>
 #include <vector>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 
@@ -18,12 +18,12 @@ using json = nlohmann::json;
 //#ifndef DETACH_THREAD_ON_EXIT // avoid blocking on delete(). not yet implemented
 
 
-bool SD2SNES::wsConnected()
+bool USB2SNES::wsConnected()
 {
     std::lock_guard<std::mutex> statelock(statemutex);
     return ws_connected;
 }
-bool SD2SNES::snesConnected()
+bool USB2SNES::snesConnected()
 {
     std::lock_guard<std::mutex> statelock(statemutex);
     return snes_connected;
@@ -42,7 +42,7 @@ static const json jINFO = {
     { "Space", "SNES" }
 };
 
-SD2SNES::SD2SNES(const std::string& name)
+USB2SNES::USB2SNES(const std::string& name)
 {
     // set name sent to (Q)usb2snes
     appname = name;
@@ -341,23 +341,23 @@ SD2SNES::SD2SNES(const std::string& name)
     });
 }
 
-SD2SNES::~SD2SNES()
+USB2SNES::~USB2SNES()
 {
     disconnect();
 #ifdef DETACH_THREAD_ON_EXIT
     {
         #error "This needs state owned by worker on heap"
-        printf("SD2SNES: detaching worker...\n");
+        printf("USB2SNES: detaching worker...\n");
         std::lock_guard<std::mutex> lock(workmutex);
         if (worker.joinable()) worker.detach();
     }
 #else
-    printf("SD2SNES: joining worker...\n");
+    printf("USB2SNES: joining worker...\n");
     if (worker.joinable()) worker.join();
 #endif
 }
 
-bool SD2SNES::mayBlockOnExit() const
+bool USB2SNES::mayBlockOnExit() const
 {
 #ifdef DETACH_THREAD_ON_EXIT
     return false;
@@ -366,7 +366,7 @@ bool SD2SNES::mayBlockOnExit() const
 #endif
 }
 
-bool SD2SNES::connect(std::vector<std::string> uris)
+bool USB2SNES::connect(std::vector<std::string> uris)
 {
     {
         std::lock_guard<std::mutex> wslock(wsmutex);
@@ -414,9 +414,9 @@ bool SD2SNES::connect(std::vector<std::string> uris)
     });
     return true;
 }
-bool SD2SNES::disconnect()
+bool USB2SNES::disconnect()
 {
-    printf("SD2SNES: disconnect\n");
+    printf("USB2SNES: disconnect\n");
     {
         std::lock_guard<std::mutex> lock(workmutex);
         std::lock_guard<std::mutex> wslock(wsmutex);
@@ -434,7 +434,7 @@ bool SD2SNES::disconnect()
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return true;
 }
-bool SD2SNES::dostuff()
+bool USB2SNES::dostuff()
 {
     bool res = false;
     {
@@ -449,7 +449,7 @@ bool SD2SNES::dostuff()
     }
     return res;
 }
-uint32_t SD2SNES::mapaddr(uint32_t addr)
+uint32_t USB2SNES::mapaddr(uint32_t addr)
 {
     // WRAM
     if (addr>>16 == 0x7e || addr>>16==0x7f) return 0xF50000 + (addr&0xffff);
@@ -458,7 +458,7 @@ uint32_t SD2SNES::mapaddr(uint32_t addr)
     if (addr>=0x800000) return addr-0x800000;
     return addr;
 }
-void SD2SNES::addWatch(uint32_t addr, unsigned len)
+void USB2SNES::addWatch(uint32_t addr, unsigned len)
 {
     addr = mapaddr(addr);
     {
@@ -470,7 +470,7 @@ void SD2SNES::addWatch(uint32_t addr, unsigned len)
         sort(watchlist.begin(), watchlist.end());
     }
 }
-void SD2SNES::removeWatch(uint32_t addr, unsigned len)
+void USB2SNES::removeWatch(uint32_t addr, unsigned len)
 {
     addr = mapaddr(addr);
     {
@@ -480,7 +480,7 @@ void SD2SNES::removeWatch(uint32_t addr, unsigned len)
         }
     }
 }
-uint8_t SD2SNES::read(uint32_t addr)
+uint8_t USB2SNES::read(uint32_t addr)
 {
     addr = mapaddr(addr);
     {
@@ -489,7 +489,7 @@ uint8_t SD2SNES::read(uint32_t addr)
     }
 }
 
-bool SD2SNES::read(uint32_t addr, unsigned len, void* out)
+bool USB2SNES::read(uint32_t addr, unsigned len, void* out)
 {
     uint8_t* dst = (uint8_t*)out;
     addr = mapaddr(addr);
@@ -500,7 +500,7 @@ bool SD2SNES::read(uint32_t addr, unsigned len, void* out)
     return true;
 }
 
-bool SD2SNES::hasFeature(std::string feat)
+bool USB2SNES::hasFeature(std::string feat)
 {
     std::lock_guard<std::mutex> lock(workmutex);
     const auto it = features.find(feat);
@@ -508,7 +508,7 @@ bool SD2SNES::hasFeature(std::string feat)
     return it->second;
 }
 
-void SD2SNES::clearCache()
+void USB2SNES::clearCache()
 {
     std::lock_guard<std::mutex> lock(datamutex);
     data.clear();

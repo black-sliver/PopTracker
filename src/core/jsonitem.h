@@ -4,7 +4,7 @@
 #include "baseitem.h"
 #include "../luaglue/luainterface.h"
 #include <algorithm>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 class JsonItem final : public LuaInterface<JsonItem>, public BaseItem {
     friend class LuaInterface;

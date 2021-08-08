@@ -1,7 +1,7 @@
 #include "statemanager.h"
 #include "jsonutil.h"
 #include "fileutil.h"
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 using nlohmann::json;
 
 std::map<StateManager::StateID, json> StateManager::_states;

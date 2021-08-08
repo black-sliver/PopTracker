@@ -2,7 +2,7 @@
 #define _CORE_JSONUTIL_H
 
 #include "direction.h"
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <list>
 

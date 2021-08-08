@@ -1,7 +1,7 @@
 #ifndef _CORE_MAP_H
 #define _CORE_MAP_H
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 
 class Map final {

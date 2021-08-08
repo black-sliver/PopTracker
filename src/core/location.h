@@ -3,7 +3,7 @@
 
 #include <list>
 #include <string>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include "../luaglue/luainterface.h"
 #include "../core/signal.h"
 

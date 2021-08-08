@@ -5,7 +5,7 @@
 #include <map>
 #include "tracker.h"
 #include "scripthost.h"
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 class StateManager {
 public:

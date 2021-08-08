@@ -1,5 +1,5 @@
-#ifndef _SD2SNES_H_INCLUDED
-#define _SD2SNES_H_INCLUDED
+#ifndef _USB2SNES_H_INCLUDED
+#define _USB2SNES_H_INCLUDED
 
 #define ASIO_STANDALONE
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -12,10 +12,10 @@
 
 typedef websocketpp::client<websocketpp::config::asio_client> WSClient;
 
-class SD2SNES {
+class USB2SNES {
     public:
-        SD2SNES(const std::string& appname);
-        ~SD2SNES();
+        USB2SNES(const std::string& appname);
+        ~USB2SNES();
         bool connect(std::vector<std::string> uris = {QUSB2SNES_URI,LEGACY_URI});
         bool disconnect();
         bool dostuff();
@@ -131,7 +131,7 @@ class SD2SNES {
 };
 
 template<typename T>
-T SD2SNES::readInt(uint32_t addr)
+T USB2SNES::readInt(uint32_t addr)
 {
     T res=0;
     addr = mapaddr(addr);
@@ -145,5 +145,5 @@ T SD2SNES::readInt(uint32_t addr)
     return res;
 }
 
-#endif // _SD2SNES_H_INCLUDED
+#endif // _USB2SNES_H_INCLUDED
 

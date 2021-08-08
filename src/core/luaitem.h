@@ -5,7 +5,7 @@
 #include <list>
 #include <vector>
 #include <algorithm>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include "baseitem.h"
 #include "../luaglue/luainterface.h"
 #include "../luaglue/luavariant.h"

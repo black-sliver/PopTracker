@@ -12,7 +12,7 @@
 #include "core/scripthost.h"
 #include "core/imagereference.h"
 #include <chrono>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 class PopTracker final : public App {
 private:

@@ -1,7 +1,7 @@
 #ifndef _CORE_AUTOTRACKER_H
 #define _CORE_AUTOTRACKER_H
 
-#include "../sd2snes/SD2SNES.h"
+#include "../usb2snes/usb2snes.h"
 #include "signal.h"
 #include <string>
 #include <string.h>
@@ -19,7 +19,7 @@ public:
     AutoTracker(const std::string& platform, const std::string& name="PopTracker")
     {
         if (strcasecmp(platform.c_str(), "snes")==0) {
-            _snes = new SD2SNES(name);
+            _snes = new USB2SNES(name);
         }
     }
     
@@ -176,7 +176,7 @@ public:
 protected:
     
     State _state = State::Disconnected;
-    SD2SNES *_snes = nullptr;
+    USB2SNES *_snes = nullptr;
     
 protected: // LUA interface implementation
     
