@@ -7,13 +7,15 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
       $(wildcard $(SRC_DIR)/ui/*.cpp) \
       $(wildcard $(SRC_DIR)/core/*.cpp) \
-      $(wildcard $(SRC_DIR)/usb2snes/*.cpp) #lib/gifdec/gifdec.c
+      $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
+      $(wildcard $(SRC_DIR)/uat/*.cpp) #lib/gifdec/gifdec.c
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
       $(wildcard $(SRC_DIR)/ui/*.h) \
       $(wildcard $(SRC_DIR)/core/*.h) \
-      $(wildcard $(SRC_DIR)/usb2snes/*.h)
-INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -Ilib/miniz -Ilib/json/include #-Ilib/gifdec
+      $(wildcard $(SRC_DIR)/usb2snes/*.h) \
+      $(wildcard $(SRC_DIR)/uat/*.h)
+INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -Ilib/miniz -Ilib/json/include -Ilib/valijson/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include

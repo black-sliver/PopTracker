@@ -53,7 +53,7 @@ USB2SNES::USB2SNES(const std::string& name)
     
 #ifdef MINIMAL_LOGGING
     client.clear_access_channels(websocketpp::log::alevel::all);
-    client.set_access_channels(websocketpp::log::alevel::none);
+    client.set_access_channels(websocketpp::log::alevel::none | websocketpp::log::alevel::app);
 #else
     client.set_access_channels(websocketpp::log::alevel::all);
     client.clear_access_channels(websocketpp::log::alevel::frame_payload | websocketpp::log::alevel::frame_header);

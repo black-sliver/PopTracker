@@ -144,14 +144,17 @@ std::string Pack::getVersion() const
 {
     return to_string(_manifest,"package_version","");
 }
-bool Pack::variantHasFlag(const std::string& flag)
+bool Pack::variantHasFlag(const std::string& flag) const
 {
-    if (_manifest.type() != json::value_t::object) return false;
-    auto& flags = _manifest["variants"][_variant]["flags"];
-    if (flags.type() != json::value_t::array) {
-        printf("Pack: %s:%s has no flags (%s)\n", _uid.c_str(), _variant.c_str(), flag.c_str());
-        return false;
-    }
+    // jump through hoops to stay const
+    auto variantsIt = _manifest.find("variants");
+    if (variantsIt == _manifest.end()) return false;
+    auto variantIt = variantsIt->find(_variant);
+    if (variantIt == variantsIt->end()) return false;
+    auto flagsIt = variantIt->find("flags");
+    if (flagsIt == variantIt->end()) return false;
+    // actually find flag
+    const auto& flags = *flagsIt;
     for (const auto& f: flags) {
         if (f == flag) {
             printf("Pack: %s:%s has flag %s\n", _uid.c_str(), _variant.c_str(), flag.c_str());
@@ -160,6 +163,23 @@ bool Pack::variantHasFlag(const std::string& flag)
     }
     printf("Pack: %s:%s has NO flag %s\n", _uid.c_str(), _variant.c_str(), flag.c_str());
     return false;
+}
+std::set<std::string> Pack::getVariantFlags() const
+{
+    std::set<std::string> set;
+    // jump through hoops to stay const
+    auto variantsIt = _manifest.find("variants");
+    if (variantsIt == _manifest.end()) return set;
+    auto variantIt = variantsIt->find(_variant);
+    if (variantIt == variantsIt->end()) return set;
+    auto flagsIt = variantIt->find("flags");
+    if (flagsIt == variantIt->end()) return set;
+    // actually iterate over flags
+    const auto& flags = *flagsIt;
+    for (const auto& f: flags) {
+        if (f.is_string()) set.insert(f.get<std::string>());
+    }
+    return set;
 }
 
 std::vector<Pack::Info> Pack::ListAvailable()

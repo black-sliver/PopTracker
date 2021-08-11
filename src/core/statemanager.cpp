@@ -7,7 +7,7 @@ using nlohmann::json;
 std::map<StateManager::StateID, json> StateManager::_states;
 std::string StateManager::_dir;
 
-static std::string sanitize(std::string s)
+static std::string sanitize_dir(std::string s)
 {
     if (s.empty()) return "_";
     if ((size_t)std::count(s.begin(), s.end(), '.') == s.length()) return "_";
@@ -57,7 +57,10 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
                   pack->getVariant(), name }] = state;
         return true;
     } else {
-        auto dirname = os_pathcat(_dir, sanitize(pack->getUID()), sanitize(pack->getVersion()), sanitize(pack->getVariant()));
+        auto dirname = os_pathcat(_dir,
+                sanitize_dir(pack->getUID()),
+                sanitize_dir(pack->getVersion()),
+                sanitize_dir(pack->getVariant()));
         mkdir_recursive(dirname.c_str());
         auto filename = os_pathcat(dirname, name+".json");
         printf("Saving state \"%s\" to file...\n", name.c_str());
@@ -83,7 +86,10 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool from
         replayHints(tracker, it->second);
     } else {
         std::string s;
-        std::string filename = os_pathcat(_dir, sanitize(pack->getUID()), sanitize(pack->getVersion()), sanitize(pack->getVariant()), name+".json");
+        std::string filename = os_pathcat(_dir,
+                sanitize_dir(pack->getUID()),
+                sanitize_dir(pack->getVersion()),
+                sanitize_dir(pack->getVariant()), name+".json");
         printf("Loading state \"%s\" from file %s...", name.c_str(), filename.c_str());
         if (!readFile(filename, s)) {
             printf(" missing\n");

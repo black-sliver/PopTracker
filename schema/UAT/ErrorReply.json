@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "name": { "type": "string" },
+        "reason": { "type": "string" },
+        "argument": { "type": "string" },
+        "description": { "type": "string" }
+    },
+    "required": [ "name", "reason" ]
+}

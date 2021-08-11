@@ -17,13 +17,15 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, AddWatchForCode, const char*, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveWatchForCode, const char*),
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
+    LUA_METHOD(ScriptHost, AddVariableWatch, const char*, json, LuaRef, int),
+    LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
 };
 
 
 ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     : _L(L), _pack(pack), _tracker(tracker)
 {
-    _autoTracker = new AutoTracker(_pack->getPlatform());
+    _autoTracker = new AutoTracker(_pack->getPlatform(), _pack->getVariantFlags());
     _autoTracker->onDataChange += {this, [this](void* sender) {
         DEBUG_printf("AutoTracker: Data changed!\n");
         for (auto& w : _memoryWatches) {
@@ -37,9 +39,30 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                     printf("Error calling Memory Watch Callback for %s: %s\n",
                             w.name.c_str(), lua_tostring(_L, -1));
                     // TODO: clean up lua stack
-                    return;
                 }
             }
+        }
+    }};
+    _autoTracker->onVariablesChanged += {this, [this](void*, const std::list<std::string>& vars) {
+        std::list<std::string> watchVars;
+        DEBUG_printf("AutoTracker: Variables changed!\n");
+        for (const auto& it: _varWatches) {
+            for (const auto& varName: vars) {
+                if (it.second.names.find(varName) != it.second.names.end())
+                    watchVars.push_back(varName);
+            }
+            if (!watchVars.empty()) {
+                lua_rawgeti(_L, LUA_REGISTRYINDEX, it.second.callback);
+                _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
+                json j = watchVars;
+                json_to_lua(_L, j); // args2: variable names
+                if (lua_pcall(_L, 2, 0, 0)) {
+                    printf("Error calling Variable Watch Callback for %s: %s\n",
+                            it.first.c_str(), lua_tostring(_L, -1));
+                    // TODO: clean up lua stack
+                }
+            }
+            watchVars.clear();
         }
     }};
     AutoTracker::Lua_Register(_L);
@@ -214,6 +237,36 @@ bool ScriptHost::RemoveWatchForCode(const std::string& name)
     return true;
 }
 
+bool ScriptHost::AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int)
+{
+    RemoveVariableWatch(name);
+    if (!variables.is_array()) {
+        fprintf(stderr, "WARNING: AddVariableWatch: `variables` has to be an array!\n");
+        return false;
+    }
+    if (!callback.valid()) {
+        fprintf(stderr, "WARNING: AddVariableWatch: callback is invalid!\n");
+        return false;
+    }
+    std::set<std::string> varnames;
+    for (auto& var: variables) if (var.is_string()) varnames.insert(var.get<std::string>());
+    if (varnames.empty()) {
+        fprintf(stderr, "WARNING: AddVariableWatch: `variables` is empty or invalid!\n");
+        return false;
+    }
+    _varWatches[name] = { callback.ref, varnames };
+    return true;
+}
+
+bool ScriptHost::RemoveVariableWatch(const std::string& name)
+{
+    auto it = _varWatches.find(name);
+    if (it == _varWatches.end()) return false;
+    luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
+    _varWatches.erase(it);
+    return true;
+}
+
 void ScriptHost::resetWatches()
 {
     bool changed = false;
@@ -222,8 +275,8 @@ void ScriptHost::resetWatches()
         changed = true;
         watch.data.clear();
     }
+    _autoTracker->clearCache();
     if (changed && _autoTracker) {
-        _autoTracker->clearCache();
         _autoTracker->onDataChange.emit(_autoTracker);
     }
 }

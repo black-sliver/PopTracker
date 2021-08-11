@@ -11,4 +11,5 @@ const LuaInterface<AutoTracker>::MethodMap AutoTracker::Lua_Methods = {
     LUA_METHOD(AutoTracker, ReadUInt16, int),
     LUA_METHOD(AutoTracker, ReadUInt24, int),
     LUA_METHOD(AutoTracker, ReadUInt32, int),
+    LUA_METHOD(AutoTracker, ReadVariable, const char*),
 };

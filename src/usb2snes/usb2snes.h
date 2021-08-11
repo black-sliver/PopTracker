@@ -10,8 +10,6 @@
 #include <vector>
 #include <string>
 
-typedef websocketpp::client<websocketpp::config::asio_client> WSClient;
-
 class USB2SNES {
     public:
         USB2SNES(const std::string& appname);
@@ -37,6 +35,7 @@ class USB2SNES {
         bool mayBlockOnExit() const;
         
     protected:
+        typedef websocketpp::client<websocketpp::config::asio_client> WSClient;
         struct Version {
             int vmajor;
             int vminor;

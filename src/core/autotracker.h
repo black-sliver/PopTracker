@@ -2,24 +2,52 @@
 #define _CORE_AUTOTRACKER_H
 
 #include "../usb2snes/usb2snes.h"
+#include "../uat/uatclient.h"
 #include "signal.h"
 #include <string>
 #include <string.h>
 #include <stdint.h>
 #include <vector> // TODO: replace by uint8_t* ?
+#include <list>
+#include <set>
 #include <chrono>
 #include <thread>
 #include "../luaglue/luainterface.h"
+#include "../luaglue/lua_json.h"
+#include "util.h"
+
 
 // this class is designed to wrap multiple auto-tracker back-ends
 class AutoTracker final : public LuaInterface<AutoTracker>{
     friend class LuaInterface;
     
 public:
-    AutoTracker(const std::string& platform, const std::string& name="PopTracker")
+    AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& name="PopTracker")
     {
         if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(name);
+        } else if (flags.find("uat") != flags.end()) {
+            _uat = new UATClient();
+            _uat->setInfoHandler([this](const UATClient::Info& info) {
+                // TODO: let user select the slot and send sync after that
+                _slot = info.slots.empty() ? "" : info.slots.front();
+                if (!_slot.empty()) printf("slot selected: %s\n", sanitize_print(_slot).c_str());
+                _uat->sync(_slot);
+            });
+            _uat->setVarHandler([this](const std::vector<UATClient::Var>& vars) {
+                std::list<std::string> varNames;
+                for (const auto& var : vars) {
+                    if (var.slot != _slot) continue;
+                    printf("%s:%s = %s\n",
+                            sanitize_print(var.slot).c_str(),
+                            sanitize_print(var.name).c_str(),
+                            var.value.dump().c_str());
+                    _vars[var.name] = var.value;
+                    varNames.push_back(var.name);
+                }
+                // NOTE: for UAT we pass the event straight through
+                onVariablesChanged.emit(this, varNames);
+            });
         }
     }
     
@@ -39,6 +67,9 @@ public:
         }
         _snes = nullptr;
         
+        if (_uat) delete _uat;
+        _uat = nullptr;
+
         if (spawnedWorkers) {
             // wait a bit if we started a thread to increase readability of logs
             std::this_thread::sleep_for(std::chrono::milliseconds(21));
@@ -53,6 +84,7 @@ public:
     
     Signal<State> onStateChange;
     Signal<> onDataChange;
+    Signal<const std::list<std::string>&> onVariablesChanged;
     State getState() const { return _state; }
     
     bool doStuff()
@@ -81,6 +113,19 @@ public:
             return true;
         }
         
+        // UAT AUTOTRACKING
+        if (_uat) _uat->connect();
+        if (_uat && _uat->poll()) {
+            State oldState = _state;
+            _state = _uat->getState() == UATClient::State::GAME_CONNECTED ? State::ConsoleConnected :
+                     _uat->getState() == UATClient::State::SOCKET_CONNECTED ? State::BridgeConnected :
+                    State::Disconnected;
+            if (_state != oldState) {
+                onStateChange.emit(this, _state);
+            }
+            return true;
+        }
+
         // NO UPDATES
         return false;
     }
@@ -110,6 +155,8 @@ public:
     void clearCache() {
         if (_snes)
             _snes->clearCache();
+        if (_uat)
+            _uat->sync(_slot);
     }
     
     // TODO: canRead(addr,len) to detect incomplete segment
@@ -172,11 +219,22 @@ public:
         }
         return 0;
     }
+    json ReadVariable(const std::string& name)
+    {
+        auto it = _vars.find(name);
+        if (it != _vars.end()) {
+            return it->second;
+        }
+        return {};
+    }
     
 protected:
     
     State _state = State::Disconnected;
     USB2SNES *_snes = nullptr;
+    UATClient *_uat = nullptr;
+    std::string _slot; // selected slot for UAT
+    std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     
 protected: // LUA interface implementation
     
