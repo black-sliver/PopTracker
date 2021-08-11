@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "properties": {
+        "protocol": { "type": "integer" },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "features": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "slots": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    },
+    "required": [ "protocol" ]
+}

@@ -2,6 +2,7 @@
 #define _CORE_SCRIPTHOST_H
 
 #include "../luaglue/luainterface.h"
+#include "../luaglue/lua_json.h"
 #include "pack.h"
 #include "autotracker.h"
 #include "tracker.h"
@@ -25,6 +26,8 @@ public:
     bool RemoveMemoryWatch(const std::string& name);
     bool AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
     bool RemoveWatchForCode(const std::string& name);
+    bool AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int interval);
+    bool RemoveVariableWatch(const std::string& name);
     void resetWatches();
     
     bool autoTrack();
@@ -44,6 +47,11 @@ public:
         int callback;
         std::string code;
     };
+    struct VarWatch
+    {
+        int callback;
+        std::set<std::string> names;
+    };
     
 protected:
     lua_State *_L;
@@ -51,6 +59,7 @@ protected:
     Tracker *_tracker;
     std::list<MemoryWatch> _memoryWatches;
     std::map<std::string, CodeWatch> _codeWatches;
+    std::map<std::string, VarWatch> _varWatches;
     AutoTracker *_autoTracker = nullptr;
     
 protected: // LUA interface implementation

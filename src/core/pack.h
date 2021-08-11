@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <nlohmann/json.hpp>
 #include "zip.h"
 
@@ -39,7 +40,8 @@ public:
     
     bool ReadFile(const std::string& file, std::string& out) const;
     
-    bool variantHasFlag(const std::string& flag);
+    bool variantHasFlag(const std::string& flag) const;
+    std::set<std::string> getVariantFlags() const;
     std::string getPlatform() const;
     std::string getVersion() const;
     
