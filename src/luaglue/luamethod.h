@@ -5,6 +5,9 @@
 #include "luaref.h" // provides reference for lua references (functions, ...)
 #include "luavariant.h"
 #include "lua_utils.h" // wraps (most) possible lua results
+#ifndef NO_LUAMETHOD_JSON
+#include "lua_json.h"
+#endif
 extern "C" {
 #include <lua.h>
 #include <lualib.h>
@@ -41,12 +44,12 @@ struct LuaMethodHelper
     {
         if constexpr(std::is_same<Next,int>::value) {
             // NOTE: we just default to 0 for optional args at the moment
-            int next = n<=lua_gettop(L) ? (int)luaL_checkinteger(L,n) : 0;
+            int next = n<=lua_gettop(L) ? (int)luaL_checkinteger(L, n) : 0;
             LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d %d (%d done, %d remaining)\n", n, (int)next, (int)sizeof...(Prev), (int)sizeof...(Rest));
             n++;
             return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest... > (L,o,n, prev...,next);
         } else if constexpr(std::is_same<Next,const char*>::value) {
-            const char* next = luaL_checkstring(L,n);
+            const char* next = luaL_checkstring(L, n);
             LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d \"%s\" (%d done, %d remaining)\n", n, next, (int)sizeof...(Prev), (int)sizeof...(Rest));
             n++;
             return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest... > (L,o,n, prev...,next);
@@ -64,6 +67,13 @@ struct LuaMethodHelper
             LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d variant (%d done, %d remaining)\n", n, (int)sizeof...(Prev), (int)sizeof...(Rest));
             n++;
             return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest... > (L,o,n, prev...,next);
+#ifndef NO_LUAMETHOD_JSON
+        } else if constexpr(std::is_same<Next,json>::value) {
+            json next = lua_to_json(L, n);
+            LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d json %s (%d done, %d remaining)\n", n, next.dump().c_str(), (int)sizeof...(Prev), (int)sizeof...(Rest));
+            n++;
+            return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest ... > (L,o,n, prev...,next);
+#endif
         } else {
             static_unsupported_type();
             return 0;
@@ -94,6 +104,14 @@ struct LuaMethodHelper
                 return 1;
             // TODO: test if some other return types have conflicts
             // TODO: maybe allow tuples for more than 1 result value?
+#ifndef NO_LUAMETHOD_JSON
+            } else if constexpr(std::is_same<decltype((o->*F)(prev...)),json>::value) {
+                // result is json
+                auto res = (o->*F)(prev...);
+                json_to_lua(L, res);
+                LUAMETHOD_DEBUG_printf("LuaMethod pushed json: %s\n", res.dump().c_str());
+                return 1;
+#endif
             } else {
                 // result is non-void
                 //lua_settop(L, 0); // doesn't seem to make a difference

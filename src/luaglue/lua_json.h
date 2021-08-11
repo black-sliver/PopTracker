@@ -10,7 +10,7 @@ extern "C" {
 using nlohmann::json;
 
 
-json lua_to_json(lua_State* L, int n=-1)
+static json lua_to_json(lua_State* L, int n=-1)
 {
     json j;
     auto type = lua_type(L,n);
@@ -26,16 +26,24 @@ json lua_to_json(lua_State* L, int n=-1)
         case LUA_TTABLE:
         {
             lua_pushnil(L); // first key
-            while (lua_next(L,n-1)) {
+            while (lua_next(L, (n<0) ? (n-1) : n)) {
                 // key now at -2, value at -1
-                if (lua_isstring(L,-2)) {
+                if (lua_isinteger(L,-2)) {
+                    int key = lua_tointeger(L,-2) - 1; // nlohmann::json arrays are zero-based
+                    if (key>=0) {
+                        j[key] = lua_to_json(L);
+                    } else {
+                        fprintf(stderr, "Warning: Invalid array index: %d\n",
+                                key);
+                    }
+                } else if (lua_isstring(L,-2)) {
                     const char* key = lua_tostring(L,-2);
                     j[key] = lua_to_json(L);
-                } else if (lua_isinteger(L,-2)) {
-                    // TODO: numbers/arrays
-                    fprintf(stderr, "Warning: unhandled type array in lua_to_json()\n");
+                } else {
+                    fprintf(stderr, "Warning: unhandled table key type %d\n",
+                            lua_type(L,-2));
                 }
-                // pop value, keep key
+                // pop value, keep key (used in lua_next())
                 lua_pop(L,1);
             }
             break;
@@ -49,7 +57,7 @@ json lua_to_json(lua_State* L, int n=-1)
     return j;
 }
 
-void json_to_lua(lua_State* L, json& j)
+static void json_to_lua(lua_State* L, json& j)
 {
     switch (j.type()) {
         case json::value_t::number_integer:
@@ -72,9 +80,16 @@ void json_to_lua(lua_State* L, json& j)
                 lua_setfield(L, -2, it.key().c_str());
             }
             break;
+        case json::value_t::array:
+            lua_newtable(L);
+            for (size_t i=0; i<j.size(); i++) {
+                lua_pushinteger(L, i+1);
+                json_to_lua(L, j[i]);
+                lua_settable(L, -3);
+            }
+            break;
         default:
             // not implemented
-            // TODO: array
             fprintf(stderr, "Warning: unhandled type %d %s in json_to_lua()\n",
                     (int)j.type(), j.type_name());
             lua_pushnil(L);
