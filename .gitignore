@@ -9,8 +9,8 @@ thumbs.db
 
 # exclude unused and scratch pad files
 .trash
-img
-util
+/img
+/util
 
 # exclude project files
 nbproject

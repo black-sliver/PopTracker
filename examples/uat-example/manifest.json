@@ -1,0 +1,17 @@
+{
+    "name": "UAT Example",
+	"game_name": "Demo",
+	"platform": "pc",
+	"package_version": "1.0.0",
+	"package_uid": "uat-example",
+	"author": "black_sliver",
+	"variants": {
+		"standard": {
+			"display_name": "Example",
+			"flags": [
+			    "uat" // use UAT protocol for auto-tracking
+			    //,"uat-bridge" // auto-start UAT bridge, if possible - not implemented yet
+			]
+		}
+	}
+}
