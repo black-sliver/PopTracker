@@ -23,9 +23,10 @@ class AutoTracker final : public LuaInterface<AutoTracker>{
     
 public:
     AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& name="PopTracker")
+            : _name(name)
     {
         if (strcasecmp(platform.c_str(), "snes")==0) {
-            _snes = new USB2SNES(name);
+            _snes = new USB2SNES(_name);
         } else if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
             _uat->setInfoHandler([this](const UATClient::Info& info) {
@@ -77,6 +78,7 @@ public:
     }
     
     enum class State {
+        Disabled,
         Disconnected, 
         BridgeConnected,
         ConsoleConnected
@@ -89,6 +91,10 @@ public:
     
     bool doStuff()
     {
+        if (_state == State::Disabled) {
+            return false;
+        }
+
         // USB2SNES AUTOTRACKING
         if (_snes) _snes->connect();
         if (_snes && _snes->dostuff()) {
@@ -112,7 +118,7 @@ public:
             
             return true;
         }
-        
+
         // UAT AUTOTRACKING
         if (_uat) _uat->connect();
         if (_uat && _uat->poll()) {
@@ -139,6 +145,7 @@ public:
         }
         return false;
     }
+
     bool removeWatch(unsigned addr, unsigned len)
     {
         if (len<0) return false;
@@ -148,10 +155,12 @@ public:
         }
         return false;
     }
+
     void setInterval(unsigned ms) {
         if (_snes)
             _snes->setUpdateInterval(ms);
     }
+
     void clearCache() {
         if (_snes)
             _snes->clearCache();
@@ -177,9 +186,11 @@ public:
         // NOTE: this is AutoTracker:Read8. we only have 1 segment, that is AutoTracker
         return ReadUInt8(segment+offset);
     }
+
     int ReadU16(int segment, int offset=0) { return ReadUInt16(segment+offset); }
     int ReadU24(int segment, int offset=0) { return ReadUInt24(segment+offset); }
     int ReadU32(int segment, int offset=0) { return ReadUInt32(segment+offset); }
+
     int ReadUInt8(int addr)
     {
         // NOTE: this is Segment:ReadUint8. we only have 1 segment, that is AutoTracker
@@ -192,6 +203,7 @@ public:
         }
         return 0;
     }
+
     int ReadUInt16(int addr)
     {
         if (_snes) {
@@ -201,6 +213,7 @@ public:
         }
         return 0;
     }
+
     int ReadUInt24(int addr)
     {
         if (_snes) {
@@ -210,6 +223,7 @@ public:
         }
         return 0;
     }
+
     int ReadUInt32(int addr)
     {
         if (_snes) {
@@ -219,6 +233,7 @@ public:
         }
         return 0;
     }
+
     json ReadVariable(const std::string& name)
     {
         auto it = _vars.find(name);
@@ -228,16 +243,46 @@ public:
         return {};
     }
     
+    void enable()
+    {
+        if (_state == State::Disabled) {
+            _state = State::Disconnected;
+            onStateChange.emit(this, _state);
+        }
+    }
+
+    void disable()
+    {
+        _state = State::Disabled;
+        if (_snes) {
+            // connect() after disconnect() needs to join the worker thread,
+            // which may block. as a work-around we start a new USB2SNES and
+            // destruct the old one on a different thread.
+            // We should probably rewrite USB2SNES support.
+            if (_snes->mayBlockOnExit()) {
+                auto snes = _snes;
+                std::thread([snes]() { delete snes; }).detach();
+            } else {
+                delete _snes;
+            }
+            _snes = new USB2SNES(_name);
+        }
+        if (_uat && _uat->getState() != UATClient::State::DISCONNECTED
+                && _uat->getState() != UATClient::State::DISCONNECTING) {
+            _uat->disconnect(websocketpp::close::status::going_away);
+        }
+        onStateChange.emit(this, _state);
+    }
+
 protected:
-    
     State _state = State::Disconnected;
     USB2SNES *_snes = nullptr;
     UATClient *_uat = nullptr;
     std::string _slot; // selected slot for UAT
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
-    
+    std::string _name;
+
 protected: // LUA interface implementation
-    
     static constexpr const char Lua_Name[] = "AutoTracker";
     static const LuaInterface::MethodMap Lua_Methods;
 };

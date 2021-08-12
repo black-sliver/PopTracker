@@ -32,6 +32,7 @@ public:
     static const std::string MENU_RELOAD;
     static const std::string MENU_BROADCAST;
     static const std::string MENU_PACK_SETTINGS;
+    static const std::string MENU_TOGGLE_AUTOTRACKER;
     
     virtual void setCenterPosition(const Position& pos) { _centerPos = pos; }
     

@@ -9,6 +9,7 @@ const std::string TrackerWindow::MENU_LOAD = "load";
 const std::string TrackerWindow::MENU_RELOAD = "reload";
 const std::string TrackerWindow::MENU_BROADCAST = "broadcast";
 const std::string TrackerWindow::MENU_PACK_SETTINGS = "pack-settings";
+const std::string TrackerWindow::MENU_TOGGLE_AUTOTRACKER = "toggle-autotracker";
 
 TrackerWindow::TrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size)
     : Window(title, icon, pos, size)

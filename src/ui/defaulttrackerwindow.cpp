@@ -47,6 +47,9 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _lblAutoTracker = new Label(0,0,32-4,32-4,_font, "AT");
     _lblAutoTracker->setTextColor({0,0,0});
     hbox->addChild(_lblAutoTracker);
+    _lblAutoTracker->onClick += {this, [this](void*, int x, int y, int button) {
+        onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER);
+    }};
     
     _lblTooltip = new Label(0,0,0,0,_font,"");
     _lblTooltip->setGrow(1,1);
@@ -86,6 +89,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         const char* state = _autoTrackerState == AutoTracker::State::Disconnected ? "Offline" :
                             _autoTrackerState == AutoTracker::State::BridgeConnected ? "No Game/Console" :
                             _autoTrackerState == AutoTracker::State::ConsoleConnected ? "Online" :
+                            _autoTrackerState == AutoTracker::State::Disabled ? "Disabled" :
                                 "Unknown";
         _lblTooltip->setText(std::string("Auto Tracker: ") + state);
     }};
@@ -151,6 +155,13 @@ void DefaultTrackerWindow::setAutoTrackerState(AutoTracker::State state)
         _lblAutoTracker->setTextColor({255,255,0});
     } else if (state == AutoTracker::State::ConsoleConnected) {
         _lblAutoTracker->setTextColor({0,255,0});
+    } else if (state == AutoTracker::State::Disabled) {
+        _lblAutoTracker->setTextColor({128,128,128});
+    }
+
+    if (isHover(_lblAutoTracker)) {
+        // update tool tip if current tool tip is AT state
+        _lblAutoTracker->onMouseEnter.emit(_lblAutoTracker, 0, 0, 0);
     }
 }
 

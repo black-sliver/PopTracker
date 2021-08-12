@@ -43,12 +43,7 @@ UATClient::UATClient()
 
 UATClient::~UATClient()
 {
-    disconnect(websocketpp::close::status::going_away);
-    auto start = chrono::steady_clock::now();
-    do {
-        _service.poll();
-        if (_state == State::DISCONNECTED) break;
-    } while (chrono::duration_cast<chrono::milliseconds> (chrono::steady_clock::now() - start).count() < 10);
+    disconnect(websocketpp::close::status::going_away, "", 10);
 }
 
 bool UATClient::connect(const std::vector<std::string>& uris)
@@ -86,19 +81,34 @@ bool UATClient::connect(const std::vector<std::string>& uris)
     return false;
 }
 
-bool UATClient::disconnect(websocketpp::close::status::value status, const std::string& message)
+bool UATClient::disconnect(websocketpp::close::status::value status, const std::string& message, int wait)
 {
     std::string msg = message;
     _service.post([this,status,msg]() {
         log("disconnect (" + std::to_string((int)_state) + ")");
-        if (_conn) {
+        if (_conn && _state != State::DISCONNECTING) {
             _state = State::DISCONNECTING;
             _conn->close(status, msg);
-        } else {
+        } else if (!_conn) {
             _state = State::DISCONNECTED;
         }
     });
-    _service.poll();
+    // if we disable UAT, the next connect should be like the fist
+    if (status == websocketpp::close::status::going_away) {
+        _nextUri = 0;
+    }
+
+    try {
+        auto start = chrono::steady_clock::now();
+        do {
+            _service.poll();
+            if (_state == State::DISCONNECTED) break;
+        } while (chrono::duration_cast<chrono::milliseconds> (chrono::steady_clock::now() - start).count() < wait);
+        _service.poll();
+    } catch (const std::exception& ex) {
+        // probably called disconnect in an invalid state; should not happen
+        log(std::string("Error during disconnect: poll: ") + ex.what());
+    }
 
     return true;
 }
@@ -184,17 +194,23 @@ void UATClient::on_fail(websocketpp::connection_hdl hdl)
 
 bool UATClient::poll()
 {
-    auto res = _service.poll();
-    if (_state > State::DISCONNECTED && _state < State::GAME_CONNECTED) {
-        auto now = chrono::steady_clock::now();
-        auto d = chrono::duration_cast<chrono::milliseconds> (now - _connectTimer).count();
-        if (d > 5000) {
-            log("Info timed out after " + std::to_string(d));
-            _connectTimer = now;
-            disconnect();
+    try {
+        auto res = _service.poll();
+        if (_state > State::DISCONNECTED && _state < State::GAME_CONNECTED) {
+            auto now = chrono::steady_clock::now();
+            auto d = chrono::duration_cast<chrono::milliseconds> (now - _connectTimer).count();
+            if (d > 5000) {
+                log("Info timed out after " + std::to_string(d));
+                _connectTimer = now;
+                disconnect(websocketpp::close::status::normal);
+            }
         }
+        return res > 0;
+    } catch (const std::exception& ex) {
+        // probably during execution of a post() in an invalid state
+        log(std::string("Error during poll: ") + ex.what());
+        return false;
     }
-    return res > 0;
 }
 
 void UATClient::sync(const std::string& slot)

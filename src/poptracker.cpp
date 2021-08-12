@@ -185,6 +185,19 @@ bool PopTracker::start()
 #endif
             
         }
+        if (item == Ui::TrackerWindow::MENU_TOGGLE_AUTOTRACKER)
+        {
+            if (!_scriptHost || !_scriptHost->getAutoTracker()) return;
+            auto at = _scriptHost->getAutoTracker();
+            if (at->getState() == AutoTracker::State::Disabled) {
+                at->enable();
+                _autoTrackerDisabled = false;
+            }
+            else {
+                at->disable();
+                _autoTrackerDisabled = true;
+            }
+        }
     }};
     
     _win->onPackSelected += {this, [this](void *s, const std::string& pack, const std::string& variant) {
@@ -196,6 +209,9 @@ bool PopTracker::start()
         _win->hideOpen();
     }};
     
+    if (_autoTrackerDisabled) // manually set since we get no event for this
+        _win->setAutoTrackerState(AutoTracker::State::Disabled);
+
     _frameTimer = std::chrono::steady_clock::now();
     _fpsTimer = std::chrono::steady_clock::now();
     return (_win != nullptr);
@@ -327,6 +343,8 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     ScriptHost::Lua_Register(_L);
     _scriptHost->Lua_Push(_L);
     lua_setglobal(_L, "ScriptHost");
+    if (_scriptHost->getAutoTracker() && _autoTrackerDisabled)
+        _scriptHost->getAutoTracker()->disable();
     
     printf("Registering classes in Lua...\n");
     LuaItem::Lua_Register(_L); // TODO: move this to Tracker or ScriptHost

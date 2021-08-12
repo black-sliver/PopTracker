@@ -28,6 +28,7 @@ private:
     ScriptHost *_scriptHost = nullptr;
     Pack *_pack = nullptr;
     ImageReference _imageReference;
+    bool _autoTrackerDisabled = false;
     
     unsigned _frames = 0;
     unsigned _maxFrameTime = 0;

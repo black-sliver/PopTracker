@@ -74,6 +74,10 @@ public:
     }
     const std::deque<Widget*> getChildren() const { return _children; }
 
+    virtual bool isHover(Widget* w) const {
+        return (w == this || (_hoverChild && _hoverChild->isHover(w)));
+    }
+
 #ifndef NDEBUG
     void dumpTree(size_t depth=0) {
         printf("%s", std::string(depth, ' ').c_str());

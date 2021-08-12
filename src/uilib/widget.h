@@ -160,7 +160,9 @@ public:
     
     void setVisible(bool visible) { _visible = visible; }
     bool getVisible() const { return _visible; }
-    
+
+    virtual bool isHover(Widget* w) const { return (w == this); }
+
     void setCursor(Cursor cur) {
         bool isDisplayed = false;
         if (!_defaultCursor) {

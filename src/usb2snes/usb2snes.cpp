@@ -374,6 +374,7 @@ bool USB2SNES::connect(std::vector<std::string> uris)
         ws_open = true;
     }
     
+    if (worker.joinable()) worker.join(); // if previously disconnected
     worker = std::thread([uris,this]() {
         do {
             {
@@ -405,6 +406,7 @@ bool USB2SNES::connect(std::vector<std::string> uris)
             {
                 std::lock_guard<std::mutex> lock(workmutex);
                 ws_connecting = false;
+                conn = nullptr;
             }
             client.reset();
             if (next_uri>=uris.size()) { // last in list -> pause
@@ -428,7 +430,7 @@ bool USB2SNES::disconnect()
         std::lock_guard<std::mutex> lock(workmutex);
         std::string res;
         try {
-            if (ws_connecting) conn->close(websocketpp::close::status::going_away, res);
+            if (conn) conn->close(websocketpp::close::status::going_away, res);
         } catch (...) {}
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));

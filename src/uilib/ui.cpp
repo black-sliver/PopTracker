@@ -217,11 +217,14 @@ bool Ui::render()
                     #endif
                     break;
                 }
-                default: {
-                    #ifndef NDEBUG
-                    printf("Ui: unhandled event %d\n", ev.type);
-                    #endif
+                #ifndef NDEBUG
+                case SDL_KEYMAPCHANGED: { // bogus event
+                    break;
                 }
+                default: {
+                    printf("Ui: unhandled event %d\n", ev.type);
+                }
+                #endif
             }
         }
         t1 = SDL_GetTicks();

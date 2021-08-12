@@ -74,7 +74,7 @@ public:
 
     bool connect(const std::vector<std::string>& uris = {DEFAULT_URI, FALLBACK_URI});
     bool disconnect(websocketpp::close::status::value status = websocketpp::close::status::normal,
-                    const std::string& message = "");
+                    const std::string& message = "", int wait=0);
 
     bool poll();
 
