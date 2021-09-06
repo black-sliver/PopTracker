@@ -61,6 +61,15 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"PotentialIcon")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _potentialIcon.ref);
         return 1;
+    } else if (strcmp(key,"BadgeText")==0) {
+        lua_pushstring(L, "");
+        return 1; // FIXME: not implemented
+    } else if (strcmp(key,"BadgeTextColor")==0) {
+        lua_pushstring(L, "");
+        return 1; // FIXME: not implemented
+    } else if (strcmp(key,"MaskInput")==0) {
+        lua_pushstring(L, "");
+        return 1; // FIXME: not implemented
     }
     
     return 0;
@@ -119,6 +128,12 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
         if (_potentialIcon.valid()) luaL_unref(L, LUA_REGISTRYINDEX, _potentialIcon.ref);
         _potentialIcon.ref = luaL_ref(L, LUA_REGISTRYINDEX);
         return true;
+    } else if (strcmp(key,"BadgeText")==0) {
+        return true; // FIXME: not implemented
+    } else if (strcmp(key,"BadgeTextColor")==0) {
+        return true; // FIXME: not implemented
+    } else if (strcmp(key,"MaskInput")==0) {
+        return true; // FIXME: not implemented
     }
     
     return false;
