@@ -11,14 +11,14 @@ public:
     static Map FromJSONString(const std::string& json);
 
 protected:
-    int _locationSize=16; // TODO: default?
-    int _locationBorderThickness=1; // TODO: default?
+    int _locationSize=65;
+    int _locationBorderThickness=8;
     std::string _img;
 
 public:
     int getLocationSize() const { return _locationSize; }
     int getLocationBorderTickness() const { return _locationBorderThickness; }
-    const std::string& getImage() const { return _img; }    
+    const std::string& getImage() const { return _img; } 
 };
 
 #endif // _CORE_MAP_H

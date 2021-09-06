@@ -176,7 +176,7 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
             const Widget::Color& c = (state<0 || state>=countOf(STATE_COLOR)) ?
                     STATE_COLOR[countOf(STATE_COLOR)-1] : STATE_COLOR[state];
 
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderFillRect(renderer, &outer);
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
             SDL_RenderFillRect(renderer, &inner);
