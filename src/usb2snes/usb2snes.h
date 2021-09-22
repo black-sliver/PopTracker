@@ -109,6 +109,7 @@ class USB2SNES {
         unsigned last_len = 0;
         std::string rxbuf;
         std::vector<uint32_t> watchlist;
+        std::vector<uint32_t> no_rom_watchlist;
         std::map<uint32_t, uint8_t> data;
         bool data_changed = true;
         bool state_changed = true;

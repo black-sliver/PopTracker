@@ -214,7 +214,10 @@ USB2SNES::USB2SNES(const std::string& name)
             client.send(hdl,jSCAN.dump(),websocketpp::frame::opcode::text);
         } else {
             std::unique_lock<std::mutex> watchlock(watchmutex);
-            if (watchlist.empty()) {
+            const auto it = features.find("NO_ROM_READ");
+            bool no_rom_read = (it == features.end()) ? false : it->second;
+            auto& actwatchlist = no_rom_read ? no_rom_watchlist : watchlist;
+            if (actwatchlist.empty()) {
                 watchlock.unlock();
                 // limit to 10 times a second
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -224,7 +227,7 @@ USB2SNES::USB2SNES(const std::string& name)
             } else {
                 // read data from watches
                 last_op = Op::READ;
-                if (last_watch >= watchlist.size()) {
+                if (last_watch >= actwatchlist.size()) {
                     last_watch = 0;
                     if (update_interval>0) { // limit updates per second
                         unsigned long t = (unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_update).count();
@@ -249,12 +252,12 @@ USB2SNES::USB2SNES(const std::string& name)
                         printf("UPS: %.3f\n", (float)ups);
                     }
                 }
-                last_addr = watchlist[last_watch];
+                last_addr = actwatchlist[last_watch];
                 last_len  = 1;
                 uint32_t tmp = last_addr;
                 // read consecutive watches in one go
-                while (last_watch+1<watchlist.size()) {
-                    unsigned next = watchlist[last_watch+1];
+                while (last_watch+1<actwatchlist.size()) {
+                    unsigned next = actwatchlist[last_watch+1];
                     if (next<=tmp) break; // we should never reach this
                     if (next-tmp>read_holes_are_free) break;
                     if (last_len+(next-tmp)>optimum_read_block_size) break;
@@ -460,16 +463,29 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
     if (addr>=0x800000) return addr-0x800000;
     return addr;
 }
+bool is_rom(uint32_t addr)
+{
+    // WRAM
+    if (addr>>16 == 0x7e || addr>>16==0x7f) return false;
+    // TODO: SRAM
+    return true;
+}
 void USB2SNES::addWatch(uint32_t addr, unsigned len)
 {
-    addr = mapaddr(addr);
+    uint32_t usb2snes_addr = mapaddr(addr);
     {
         std::lock_guard<std::mutex> watchlock(watchmutex);
         for (size_t i=0; i<len; i++) {
-            if (std::find(watchlist.begin(), watchlist.end(), addr+i)==watchlist.end())
-                watchlist.push_back(addr+i);
+            if (std::find(watchlist.begin(), watchlist.end(), usb2snes_addr+i)==watchlist.end())
+                watchlist.push_back(usb2snes_addr+i);
         }
         sort(watchlist.begin(), watchlist.end());
+        for (size_t i=0; i<len; i++) {
+            if (is_rom(addr+i)) continue;
+            if (std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), usb2snes_addr+i)==no_rom_watchlist.end())
+                no_rom_watchlist.push_back(usb2snes_addr+i);
+        }
+        sort(no_rom_watchlist.begin(), no_rom_watchlist.end());
     }
 }
 void USB2SNES::removeWatch(uint32_t addr, unsigned len)
@@ -479,6 +495,9 @@ void USB2SNES::removeWatch(uint32_t addr, unsigned len)
         std::lock_guard<std::mutex> watchlock(watchmutex);
         for (size_t i=0; i<len; i++) {
             watchlist.erase(std::remove(watchlist.begin(), watchlist.end(), addr+i), watchlist.end());
+        }
+        for (size_t i=0; i<len; i++) {
+            no_rom_watchlist.erase(std::remove(no_rom_watchlist.begin(), no_rom_watchlist.end(), addr+i), no_rom_watchlist.end());
         }
     }
 }
