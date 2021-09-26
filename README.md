@@ -34,6 +34,10 @@ Upstream URL is https://github.com/black-sliver/PopTracker/
 ## Screenshot
 ![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
 
+## Download prebuilt exe or app
+Head over to [releases](https://github.com/black-sliver/PopTracker/releases)
+and unfold "Assets" of the latest release or pre-release.
+
 ## Building from source
 See [BUILD.md](BUILD.md).
 

@@ -1,5 +1,16 @@
 # PopTracker Changelog
 
+## v0.16.0
+
+* Fixes
+  * Don't access SNES ROM if not supported
+  * Fix location border not being drawn
+  * Sane defaults for location size and border
+* App Features
+  * Add support for UAT protocol
+  * Click on "AT" to toggle auto-tracking
+  * Add dummy variables to Items for LUA to get more packs to load
+
 ## v0.15.0
 
 * Fixes
