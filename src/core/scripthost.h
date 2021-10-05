@@ -62,7 +62,7 @@ protected:
     std::map<std::string, VarWatch> _varWatches;
     AutoTracker *_autoTracker = nullptr;
     
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ScriptHost";
     static const LuaInterface::MethodMap Lua_Methods;
 };

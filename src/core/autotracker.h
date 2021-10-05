@@ -282,7 +282,7 @@ protected:
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     std::string _name;
 
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "AutoTracker";
     static const LuaInterface::MethodMap Lua_Methods;
 };

@@ -10,7 +10,7 @@ class ImageReference : public LuaInterface<ImageReference> {
 public:
     const char* FromPackRelativePath(const char* path) const;
     
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ImageReference";
     static const LuaInterface::MethodMap Lua_Methods;
 };

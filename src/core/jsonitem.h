@@ -130,7 +130,7 @@ protected:
     
     bool _changeStateImpl(Action action);
     
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     
     static constexpr const char Lua_Name[] = "JsonItem";
     static const LuaInterface::MethodMap Lua_Methods;

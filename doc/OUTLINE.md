@@ -65,7 +65,7 @@ Class::FromJSON, which are then used for to the actual (UI) implementation.
 
 
 ## Back-end requirements
-- LUA VM
+- Lua VM
 - JSON parser
 - UI/Layout abstraction (JSON -> Widgets -> Pixels)
 

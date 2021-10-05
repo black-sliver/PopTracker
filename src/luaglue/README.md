@@ -1,4 +1,4 @@
-# C++ LUA Glue Code
+# C++ Lua Glue Code
 
 This header-only library provides
 
@@ -16,7 +16,7 @@ This header-only library provides
 
 * `LuaMethodWrapper` and `LUA_METHOD` macro in `luamethod.h`
 
-        recursive template struct to map c++ methods to LUA functions
+        recursive template struct to map c++ methods to Lua functions
         see LuaInterface<class>::MethodMap for use
 
 * `LuaInterface<class>` in `lainterface.h`

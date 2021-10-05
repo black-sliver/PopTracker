@@ -56,7 +56,7 @@ or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only).
 See their respective documentation.
 
 ### PC
-We do not allow direct access to process memory or sockets from LUA. Instead
+We do not allow direct access to process memory or sockets from Lua. Instead
 [UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables"
 starting with v0.16.
 

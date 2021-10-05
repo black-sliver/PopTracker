@@ -14,7 +14,7 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects)
 
 ## General Stuff
 - isReachable optimizations:
-    - do not call into LUA from updateLocationState(): prebuild cache
+    - do not call into Lua from updateLocationState(): prebuild cache
     - invalidate only parts of _reachableCache when toggling items?
     - update location state on next frame instead of immediately (start of auto-tracking)
     - try to determine if location state needs update?

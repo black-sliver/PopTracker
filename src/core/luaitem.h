@@ -50,7 +50,7 @@ protected:
     LuaRef _potentialIcon;
     std::map<std::string, LuaVariant> _properties; // accessed through Set and Get, only used if _itemState is none
     
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     
     static constexpr const char Lua_Name[] = "LuaItem";
     static const LuaInterface::MethodMap Lua_Methods;

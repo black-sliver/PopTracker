@@ -9,7 +9,7 @@
 * App Features
   * Add support for UAT protocol
   * Click on "AT" to toggle auto-tracking
-  * Add dummy variables to Items for LUA to get more packs to load
+  * Add dummy variables to Items for Lua to get more packs to load
 
 ## v0.15.0
 

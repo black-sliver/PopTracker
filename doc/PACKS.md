@@ -362,7 +362,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 
 ## Ui Hints
 
-Instead of allowing LUA direct access to the UI/Widgets, there is a "Hints" interface. See [global Tracker](#global-tracker).
+Instead of allowing Lua direct access to the UI/Widgets, there is a "Hints" interface. See [global Tracker](#global-tracker).
 
 * `"ActivateTab"`: value = tab name, since 0.11.0
 

@@ -1,4 +1,4 @@
-# LUA Glue
+# Lua Glue
 
 ```
 class LuaInterface<T> inheriting from it hooks regular c++ class T into Lua

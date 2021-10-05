@@ -94,7 +94,7 @@ protected:
     std::map<std::string, int> _reachableCache;
     bool _bulkUpdate = false;
     
-protected: // LUA interface implementation
+protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
     static const LuaInterface::MethodMap Lua_Methods;
     
