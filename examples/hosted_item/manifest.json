@@ -1,0 +1,13 @@
+{
+    "name": "hosted_item Example",
+	"game_name": "Demo",
+	"platform": "pc",
+	"package_version": "1.0.0",
+	"package_uid": "hosted_item-example",
+	"author": "black_sliver",
+	"variants": {
+		"standard": {
+			"display_name": "Example",
+		}
+	}
+}
