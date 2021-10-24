@@ -97,6 +97,7 @@ void MapWidget::connectSignals()
         bool match = false;
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
+            if (loc.state == -1) continue; // hidden
             for (const auto& pos: loc.pos) {
                 int locleft = pos.x - locsize/2;
                 int loctop = pos.y - locsize/2;
@@ -173,6 +174,7 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
             };
 
             int state = (int)loc.state;
+            if (state == -1) continue; // hidden
             const Widget::Color& c = (state<0 || state>=countOf(STATE_COLOR)) ?
                     STATE_COLOR[countOf(STATE_COLOR)-1] : STATE_COLOR[state];
 

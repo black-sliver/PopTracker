@@ -70,16 +70,17 @@ public:
     std::list<std::string> getMapNames() const;
     std::list< std::pair<std::string, Location::MapLocation> > getMapLocations(const std::string& mapname) const;
     Location& getLocation(const std::string& name, bool partialMatch=false);
-    
+
     nlohmann::json saveState() const;
     bool loadState(nlohmann::json& state);
-    
+
     int isReachable(const LocationSection& section);
-    
+    bool isVisible(const LocationSection& section);
+
     const Pack* getPack() const;
-    
+
     bool changeItemState(const std::string& id, BaseItem::Action action);
-    
+
 
 protected:
     Pack* _pack;
@@ -94,7 +95,10 @@ protected:
     std::map<std::string, int> _reachableCache;
     std::map<std::string, int> _providerCountCache;
     bool _bulkUpdate = false;
-    
+
+    int isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules);
+
+
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
     static const LuaInterface::MethodMap Lua_Methods;

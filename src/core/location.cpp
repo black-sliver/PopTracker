@@ -35,13 +35,13 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
     return false;
 }
 
-std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::string> >& parentRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR)
+std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR)
 {
     std::list<Location> locs;
     
     if (j.type() == json::value_t::array) {
         for (auto& v : j) {
-            for (auto& loc : FromJSON(v, parentRules, parentName, closedImgR, openedImgR)) {
+            for (auto& loc : FromJSON(v, parentAccessRules, parentVisibilityRules, parentName, closedImgR, openedImgR)) {
                 locs.push_back(std::move(loc)); // TODO: move constructor
             }
         }
@@ -53,7 +53,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     }
     
     std::string name = to_string(j["name"], "");
-    std::list< std::list<std::string> > rules;
+    std::list< std::list<std::string> > accessRules;
     if (j["access_rules"].type() == json::value_t::array) {
         // TODO: merge code with Section's access rules
         for (const auto& v : j["access_rules"]) {
@@ -62,20 +62,45 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
                 continue;
             }
             auto newRule = commasplit(v);
-            for (auto oldRule : parentRules) {
+            for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
                 }
-                rules.push_back(oldRule);
+                accessRules.push_back(oldRule);
             }
-            if (parentRules.empty()) {
-                rules.push_back(newRule);
+            if (parentAccessRules.empty()) {
+                accessRules.push_back(newRule);
             }
         }
     } else {
-        rules = parentRules; // TODO: avoid copy
+        accessRules = parentAccessRules; // TODO: avoid copy
         if (j["access_rules"].type() != json::value_t::null) {
             fprintf(stderr, "Location: invalid access rules\n");
+        }
+    }
+    std::list< std::list<std::string> > visibilityRules;
+    if (j["visibility_rules"].type() == json::value_t::array) {
+        // TODO: merge code with Section's access rules
+        for (const auto& v : j["visibility_rules"]) {
+            if (v.type() != json::value_t::string) {
+                fprintf(stderr, "Location: bad visibility rule\n");
+                continue;
+            }
+            auto newRule = commasplit(v);
+            for (auto oldRule : parentVisibilityRules) {
+                for (auto& newTest : newRule) {
+                    oldRule.push_back(newTest);
+                }
+                visibilityRules.push_back(oldRule);
+            }
+            if (parentVisibilityRules.empty()) {
+                visibilityRules.push_back(newRule);
+            }
+        }
+    } else {
+        visibilityRules = parentVisibilityRules; // TODO: avoid copy
+        if (j["visibility_rules"].type() != json::value_t::null) {
+            fprintf(stderr, "Location: invalid visibility rules\n");
         }
     }
     
@@ -105,7 +130,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
                 fprintf(stderr, "Location: bad section\n");
                 continue;
             }
-            loc._sections.push_back(LocationSection::FromJSON(v, rules, closedImg, openedImg));
+            loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg));
         }
         locs.push_back(loc);
     }
@@ -117,7 +142,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     
     if (j["children"].type() == json::value_t::array) {
         std::string fullname = parentName.empty() ? name : (parentName + "/" + name);
-        for (auto& loc : Location::FromJSON(j["children"], rules, fullname, closedImg, openedImg)) {
+        for (auto& loc : Location::FromJSON(j["children"], accessRules, visibilityRules, fullname, closedImg, openedImg)) {
             locs.push_back(std::move(loc));
         }
     } else if (j["children"].type() != json::value_t::null) {
@@ -138,7 +163,7 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
 }
 
 
-LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<std::string> >& parentRules, const std::string& closedImg, const std::string& openedImg)
+LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg)
 {
     LocationSection sec;
     sec._name = to_string(j["name"],sec._name);
@@ -156,20 +181,44 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
                 continue;
             }
             auto newRule = commasplit(v);
-            for (auto oldRule : parentRules) {
+            for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
                 }
                 sec._accessRules.push_back(oldRule);
             }
-            if (parentRules.empty()) {
+            if (parentAccessRules.empty()) {
                 sec._accessRules.push_back(newRule);
             }
         }
     } else {
-        sec._accessRules = parentRules;
+        sec._accessRules = parentAccessRules;
         if (j["access_rules"].type() != json::value_t::null) {
             fprintf(stderr, "Location: Section: invalid access rules\n");
+        }
+    }
+    if (j["visibility_rules"].type() == json::value_t::array) {
+        // TODO: merge code with Location's access rules
+        for (const auto& v : j["visibility_rules"]) {
+            if (v.type() != json::value_t::string) {
+                fprintf(stderr, "Location: bad visibility rule\n");
+                continue;
+            }
+            auto newRule = commasplit(v);
+            for (auto oldRule : parentVisibilityRules) {
+                for (auto& newTest : newRule) {
+                    oldRule.push_back(newTest);
+                }
+                sec._visibilityRules.push_back(oldRule);
+            }
+            if (parentVisibilityRules.empty()) {
+                sec._visibilityRules.push_back(newRule);
+            }
+        }
+    } else {
+        sec._visibilityRules = parentVisibilityRules;
+        if (j["access_rules"].type() != json::value_t::null) {
+            fprintf(stderr, "Location: Section: invalid visibility rules\n");
         }
     }
     return sec;
@@ -246,7 +295,7 @@ void Location::dump(bool compact)
                 section.getName().c_str(),
                 section.getItemCount(), (int)section.getHostedItems().size());
         bool firstRule = true;
-        for (const auto& rule : section.getRules()) {
+        for (const auto& rule : section.getAccessRules()) {
             printf("   %s (", firstRule ? "  " : "OR");
             firstRule = false;
             bool firstTest = true;

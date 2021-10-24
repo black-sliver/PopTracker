@@ -11,7 +11,10 @@
 class LocationSection final : public LuaInterface<LocationSection> {
     friend class LuaInterface;
 public:
-    static LocationSection FromJSON(nlohmann::json& j, const std::list< std::list<std::string> >& parentRules={}, const std::string& closedImg="", const std::string& openedImg="");
+    static LocationSection FromJSON(nlohmann::json& j,
+            const std::list< std::list<std::string> >& parentAccessRules={},
+            const std::list< std::list<std::string> >& parentVisibilityRules={},
+            const std::string& closedImg="", const std::string& openedImg="");
     Signal<> onChange;
 protected:
     std::string _name;
@@ -22,10 +25,12 @@ protected:
     int _itemCleared=0;
     std::list<std::string> _hostedItems;
     std::list< std::list<std::string> > _accessRules;
+    std::list< std::list<std::string> > _visibilityRules;
 public:
     // getters
     const std::string& getName() const { return _name; }
-    const std::list< std::list<std::string> > getRules() const { return _accessRules; }
+    const std::list< std::list<std::string> > getAccessRules() const { return _accessRules; }
+    const std::list< std::list<std::string> > getVisibilityRules() const { return _visibilityRules; }
     int getItemCount() const { return _itemCount; }
     int getItemCleared() const { return _itemCleared; }
     bool clearItem();
@@ -34,10 +39,10 @@ public:
     const std::string& getClosedImage() const { return _closedImg; }
     const std::string& getOpenedImage() const { return _openedImg; }
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
-    
+
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
-    
+
 protected: // lua interface
     static constexpr const char Lua_Name[] = "LocationSection";
     static const LuaInterface::MethodMap Lua_Methods;
@@ -60,9 +65,12 @@ public:
         int getX() const { return _x; }
         int getY() const { return _y; }
     };
-    
-    static std::list<Location> FromJSON(nlohmann::json& j, const std::list< std::list<std::string> >& parentRules={}, const std::string& parentName="", const std::string& closedImg="", const std::string& openedImg="");
-    
+
+    static std::list<Location> FromJSON(nlohmann::json& j,
+        const std::list< std::list<std::string> >& parentAccessRules={},
+        const std::list< std::list<std::string> >& parentVisibilityRules={},
+        const std::string& parentName="", const std::string& closedImg="", const std::string& openedImg="");
+
 protected:
     std::string _name;
     std::string _parentName;
@@ -76,7 +84,7 @@ public:
     const std::list<MapLocation>& getMapLocations() const { return _mapLocations; }
     std::list<LocationSection>& getSections() { return _sections; }
     const std::list<LocationSection>& getSections() const { return _sections; }
-    
+
 #ifndef NDEBUG
     void dump(bool compact=false);
 #endif

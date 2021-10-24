@@ -391,14 +391,13 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
     return false; // nothing changed
 }
 
-int Tracker::isReachable(const LocationSection& section)
+int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules)
 {
     // TODO: return enum instead of int
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
-    
+
     bool glitchedReachable = false;
     bool checkOnlyReachable = false;
-    const auto& rules = section.getRules();
     if (rules.empty()) return 1;
     for (const auto& ruleset : rules) { //<-- these are all to be ORed
         if (ruleset.empty()) return 1; // any empty rule set means true
@@ -461,8 +460,8 @@ int Tracker::isReachable(const LocationSection& section)
                 auto& subloc = getLocation(sublocid, true);
                 for (auto& subsec: subloc.getSections()) {
                     if (subsec.getName() != subsecname) continue;
-                    int sub = isReachable(subsec);
-                    _reachableCache[s] = sub;
+                    int sub = visibilityRules ? isVisible(subsec) : isReachable(subsec); // check subsection visibility for isVisible
+                    if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
                     else if (optional && sub) sub=2;
                     if (sub==2) reachable = 2;
@@ -490,6 +489,16 @@ int Tracker::isReachable(const LocationSection& section)
         if (reachable==2) glitchedReachable = true; 
     }
     return glitchedReachable ? 2 : checkOnlyReachable ? 3 : 0;
+}
+
+int Tracker::isReachable(const LocationSection& section)
+{
+    return isReachable(section.getAccessRules(), false);
+}
+
+bool Tracker::isVisible(const LocationSection& section)
+{
+    return isReachable(section.getVisibilityRules(), true);
 }
 
 LuaItem * Tracker::CreateLuaItem()

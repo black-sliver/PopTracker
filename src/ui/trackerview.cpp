@@ -653,14 +653,13 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
     }
     
     for (const auto& sec : loc.getSections()) {
+        if (!_tracker->isVisible(sec)) continue;
+
         Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
-#if 0
-        printf("%s: %d+%d: %s\n", sec.getName().c_str(), sec.getItemCount(), (int)sec.getHostedItems().size(), sec.getClosedImage().c_str());
-#endif
-        
+
         int reachable = _tracker->isReachable(sec);
         bool cleared = false; // not implemented
-        
+
         if (!sec.getName().empty()) {
             Label* lbl = new Label(0,0,0,0, _smallFont, sec.getName());
             if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
@@ -713,10 +712,16 @@ int TrackerView::calculateLocationState(const std::string& locid)
     bool hasUnreachable = false;
     bool hasGlitchedReachable = false;
     bool hasCheckable = false;
-    
+    bool hasVisible = false;
+
     for (const auto& sec: loc.getSections()) {
+        if (_tracker->isVisible(sec)) {
+            hasVisible = true;
+        } else {
+            continue;
+        }
+
         int itemCount = sec.getItemCount();
-        
         if (itemCount>0 && sec.getItemCleared()>=itemCount) continue;
         else if (itemCount<1) { // check hosted items
             bool match = false;
@@ -728,6 +733,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
             }
             if (!match) continue;
         }
+
         int reachable = _tracker->isReachable(sec);
         if (reachable==1) {
             hasReachable = true;
@@ -740,6 +746,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
         }
         if (hasReachable && hasUnreachable && hasGlitchedReachable && hasCheckable) break;
     }
+    if (!hasVisible) return -1;
     uint8_t res = (hasCheckable?(1<<3):0) |
                   (hasGlitchedReachable?(1<<2):0) |
                   (hasUnreachable?(1<<1):0) |
