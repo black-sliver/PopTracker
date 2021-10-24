@@ -14,7 +14,7 @@
                 "sections": [
                     {
                         "name": "Check 1",
-                        "clear_as_group": false,
+                        "clear_as_group": true, // also clears dummy when clearing chest
                         "item_count": 1,
                         "hosted_item": "dummy"
                     },
