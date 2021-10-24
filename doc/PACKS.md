@@ -236,6 +236,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                 "{<checkrule1>, <checkrule2>}",
                 ...
             ],
+            "visibility_rules": [
+                ... // like access rules but for visibility of the location or section
+            ],
             "chest_unopened_img": "path/to/chest.png", // default if children do not override
             "chest_opened_img": "path/to/chest.png",
             "children": [
@@ -264,6 +267,10 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                             "item_count": 1, // number of checks in this section (all use the same image)
                             "hosted_item": "item", // this item will be checked when cleared
                             "access_rules": [
+                                "<rule on top of parent's>",
+                                ...
+                            ],
+                            "visibility_rules": [
                                 "<rule on top of parent's>",
                                 ...
                             ]
