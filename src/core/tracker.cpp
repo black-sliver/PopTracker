@@ -125,7 +125,7 @@ bool Tracker::AddItems(const std::string& file) {
         }
     }
     
-    onLayoutChanged.emit(this,""); // TODO: differentiate between structure and content
+    onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return true;
 }
 bool Tracker::AddLocations(const std::string& file) {
@@ -149,7 +149,7 @@ bool Tracker::AddLocations(const std::string& file) {
         }
     }
     
-    onLayoutChanged.emit(this,""); // TODO: differentiate between structure and content
+    onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
 bool Tracker::AddMaps(const std::string& file) {
@@ -171,7 +171,7 @@ bool Tracker::AddMaps(const std::string& file) {
         _maps[v["name"]] = Map::FromJSON(v);
     }
     
-    onLayoutChanged.emit(this,""); // TODO: differentiate between structure and content
+    onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
 bool Tracker::AddLayouts(const std::string& file) {
@@ -194,7 +194,7 @@ bool Tracker::AddLayouts(const std::string& file) {
     }
     
     // TODO: fire for each named layout
-    onLayoutChanged.emit(this,""); // TODO: differentiate between structure and content
+    onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
 int Tracker::ProviderCountForCode(const std::string& code)
@@ -205,7 +205,7 @@ int Tracker::ProviderCountForCode(const std::string& code)
         return it->second;
     // "codes" starting with $ run Lua functions
     if (!code.empty() && code[0] == '$') {
-        // TODO: use a helper to access lua instead of having lua state here
+        // TODO: use a helper to access Lua instead of having _L here
         int args = 0;
         auto pos = code.find('|');
         if (pos == code.npos) {
@@ -222,8 +222,8 @@ int Tracker::ProviderCountForCode(const std::string& code)
             args++;
         }
         if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
-            fprintf(stderr, "Error running $%s:\n%s\n",
-                code.c_str()+1, lua_tostring(_L,-1));
+            fprintf(stderr, "Error running %s:\n%s\n",
+                code.c_str(), lua_tostring(_L,-1));
             // TODO: clean up lua stack?
             _providerCountCache[code] = 0;
             return 0;
@@ -249,7 +249,7 @@ int Tracker::ProviderCountForCode(const std::string& code)
 }
 Tracker::Object Tracker::FindObjectForCode(const char* code)
 {
-    // TODO: locations
+    // TODO: locations (not just sections)?
     if (*code == '@') { // location section
         const char *start = code+1;
         const char *t = strrchr(start, '/');
@@ -258,9 +258,6 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
             std::string secname = t+1;
             // match by ID (includes all parents)
             auto& loc = getLocation(locid, true);
-#if 0
-            printf("%s => %s => %s [%d]\n", code, locid.c_str(), loc.getName().c_str(), (int)loc.getSections().size());
-#endif
             for (auto& sec: loc.getSections()) {
                 if (sec.getName() != secname) continue;
                 return &sec;
@@ -396,7 +393,6 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
 
 int Tracker::isReachable(const LocationSection& section)
 {
-    // TODO: build a cache for this (flush cache after update of map(s))
     // TODO: return enum instead of int
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
     
@@ -408,7 +404,7 @@ int Tracker::isReachable(const LocationSection& section)
         if (ruleset.empty()) return 1; // any empty rule set means true
         int reachable = 1;
         bool checkOnly = false;
-        for (const auto& rule: ruleset) { // <-- these are all to be ANDed
+        for (const auto& rule: ruleset) { //<-- these are all to be ANDed
             if (rule.empty()) continue; // empty/missing code is true
             std::string s = rule;
             // '[' ... ']' means optional/glitches required (different color)
