@@ -41,6 +41,7 @@ bool Tracker::AddItems(const std::string& file) {
     }
     
     _reachableCache.clear();
+    _providerCountCache.clear();
     for (auto& v : j) {
         if (v.type() != json::value_t::object) {
             fprintf(stderr, "Bad item\n");
@@ -51,6 +52,7 @@ bool Tracker::AddItems(const std::string& file) {
         item.setID(++_lastItemID);
         item.onChange += {this, [this](void* sender) {
             if (!_bulkUpdate) _reachableCache.clear();
+            _providerCountCache.clear();
             JsonItem* i = (JsonItem*)sender;
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
                 // update part items when changing composite
@@ -138,6 +140,7 @@ bool Tracker::AddLocations(const std::string& file) {
     }
     
     _reachableCache.clear();
+    _providerCountCache.clear();
     for (auto& loc : Location::FromJSON(j)) {
         //loc.dump(true);
         _locations.push_back(std::move(loc)); // TODO: move constructor
@@ -196,6 +199,42 @@ bool Tracker::AddLayouts(const std::string& file) {
 }
 int Tracker::ProviderCountForCode(const std::string& code)
 {
+    // cache this, because inefficient use can make the Lua script hang
+    auto it = _providerCountCache.find(code);
+    if (it != _providerCountCache.end())
+        return it->second;
+    // "codes" starting with $ run Lua functions
+    if (!code.empty() && code[0] == '$') {
+        // TODO: use a helper to access lua instead of having lua state here
+        int args = 0;
+        auto pos = code.find('|');
+        if (pos == code.npos) {
+            lua_getglobal(_L, code.c_str()+1);
+        } else {
+            lua_getglobal(_L, code.substr(1, pos-1).c_str());
+            std::string::size_type next;
+            while ((next = code.find('|', pos+1)) != code.npos) {
+                lua_pushstring(_L, code.substr(pos+1, next-pos-1).c_str());
+                args++;
+                pos = next;
+            }
+            lua_pushstring(_L, code.substr(pos+1).c_str());
+            args++;
+        }
+        if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
+            fprintf(stderr, "Error running $%s:\n%s\n",
+                code.c_str()+1, lua_tostring(_L,-1));
+            // TODO: clean up lua stack?
+            _providerCountCache[code] = 0;
+            return 0;
+        } else {
+            int n = lua_tonumber(_L, -1);
+            lua_pop(_L,1);
+            _providerCountCache[code] = n;
+            return n;
+        }
+    }
+    // other codes count items
     int res=0;
     for (const auto& item : _jsonItems)
     {
@@ -205,11 +244,12 @@ int Tracker::ProviderCountForCode(const std::string& code)
     {
         res += item.providesCode(code);
     }
+    _providerCountCache[code] = res;
     return res;
 }
 Tracker::Object Tracker::FindObjectForCode(const char* code)
 {
-    // TODO: non-lua item, locations
+    // TODO: locations
     if (*code == '@') { // location section
         const char *start = code+1;
         const char *t = strrchr(start, '/');
@@ -229,13 +269,11 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
         }
     }
     for (auto& item : _jsonItems) {
-        //if (item.providesCode(code)) {
         if (item.canProvideCode(code)) {
             return &item;
         }
     }
     for (auto& item : _luaItems) {
-        //if (item.providesCode(code)) {
         if (item.canProvideCode(code)) {
             return &item;
         }
@@ -417,41 +455,6 @@ int Tracker::isReachable(const LocationSection& section)
                     if (!reachable) break;
                 }
             }
-            // '$' calls into lua
-            else if (s[0] == '$') {
-                // TODO: use a helper to access lua instead of having lua state here
-                int args = 0;
-                auto pos = s.find('|');
-                if (pos == s.npos) {
-                    lua_getglobal(_L, s.c_str()+1);
-                } else {
-                    lua_getglobal(_L, s.substr(1, pos-1).c_str());
-                    std::string::size_type next;
-                    while ((next = s.find('|', pos+1)) != s.npos) {
-                        lua_pushstring(_L, s.substr(pos+1, next-p-1).c_str());
-                        args++;
-                        pos = next;
-                    }
-                    lua_pushstring(_L, s.substr(pos+1).c_str());
-                    args++;
-                }
-                if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
-                    fprintf(stderr, "Error running $%s:\n%s\n",
-                        s.c_str()+1, lua_tostring(_L,-1));
-                    // TODO: clean up lua stack?
-                } else {
-                    int n = lua_tonumber(_L, -1);
-                    lua_pop(_L,1);
-                    _reachableCache[s] = n;
-                    if (n>=count) continue;
-                }
-                if (optional) {
-                    reachable = 2;
-                } else {
-                    reachable = 0;
-                    break;
-                }
-            }
             // '@' references other locations
             else if (s[0] == '@') {
                 const char* start = s.c_str()+1;
@@ -472,6 +475,7 @@ int Tracker::isReachable(const LocationSection& section)
                 }
                 if (!reachable) break;
             }
+            // '$' calls into Lua, now also supported by ProviderCountForCode
             // other: references codes (with or without count)
             else {
                 int n = ProviderCountForCode(s);
@@ -499,6 +503,7 @@ LuaItem * Tracker::CreateLuaItem()
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
         if (!_bulkUpdate) _reachableCache.clear();
+        _providerCountCache.clear();
         LuaItem* i = (LuaItem*)sender;
         onStateChanged.emit(this, i->getID());
     }};
@@ -552,6 +557,7 @@ json Tracker::saveState() const
 bool Tracker::loadState(nlohmann::json& state)
 {
     _reachableCache.clear();
+    _providerCountCache.clear();
     if (state.type() != json::value_t::object) return false;
     auto& j = state["tracker"]; // state's tracker data
     if (j["format_version"] != 1) return false; // incompatible state format

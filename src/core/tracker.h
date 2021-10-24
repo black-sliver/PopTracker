@@ -92,6 +92,7 @@ protected:
     std::map<std::string, LayoutNode> _layouts;
     std::map<std::string, Map> _maps;
     std::map<std::string, int> _reachableCache;
+    std::map<std::string, int> _providerCountCache;
     bool _bulkUpdate = false;
     
 protected: // Lua interface implementation
