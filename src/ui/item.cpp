@@ -155,6 +155,11 @@ void Item::render(Renderer renderer, int offX, int offY)
             surf = SDL_CreateRGBSurfaceWithFormat(0, tsurf->w+2, tsurf->h+2, tsurf->format->BitsPerPixel, tsurf->format->format);
             if (surf) {
                 SDL_Rect d = { .x=0, .y=0, .w=tsurf->w, .h=tsurf->h };
+                if (_overlayBackgroundColor.a)
+                    SDL_FillRect(lsurf, &d, SDL_MapRGBA(lsurf->format,
+                            _overlayBackgroundColor.r, _overlayBackgroundColor.g,
+                            _overlayBackgroundColor.b, _overlayBackgroundColor.a
+                    ));
                 SDL_BlitSurface(lsurf, NULL, surf, &d);
                 SDL_SetSurfaceAlphaMod(lsurf, 128);
                 d.x=1; d.y=0;
@@ -224,6 +229,14 @@ void Item::setOverlayColor(Widget::Color c) {
     if (_overlayTex) SDL_DestroyTexture(_overlayTex);
     _overlayTex = nullptr;
     _overlayColor = c;
+}
+
+void Item::setOverlayBackgroundColor(Widget::Color c)
+{
+    if (c == _overlayBackgroundColor) return;
+    if (_overlayTex) SDL_DestroyTexture(_overlayTex);
+    _overlayTex = nullptr;
+    _overlayBackgroundColor = c;
 }
 
 } // namespace

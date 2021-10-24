@@ -68,6 +68,7 @@ protected:
     std::list<std::string> _imgMods;
     std::list<std::string> _disabledImgMods;
     std::string _overlay;
+    std::string _overlayBackground;
     
     // saving the item's state as part of the item is complete crap,
     // but we need this for compatibility
@@ -127,11 +128,13 @@ public:
     int getCount() const { return _count; }
     int getMaxCount() const { return _maxCount; }
     const std::string& getOverlay() const { return _overlay; }
+    const std::string& getOverlayBackground() const { return _overlayBackground; }
     
     // NOTE: firing events from BaseItem causes trouble with promotion from
     //       void* and multiple inheritance, so we make setters pure virtual.
     virtual bool setState(int state, int stage=-1) = 0;
     virtual void SetOverlay(const char* text) = 0;
+    virtual void SetOverlayBackground(const char* text) = 0;
 };
 
 #endif // _CORE_ITEM_H

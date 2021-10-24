@@ -29,6 +29,7 @@ public:
     virtual void addStage(int stage1, int stage2, const void *data, size_t len, std::list<ImageFilter> filters={});
     virtual void setOverlay(const std::string& s);
     virtual void setOverlayColor(Widget::Color color);
+    virtual void setOverlayBackgroundColor(Widget::Color color);
     virtual std::string getOverlay() const { return _overlay; }
     virtual Widget::Color getOverlayColor() const { return _overlayColor; }
 protected:
@@ -43,6 +44,7 @@ protected:
     FONT _font;
     std::string _overlay;
     Widget::Color _overlayColor = {255,255,255};
+    Widget::Color _overlayBackgroundColor = {};
     SDL_Texture *_overlayTex = nullptr;
 };
 

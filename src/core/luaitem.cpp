@@ -13,6 +13,7 @@ const LuaInterface<LuaItem>::MethodMap LuaItem::Lua_Methods = {
     LUA_METHOD(LuaItem, Get, const char*),
     LUA_METHOD(LuaItem, Set, const char*, LuaVariant),
     LUA_METHOD(LuaItem, SetOverlay, const char*),
+    LUA_METHOD(LuaItem, SetOverlayBackground, const char*),
 };
 
 int LuaItem::Lua_Index(lua_State *L, const char* key) {

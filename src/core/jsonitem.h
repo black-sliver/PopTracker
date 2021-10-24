@@ -122,7 +122,13 @@ public:
         _overlay = text;
         onChange.emit(this);
     }
-    
+
+    virtual void SetOverlayBackground(const char* text) override {
+        if (_overlayBackground == text) return;
+        _overlayBackground = text;
+        onChange.emit(this);
+    }
+
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
     

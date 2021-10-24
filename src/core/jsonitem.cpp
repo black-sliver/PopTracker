@@ -5,6 +5,7 @@ using nlohmann::json;
 
 const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {
     LUA_METHOD(JsonItem, SetOverlay, const char*),
+    LUA_METHOD(JsonItem, SetOverlayBackground, const char*),
 };
 
 std::string JsonItem::getCodesString() const {
@@ -62,7 +63,9 @@ JsonItem JsonItem::FromJSON(json& j)
         item._loop = true;
         item._allowDisabled = true;
     }
-    
+
+    item._overlayBackground = to_string(j["overlay_background"], "");
+
     commasplit(to_string(j["codes"], ""), item._codes);
     commasplit(to_string(j["img_mods"], ""), item._imgMods);
     commasplit(to_string(j["disabled_img_mods"], to_string(j["img_mods"], "")+",@disabled"), item._disabledImgMods);

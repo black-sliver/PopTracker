@@ -79,6 +79,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         w->setOverlay(item.getOverlay());
         w->setOverlayColor({220,220,220});
     }
+    w->setOverlayBackgroundColor(item.getOverlayBackground());
     
     std::string id = item.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
