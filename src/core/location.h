@@ -15,7 +15,7 @@ public:
     Signal<> onChange;
 protected:
     std::string _name;
-    bool _clearAsGroup=false;
+    bool _clearAsGroup=true;
     std::string _closedImg;
     std::string _openedImg;
     int _itemCount=0;
