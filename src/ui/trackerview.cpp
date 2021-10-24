@@ -151,7 +151,14 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
         auto& loc = _tracker->getLocation(locid);
         for (auto& sec: loc.getSections()) {
             if (sec.getName() != name) continue;
-            // this will send a signal
+            // check hosted items with chests if "clear_as_group" is set
+            if (sec.getClearAsGroup()) {
+                for (const auto& item : sec.getHostedItems()) {
+                    if (_tracker->changeItemState(_tracker->getItemByCode(item).getID(),
+                            btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary));
+                }
+            }
+            // NOTE: clear/unclear invalidates the iterator because it fires a change signal
             if (btn == BUTTON_RIGHT)
                 sec.unclearItem();
             else

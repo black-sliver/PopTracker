@@ -30,6 +30,7 @@ public:
     int getItemCleared() const { return _itemCleared; }
     bool clearItem();
     bool unclearItem();
+    bool getClearAsGroup() const { return _clearAsGroup; }
     const std::string& getClosedImage() const { return _closedImg; }
     const std::string& getOpenedImage() const { return _openedImg; }
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
