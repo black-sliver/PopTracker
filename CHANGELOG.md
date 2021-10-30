@@ -1,5 +1,15 @@
 # PopTracker Changelog
 
+## v0.17.0
+
+* Fixes
+  * Make clear_as_group also check hosted_item
+  * Make clear_as_group default to true
+* Pack Features
+  * Allow Lua "codes" (`$...`) in ProviderCountForCode
+  * Add support for visibility_rules
+  * Add overlay_background for consumables and LuaItems
+
 ## v0.16.0
 
 * Fixes
