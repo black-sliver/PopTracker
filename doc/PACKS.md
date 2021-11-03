@@ -354,7 +354,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "max_height":  integer, // maximum height in px
         "max_width":   integer, // maximum width in px
         "item_margin": "<horizontal>,<vertical>", // margin in px
-        "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD
+        "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
         "dropshadow":  bool // enable/disable drop shadow, not implemented yet
     }
 
