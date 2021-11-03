@@ -462,7 +462,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         for (const auto& row: rows) {
             int x=0;
             for (const auto& item: row) {
-                Item *iw = makeItem(x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1*sp.y), sz.x, sz.y, _tracker->getItemByCode(item));
+                Item *iw = makeItem(x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
                 w->addChild(iw);
                 x++;
             }
