@@ -90,8 +90,10 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
                             _autoTrackerState == AutoTracker::State::BridgeConnected ? "No Game/Console" :
                             _autoTrackerState == AutoTracker::State::ConsoleConnected ? "Online" :
                             _autoTrackerState == AutoTracker::State::Disabled ? "Disabled" :
+                            _autoTrackerState == AutoTracker::State::Unavailable ? nullptr :
                                 "Unknown";
-        _lblTooltip->setText(std::string("Auto Tracker: ") + state);
+        if (state)
+            _lblTooltip->setText(std::string("Auto Tracker: ") + state);
     }};
     _lblAutoTracker->onMouseLeave += {this, [this](void *s)
     {
@@ -157,6 +159,8 @@ void DefaultTrackerWindow::setAutoTrackerState(AutoTracker::State state)
         _lblAutoTracker->setTextColor({0,255,0});
     } else if (state == AutoTracker::State::Disabled) {
         _lblAutoTracker->setTextColor({128,128,128});
+    } else if (state == AutoTracker::State::Unavailable) {
+        _lblAutoTracker->setTextColor({0,0,0}); // hidden
     }
 
     if (isHover(_lblAutoTracker)) {

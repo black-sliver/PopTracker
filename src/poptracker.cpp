@@ -189,11 +189,12 @@ bool PopTracker::start()
         {
             if (!_scriptHost || !_scriptHost->getAutoTracker()) return;
             auto at = _scriptHost->getAutoTracker();
+            if (!at) return;
             if (at->getState() == AutoTracker::State::Disabled) {
                 at->enable();
                 _autoTrackerDisabled = false;
             }
-            else {
+            else if (at->getState() != AutoTracker::State::Disabled) {
                 at->disable();
                 _autoTrackerDisabled = true;
             }
@@ -209,9 +210,6 @@ bool PopTracker::start()
         _win->hideOpen();
     }};
     
-    if (_autoTrackerDisabled) // manually set since we get no event for this
-        _win->setAutoTrackerState(AutoTracker::State::Disabled);
-
     _frameTimer = std::chrono::steady_clock::now();
     _fpsTimer = std::chrono::steady_clock::now();
     return (_win != nullptr);

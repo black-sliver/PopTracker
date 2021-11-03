@@ -49,6 +49,11 @@ public:
                 // NOTE: for UAT we pass the event straight through
                 onVariablesChanged.emit(this, varNames);
             });
+        } else {
+            printf("No auto-tracking back-end for %s%s\n",
+                    platform.c_str(),
+                    flags.empty() ? " (no flags)" : "");
+            _state = State::Unavailable;
         }
     }
     
@@ -78,7 +83,8 @@ public:
     }
     
     enum class State {
-        Disabled,
+        Unavailable = -1,
+        Disabled = 0,
         Disconnected, 
         BridgeConnected,
         ConsoleConnected
@@ -91,7 +97,11 @@ public:
     
     bool doStuff()
     {
-        if (_state == State::Disabled) {
+        if (!_sentState) {
+            _sentState = true;
+            onStateChange.emit(this, _state);
+        }
+        if (_state == State::Disabled || _state == State::Unavailable) {
             return false;
         }
 
@@ -245,7 +255,7 @@ public:
     
     void enable()
     {
-        if (_state == State::Disabled) {
+        if (_state == State::Disabled && (_snes || _uat)) {
             _state = State::Disconnected;
             onStateChange.emit(this, _state);
         }
@@ -253,6 +263,7 @@ public:
 
     void disable()
     {
+        if (_state == State::Unavailable) return;
         _state = State::Disabled;
         if (_snes) {
             // connect() after disconnect() needs to join the worker thread,
@@ -281,6 +292,7 @@ protected:
     std::string _slot; // selected slot for UAT
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     std::string _name;
+    bool _sentState = false;
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "AutoTracker";
