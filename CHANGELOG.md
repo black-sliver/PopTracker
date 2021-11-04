@@ -1,5 +1,13 @@
 # PopTracker Changelog
 
+## v0.17.1
+
+* Fixes
+  * Fix y position of items in item grid
+  * Fix UAT-related crash when changing packs/variants
+* App Features
+  * Hide "AT" if no auto-tracking backend is available
+
 ## v0.17.0
 
 * Fixes
