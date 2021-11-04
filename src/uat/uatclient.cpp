@@ -43,7 +43,7 @@ UATClient::UATClient()
 
 UATClient::~UATClient()
 {
-    disconnect(websocketpp::close::status::going_away, "", 10);
+    disconnect(websocketpp::close::status::going_away, "", 50);
 }
 
 bool UATClient::connect(const std::vector<std::string>& uris)
@@ -104,6 +104,10 @@ bool UATClient::disconnect(websocketpp::close::status::value status, const std::
             _service.poll();
             if (_state == State::DISCONNECTED) break;
         } while (chrono::duration_cast<chrono::milliseconds> (chrono::steady_clock::now() - start).count() < wait);
+        if (_state != State::DISCONNECTED) {
+            log("Disconnect timed out!\n");
+        }
+        _service.poll();
         _service.poll();
     } catch (const std::exception& ex) {
         // probably called disconnect in an invalid state; should not happen
