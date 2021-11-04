@@ -84,9 +84,9 @@ public:
     void sync(const std::string& slot="");
 
 protected:
+    asio::io_service _service;
     WSClient _client;
     WSClient::connection_ptr _conn;
-    asio::io_service _service;
     bool _gotInfo = false;
     State _state = State::DISCONNECTED;
     std::chrono::steady_clock::time_point _connectTimer; // for connect timeout (no Info)
