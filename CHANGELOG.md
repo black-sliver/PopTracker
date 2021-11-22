@@ -1,5 +1,14 @@
 # PopTracker Changelog
 
+## v0.17.2
+
+* Fixes
+  * save and restore overlay background for JSON items
+* Pack Features
+  * allow setting overlay font size through JSON (`overlay_font_size`)
+    and Lua (`SetOverlayFontSize()`)
+  * alias `badge_font_size` for `overlay_font_size`
+
 ## v0.17.1
 
 * Fixes
