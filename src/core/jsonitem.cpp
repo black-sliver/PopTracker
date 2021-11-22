@@ -6,6 +6,7 @@ using nlohmann::json;
 const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {
     LUA_METHOD(JsonItem, SetOverlay, const char*),
     LUA_METHOD(JsonItem, SetOverlayBackground, const char*),
+    LUA_METHOD(JsonItem, SetOverlayFontSize, int),
 };
 
 std::string JsonItem::getCodesString() const {
@@ -65,6 +66,7 @@ JsonItem JsonItem::FromJSON(json& j)
     }
 
     item._overlayBackground = to_string(j["overlay_background"], "");
+    item._overlayFontSize = to_int(j["overlay_font_size"], to_int(j["badge_font_size"], 0));
 
     commasplit(to_string(j["codes"], ""), item._codes);
     commasplit(to_string(j["img_mods"], ""), item._imgMods);
@@ -282,17 +284,24 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
 
 json JsonItem::save() const
 {
-    return {
+    json data = {
         { "overlay", _overlay },
         { "state", { _stage1, _stage2 } },
         { "count", _count },
         { "max_count", _maxCount }
     };
+    if (_overlayBackgroundChanged)
+        data["overlay_background"] = _overlayBackground;
+    if (_overlayFontSizeChanged)
+        data["overlay_font_size"] = _overlayFontSize;
+    return data;
 }
 bool JsonItem::load(json& j)
 {
     if (j.type() == json::value_t::object) {
         std::string overlay = to_string(j["overlay"], _overlay);
+        std::string overlayBackground = to_string(j["overlay_background"], _overlayBackground);
+        int overlayFontSize = to_int(j["overlay_font_size"], _overlayFontSize);
         auto state = j["state"];
         int stage1 = _stage1, stage2 = _stage2;
         if (state.type() == json::value_t::array) {
@@ -303,13 +312,19 @@ bool JsonItem::load(json& j)
         int maxCount = to_int(j["max_count"], _maxCount);
         if (_count != count || _maxCount != maxCount
                 || _stage1 != stage1 || _stage2 != stage2
-                || _overlay != overlay)
+                || _overlay != overlay
+                || _overlayBackground != overlayBackground
+                || _overlayFontSize != overlayFontSize)
         {
             _count = count;
             _maxCount = maxCount;
             _stage1 = stage1;
             _stage2 = stage2;
             _overlay = overlay;
+            _overlayBackgroundChanged = _overlayBackground != overlayBackground;
+            _overlayBackground = overlayBackground;
+            _overlayFontSizeChanged = _overlayFontSize != overlayFontSize;
+            _overlayFontSize = overlayFontSize;
             onChange.emit(this);
         }
         return true;

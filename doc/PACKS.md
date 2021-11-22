@@ -107,6 +107,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `:Get(key)`: read from property store. not sure what this is good for if we have `.ItemState`
 * `:SetOverlay(string)`: set overlay text (see JsonItem), only available in PopTracker
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
+* `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 
 *Probably more to come.*
 
@@ -119,6 +120,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `int .MaxCount`: set/get max amount for consumables (available since 0.14.0)
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
 * `:SetOverlayBackground(string)`: set background: "#000000" is RGB, "" is transparent, only available in PopTracker, since 0.17.0
+* `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 
 *Probably more to come.*
 
@@ -186,6 +188,8 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
   + adds `"max_quantity": 0`
   + adds optional `"initial_quantity": 0`
   + adds optional `"overlay_background": ""` set text background color with "#000000" notation
+  + adds optional `"overlay_font_size": 0` set font size of overlay text
+  + adds alias `badge_font_size` for `overlay_font_size`
   
 * `"progressive_toggle"`:
   + has on/off for each stage. Like progressive with `allow_disabled: true`.

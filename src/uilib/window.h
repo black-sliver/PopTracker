@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "container.h"
+#include "fontstore.h"
 
 #define WINDOW_DEFAULT_POSITION {SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED}
 
@@ -12,15 +13,13 @@ namespace Ui {
 
 class Window : public Container {
 protected:
-    using FONT = TTF_Font*;
-    
-    constexpr static char DEFAULT_FONT_FILE[] = "VeraBd.ttf";
-    constexpr static int DEFAULT_FONT_SIZE = 11; // actually ~10
+    using FONT = FontStore::FONT;
     
     std::string _title;
     SDL_Window *_win = nullptr;
     SDL_Renderer *_ren = nullptr;
-    FONT _font = nullptr; // TODO: fontstore?
+    FontStore *_fontStore = nullptr; // TODO; pass as argument to window constructor?
+    FONT _font = nullptr;
     
     void clear();
     void present();

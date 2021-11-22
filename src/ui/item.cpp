@@ -217,6 +217,13 @@ void Item::setSize(Size size) {
     Widget::setSize(size);
 }
 
+void Item::setFont(Item::FONT font) {
+    if (_font == font) return;
+    if (_overlayTex) SDL_DestroyTexture(_overlayTex);
+    _overlayTex = nullptr;
+    _font = font;
+}
+
 void Item::setOverlay(const std::string& s) {
     if (s == _overlay) return;
     if (_overlayTex) SDL_DestroyTexture(_overlayTex);

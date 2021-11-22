@@ -35,6 +35,12 @@ public:
         onChange.emit(this);
     }
 
+    virtual void SetOverlayFontSize(int fontSize) override {
+        if (_overlayFontSize == fontSize) return;
+        _overlayFontSize = fontSize;
+        onChange.emit(this);
+    }
+
     virtual bool setState(int state, int stage=-1) override {
         return false; // TODO: implement this?
     }

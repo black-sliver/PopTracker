@@ -41,7 +41,6 @@ protected:
     TrackerView *_view;
     bool _resizeScheduled;
     Size _resizeSize;
-    FONT _smallFont = nullptr;
     bool _rendered = false;
     std::string _baseTitle;
     Position _centerPos = {-1,-1};

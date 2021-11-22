@@ -9,6 +9,7 @@
 #include "../core/assets.h"
 #include "item.h"
 #include "mapwidget.h"
+#include "defaults.h" // DEFAULT_FONT_*
 
 namespace Ui {
 
@@ -47,7 +48,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 {
     std::string f, s;
     
-    Item *w = new Item(x,y,width,height,_font);
+    Item *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
+            FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
     size_t stages = item.getStageCount();
     bool disabled = item.getAllowDisabled();
     for (size_t n=0; n==0||n<stages; n++) {
@@ -171,9 +173,11 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
 }
 
 
-TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FONT font, FONT smallFont)
-    : SimpleContainer(x,y,w,h), _tracker(tracker), _layoutRoot(layoutRoot), _font(font), _smallFont(smallFont)
+TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FontStore *fontStore)
+    : SimpleContainer(x,y,w,h), _tracker(tracker), _layoutRoot(layoutRoot), _fontStore(fontStore)
 {
+    _font = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
+    _smallFont = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE - 2);
     if (_font && !_smallFont) _smallFont = _font;
     _tracker->onLayoutChanged += {this, [this](void *s, const std::string& layout) {
         updateLayout(layout);
@@ -319,9 +323,16 @@ void TrackerView::updateState(const std::string& itemid)
                 w->setOverlayColor({220,220,220});
             }
             w->setOverlay(std::to_string(item.getCount()));
+            w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
+                    FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
         } else {
-            w->setOverlay(item.getOverlay());
-            w->setOverlayColor({220,220,220});
+            auto s = item.getOverlay();
+            w->setOverlay(s);
+            if (!s.empty()) {
+                w->setOverlayColor({220,220,220});
+                w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
+                        FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+            }
         }
     }
     updateLocations();

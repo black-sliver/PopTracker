@@ -4,6 +4,7 @@
 #include "../uilib/simplecontainer.h"
 #include "../uilib/group.h"
 #include "../uilib/tabs.h"
+#include "../uilib/fontstore.h"
 #include "mapwidget.h"
 #include "item.h"
 #include "../core/tracker.h"
@@ -15,7 +16,7 @@ namespace Ui {
 class TrackerView : public SimpleContainer {
 public:
     using FONT = Group::FONT;
-    TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FONT font, FONT smallFont=nullptr);
+    TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FontStore *fontStore);
     ~TrackerView();
     
     virtual void render(Renderer renderer, int offX, int offY) override;
@@ -31,6 +32,7 @@ protected:
     std::string _layoutRoot;
     std::list<std::string> _layoutRefs;
     bool _relayoutRequired = false;
+    FontStore *_fontStore = nullptr;
     FONT _font = nullptr;
     FONT _smallFont = nullptr;
     Container *_mapTooltip = nullptr;

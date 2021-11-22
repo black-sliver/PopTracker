@@ -56,7 +56,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _lblTooltip->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
     hbox->addChild(_lblTooltip);
     
-    _loadPackWidget = new LoadPackWidget(0,0,0,0,_font,_smallFont);
+    _loadPackWidget = new LoadPackWidget(0,0,0,0,_fontStore);
     _loadPackWidget->setPosition({0,0});
     _loadPackWidget->setSize(_size);
     _loadPackWidget->setBackground({0,0,0});

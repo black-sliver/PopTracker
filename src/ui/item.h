@@ -17,6 +17,7 @@ public:
     ~Item();
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setSize(Size size) override;
+    virtual void setFont(FONT font);
     int getQuality() const { return _quality; }
     // NOTE: this has to be set before the image is rendered for the first time
     virtual void setQuality(int q) { _quality = q; }

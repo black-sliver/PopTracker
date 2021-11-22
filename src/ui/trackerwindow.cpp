@@ -17,8 +17,6 @@ TrackerWindow::TrackerWindow(const char* title, SDL_Surface* icon, const Positio
     _baseTitle = title;
     
     printf("Loading small font ...\n");
-    _smallFont = TTF_OpenFont(asset(DEFAULT_FONT_FILE).c_str(), DEFAULT_FONT_SIZE-2);
-    if (!_smallFont) fprintf(stderr, "TTF_OpenFont: %s\n", TTF_GetError());
     
     _menu = nullptr;
     _view = nullptr;
@@ -27,8 +25,6 @@ TrackerWindow::TrackerWindow(const char* title, SDL_Surface* icon, const Positio
 
 TrackerWindow::~TrackerWindow()
 {
-    if (_smallFont) TTF_CloseFont(_smallFont);
-    _smallFont = nullptr;
     _menu = nullptr;
     _view = nullptr;
 }
@@ -47,7 +43,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
         int left=0, top=_menu?(_menu->getTop()+_menu->getHeight()):0;
         //int w=_size.width-left, h=_size.height-top;
         int w=300, h=200; // the current layout hacks work better when growing than shrinking
-        _view = new TrackerView(left, top, w, h, tracker, layout, _font, _smallFont);
+        _view = new TrackerView(left, top, w, h, tracker, layout, _fontStore);
         _rendered = false;
         addChild(_view);
         

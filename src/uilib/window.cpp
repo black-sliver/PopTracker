@@ -1,5 +1,6 @@
 #include "window.h"
 #include "../core/assets.h"
+#include "../ui/defaults.h" // DEFAULT_FONT_*
 #include <SDL2/SDL_syswm.h>
 
 namespace Ui {
@@ -45,8 +46,8 @@ Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const 
     SDL_SetRenderDrawBlendMode(_ren, SDL_BLENDMODE_BLEND);
     
     printf("Loading font ...\n");
-    _font = TTF_OpenFont(asset(DEFAULT_FONT_FILE).c_str(), DEFAULT_FONT_SIZE);
-    if (!_font) fprintf(stderr, "TTF_OpenFont: %s\n", TTF_GetError());
+    _fontStore = new FontStore();
+    _font = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
 }
 
 Window::~Window()
@@ -54,10 +55,11 @@ Window::~Window()
     printf("Destroying window...\n");
     // NOTE: we have to destroy children before destroying the renderer
     clearChildren();
-    if (_font) TTF_CloseFont(_font);
+    if (_fontStore) delete _fontStore;
     if (_ren) SDL_DestroyRenderer(_ren);
     if (_win) SDL_DestroyWindow(_win);
     _font = nullptr;
+    _fontStore = nullptr;
     _ren = nullptr;
     _win = nullptr;
 }

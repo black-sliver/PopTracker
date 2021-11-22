@@ -23,7 +23,7 @@ public:
         std::list<std::string> _imgMods;
         std::list<std::string> _disabledImgMods;
         bool _inheritCodes = true;
-        
+
     public:
         static Stage FromJSON(nlohmann::json& j);
         static Stage FromJSON(nlohmann::json&& j);
@@ -47,7 +47,9 @@ public:
     
 protected:
     std::vector<Stage> _stages;
-    
+    bool _overlayBackgroundChanged = false;
+    bool _overlayFontSizeChanged = false;
+
 public:    
     virtual size_t getStageCount() const override { return _stages.size(); }
     
@@ -125,7 +127,15 @@ public:
 
     virtual void SetOverlayBackground(const char* text) override {
         if (_overlayBackground == text) return;
+        _overlayBackgroundChanged = true;
         _overlayBackground = text;
+        onChange.emit(this);
+    }
+
+    virtual void SetOverlayFontSize(int fontSize) override {
+        if (_overlayFontSize == fontSize) return;
+        _overlayFontSizeChanged = true;
+        _overlayFontSize = fontSize;
         onChange.emit(this);
     }
 

@@ -6,6 +6,7 @@
 #include "../uilib/vbox.h"
 #include "../uilib/hbox.h"
 #include "../uilib/label.h"
+#include "../uilib/fontstore.h"
 #include "../core/signal.h"
 #include <SDL2/SDL_ttf.h>
 
@@ -13,8 +14,8 @@ namespace Ui {
 
 class LoadPackWidget : public SimpleContainer {
 public:
-    using FONT = TTF_Font*;
-    LoadPackWidget(int x, int y, int w, int h, FONT font, FONT smallFont=nullptr);
+    using FONT = FontStore::FONT;
+    LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore);
     
     void update();
     
@@ -23,6 +24,7 @@ public:
     virtual void setSize(Size size) override; // TODO: have more intelligent hbox instead
     
 protected:
+    FontStore *_fontStore;
     FONT _font;
     FONT _smallFont;
     

@@ -3,15 +3,16 @@
 #include "../uilib/hbox.h"
 #include "../uilib/vbox.h"
 #include "../uilib/label.h"
+#include "defaults.h" // DEFAULT_FONT_*
 
 namespace Ui {
 
-LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FONT font, FONT smallFont)
-        : SimpleContainer(x,y,w,h)
+LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore)
+        : SimpleContainer(x,y,w,h), _fontStore(fontStore)
 {
-    if (!smallFont) smallFont = font;
-    _font = font;
-    _smallFont = smallFont;
+    _font = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
+    _smallFont = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE - 2);
+    if (_font && !_smallFont) _smallFont = _font;
     
     onClick += {this, [this](void *s, int x, int y, int button) {
         if (button == MouseButton::BUTTON_RIGHT) {
