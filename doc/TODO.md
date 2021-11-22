@@ -6,7 +6,7 @@ Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 see [github projects](https://github.com/black-sliver/PopTracker/projects)
 
 ## Help wanted
-- OSX binaries
+- OSX binaries (.dmg, building SDL from source)
 - Custom application icon
 - Fancier GUI
   - Better widgets ("real" buttons)
@@ -27,9 +27,6 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects)
 - alignment of widgets inside widgets
 - Makefile: make native on windows
 - Makefile: 32bit exe
-- document the lua interface in PACKS.md *done?*
-- document the json interface in PACKS.md *done?*
-- lua_to_json/json_to_lua: arrays
 - Log warning/error when duplicate ID is detected
 - Show error (+reason) when loading a pack fails
 - Log facility besides stdout
@@ -39,7 +36,6 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects)
   - included asio is the latest one that works with websocketpp 0.8.1
 - Handle click on locations (tooltip->onClick should do something, so we don't need to move the mouse too much)
   - right click square or tooltip = full clear of accessible?
-- Item: `type: composite_toggle` (item/icon with two halves, alttpr)
 - Item: `swap_actions: <bool>` (swaps left and right mouse button, alttpr)
 - Map/Locations:
   - number overlay on map (X unreachable red, Y reachable white)
