@@ -1,5 +1,6 @@
 #include "location.h"
 #include "jsonutil.h"
+#include "util.h"
 using nlohmann::json;
 
 const LuaInterface<LocationSection>::MethodMap LocationSection::Lua_Methods = {};
@@ -58,7 +59,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
         // TODO: merge code with Section's access rules
         for (const auto& v : j["access_rules"]) {
             if (v.type() != json::value_t::string) {
-                fprintf(stderr, "Location: bad access rule\n");
+                fprintf(stderr, "Location: bad access rule in \"%s\"\n",
+                    sanitize_print(name).c_str());
                 continue;
             }
             auto newRule = commasplit(v);
@@ -75,7 +77,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     } else {
         accessRules = parentAccessRules; // TODO: avoid copy
         if (j["access_rules"].type() != json::value_t::null) {
-            fprintf(stderr, "Location: invalid access rules\n");
+            fprintf(stderr, "Location: invalid access rules in \"%s\"\n",
+                    sanitize_print(name).c_str());
         }
     }
     std::list< std::list<std::string> > visibilityRules;
@@ -83,7 +86,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
         // TODO: merge code with Section's access rules
         for (const auto& v : j["visibility_rules"]) {
             if (v.type() != json::value_t::string) {
-                fprintf(stderr, "Location: bad visibility rule\n");
+                fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
+                    sanitize_print(name).c_str());
                 continue;
             }
             auto newRule = commasplit(v);
@@ -100,7 +104,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     } else {
         visibilityRules = parentVisibilityRules; // TODO: avoid copy
         if (j["visibility_rules"].type() != json::value_t::null) {
-            fprintf(stderr, "Location: invalid visibility rules\n");
+            fprintf(stderr, "Location: invalid visibility rules in \"%s\"\n",
+                    sanitize_print(name).c_str());
         }
     }
     
@@ -177,7 +182,8 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
         // TODO: merge code with Location's access rules
         for (const auto& v : j["access_rules"]) {
             if (v.type() != json::value_t::string) {
-                fprintf(stderr, "Location: bad access rule\n");
+                fprintf(stderr, "Location: bad access rule in \"%s\"\n",
+                    sanitize_print(sec._name).c_str());
                 continue;
             }
             auto newRule = commasplit(v);
@@ -194,14 +200,16 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
     } else {
         sec._accessRules = parentAccessRules;
         if (j["access_rules"].type() != json::value_t::null) {
-            fprintf(stderr, "Location: Section: invalid access rules\n");
+            fprintf(stderr, "Location: Section: invalid access rules in \"%s\"\n",
+                    sanitize_print(sec._name).c_str());
         }
     }
     if (j["visibility_rules"].type() == json::value_t::array) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["visibility_rules"]) {
             if (v.type() != json::value_t::string) {
-                fprintf(stderr, "Location: bad visibility rule\n");
+                fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
+                    sanitize_print(sec._name).c_str());
                 continue;
             }
             auto newRule = commasplit(v);
@@ -217,8 +225,9 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
         }
     } else {
         sec._visibilityRules = parentVisibilityRules;
-        if (j["access_rules"].type() != json::value_t::null) {
-            fprintf(stderr, "Location: Section: invalid visibility rules\n");
+        if (j["visibility_rules"].type() != json::value_t::null) {
+            fprintf(stderr, "Location: Section: invalid visibility rules in \"%s\"\n",
+                    sanitize_print(sec._name).c_str());
         }
     }
     return sec;
