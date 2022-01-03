@@ -190,6 +190,9 @@ bool Tracker::AddLayouts(const std::string& file) {
             fprintf(stderr, "Bad item\n");
             continue; // ignore
         }
+        if (_layouts.find(key) != _layouts.end())
+            fprintf(stderr, "WARNING: replacing existing layout \"%s\"\n",
+                    key.c_str());
         _layouts[key] = LayoutNode::FromJSON(value);
     }
     
