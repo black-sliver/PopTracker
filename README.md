@@ -45,6 +45,7 @@ See [BUILD.md](BUILD.md).
 * [evermizer-tracker-package](https://github.com/Cyb3RGER/evermizer-tracker-package)
 * [SoM-Open-Mode-Tracker](https://github.com/Cyb3RGER/SoM-Open-Mode-Tracker)
 * [iogr_emotracker_apokalysme](https://github.com/Apokalysme/iogr_emotracker_apokalysme) v3.6
+* [Ender Lilies Tracker](https://github.com/lurch9229/ender-lilies-poptracker/tree/main/enderlilies_maptracker_lurch9229)
 
 *more to be tested*
 
