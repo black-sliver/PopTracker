@@ -1,7 +1,6 @@
 #ifndef _USB2SNES_H_INCLUDED
 #define _USB2SNES_H_INCLUDED
 
-#define ASIO_STANDALONE
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 #include <thread>

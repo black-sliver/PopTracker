@@ -15,7 +15,7 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/core/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h)
-INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -Ilib/miniz -Ilib/json/include -Ilib/valijson/include #-Ilib/gifdec
+INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
