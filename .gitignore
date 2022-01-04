@@ -18,6 +18,7 @@ nbproject
 # exclude packs (they are separate projects)
 packs
 screenshots
+packlist
 
 # exclude tool chain dependant files
 win32-lib
