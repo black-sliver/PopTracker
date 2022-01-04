@@ -1,0 +1,23 @@
+{
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "author": { "type": "string" },
+            "platform": { "type": "string" },
+            "homepage": { "type": "string", "format": "uri" },
+            "versions_url": { "type": "string", "format": "uri" },
+            "description": { "type": "string" },
+            "icon_url": { "type": "string", "format": "uri" }
+        },
+        "required": [
+            "name",
+            "author",
+            "platform",
+            "homepage",
+            "versions_url",
+            "description"
+        ]
+    }
+}

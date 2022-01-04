@@ -1,0 +1,11 @@
+{
+    "example_pack1_uid": {
+        "name": "Example Game1 Map Tracker",
+        "author": "Example Author",
+        "platform": "PC",
+        "homepage": "https://example.com",
+        "versions_url": "https://example.com/versions.json",
+        "icon_url": "https://example.com/icon.png",
+        "description":  "This is an example map tracker pack."
+    }
+}

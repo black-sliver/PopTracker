@@ -1,0 +1,21 @@
+{
+    "versions": [
+        {
+            "package_version": "1.0.0",
+            "download_url": "http://example.com/pack_1.0.0.zip",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "changelog": [
+                "Changed version to 1.0.0",
+                "Nothing else"
+            ]
+        },
+        {
+            "package_version": "0.9.9",
+            "download_url": "http://example.com/pack_0.9.9.zip",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "changelog": [
+                "initial version"
+            ]
+        }
+    ]
+}

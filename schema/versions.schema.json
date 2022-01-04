@@ -1,0 +1,39 @@
+{
+    "type": "object",
+    "properties": {
+        "versions" : {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "package_version": {
+                        "type": "string"
+                    },
+                    "download_url": {
+                        "type": ["string", "null"],
+                        "format": "uri"
+                    },
+                    "sha256": {
+                        "description": "SHA256 of the download as hex chars without spaces",
+                        "type": "string",
+                        "minLength": 64,
+                        "maxLength": 64
+                    },
+                    "changelog": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "package_version",
+                    "download_url",
+                    "sha256",
+                    "changelog"
+                ]
+            }
+        }
+    },
+    "required": [ "versions" ]
+}
