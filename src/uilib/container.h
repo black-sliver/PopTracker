@@ -74,7 +74,7 @@ public:
     }
     const std::deque<Widget*> getChildren() const { return _children; }
 
-    virtual bool isHover(Widget* w) const {
+    virtual bool isHover(Widget* w) const override {
         return (w == this || (_hoverChild && _hoverChild->isHover(w)));
     }
 
