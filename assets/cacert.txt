@@ -1,0 +1,5 @@
+cacert.pem
+Converted from Mozilla's bundled certificates
+License: https://www.mozilla.org/en-US/MPL/2.0/
+
+see https://curl.se/docs/caextract.html for details

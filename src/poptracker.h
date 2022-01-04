@@ -11,6 +11,7 @@
 #include "core/tracker.h"
 #include "core/scripthost.h"
 #include "core/imagereference.h"
+#include "core/version.h"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -29,7 +30,8 @@ private:
     Pack *_pack = nullptr;
     ImageReference _imageReference;
     bool _autoTrackerDisabled = false;
-    
+    asio::io_service *_asio = nullptr;
+
     unsigned _frames = 0;
     unsigned _maxFrameTime = 0;
     std::chrono::steady_clock::time_point _fpsTimer;
@@ -43,6 +45,9 @@ private:
     bool scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     void unloadTracker();
     
+    void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
+    static bool isNewer(const Version& v);
+
 public:
     PopTracker(int argc, char** argv);
     virtual ~PopTracker();

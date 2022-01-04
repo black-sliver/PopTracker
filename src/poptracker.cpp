@@ -14,6 +14,11 @@ extern "C" {
 #include "core/jsonutil.h"
 #include "core/statemanager.h"
 #include "core/log.h"
+#include <tinyfiledialogs.h>
+#include "http/http.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 using nlohmann::json;
 
 
@@ -24,12 +29,12 @@ PopTracker::PopTracker(int argc, char** argv)
     if (readFile(configFilename, config)) {
         _config = parse_jsonc(config);
     }
-    
+
     if (_config["log"].type() != json::value_t::boolean)
         _config["log"] = false;
     if (_config["software_renderer"].type() != json::value_t::boolean)
         _config["software_renderer"] = false;
-    
+
     std::string logFilename = getConfigPath(APPNAME, "log.txt");
     if (!_config["log"]) {
         // disable logging, leave note
@@ -49,7 +54,64 @@ PopTracker::PopTracker(int argc, char** argv)
             printf("%s %s\n", APPNAME, VERSION_STRING);
         }
     }
+
+    if (_config.find("check_for_updates") == _config.end()) {
+        auto res = tinyfd_messageBox("PopTracker",
+                "Check for PopTracker updates on start?",
+                "yesno", "question", 1);
+        _config["check_for_updates"] = (res != 0);
+    }
     
+    _asio = new asio::io_service();
+    HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
+    if (_config["check_for_updates"]) {
+        printf("Checking for update...\n");
+        std::string s;
+        const std::string url = "https://api.github.com/repos/black-sliver/PopTracker/releases?per_page=8";
+        // .../releases/latest would be better, but does not return pre-releases
+        if (!HTTP::GetAsync(*_asio, url,
+                [this](int code, const std::string& content)
+                {
+                    if (code == 200) {
+                        try {
+                            auto j = json::parse(content);
+                            std::string version;
+                            std::list<std::string> assets;
+                            std::string url;
+                            for (size_t i=0; i<j.size(); i++) {
+                                auto rls = j[i];
+                                version = rls["tag_name"].get<std::string>();
+                                if ((version[0]=='v' || version[0]=='V') && isNewer(version)) {
+                                    version = version.substr(1);
+                                    url = rls["html_url"].get<std::string>();
+                                    for (auto val: rls["assets"]) {
+                                        assets.push_back(val["browser_download_url"].get<std::string>());
+                                    }
+                                    break;
+                                } else {
+                                    version.clear();
+                                }
+                            }
+                            if (!version.empty())
+                                updateAvailable(version, url, assets);
+                            else
+                                printf("Update: already up to date\n");
+                        } catch (...) {
+                            fprintf(stderr, "Update: error parsing json\n");
+                        }
+                    } else {
+                        fprintf(stderr, "Update: server returned code %d\n", code);
+                    }
+                },
+                [](...)
+                {
+                    fprintf(stderr, "Update: error getting response\n");
+                }))
+        {
+            fprintf(stderr, "Update: error starting request\n");
+        }
+    }
+
     _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
@@ -62,14 +124,14 @@ PopTracker::PopTracker(int argc, char** argv)
             _win = nullptr;
         }
     }};
-    
+
     Pack::addSearchPath("packs"); // current directory
-    
+
     std::string cwdPath = getCwd();
     std::string documentsPath = getDocumentsPath();
     std::string homePath = getHomePath();
     std::string appPath = getAppPath();
-    
+
     if (!homePath.empty() && homePath != "." && homePath != cwdPath) {
         Pack::addSearchPath(os_pathcat(homePath,"PopTracker","packs")); // default user packs
         Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
@@ -82,12 +144,14 @@ PopTracker::PopTracker(int argc, char** argv)
         Pack::addSearchPath(os_pathcat(appPath,"packs")); // system packs
         Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
     }
-    
+
     StateManager::setDir(getConfigPath(APPNAME, "saves"));
 }
+
 PopTracker::~PopTracker()
 {
     unloadTracker();
+    delete _asio;
     _win = nullptr;
     delete _ui;
 }
@@ -217,6 +281,7 @@ bool PopTracker::start()
 
 bool PopTracker::frame()
 {
+    if (_asio) _asio->poll();
     if (_scriptHost) _scriptHost->autoTrack();
     
 #define SHOW_FPS
@@ -391,3 +456,62 @@ bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string&
     return true;
 }
 
+void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)
+{
+    std::string ignoreData;
+    std::string ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json");
+    json ignore;
+    if (readFile(ignoreFilename, ignoreData)) {
+        ignore = parse_jsonc(ignoreData);
+        if (ignore.is_array()) {
+            if (std::find(ignore.begin(), ignore.end(), version) != ignore.end()) {
+                printf("Update: %s is in ignore list\n", version.c_str());
+                return;
+            }
+        } else {
+            ignore = json::array();
+        }
+    }
+    
+    std::string msg = "Update to PopTracker " + version + " available. Download?";
+    if (tinyfd_messageBox("PopTracker", msg.c_str(), "yesno", "question", 1))
+    {
+#if defined _WIN32 || defined WIN32
+        ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#else
+        auto pid = fork();
+        if (pid == -1) {
+            fprintf(stderr, "Update: fork failed\n");
+        } else if (pid == 0) {
+#if defined __APPLE__ || defined MACOS
+            const char* exe = "open";
+#else
+            const char* exe = "xdg-open";
+#endif
+            execlp(exe, exe, url.c_str(), (char*)nullptr);
+            std::string msg = "Could not launch browser!\n";
+            msg += exe;
+            msg += ": ";
+            msg += strerror(errno);
+            fprintf(stderr, "Update: %s\n", msg.c_str());
+            tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+            exit(0);
+        }
+#endif
+    }
+    else {
+        msg = "Skip version " + version + "?";
+        if (tinyfd_messageBox("PopTracker", msg.c_str(), "yesno", "question", 1))
+        {
+            printf("Update: ignoring %s\n", version.c_str());
+            ignore.push_back(version);
+            writeFile(ignoreFilename, ignore.dump(0));
+        }
+    }
+}
+
+bool PopTracker::isNewer(const Version& v)
+{
+    // returns true if v is newer than current PopTracker
+    return v>Version(VERSION_STRING);
+}

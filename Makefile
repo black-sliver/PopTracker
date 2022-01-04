@@ -3,25 +3,32 @@
 #       for now we use SDL2_image GIF support only
 CONF ?= RELEASE # make CONF=DEBUG for debug, CONF=DIST for .zip
 SRC_DIR = src
+LIB_DIR = lib
 SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
       $(wildcard $(SRC_DIR)/ui/*.cpp) \
       $(wildcard $(SRC_DIR)/core/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
-      $(wildcard $(SRC_DIR)/uat/*.cpp) #lib/gifdec/gifdec.c
+      $(wildcard $(SRC_DIR)/uat/*.cpp) \
+      $(wildcard $(SRC_DIR)/http/*.cpp) \
+      $(wildcard $(LIB_DIR)/tinyfiledialogs/*.cpp)
+      #lib/gifdec/gifdec.c
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
       $(wildcard $(SRC_DIR)/ui/*.h) \
       $(wildcard $(SRC_DIR)/core/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
-      $(wildcard $(SRC_DIR)/uat/*.h)
-INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include #-Ilib/gifdec
+      $(wildcard $(SRC_DIR)/uat/*.h) \
+      $(wildcard $(SRC_DIR)/http/*.h)
+INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
-WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf
-WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lSDL2_ttf -lSDL2_image -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -static-libgcc -Wl,--high-entropy-va
+SSL_LIBS = -lssl -lcrypto
+NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
+WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -lcrypt32 -lssp
+WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 # output
 DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
 ARCH = $(shell uname -m | tr -s ' ' '-' | tr A-Z a-z)
@@ -123,9 +130,9 @@ WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 ifdef IS_OSX
-NIX_CPP_FLAGS += -mmacosx-version-min=10.12
-NIX_LD_FLAGS += -mmacosx-version-min=10.12
-NIX_C_FLAGS += -mmacosx-version-min=10.12
+NIX_CPP_FLAGS += -mmacosx-version-min=10.12 -L/opt/homebrew/opt/openssl@1.1/lib
+NIX_LD_FLAGS += -mmacosx-version-min=10.12 -I/opt/homebrew/opt/openssl@1.1/include
+NIX_C_FLAGS += -mmacosx-version-min=10.12 -I/opt/homebrew/opt/openssl@1.1/include
 endif
 
 # default target: "native"
@@ -136,7 +143,7 @@ ifdef IS_WIN32
   WIN32AR = $(AR)
   WIN32STRIP = strip
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
+  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -DLERC_STATIC -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN32_ZIP)
   else
@@ -149,7 +156,7 @@ else ifdef IS_WIN64
   WIN64AR = $(AR)
   WIN64STRIP = strip
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
+  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -DLERC_STATIC -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN64_ZIP)
   else
@@ -189,7 +196,7 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -o $@
+	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
@@ -253,25 +260,25 @@ $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DI
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
 	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
-	rm -rf $(WASM_BUILD_DIR)/lib
+	rm -rf $(WASM_BUILD_DIR)/lib/lua
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
 	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" CFLAGS="$(NIX_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
-	rm -rf $(NIX_BUILD_DIR)/lib
+	rm -rf $(NIX_BUILD_DIR)/lib/lua
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
 	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
-	rm -rf $(WIN32_BUILD_DIR)/lib
+	rm -rf $(WIN32_BUILD_DIR)/lib/lua
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN64_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
 	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
-	rm -rf $(WIN64_BUILD_DIR)/lib
+	rm -rf $(WIN64_BUILD_DIR)/lib/lua
 
 # Build dirs
 $(NIX_BUILD_DIR):
@@ -290,15 +297,15 @@ $(DIST_DIR):
 # Fragments
 $(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
 	mkdir -p $@
-$(NIX_BUILD_DIR)/%.o: %.cpp $(HDR) | $(NIX_OBJ_DIRS)
+$(NIX_BUILD_DIR)/%.o: %.c* $(HDR) | $(NIX_OBJ_DIRS)
 	$(CPP) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
 	mkdir -p $@
-$(WIN32_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN32_OBJ_DIRS)
+$(WIN32_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN32_OBJ_DIRS)
 	$(WIN32CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN32_INCLUDE_DIRS) $(WIN32_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 $(WIN64_OBJ_DIRS): | $(WIN64_BUILD_DIR)
 	mkdir -p $@
-$(WIN64_BUILD_DIR)/%.o: %.cpp $(HDR) | $(WIN64_OBJ_DIRS)
+$(WIN64_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN64_OBJ_DIRS)
 	$(WIN64CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN64_INCLUDE_DIRS) $(WIN64_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 
 # Avoid detection/auto-cleanup of intermediates

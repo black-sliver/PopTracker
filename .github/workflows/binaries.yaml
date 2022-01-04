@@ -39,7 +39,7 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1
     - uses: actions/checkout@v2
       with:
         submodules: recursive
@@ -80,6 +80,7 @@ jobs:
           mingw64/mingw-w64-x86_64-SDL2_image
           mingw64/mingw-w64-x86_64-SDL2_ttf
           mingw64/mingw-w64-x86_64-freetype
+          mingw64/mingw-w64-x86_64-openssl
           p7zip
     - uses: actions/checkout@v2
       with:
