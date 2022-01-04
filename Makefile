@@ -130,9 +130,10 @@ WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 ifdef IS_OSX
-NIX_CPP_FLAGS += -mmacosx-version-min=10.12 -L/opt/homebrew/opt/openssl@1.1/lib
-NIX_LD_FLAGS += -mmacosx-version-min=10.12 -I/opt/homebrew/opt/openssl@1.1/include
-NIX_C_FLAGS += -mmacosx-version-min=10.12 -I/opt/homebrew/opt/openssl@1.1/include
+BREW_PREFIX := $(shell brew --prefix)
+NIX_CPP_FLAGS += -mmacosx-version-min=10.12 -I$(BREW_PREFIX)/opt/openssl@1.1/include
+NIX_LD_FLAGS += -mmacosx-version-min=10.12 -L$(BREW_PREFIX)/opt/openssl@1.1/lib
+NIX_C_FLAGS += -mmacosx-version-min=10.12 -I$(BREW_PREFIX)/opt/openssl@1.1/include
 endif
 
 # default target: "native"
