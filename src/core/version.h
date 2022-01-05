@@ -9,10 +9,10 @@ public:
     Version(const std::string& s);
     virtual ~Version();
     
-    int major;
-    int minor;
-    int revision;
-    std::string extra;
+    int Major;
+    int Minor;
+    int Revision;
+    std::string Extra;
     
     bool operator<(const Version& other) const;
     bool operator>(const Version& other) const;
