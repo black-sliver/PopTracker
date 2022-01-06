@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# script to fetch and build third party sources.
+# (c) 2022 sbzappa
+
+CLEAR_BUILD_DIR=no
+BUILD_DIR="build"
+CLEAR_LIB_DIR=no
+LIB_DIR="libs"
+DEPLOYMENT_TARGET="10.12"
+
+function usage() {
+  echo "Usage: `basename $0` [--build-dir=] [--clear-build-dir] [--lib-dir=] [--clear-lib-dir] [--deployment-target=]"
+}
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --build-dir=*)
+      BUILD_DIR=$optarg
+      ;;
+    --lib-dir=*)
+      LIB_DIR=$optarg
+      ;;
+    --deployment-target=*)
+      DEPLOYMENT_TARGET=$optarg
+      ;;
+    --clear-build-dir)
+      CLEAR_BUILD_DIR=yes
+      ;;
+    --clear-lib-dir)
+      CLEAR_LIB_DIR=yes
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+SRC_DIR=`dirname $0`
+cd $SRC_DIR
+
+LIB_SDL_URL="https://github.com/libsdl-org/SDL.git"
+LIB_SDL_IMAGE_URL="https://github.com/libsdl-org/SDL_image.git"
+LIB_SDL_TTF_URL="https://github.com/libsdl-org/SDL_ttf.git"
+LIB_PNG_URL="https://github.com/glennrp/libpng.git"
+LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
+LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
+
+LIB_SDL_TAG="release-2.0.18"
+LIB_SDL_IMAGE_TAG="release-2.0.5"
+LIB_SDL_TTF_TAG="release-2.0.15"
+LIB_PNG_TAG="v1.6.37"
+LIB_FREETYPE_TAG="VER-2-11-1"
+LIB_OPENSSL_TAG="OpenSSL_1_1_1m"
+
+REGEX="s/^.*\/\([^\/]*\).git$/\1/"
+
+LIB_SDL_DEST_DIR="$BUILD_DIR/`echo $LIB_SDL_URL | sed $REGEX`"
+LIB_SDL_IMAGE_DEST_DIR="$BUILD_DIR/`echo $LIB_SDL_IMAGE_URL | sed $REGEX`"
+LIB_SDL_TTF_DEST_DIR="$BUILD_DIR/`echo $LIB_SDL_TTF_URL | sed $REGEX`"
+LIB_PNG_DEST_DIR="$BUILD_DIR/`echo $LIB_PNG_URL | sed $REGEX`"
+LIB_FREETYPE_DEST_DIR="$BUILD_DIR/`echo $LIB_FREETYPE_URL | sed $REGEX`"
+LIB_OPENSSL_DEST_DIR="$BUILD_DIR/`echo $LIB_OPENSSL_URL | sed $REGEX`"
+
+
+DEPLOYMENT_TARGET_FLAG="-mmacosx-version-min=$DEPLOYMENT_TARGET"
+CONFIGURE_FLAGS="CXXFLAGS=$DEPLOYMENT_TARGET_FLAG CFLAGS=$DEPLOYMENT_TARGET_FLAG LDFLAGS=$DEPLOYMENT_TARGET_FLAG"
+
+if test $CLEAR_BUILD_DIR = yes ; then
+  rm -fr $BUILD_DIR
+fi
+
+
+if test $CLEAR_LIB_DIR = yes ; then
+  rm -fr $LIB_DIR
+fi
+
+mkdir -p $BUILD_DIR
+mkdir -p $LIB_DIR
+
+# Build Png
+
+if [ ! -d $LIB_PNG_DEST_DIR ]; then
+  git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR
+fi
+
+cd $LIB_PNG_DEST_DIR
+
+git checkout $LIB_PNG_TAG
+./configure $CONFIGURE_FLAGS
+make
+
+cp ".libs/libpng16.16.dylib" "../../$LIB_DIR"
+cd "../.."
+
+# Build Freetype
+
+if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
+  git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR
+fi
+
+cd $LIB_FREETYPE_DEST_DIR
+
+git checkout $LIB_FREETYPE_TAG
+
+./autogen.sh
+./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
+make
+
+cp "objs/.libs/libfreetype.6.dylib" "../../$LIB_DIR"
+cd "../.."
+
+# Build SDL
+
+if [ ! -d $LIB_SDL_DEST_DIR ]; then
+  git clone $LIB_SDL_URL $LIB_SDL_DEST_DIR
+fi
+
+cd $LIB_SDL_DEST_DIR
+
+git checkout $LIB_SDL_TAG
+./configure $CONFIGURE_FLAGS
+make
+
+cp "build/.libs/libSDL2-2.0.0.dylib" "../../$LIB_DIR"
+cd "../.."
+
+
+# Build SDL_image
+
+if [ ! -d $LIB_SDL_IMAGE_DEST_DIR ]; then
+  git clone $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR
+fi
+
+cd $LIB_SDL_IMAGE_DEST_DIR
+
+git checkout $LIB_SDL_IMAGE_TAG
+./configure $CONFIGURE_FLAGS
+make
+
+cp ".libs/libSDL2_image-2.0.0.dylib" "../../$LIB_DIR"
+cd "../.."
+
+
+# Build SDL_ttf (presumes freetype is already installed with brew)
+
+if [ ! -d $LIB_SDL_TTF_DEST_DIR ]; then
+  git clone $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR
+fi
+
+cd $LIB_SDL_TTF_DEST_DIR
+
+git checkout $LIB_SDL_TTF_TAG
+./configure $CONFIGURE_FLAGS
+make
+
+cp ".libs/libSDL2_ttf-2.0.0.dylib"  "../../$LIB_DIR"
+cd "../.."
+
+# Build OpenSSL
+
+if [ ! -d $LIB_OPENSSL_DEST_DIR ]; then
+  git clone $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR
+fi
+
+cd $LIB_OPENSSL_DEST_DIR
+
+git checkout $LIB_OPENSSL_TAG
+./config $CONFIGURE_FLAGS
+make
+
+cp "libssl.1.1.dylib" "../../$LIB_DIR"
+cp "libcrypto.1.1.dylib" "../../$LIB_DIR"
+cd "../.."
+
