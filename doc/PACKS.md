@@ -1,7 +1,7 @@
 # Packs Interface
 
 * Pack description is in manifest.json, including available Variants.
-* Everything a pack provides is done through Lua, statring at scripts/init.lua.
+* Everything a pack provides is done through Lua, starting at scripts/init.lua.
 * Data (that is loaded through Lua) is stored as JSON inside the pack.
 * Images (that are referenced in JSON) are PNGs or GIFs inside the pack.
 * Most strings/identifiers are case sensitive.
