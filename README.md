@@ -16,8 +16,8 @@ Use the Load button in the top left corner to load a pack.
 
 Do not load untrusted packs until some sort of fuzzing is done.
 
-Binary release is Windows 64bit and macOS 64bit only at the moment,
-should compile on most unix-like OS (see [Building from source](#building-from-source)).
+Binary release is Windows 64bit and macOS 64bit only at the moment (see [Download prebuilt exe or app](#download-prebuilt-exe-or-app)),\
+should compile on most unix-like OS (see [Building from source](#building-from-source)).\
 [WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
 
 Check
