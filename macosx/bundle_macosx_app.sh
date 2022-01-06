@@ -112,10 +112,10 @@ BUILD_DIR="build"
 LIB_DIR="libs"
 
 if test $BUILD_THIRD_PARTY = yes ; then
-  sh $SRC_DIR/build_thirdparty \
+  sh $SRC_DIR/build_thirdparty.sh \
     --deployment-target=$DEPLOYMENT_TARGET \
-    --BUILD_DIR=$BUILD_DIR \
-    --LIB_DIR=$LIB_DIR
+    --build-dir=$BUILD_DIR \
+    --lib-dir=$LIB_DIR
 fi
 
 LIB_SDL2="libSDL2-2.0.0.dylib"
