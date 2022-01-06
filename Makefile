@@ -29,8 +29,30 @@ SSL_LIBS = -lssl -lcrypto
 NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
 WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -lcrypt32 -lssp
 WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
+
+# detect OS and compiler
+ifeq ($(OS),Windows_NT)
+  IS_WIN = yes
+  ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
+    IS_WIN64 = yes
+  else ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+    IS_WIN64 = yes
+  else
+    IS_WIN32 = yes
+  endif
+else
+  ifeq ($(shell uname -s),Darwin)
+    IS_OSX = yes
+    IS_LLVM = yes
+  else
+    IS_LINUX = yes
+  endif
+endif
+ifneq '' '$(findstring clang,$(CC))'
+  IS_LLVM = yes
+endif
+
 # output
-DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
 ARCH = $(shell uname -m | tr -s ' ' '-' | tr A-Z a-z)
 UNAME = $(shell uname -sm | tr -s ' ' '-' | tr A-Z a-z )
 DIST_DIR ?= dist
@@ -48,11 +70,16 @@ HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 ifeq ($(CONF), DIST)
 VERSION := $(shell grep VERSION_STRING $(SRC_DIR)/poptracker.h | cut -d'"' -f 2 )
 VS := $(subst .,-,$(VERSION))
-WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
-WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
-OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
-OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
-NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).tar.xz
+ifdef IS_OSX
+  OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
+  OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
+else ifdef IS_LINUX
+  DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
+  NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).tar.xz
+else
+  WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
+  WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
+endif
 endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
@@ -77,26 +104,6 @@ WIN64CC = x86_64-w64-mingw32-gcc
 WIN64CPP = x86_64-w64-mingw32-g++
 WIN64AR = x86_64-w64-mingw32-ar
 WIN64STRIP = x86_64-w64-mingw32-strip
-
-# detect OS and compiler
-ifeq ($(OS),Windows_NT)
-  IS_WIN = yes
-  ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
-    IS_WIN64 = yes
-  else ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-    IS_WIN64 = yes
-  else
-    IS_WIN32 = yes
-  endif
-else
-  ifeq ($(shell uname -s),Darwin)
-    IS_OSX = yes
-    IS_LLVM = yes
-  endif
-endif
-ifneq '' '$(findstring clang,$(CC))'
-  IS_LLVM = yes
-endif
 
 # tool config
 #TODO: -fsanitize=address -fno-omit-frame-pointer ?
@@ -324,8 +331,8 @@ clean:
 	rm -rf $(WIN32_EXE) $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR)
 	rm -rf $(WIN64_EXE) $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR)
 	rm -rf $(NIX_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR)
-	if [ -d $(NIX_BUILD_DIR) ]; then rmdir --ignore-fail-on-non-empty $(NIX_BUILD_DIR) ; fi
-	if [ -d $(WASM_BUILD_DIR) ]; then rmdir --ignore-fail-on-non-empty $(WASM_BUILD_DIR) ; fi
-	if [ -d $(WIN32_BUILD_DIR) ]; then rmdir --ignore-fail-on-non-empty $(WIN32_BUILD_DIR) ; fi
-	if [ -d $(WIN64_BUILD_DIR) ]; then rmdir --ignore-fail-on-non-empty $(WIN64_BUILD_DIR) ; fi
-	if [ -d $(BUILD_DIR) ]; then rmdir --ignore-fail-on-non-empty $(BUILD_DIR) ; fi
+	if [[ -d $(NIX_BUILD_DIR) && -z `ls -A $(NIX_BUILD_DIR)` ]]; then rmdir $(NIX_BUILD_DIR) ; fi
+	if [[ -d $(WASM_BUILD_DIR) && -z `ls -A $(WASM_BUILD_DIR)` ]]; then rmdir $(WASM_BUILD_DIR) ; fi
+	if [[ -d $(WIN32_BUILD_DIR) && -z `ls -A $(WIN32_BUILD_DIR)` ]]; then rmdir $(WIN32_BUILD_DIR) ; fi
+	if [[ -d $(WIN64_BUILD_DIR) && -z `ls -A $(WIN64_BUILD_DIR)` ]]; then rmdir $(WIN64_BUILD_DIR) ; fi
+	if [[ -d $(BUILD_DIR) && -z `ls -A $(BUILD_DIR)` ]]; then rmdir $(BUILD_DIR) ; fi
