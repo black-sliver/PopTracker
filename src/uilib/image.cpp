@@ -54,6 +54,7 @@ Image::Image(int x, int y, int w, int h, const void* data, size_t len)
 Image::~Image()
 {
     if (_tex)   SDL_DestroyTexture(_tex);
+    if (_texBw) SDL_DestroyTexture(_texBw);
     if (_surf)  SDL_FreeSurface(_surf);
     _tex   = nullptr;
     _texBw = nullptr;
