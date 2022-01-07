@@ -63,7 +63,18 @@ PopTracker::PopTracker(int argc, char** argv)
         _config["check_for_updates"] = (res != 0);
     }
 #endif
-    
+
+    if (_config.find("add_emo_packs") == _config.end()) {
+#if defined _WIN32 || defined WIN32
+        auto res = tinyfd_messageBox("PopTracker",
+                "Add Documents\\EmoTracker\\packs to the search path?",
+                "yesno", "question", 1);
+        _config["add_emo_packs"] = (res != 0);
+#else
+        _config["add_emo_packs"] = false;
+#endif
+    }
+
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
 #ifndef WITHOUT_UPDATE_CHECK
@@ -146,7 +157,9 @@ PopTracker::PopTracker(int argc, char** argv)
     }
     if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
         Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
-        Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
+        if (_config["add_emo_packs"]) {
+            Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
+        }
     }
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
         Pack::addSearchPath(os_pathcat(appPath,"packs")); // system packs
