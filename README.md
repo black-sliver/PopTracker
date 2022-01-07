@@ -16,8 +16,8 @@ Use the Load button in the top left corner to load a pack.
 
 Do not load untrusted packs until some sort of fuzzing is done.
 
-Binary release is Windows 64bit and macOS 64bit only at the moment,
-should compile on most unix-like OS (see [Building from source](#building-from-source)).
+Binary release is Windows 64bit and macOS 64bit only at the moment (see [Download prebuilt exe or app](#download-prebuilt-exe-or-app)),\
+should compile on most unix-like OS (see [Building from source](#building-from-source)).\
 [WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
 
 Check
@@ -50,13 +50,13 @@ See [BUILD.md](BUILD.md).
 *more to be tested*
 
 ## Auto-tracking
-### SNES
+### SNES Games
 Requires [SNI](https://github.com/alttpo/sni)
 or [QUsb2Snes](https://usb2snes.com) (flash cart, emu, snes mini)
 or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only).
 See their respective documentation.
 
-### PC
+### PC Games
 We do not allow direct access to process memory or sockets from Lua. Instead
 [UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables"
 starting with v0.16.

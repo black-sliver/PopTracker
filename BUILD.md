@@ -1,30 +1,40 @@
 # PopTracker build instructions
-We only use make at the moment. Feel free to create your own project/build setup.
 
-`make native` builds a native binary on *nix, not implemented on windows yet
-`make cross` cross-compiles a windows binary on *nix
-`make wasm` builds a wasm blob
+We only use `make` at the moment. Feel free to create your own project/build setup.
+
+`make native` builds a native binary\
+`make cross` cross-compiles a windows binary on *nix\
+`make wasm` builds a wasm blob, this may be broken and does not fully work yet
 
 Unless we decide to include source to build all dependencies, they'll have to be
 installed system-wide or copied to win32-lib/lib. Static libs depend on your
 toolchain, so they are not included.
 
-Lua is built from a submodule.
+- Lua is built from a submodule
+- Header-only libraries are included
+- For other dependencies:
+    - Linux: use your package manager
+    - Windows: use MSYS2
+    - MacOS: use brew
 
-**TODO**: document other dependencies
+See individual build instructions below for dependencies.
+
 
 ## Getting the source
+
 Run `git clone --recurse-submodules https://github.com/black-sliver/PopTracker.git`
-or download the zip and zips of linked submodules and extract them.
+or download the latest "full-source.tar.xz" from [Releases](https://github.com/black-sliver/PopTracker/releases).
+
 
 ## Arch Linux
+
 ### Native
-- `pacman -S base-devel sdl2 sdl2_image sdl2_ttf # install dependencies`
+- `pacman -S base-devel sdl2 sdl2_image sdl2_ttf openssl # install dependencies`
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
 
 ### Cross Compile
 - `pacman -S mingw-w64-gcc # install cross compile toolchain`
-- ...
+- install mingw-w64-{sdl2,sdl2_image,sdl2_ttf,openssl} from AUR # install dependencies
 - run `make cross CONF=RELEASE`
 
 ### WASM
@@ -33,7 +43,40 @@ or download the zip and zips of linked submodules and extract them.
     - latest arch package includes node_modules, so update should fix it
 - run `make wasm CONF=RELEASE`
 
-## Ubuntu
+
+## Ubuntu / Debian
+
 ### Native
-- `sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev # install dependencies`
+- `sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libssl-dev libcrypto-dev # install dependencies`
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
+
+
+## Windows
+
+### GCC / MSYS2
+- install MSYS2 from https://www.msys2.org/
+- install dependencies:
+
+  ```
+  pacman -S base-devel coreutils make mingw-w64-x86_64-toolchain mingw64/mingw-w64-x86_64-SDL2 \
+  mingw64/mingw-w64-x86_64-SDL2_image mingw64/mingw-w64-x86_64-SDL2_ttf mingw64/mingw-w64-x86_64-freetype \
+  mingw64/mingw-w64-x86_64-openssl p7zip
+  ```
+
+  or see [github workflow](https://github.com/black-sliver/PopTracker/blob/master/.github/workflows/binaries.yaml)
+- run `make CONF=RELEASE`
+
+If the windows build is failing, MSYS probably changed libraries. Create an issue on github.
+
+The build found in Releases is done with a customized sdl2, so the builds differ from MSYS ones.
+
+
+## MacOS
+
+- run `brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1`
+- run `make CONF=RELEASE`
+
+The build will link against brew libraries.
+
+If you run `make CONF=DIST`, this will build non-brew versions of the libraries
+and replace the references in the resulting app bundle.
