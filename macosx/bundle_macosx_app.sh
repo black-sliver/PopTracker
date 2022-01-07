@@ -10,9 +10,13 @@ BUNDLE_NAME=
 APP_OWNER="com.evermizer"
 DEPLOYMENT_TARGET="10.12"
 BUILD_THIRD_PARTY=yes
+CLEAR_THIRD_PARTY=no
+
+BUILD_DIR="build"
+LIB_DIR="libs"
 
 function usage() {
-  echo "Usage: `basename $0` [--version=] [--bundle-name=] [--deployment-target=] [--do-not-build-thirdparty] binary"
+  echo "Usage: `basename $0` [--version=] [--bundle-name=] [--deployment-target=] [--do-not-build-thirdparty] [--clear-thirdparty-dirs] [binary]"
 }
 
 if test $# -eq 0; then
@@ -40,6 +44,9 @@ while test $# -gt 0; do
     --do-not-build-thirdparty)
       BUILD_THIRD_PARTY=no
       ;;
+    --clear-thirdparty-dirs)
+      CLEAR_THIRD_PARTY=yes
+      ;;
     *)
       EXE=$1
       if test $BUNDLE_NAME_SET = no ; then
@@ -50,9 +57,17 @@ while test $# -gt 0; do
   shift
 done
 
-APP_NAME=`basename $EXE`
-
 SRC_DIR=`dirname $0`
+
+if test $CLEAR_THIRD_PARTY = yes ; then
+  rm -fr $BUILD_DIR
+  rm -fr $LIB_DIR
+fi
+
+# Early out if executable is not specified.
+[ -z "$EXE" ] && exit 0
+
+APP_NAME=`basename $EXE`
 DST_DIR=`dirname $EXE`
 
 ROOT_DIR="$SRC_DIR/.."
@@ -108,8 +123,6 @@ cp -r $DOCS $APP_BUNDLE_MACOS_DIR
 # Build third party libraries and update dynamic paths
 # This won't work with libraries installed with brew.
 
-BUILD_DIR="build"
-LIB_DIR="libs"
 
 if test $BUILD_THIRD_PARTY = yes ; then
   sh $SRC_DIR/build_thirdparty.sh \

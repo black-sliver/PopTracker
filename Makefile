@@ -337,3 +337,7 @@ clean:
 	if [[ -d $(WIN32_BUILD_DIR) && -z `ls -A $(WIN32_BUILD_DIR)` ]]; then rmdir $(WIN32_BUILD_DIR) ; fi
 	if [[ -d $(WIN64_BUILD_DIR) && -z `ls -A $(WIN64_BUILD_DIR)` ]]; then rmdir $(WIN64_BUILD_DIR) ; fi
 	if [[ -d $(BUILD_DIR) && -z `ls -A $(BUILD_DIR)` ]]; then rmdir $(BUILD_DIR) ; fi
+ifdef IS_OSX
+	./macosx/bundle_macosx_app.sh --clear-thirdparty-dirs
+endif
+
