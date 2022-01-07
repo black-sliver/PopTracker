@@ -112,7 +112,11 @@ PopTracker::PopTracker(int argc, char** argv)
         }
     }
 
+    if (!_config["fps_limit"].is_number())
+        _config["fps_limit"] = DEFAULT_FPS_LIMIT;
+
     _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
+    _ui->setFPSLimit(_config["fps_limit"].get<unsigned>());
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
             _broadcast = nullptr;

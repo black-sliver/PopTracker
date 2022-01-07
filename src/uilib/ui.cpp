@@ -6,9 +6,6 @@
 #include <stdint.h>
 
 
-#define LIMIT_FPS 120
-
-
 static uint64_t getMicroTicks()
 {
     timespec tp;
@@ -85,11 +82,7 @@ bool Ui::render()
     // if not using vsync redraw ASAP for destructive events
     // browser context/emscripten: similar to vsync, but waiting is bad
     
-    // FIXME: defining LIMIT_FPS may result in an endless-loop
-    
-#ifdef LIMIT_FPS
-    #define FRAME_TIME (1000/LIMIT_FPS) // TODO: microseconds
-#endif
+    #define FRAME_TIME (1000/_fpsLimit) // TODO: microseconds
     
     uint32_t t0 = SDL_GetTicks(); // TODO: microseconds
     uint32_t t1 = t0;
@@ -231,10 +224,10 @@ bool Ui::render()
         #ifndef VSYNC
         if (destructiveEvent) break; // framebuffer destroyed -> redraw ASAP (unless VSYNC)
         #endif
-#if defined __EMSCRIPTEN__ || !defined LIMIT_FPS
+#if defined __EMSCRIPTEN__
     } while (false); // waiting for events makes no sense in a browser context
 #else
-    } while (FRAME_TIME>_lastRenderDuration && t1-t0+1 < FRAME_TIME-_lastRenderDuration); // TODO: microseconds?
+    } while (_fpsLimit && (FRAME_TIME>_lastRenderDuration && t1-t0+1 < FRAME_TIME-_lastRenderDuration)); // TODO: microseconds?
 #endif
     
     for (auto win: _windows)
@@ -242,12 +235,13 @@ bool Ui::render()
     
     uint32_t t2 = SDL_GetTicks();
     uint32_t td = t2-t1;
-#if defined LIMIT_FPS && !defined VSYNC && !defined __EMSCRIPTEN__
+#if !defined VSYNC && !defined __EMSCRIPTEN__
+    if (_fpsLimit)
     {
         // usleep the rest between last frame's timestamp and now to have a constant frame time
         uint64_t timestamp = getMicroTicks();
         uint64_t now = timestamp;
-        uint64_t t = 1000000/LIMIT_FPS;
+        uint64_t t = 1000000/_fpsLimit;
         if (now-_lastFrameMicroTimestamp<t) {
             usleep(t-(now-_lastFrameMicroTimestamp));
         }

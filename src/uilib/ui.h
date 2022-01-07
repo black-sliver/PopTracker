@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#define DEFAULT_FPS_LIMIT 120
+
 namespace Ui {
 
 class Ui {
@@ -15,6 +17,7 @@ protected:
     uint64_t _lastFrameMicroTimestamp = 0;
     unsigned _globalMouseButton = 0;
     bool _fallbackRenderer = false;
+    unsigned _fpsLimit = DEFAULT_FPS_LIMIT;
 public:
     Ui(const char *name, bool fallbackRenderer);
     virtual ~Ui();
@@ -27,7 +30,9 @@ public:
     }
     void destroyWindow(Window *win);
     bool render();
-    
+
+    void setFPSLimit(unsigned fps) { _fpsLimit = fps; }
+
     Signal<Window*> onWindowDestroyed;
 };
 
