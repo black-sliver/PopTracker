@@ -79,4 +79,5 @@ The build found in Releases is done with a customized sdl2, so the builds differ
 The build will link against brew libraries.
 
 If you run `make CONF=DIST`, this will build non-brew versions of the libraries
-and replace the references in the resulting app bundle.
+and replace the references in the resulting app bundle.\
+Dependencies to build the bundle: run `brew install automake libtool autoconf`

@@ -42,7 +42,7 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 automake libtool autoconf
     - uses: actions/checkout@v2
       with:
         submodules: recursive
