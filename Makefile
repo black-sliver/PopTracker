@@ -138,9 +138,10 @@ NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
-NIX_CPP_FLAGS += -mmacosx-version-min=10.12 -I$(BREW_PREFIX)/opt/openssl@1.1/include
-NIX_LD_FLAGS += -mmacosx-version-min=10.12 -L$(BREW_PREFIX)/opt/openssl@1.1/lib
-NIX_C_FLAGS += -mmacosx-version-min=10.12 -I$(BREW_PREFIX)/opt/openssl@1.1/include
+DEPLOYMENT_TARGET=10.12
+NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
+NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib
+NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
 endif
 
 # default target: "native"
@@ -239,7 +240,7 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 	rm -rf $(TMP_DIR)
 
 $(OSX_APP): $(NIX_EXE)
-	./macosx/bundle_macosx_app.sh --version=$(VERSION) "$(NIX_EXE)"
+	./macosx/bundle_macosx_app.sh --version=$(VERSION) --deployment-target=$(DEPLOYMENT_TARGET) "$(NIX_EXE)"
 	
 $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	rm -f $@
@@ -336,3 +337,7 @@ clean:
 	if [[ -d $(WIN32_BUILD_DIR) && -z `ls -A $(WIN32_BUILD_DIR)` ]]; then rmdir $(WIN32_BUILD_DIR) ; fi
 	if [[ -d $(WIN64_BUILD_DIR) && -z `ls -A $(WIN64_BUILD_DIR)` ]]; then rmdir $(WIN64_BUILD_DIR) ; fi
 	if [[ -d $(BUILD_DIR) && -z `ls -A $(BUILD_DIR)` ]]; then rmdir $(BUILD_DIR) ; fi
+ifdef IS_OSX
+	./macosx/bundle_macosx_app.sh --clear-thirdparty-dirs
+endif
+
