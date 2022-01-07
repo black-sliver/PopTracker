@@ -55,15 +55,18 @@ PopTracker::PopTracker(int argc, char** argv)
         }
     }
 
+#ifndef WITHOUT_UPDATE_CHECK
     if (_config.find("check_for_updates") == _config.end()) {
         auto res = tinyfd_messageBox("PopTracker",
                 "Check for PopTracker updates on start?",
                 "yesno", "question", 1);
         _config["check_for_updates"] = (res != 0);
     }
+#endif
     
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
+#ifndef WITHOUT_UPDATE_CHECK
     if (_config["check_for_updates"]) {
         printf("Checking for update...\n");
         std::string s;
@@ -111,6 +114,7 @@ PopTracker::PopTracker(int argc, char** argv)
             fprintf(stderr, "Update: error starting request\n");
         }
     }
+#endif
 
     if (!_config["fps_limit"].is_number())
         _config["fps_limit"] = DEFAULT_FPS_LIMIT;
