@@ -325,7 +325,7 @@ bool PopTracker::frame()
         };
         std::string configDir = getConfigPath(APPNAME);
         mkdir_recursive(configDir.c_str());
-        writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), (_config.dump()+"\n").c_str());
+        writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), _config.dump(4)+"\n");
     }
     
     // load new tracker AFTER rendering a frame
