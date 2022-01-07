@@ -93,7 +93,9 @@ fi
 
 cd $LIB_PNG_DEST_DIR
 
+git pull
 git checkout $LIB_PNG_TAG
+
 ./configure $CONFIGURE_FLAGS
 make
 
@@ -108,6 +110,7 @@ fi
 
 cd $LIB_FREETYPE_DEST_DIR
 
+git pull
 git checkout $LIB_FREETYPE_TAG
 
 ./autogen.sh
@@ -125,7 +128,9 @@ fi
 
 cd $LIB_SDL_DEST_DIR
 
+git pull
 git checkout $LIB_SDL_TAG
+
 ./configure $CONFIGURE_FLAGS
 make
 
@@ -141,7 +146,9 @@ fi
 
 cd $LIB_SDL_IMAGE_DEST_DIR
 
+git pull
 git checkout $LIB_SDL_IMAGE_TAG
+
 ./configure $CONFIGURE_FLAGS
 make
 
@@ -157,7 +164,9 @@ fi
 
 cd $LIB_SDL_TTF_DEST_DIR
 
+git pull
 git checkout $LIB_SDL_TTF_TAG
+
 ./configure $CONFIGURE_FLAGS
 make
 
@@ -172,7 +181,9 @@ fi
 
 cd $LIB_OPENSSL_DEST_DIR
 
+git pull
 git checkout $LIB_OPENSSL_TAG
+
 ./config $CONFIGURE_FLAGS
 make
 
