@@ -76,10 +76,9 @@ ifdef IS_OSX
 else ifdef IS_LINUX
   DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
   NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).tar.xz
-else
-  WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
-  WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 endif
+WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
+WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
