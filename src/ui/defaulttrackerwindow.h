@@ -25,7 +25,7 @@ protected:
     ImageButton *_btnLoad = nullptr;
     ImageButton *_btnReload = nullptr;
     ImageButton *_btnBroadcast = nullptr;
-    ImageButton *_btnSettings = nullptr;
+    ImageButton *_btnPackSettings = nullptr;
     Label *_lblAutoTracker = nullptr;
     Label *_lblTooltip = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;

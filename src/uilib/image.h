@@ -17,6 +17,7 @@ public:
     int getQuality() const { return _quality; }
     // NOTE: this has to be set before the image is rendered for the first time
     virtual void setQuality(int q) { _quality = q; }
+    virtual void setDarkenGreyscale(bool value);
 protected:
     SDL_Surface *_surf = nullptr;
     SDL_Texture *_tex = nullptr;
@@ -24,6 +25,7 @@ protected:
     std::string _path;
     bool _fixedAspect=true;
     int _quality=-1;
+    bool _darkenGreyscale = true; // makes greyscale version look "disabled"
 };
 
 } // namespace Ui

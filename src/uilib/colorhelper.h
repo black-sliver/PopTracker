@@ -8,7 +8,6 @@
 
 
 #define BW_LUMINOSITY // modes for greyscale are BW_LUMINOSITY, BW_LIGHTNESS and BW_AVERAGE
-#define BW_DARKEN // makes the greyscale darker if defined
 
 
 static Uint32 getPixel(SDL_Surface* surf, unsigned x, unsigned y)
@@ -34,15 +33,15 @@ static Uint32 getPixel(SDL_Surface* surf, unsigned x, unsigned y)
 
 
 #if defined BW_LUMINOSITY
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b)
+static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = 0;
     v += (((uint16_t)r)*21);
     v += (((uint16_t)g)*72);
     v += (((uint16_t)b)* 7);
-    #ifdef BW_DARKEN
-    v *= 2; v += 1; v /= 3;
-    #endif
+    if (darken) {
+        v *= 2; v += 1; v /= 3;
+    }
     return (uint8_t)((v+50)/100);
 }
 #elif defined BW_LIGHTNESS
@@ -50,32 +49,32 @@ static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b)
                       ((b)>=(a) && (b)>=(c)) ? (b) : (c) )
 #define MIN3(a,b,c) ( ((a)<=(b) && (a)<=(c)) ? (a) : \
                       ((b)<=(a) && (b)<=(c)) ? (b) : (c) )
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b)
+static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = MAX3(r, g, b);
     v += MIN3(r, g, b);
-    #ifdef BW_DARKEN
-    v *= 2; v += 1; v /= 3;
-    #endif
+    if (darken) {
+        v *= 2; v += 1; v /= 3;
+    }
     return (uint8_t)((v+1)/2);
 }
 #else // BW_AVERAGE
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b)
+static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = r; v += g; v += b;
-    #ifdef BW_DARKEN
-    v *= 2; v += 1; v /= 3;
-    #endif
+    if (darken) {
+        v *= 2; v += 1; v /= 3;
+    }
     return (uint8_t)((2*v+3)/6);
 }
 #endif
-static SDL_Color makeGreyscale(SDL_Color c)
+static SDL_Color makeGreyscale(SDL_Color c, bool darken)
 {
-    uint8_t w = makeGreyscale(c.r,c.g,c.b);
+    uint8_t w = makeGreyscale(c.r,c.g,c.b, darken);
     return { w, w, w, c.a };
 }
 
-static SDL_Surface *makeGreyscale(SDL_Surface *surf)
+static SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
 {
     if (SDL_LockSurface(surf) != 0) {
         fprintf(stderr, "Could not lock surface to make greyscale: %s\n",
@@ -86,7 +85,7 @@ static SDL_Surface *makeGreyscale(SDL_Surface *surf)
         int ncolors = surf->format->palette->ncolors;
         SDL_Palette* pal = SDL_AllocPalette(ncolors);
         for (int i=0; i<ncolors; i++) {
-            pal->colors[i] = makeGreyscale(surf->format->palette->colors[i]);
+            pal->colors[i] = makeGreyscale(surf->format->palette->colors[i], darken);
         }
         SDL_UnlockSurface(surf);
         
@@ -103,7 +102,7 @@ static SDL_Surface *makeGreyscale(SDL_Surface *surf)
                 uint8_t w = makeGreyscale(
                     ((pixel & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss,
                     ((pixel & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss,
-                    ((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss);
+                    ((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss, darken);
                 pixel &= ~(fmt->Rmask|fmt->Gmask|fmt->Bmask);
                 pixel |= (w >> fmt->Rloss) << fmt->Rshift;
                 pixel |= (w >> fmt->Gloss) << fmt->Gshift;

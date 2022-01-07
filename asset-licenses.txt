@@ -4,17 +4,11 @@ see assets/Vera.txt
 2D - Chests And Coins
 see assets/chest-icon.txt
 
-Settings Icon
-see assets/settings-icon.txt
-
 Broadcast icon
 based on CC0 https://commons.wikimedia.org/wiki/File:Broadcast_icon.png
 
-Open Icon
-based on CC0 https://commons.wikimedia.org/wiki/File:Blue_folder_seth_yastrov_01.svg
-
-Reload/refresh Icon
-based on CC0 https://commons.wikimedia.org/wiki/File:Refresh_icon.svg
-
 Application Icon
 based on CC0 (now pixabay) vectors/map-world-old-scroll-pirate-304779
+
+New Open, Reload, Settings, Import, Export icons
+based on https://github.com/icons8/flat-color-icons by icons8

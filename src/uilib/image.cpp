@@ -78,7 +78,7 @@ void Image::render(Renderer renderer, int offX, int offY)
             }
         }
         _tex = SDL_CreateTextureFromSurface(renderer, _surf);
-        _surf = makeGreyscale(_surf);
+        _surf = makeGreyscale(_surf, _darkenGreyscale);
         _texBw = SDL_CreateTextureFromSurface(renderer, _surf);
         SDL_FreeSurface (_surf);
         if (_quality >= 0) {
@@ -111,12 +111,23 @@ void Image::render(Renderer renderer, int offX, int offY)
     }
 }
 
-void Image::setSize(Size size) {
-    // TODO: make this default behavout in Widget::setSize() ?
+void Image::setSize(Size size)
+{
+    // TODO: make this default behaviour in Widget::setSize() ?
     if (_size == size) return;
     if (size.width<_minSize.width) size.width=_minSize.width;
     if (size.height<_minSize.height) size.height=_minSize.height;
     Widget::setSize(size);
+}
+
+void Image::setDarkenGreyscale(bool value)
+{
+    if (_darkenGreyscale == value) return;
+    _darkenGreyscale = value;
+    if (_tex)   SDL_DestroyTexture(_tex);
+    if (_texBw) SDL_DestroyTexture(_texBw);
+    _tex = nullptr;
+    _texBw = nullptr;
 }
 
 } // namespace

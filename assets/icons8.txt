@@ -1,0 +1,3 @@
+Open, Reload, Settings, Import, Export icons
+based on https://github.com/icons8/flat-color-icons by icons8
+see https://github.com/icons8/flat-color-icons/blob/master/LICENSE.md

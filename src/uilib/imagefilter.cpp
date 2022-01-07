@@ -9,7 +9,7 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf)
     if (!surf) return surf;
     
     if (name=="grey" || name=="disable") {
-        return makeGreyscale(surf);
+        return makeGreyscale(surf, true);
     }
     if (name=="overlay" && !arg.empty()) {
         auto overlay = IMG_Load_RW(SDL_RWFromMem((void*)arg.c_str(), (int)arg.length()), 1);

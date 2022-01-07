@@ -16,6 +16,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     addChild(_menu);
     
     _btnLoad = new ImageButton(0,0,32-4,32-4, asset("load.png").c_str());
+    _btnLoad->setDarkenGreyscale(false);
     hbox->addChild(_btnLoad);
     _btnLoad->onClick += { this, [this](void*, int x, int y, int button) {
         onMenuPressed.emit(this, MENU_LOAD);
@@ -37,10 +38,10 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     }};
 #endif
     
-    _btnSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png").c_str());
-    _btnSettings->setVisible(false);
-    hbox->addChild(_btnSettings);
-    _btnSettings->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png").c_str());
+    _btnPackSettings->setVisible(false);
+    hbox->addChild(_btnPackSettings);
+    _btnPackSettings->onClick += { this, [this](void*, int x, int y, int button) {
         onMenuPressed.emit(this, MENU_PACK_SETTINGS);
     }};
     
@@ -71,16 +72,22 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
             std::pair{_btnLoad, "Load Pack"},
             std::pair{_btnReload, "Reload Pack"},
             std::pair{_btnBroadcast, "Open Broadcast View"},
-            std::pair{_btnSettings, "Open Pack Settings"}
+            std::pair{_btnPackSettings, "Open Pack Settings"}
     }) {
         if (!pair.first) continue;
+        pair.first->setDarkenGreyscale(false);
+        pair.first->setEnabled(false); // make greyscale
         const char* text = pair.second; // pointer to program memory
         pair.first->onMouseEnter += {this, [this,text](void *s, int x, int y, unsigned buttons)
         {
+            ImageButton* btn = (ImageButton*)s;
+            btn->setEnabled(true); // disable greyscale
             _lblTooltip->setText(text);
         }};
         pair.first->onMouseLeave += {this, [this,text](void *s)
         {
+            ImageButton* btn = (ImageButton*)s;
+            btn->setEnabled(false); // enable greyscale
             _lblTooltip->setText("");
         }};
     }
@@ -106,7 +113,7 @@ DefaultTrackerWindow::~DefaultTrackerWindow()
     _btnLoad = nullptr;
     _btnReload = nullptr;
     _btnBroadcast = nullptr;
-    _btnSettings = nullptr;
+    _btnPackSettings = nullptr;
     _lblAutoTracker = nullptr;
 }
 
@@ -117,7 +124,7 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
     if (tracker) {
         tracker->onLayoutChanged += {this, [this,tracker](void *s, const std::string& layout) {
             if (_btnBroadcast) _btnBroadcast->setVisible(tracker->hasLayout("tracker_broadcast"));
-            if (_btnSettings) _btnSettings->setVisible(tracker->hasLayout("settings_popup"));
+            if (_btnPackSettings) _btnPackSettings->setVisible(tracker->hasLayout("settings_popup"));
             if (!tracker->hasLayout("tracker_default")) {
                 // TODO: get preferred orientation from settings
                 if (tracker->hasLayout("tracker_horizontal")) {
@@ -140,7 +147,7 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
         if (_btnReload) _btnReload->setVisible(true);
     } else {
         if (_btnBroadcast) _btnBroadcast->setVisible(false);
-        if (_btnSettings) _btnSettings->setVisible(false);
+        if (_btnPackSettings) _btnPackSettings->setVisible(false);
         if (_btnReload) _btnReload->setVisible(false);
         
     }
