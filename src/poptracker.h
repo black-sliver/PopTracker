@@ -23,6 +23,7 @@ private:
     Ui::BroadcastWindow *_broadcast = nullptr;
     Ui::SettingsWindow *_settings = nullptr;
     nlohmann::json _config;
+    nlohmann::json _oldConfig;
     
     lua_State* _L = nullptr;
     Tracker *_tracker = nullptr;
@@ -31,6 +32,9 @@ private:
     ImageReference _imageReference;
     bool _autoTrackerDisabled = false;
     asio::io_service *_asio = nullptr;
+    std::string _exportFile;
+    std::string _exportUID;
+    std::string _exportDir;
 
     unsigned _frames = 0;
     unsigned _maxFrameTime = 0;
@@ -47,6 +51,8 @@ private:
     
     void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
     static bool isNewer(const Version& v);
+
+    bool saveConfig();
 
 public:
     PopTracker(int argc, char** argv);

@@ -28,6 +28,7 @@ PopTracker::PopTracker(int argc, char** argv)
     std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json");
     if (readFile(configFilename, config)) {
         _config = parse_jsonc(config);
+        _oldConfig = _config;
     }
 
     if (_config["log"].type() != json::value_t::boolean)
@@ -129,6 +130,15 @@ PopTracker::PopTracker(int argc, char** argv)
 
     if (!_config["fps_limit"].is_number())
         _config["fps_limit"] = DEFAULT_FPS_LIMIT;
+
+    if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
+        _exportFile = _config["export_file"];
+        _exportUID = _config["export_uid"];
+    }
+    if (_config["export_dir"].is_string())
+        _exportDir = _config["export_dir"];
+
+    saveConfig();
 
     _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
     _ui->setFPSLimit(_config["fps_limit"].get<unsigned>());
@@ -284,6 +294,98 @@ bool PopTracker::start()
                 _autoTrackerDisabled = true;
             }
         }
+        if (item == Ui::TrackerWindow::MENU_SAVE_STATE)
+        {
+            if (!_tracker) return;
+            if (!_pack) return;
+            std::string lastName;
+            if (_exportFile.empty() || _exportUID != _pack->getUID()) {
+                lastName = _pack->getGameName() + ".json";
+                if (!_exportDir.empty()) lastName = os_pathcat(_exportDir, lastName);
+            } else {
+                lastName = _exportFile;
+            }
+
+            const char* ext[] = {"*.json"};
+            auto filename = tinyfd_saveFileDialog("Save State",
+                    lastName.c_str(), 1, ext, "JSON Files");
+            if (filename && *filename) {
+                if (StateManager::saveState(_tracker, _scriptHost,
+                        _win->getHints(), true, filename, true))
+                {
+                    _exportFile = filename;
+                    _exportUID = _pack->getUID();
+                    _exportDir = os_dirname(_exportFile);
+                }
+                else
+                {
+                    tinyfd_messageBox("PopTracker", "Error saving state!",
+                            "ok", "error", 0);
+                }
+            }
+        }
+        if (item == Ui::TrackerWindow::MENU_LOAD_STATE)
+        {
+            std::string lastName = _exportFile.empty() ? (_exportDir + OS_DIR_SEP) : _exportFile;
+            const char* ext[] = {"*.json"};
+            auto filename = tinyfd_openFileDialog("Load State",
+                    lastName.c_str(), 1, ext, "JSON Files", 0);
+            std::string s;
+            if (!readFile(filename, s)) {
+                fprintf(stderr, "Error reading state file: %s\n", filename);
+                tinyfd_messageBox("PopTracker", "Could not read state file!",
+                        "ok", "error", 0);
+                return;
+            }
+            json j;
+            try {
+                j = parse_jsonc(s);
+            } catch (...) {
+                fprintf(stderr, "Error parsing state file: %s\n", filename);
+                tinyfd_messageBox("PopTracker", "Selected file is not valid json!",
+                        "ok", "error", 0);
+                return;
+            }
+            auto jPack = j["pack"];
+            if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
+                fprintf(stderr, "Json is not a state file: %s\n", filename);
+                tinyfd_messageBox("PopTracker", "Selected file is not a state file!",
+                        "ok", "error", 0);
+                return;
+            }
+            if (_pack->getUID() != jPack["uid"] || _pack->getVariant() != jPack["variant"]) {
+                auto packInfo = Pack::Find(jPack["uid"]);
+                if (packInfo.uid != jPack["uid"]) {
+                    std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"]) + "!";
+                    fprintf(stderr, "%s\n", msg.c_str());
+                    tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+                    return;
+                }
+                bool variantMatch = false;
+                for (auto& v: packInfo.variants) {
+                    if (v.variant == jPack["variant"]) {
+                        variantMatch = true;
+                        break;
+                    }
+                }
+                if (!variantMatch) {
+                    std::string msg = "Pack " + sanitize_print(jPack["uid"]) +
+                            " does not have requested variant "
+                            + sanitize_print(jPack["variant"]);
+                    fprintf(stderr, "%s\n", msg.c_str());
+                    tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+                    return;
+                }
+                if (!loadTracker(packInfo.path, jPack["variant"], false)) {
+                    tinyfd_messageBox("PopTracker", "Error loading pack!",
+                            "ok", "error", 0);
+                }
+            }
+            if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
+                tinyfd_messageBox("PopTracker", "Error loading state!",
+                        "ok", "error", 0);
+            }
+        }
     }};
     
     _win->onPackSelected += {this, [this](void *s, const std::string& pack, const std::string& variant) {
@@ -344,9 +446,10 @@ bool PopTracker::frame()
             {"display_name", _win->getDisplayName()},
             {"display_pos", {disppos.left,disppos.top}}
         };
-        std::string configDir = getConfigPath(APPNAME);
-        mkdir_recursive(configDir.c_str());
-        writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), _config.dump(4)+"\n");
+        _config["export_file"] = _exportFile;
+        _config["export_uid"] = _exportUID;
+        _config["export_dir"] = _exportDir;
+        saveConfig();
     }
     
     // load new tracker AFTER rendering a frame
@@ -535,4 +638,16 @@ bool PopTracker::isNewer(const Version& v)
 {
     // returns true if v is newer than current PopTracker
     return v>Version(VERSION_STRING);
+}
+
+bool PopTracker::saveConfig()
+{
+    bool res = true;
+    if (_oldConfig != _config) {
+        std::string configDir = getConfigPath(APPNAME);
+        mkdir_recursive(configDir.c_str());
+        res = writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), _config.dump(4)+"\n");
+        if (res) _oldConfig = _config;
+    }
+    return res;
 }

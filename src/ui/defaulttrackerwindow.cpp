@@ -29,6 +29,20 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         onMenuPressed.emit(this, MENU_RELOAD);
     }};
     
+    _btnImport = new ImageButton(0,0,32-4,32-4, asset("import.png").c_str());
+    _btnImport->setVisible(false);
+    hbox->addChild(_btnImport);
+    _btnImport->onClick += { this, [this](void*, int x, int y, int button) {
+        onMenuPressed.emit(this, MENU_LOAD_STATE);
+    }};
+
+    _btnExport = new ImageButton(0,0,32-4,32-4, asset("export.png").c_str());
+    _btnExport->setVisible(false);
+    hbox->addChild(_btnExport);
+    _btnExport->onClick += { this, [this](void*, int x, int y, int button) {
+        onMenuPressed.emit(this, MENU_SAVE_STATE);
+    }};
+
 #ifndef __EMSCRIPTEN__ // no multi-window support (yet)
     _btnBroadcast = new ImageButton(0,0,32-4,32-4, asset("broadcast.png").c_str());
     _btnBroadcast->setVisible(false);
@@ -71,6 +85,8 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     for (const auto& pair : {
             std::pair{_btnLoad, "Load Pack"},
             std::pair{_btnReload, "Reload Pack"},
+            std::pair{_btnImport, "Import State"},
+            std::pair{_btnExport, "Export State"},
             std::pair{_btnBroadcast, "Open Broadcast View"},
             std::pair{_btnPackSettings, "Open Pack Settings"}
     }) {
@@ -110,6 +126,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
 {
+    // TODO: delete buttons
     _btnLoad = nullptr;
     _btnReload = nullptr;
     _btnBroadcast = nullptr;
@@ -145,11 +162,14 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
             }
         }};
         if (_btnReload) _btnReload->setVisible(true);
+        if (_btnImport) _btnImport->setVisible(true);
+        if (_btnExport) _btnExport->setVisible(true);
     } else {
         if (_btnBroadcast) _btnBroadcast->setVisible(false);
         if (_btnPackSettings) _btnPackSettings->setVisible(false);
         if (_btnReload) _btnReload->setVisible(false);
-        
+        if (_btnImport) _btnImport->setVisible(false);
+        if (_btnExport) _btnExport->setVisible(false);
     }
     raiseChild(_loadPackWidget);
 }

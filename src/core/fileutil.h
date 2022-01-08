@@ -74,6 +74,17 @@ static std::string os_pathcat(const std::string a, const std::string b, Args... 
     return os_pathcat(os_pathcat(a,b), args...);
 }
 
+static std::string os_dirname(const std::string& filename)
+{
+    auto p = filename.rfind("/");
+    if (OS_DIR_SEP != '/') {
+        auto p2 = filename.rfind(OS_DIR_SEP);
+        if (p == filename.npos || (p2 != filename.npos && p2>p))
+            p = p2;
+    }
+    return filename.substr(0, p);
+}
+
 #include <sys/stat.h>
 static inline bool fileExists(const std::string& path)
 {

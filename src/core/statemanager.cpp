@@ -37,7 +37,7 @@ static void replayHints(Tracker* tracker, json& state)
 
 bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         std::list< std::pair<std::string,std::string> > uiHints,
-        bool tofile, const std::string& name)
+        bool tofile, const std::string& name, bool external)
 {
     if (!tracker) return false;
     auto pack = tracker->getPack();
@@ -50,24 +50,36 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         jUiHints.push_back( {hint.first,hint.second} );
     }
     state["ui_hints"] = jUiHints;
-    
+    state["pack"] = {
+        { "path", pack->getPath() },
+        { "uid", pack->getUID() },
+        { "variant", pack->getVariant() },
+        { "version", pack->getVersion() },
+    };
+
     if (!tofile) {
         printf("Saving state \"%s\" to RAM...\n", name.c_str());
         _states[{ pack->getUID(), pack->getVersion(),
                   pack->getVariant(), name }] = state;
         return true;
     } else {
-        auto dirname = os_pathcat(_dir,
-                sanitize_dir(pack->getUID()),
-                sanitize_dir(pack->getVersion()),
-                sanitize_dir(pack->getVariant()));
-        mkdir_recursive(dirname.c_str());
-        auto filename = os_pathcat(dirname, name+".json");
+        std::string filename;
+        if (external) {
+            filename = name;
+        } else {
+            auto dirname = os_pathcat(_dir,
+                    sanitize_dir(pack->getUID()),
+                    sanitize_dir(pack->getVersion()),
+                    sanitize_dir(pack->getVariant()));
+            mkdir_recursive(dirname.c_str());
+            filename = os_pathcat(dirname, name+".json");
+        }
         printf("Saving state \"%s\" to file...\n", name.c_str());
         return writeFile(filename, state.dump());
     }    
 }
-bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool fromfile, const std::string& name)
+bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
+        bool fromfile, const std::string& name, bool external)
 {
     if (!tracker) return false;
     auto pack = tracker->getPack();
@@ -86,7 +98,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, bool from
         replayHints(tracker, it->second);
     } else {
         std::string s;
-        std::string filename = os_pathcat(_dir,
+        std::string filename = external ? name : os_pathcat(_dir,
                 sanitize_dir(pack->getUID()),
                 sanitize_dir(pack->getVersion()),
                 sanitize_dir(pack->getVariant()), name+".json");

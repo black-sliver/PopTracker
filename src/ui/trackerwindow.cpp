@@ -7,6 +7,8 @@ namespace Ui {
 
 const std::string TrackerWindow::MENU_LOAD = "load";
 const std::string TrackerWindow::MENU_RELOAD = "reload";
+const std::string TrackerWindow::MENU_LOAD_STATE = "load-state";
+const std::string TrackerWindow::MENU_SAVE_STATE = "save-state";
 const std::string TrackerWindow::MENU_BROADCAST = "broadcast";
 const std::string TrackerWindow::MENU_PACK_SETTINGS = "pack-settings";
 const std::string TrackerWindow::MENU_TOGGLE_AUTOTRACKER = "toggle-autotracker";

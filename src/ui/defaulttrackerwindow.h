@@ -24,6 +24,8 @@ public:
 protected:
     ImageButton *_btnLoad = nullptr;
     ImageButton *_btnReload = nullptr;
+    ImageButton *_btnImport = nullptr;
+    ImageButton *_btnExport = nullptr;
     ImageButton *_btnBroadcast = nullptr;
     ImageButton *_btnPackSettings = nullptr;
     Label *_lblAutoTracker = nullptr;
