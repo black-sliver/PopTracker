@@ -40,6 +40,20 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFi
     if (!surf) return;
     // if any corner pixel is #ff00ff, make that color transparent
     surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
+    // if filters have an overlay, we need an RGB(A) surface
+    bool needsRGB = false;
+    for (auto& filter: filters) {
+        if (filter.name == "overlay") {
+            needsRGB = true;
+            break;
+        }
+    }
+    if (needsRGB && surf->format->BitsPerPixel < 32) {
+        auto old = surf;
+        surf = SDL_ConvertSurfaceFormat(old, SDL_PIXELFORMAT_ARGB8888, 0);
+        SDL_FreeSurface(old);
+        if (!surf) return;
+    }
     // store size
     if (_autoSize.width  < surf->w) _autoSize.width  = surf->w;
     if (_autoSize.height < surf->h) _autoSize.height = surf->h;
