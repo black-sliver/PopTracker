@@ -17,6 +17,7 @@ public:
         CONSUMABLE,
         PROGRESSIVE,
         COMPOSITE_TOGGLE,
+        TOGGLE_BADGED,
         // pseudo-types:
         PROGRESSIVE_TOGGLE,
         CUSTOM, // this indicates that most stuff below is useless because it's handled by lua, see TODO above
@@ -27,7 +28,8 @@ public:
         Toggle=2,
         Secondary=3,
         Prev=4,
-        Next=5,        
+        Next=5,
+        Single=6, // control with a single button
     };
     static Type Str2Type(const std::string& str) {
         if (str == "") return Type::NONE;
@@ -37,6 +39,7 @@ public:
         if (str == "progressive") return Type::PROGRESSIVE;
         if (str == "composite_toggle") return Type::COMPOSITE_TOGGLE;
         if (str == "progressive_toggle") return Type::PROGRESSIVE_TOGGLE;
+        if (str == "toggle_badged") return Type::TOGGLE_BADGED;
         return Type::UNKNOWN;
     }
     static std::string Type2Str(Type t) {
@@ -47,6 +50,7 @@ public:
             case Type::CONSUMABLE:  return "consumable";
             case Type::PROGRESSIVE: return "progressive";
             case Type::COMPOSITE_TOGGLE:   return "composite_toggle";
+            case Type::TOGGLE_BADGED:      return "toggle_badged";
             case Type::PROGRESSIVE_TOGGLE: return "progressive_toggle";
             case Type::CUSTOM:      return "custom";
             default:                return "unknown";
@@ -77,12 +81,14 @@ protected:
     int _stage2 = 0; // for toggle this is always 0, for staged item this is the stage. "ActiveStage"
     int _count = 0; // for consumables. "quantity" in json
     int _maxCount = 0; // for consumable
+    std::string _baseItem; // for toggle_badged
     
 public:
     virtual ~BaseItem() {}
     
     const std::string& getName() const { return _name; }
     const std::string& getID() const { return _id; }
+    const std::string& getBaseItem() const { return _baseItem; }
     const Type getType() const { return _type; }
     const bool getCapturable() const { return _capturable; }
     const bool getLoop() const { return _loop; } 

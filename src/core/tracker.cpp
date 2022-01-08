@@ -123,6 +123,28 @@ bool Tracker::AddItems(const std::string& file) {
             }
             item.setState(1, n);
         }
+        if (!item.getBaseItem().empty()) {
+            // fire event for toggle_badged when base item changed
+            auto id = item.getID();
+            auto o = FindObjectForCode(item.getBaseItem().c_str());
+            auto update = [this,id]() {
+                for (auto& i : _jsonItems) {
+                    if (i.getID() == id) {
+                        i.onChange.emit(&i);
+                        break;
+                    }
+                }
+            };
+            if (o.type == Object::RT::JsonItem) {
+                o.jsonItem->onChange += {this, [update](void* sender) {
+                    update();
+                }};
+            } else if (o.type == Object::RT::LuaItem) {
+                o.luaItem->onChange += {this, [update](void* sender) {
+                    update();
+                }};
+            }
+        }
     }
     
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
@@ -375,12 +397,14 @@ const Pack* Tracker::getPack() const
 
 bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
 {
+    std::string baseCode; // for type: toggle_badged
     for (auto& item: _jsonItems) {
         if (item.getID() != id) continue;
         if (item.changeState(action)) {
             // NOTE: item fires onChanged
             return true;
         }
+        baseCode = item.getBaseItem();
         break;
     }
     for (auto& item: _luaItems) {
@@ -389,7 +413,18 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
             // NOTE: item fires onChanged
             return true;
         }
+        baseCode = item.getBaseItem();
         break;
+    }
+    if (!baseCode.empty()) {
+        // for items that have a base item, propagate click
+        // NOTE: the items have to subscribe to their base's onChanged
+        auto baseObject = FindObjectForCode(baseCode.c_str());
+        if (baseObject.type == Object::RT::JsonItem) {
+            return baseObject.jsonItem->changeState(BaseItem::Action::Single);
+        } else if (baseObject.type == Object::RT::LuaItem) {
+            return baseObject.luaItem->changeState(BaseItem::Action::Single);
+        }
     }
     return false; // nothing changed
 }

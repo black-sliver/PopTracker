@@ -217,6 +217,26 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
     ]
 ```
 
+* `"toggle_badged"`:
+  + display `"img"` over `"base_item"`
+  + toggle visibility of `"img"` with right mouse button
+  + change underlying item with left mouse button
+```jsonc
+    {
+        "name": "Some Item",
+        "type": "...",
+        "img": "path/to/item.png",
+        "codes": "some_item"
+    },
+    {
+        "name": "Combination's name",
+        "type": "toggle_badged",
+        "base_item": "some_item",
+        "img": "path/to/overlay.png",
+        "codes": "some_overlay"
+    }
+```
+
 
 ### Maps
 

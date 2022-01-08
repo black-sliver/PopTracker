@@ -96,7 +96,11 @@ JsonItem JsonItem::FromJSON(json& j)
         }
         item._stage1 = 1;
     }
-    
+
+    if (item._type == Type::TOGGLE_BADGED && j["base_item"].is_string()) {
+        item._baseItem = j["base_item"];
+    }
+
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
     item._count  = std::max(0,std::min(to_int(j["initial_quantity"],0), item._maxCount));
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;
@@ -155,20 +159,23 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         }
     } else if (_type == Type::PROGRESSIVE && !_allowDisabled) {
         // left,fwd = next, right,back = prev, middle = nothing
-        _stage1 = 1;
         int n = _stage2;
         if (action == Action::Primary || action == Action::Next) {
-            n = _stage2+1;
+            n++;
             if (n>=(int)_stages.size()) {
                 if (_loop) n = 0;
                 else n--;
             }
         } else if (action == Action::Secondary || action == Action::Prev) {
-            n = _stage2-1;
+            n--;
             if (n<0) {
                 if (_loop) n = (int)_stages.size()-1;
                 else n++;
             }
+        } else {
+            // single button control
+            n++;
+            if (n >= (int)_stages.size()) n = 0;
         }
         if (n == _stage2) return false;
         _stage2 = n;
@@ -184,7 +191,7 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             }
             if (n == _stage2) return false;
             _stage2 = n;
-        } else {
+        } else if (action == Action::Prev) {
             int n = _stage2-1;
             if (n<0) {
                 if (_loop) n = _stages.size()-1;
@@ -192,6 +199,18 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             }
             if (n == _stage2) return false;
             _stage2 = n;
+        } else {
+            // single button control
+            if (!_stage1) {
+                _stage1 = 1;
+                _stage2 = 0;
+            } else {
+                _stage2++;
+                if (_stage2>=(int)_stages.size()) {
+                    _stage1 = 0;
+                    _stage2 = 0;
+                }
+            }
         }
     } else if (_type == Type::CONSUMABLE) {
         // left,fwd = +1, right,back = -1
@@ -205,6 +224,12 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             if (n<0) return false;
             _count = n;
             _stage1 = (n>0);
+        } else {
+            // single button control
+            int n = _count+1;
+            if (_maxCount>=0 && n>_maxCount) n = 0;
+            _count = n;
+            _stage1 = (n>0);
         }
     } else if (_type == Type::COMPOSITE_TOGGLE) {
         unsigned n = (unsigned)_stage2;
@@ -216,6 +241,12 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         if (n >= _stages.size()) return false;
         _stage1 = 1;
         _stage2 = (int)n;
+    } else if (_type == Type::TOGGLE_BADGED) {
+        // only handle right-click here
+        if (action == Action::Secondary)
+            _stage1 = !_stage1;
+        else
+            return false;
     } else {
         // not implemented
         printf("Unimplemented item action for type=%s\n", Type2Str(_type).c_str());

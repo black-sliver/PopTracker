@@ -44,46 +44,95 @@ std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std:
 }
 
 
-Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseItem& item, int stage1, int stage2)
+Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseItem& origItem, int stage1, int stage2)
 {
     std::string f, s;
-    
+
+    // NOTE: for toggle_badged we use stage 1 (enable/disable) for the badge
+    const ::BaseItem *item = &origItem;
+    if (!origItem.getBaseItem().empty()) {
+        auto o = _tracker->FindObjectForCode(origItem.getBaseItem().c_str());
+        if (o.type == Tracker::Object::RT::JsonItem)
+            item = o.jsonItem;
+        else if (o.type == Tracker::Object::RT::LuaItem)
+            item = o.luaItem;
+    }
+
     Item *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
-            FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
-    size_t stages = item.getStageCount();
-    bool disabled = item.getAllowDisabled();
+            FontStore::sizeFromData(DEFAULT_FONT_SIZE, item->getOverlayFontSize())));
+    size_t stages = item->getStageCount();
+    bool disabled = item->getAllowDisabled();
+    bool stagedWithDisabled = item->getStageCount() && disabled;
+
     for (size_t n=0; n==0||n<stages; n++) {
-        f = item.getImage(n);
+        f = item->getImage(n);
         _tracker->getPack()->ReadFile(f, s);
-        auto filters = imageModsToFilters(_tracker, item.getImageMods(n));
-        w->addStage(1,n, s.c_str(), s.length(), filters);
-        if (disabled) {
-            auto disF = item.getDisabledImage(n);
+        const auto& mods = item->getImageMods(n);
+        auto filters = imageModsToFilters(_tracker, mods);
+        if (origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
+            // stupid work-around: if base item is staged and has allow_disabled
+            // we need to insert an additional stage for disabled state
+            size_t m = stagedWithDisabled ? (n+1) : n;
+            w->addStage(0,m, s.c_str(), s.length(), filters);
+            printf("%d,%d: %s\n", 0,(int)m, f.c_str());
+            for (const auto& mod: mods)
+                printf("  %s\n", mod.c_str());
+            std::list<std::string> badgeMods = item->getImageMods(n);
+            badgeMods.push_back("overlay|" + origItem.getImage(0));
+            auto badgeFilters = imageModsToFilters(_tracker, badgeMods);
+            w->addStage(1,m, s.c_str(), s.length(), badgeFilters);
+            printf("%d,%d: %s\n", 1,(int)m, f.c_str());
+            for (const auto& mod: badgeMods)
+                printf("  %s\n", mod.c_str());
+            if (n == 0 && m != 0) {
+                f = item->getDisabledImage(0);
+                _tracker->getPack()->ReadFile(f, s);
+                const auto& mods = item->getDisabledImageMods(0);
+                filters = imageModsToFilters(_tracker, mods);
+                w->addStage(0,0, s.c_str(), s.length(), filters);
+                printf("%d,%d: %s\n", 0,0, f.c_str());
+                for (const auto& mod: mods)
+                    printf("  %s\n", mod.c_str());
+                badgeMods = mods;
+                badgeMods.push_back("overlay|" + origItem.getImage(0));
+                badgeFilters = imageModsToFilters(_tracker, badgeMods);
+                w->addStage(1,0, s.c_str(), s.length(), badgeFilters);
+                printf("%d,%d: %s\n", 1,0, f.c_str());
+                for (const auto& mod: badgeMods)
+                    printf("  %s\n", mod.c_str());
+            }
+        }
+        else if (disabled) {
+            w->addStage(1,n, s.c_str(), s.length(), filters);
+            auto disF = item->getDisabledImage(n);
             if (f != disF) {
                 f = disF;
                 _tracker->getPack()->ReadFile(f, s);
             }
-            auto disMods = item.getDisabledImageMods(n);
+            auto disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
             //if (!disMods.empty()) filters = imageModsToFilters(_tracker, disMods);
             //if (disMods.empty() || disMods.front() != "none") filters.push_back({"grey"});
             w->addStage(0,n, s.c_str(), s.length(), filters);
         }
+        else {
+            w->addStage(1,n, s.c_str(), s.length(), filters);
+        }
     }
-    if (item.getCount()) {
-        if (item.getCount() == item.getMaxCount()) {
+    if (item->getCount()) {
+        if (item->getCount() == item->getMaxCount()) {
             w->setOverlayColor({31,255,31});
         } else {
             w->setOverlayColor({220,220,220});
         }
-        w->setOverlay(std::to_string(item.getCount()));
+        w->setOverlay(std::to_string(item->getCount()));
     } else {
-        w->setOverlay(item.getOverlay());
+        w->setOverlay(item->getOverlay());
         w->setOverlayColor({220,220,220});
     }
-    w->setOverlayBackgroundColor(item.getOverlayBackground());
+    w->setOverlayBackgroundColor(item->getOverlayBackground());
     
-    std::string id = item.getID();
+    std::string id = origItem.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
         printf("Item %s clicked w/ btn %d!\n", id.c_str(), btn);
         if (btn == BUTTON_LEFT) {
@@ -109,8 +158,12 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     }};
     _items[id].push_back(w);
     
-    if (stage1>=0 && stage2>=0) w->setStage(stage1,stage2);
-    else w->setStage(item.getState(), item.getActiveStage());
+    if (stage1>=0 && stage2>=0)
+        w->setStage(stage1,stage2);
+    else if (stagedWithDisabled && origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED)
+        w->setStage(origItem.getState(), item->getState() ? (item->getActiveStage()+1) : 0);
+    else
+        w->setStage(origItem.getState(), item->getActiveStage());
     return w;
 }
 
@@ -313,6 +366,22 @@ void TrackerView::updateState(const std::string& itemid)
             _tracker->getPack()->ReadFile(f, s);
             w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), filters);
             printf("Image updated!\n");
+        } else if (item.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
+            // stage is controller by base item, state by badge
+            // stupid hack: if the base item is staged and it has
+            // allow_disabled, we need to add a "disabled" stage
+            int stage = item.getActiveStage();
+            auto o = _tracker->FindObjectForCode(item.getBaseItem().c_str());
+            if (o.type == Tracker::Object::RT::JsonItem) {
+                stage = o.jsonItem->getActiveStage();
+                if (o.jsonItem->getStageCount() && o.jsonItem->getAllowDisabled())
+                    stage = o.jsonItem->getState() ? stage+1 : 0;
+            } else if (o.type == Tracker::Object::RT::LuaItem) {
+                stage = o.luaItem->getActiveStage();
+                if (o.luaItem->getStageCount()>1 && o.luaItem->getAllowDisabled())
+                    stage = o.luaItem->getState() ? stage+1 : 0;
+            }
+            w->setStage(item.getState(), stage);
         } else {
             w->setStage(item.getState(), item.getActiveStage());
         }
