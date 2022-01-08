@@ -74,32 +74,20 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             // we need to insert an additional stage for disabled state
             size_t m = stagedWithDisabled ? (n+1) : n;
             w->addStage(0,m, s.c_str(), s.length(), filters);
-            printf("%d,%d: %s\n", 0,(int)m, f.c_str());
-            for (const auto& mod: mods)
-                printf("  %s\n", mod.c_str());
             std::list<std::string> badgeMods = item->getImageMods(n);
             badgeMods.push_back("overlay|" + origItem.getImage(0));
             auto badgeFilters = imageModsToFilters(_tracker, badgeMods);
             w->addStage(1,m, s.c_str(), s.length(), badgeFilters);
-            printf("%d,%d: %s\n", 1,(int)m, f.c_str());
-            for (const auto& mod: badgeMods)
-                printf("  %s\n", mod.c_str());
             if (n == 0 && m != 0) {
                 f = item->getDisabledImage(0);
                 _tracker->getPack()->ReadFile(f, s);
                 const auto& mods = item->getDisabledImageMods(0);
                 filters = imageModsToFilters(_tracker, mods);
                 w->addStage(0,0, s.c_str(), s.length(), filters);
-                printf("%d,%d: %s\n", 0,0, f.c_str());
-                for (const auto& mod: mods)
-                    printf("  %s\n", mod.c_str());
                 badgeMods = mods;
                 badgeMods.push_back("overlay|" + origItem.getImage(0));
                 badgeFilters = imageModsToFilters(_tracker, badgeMods);
                 w->addStage(1,0, s.c_str(), s.length(), badgeFilters);
-                printf("%d,%d: %s\n", 1,0, f.c_str());
-                for (const auto& mod: badgeMods)
-                    printf("  %s\n", mod.c_str());
             }
         }
         else if (disabled) {
