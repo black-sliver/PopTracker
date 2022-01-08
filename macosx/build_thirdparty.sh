@@ -167,6 +167,7 @@ cd $LIB_SDL_TTF_DEST_DIR
 git pull
 git checkout $LIB_SDL_TTF_TAG
 
+./autogen.sh
 ./configure $CONFIGURE_FLAGS
 make
 
