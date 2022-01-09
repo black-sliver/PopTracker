@@ -1,5 +1,21 @@
 # PopTracker Changelog
 
+## v0.18.0
+
+* Fixes
+  * Fix a bug in rules parsing (accessibility used as visibility)
+  * Fix a memory leak when unloading pack
+  * Fix indexed images with overlay not rendering transparent
+* App Features
+  * Option to exclude pre-installed packs
+  * Option to check for updates
+  * Export/Import current state
+  * Support for custom FPS limit:
+    run+exit app, modify `%APPDATA%\PopTracker\PopTracker.json`: `"fps_limit":<value>`
+  * Better debug output for some errors / warnings
+* Pack Features
+  * Add support for `toggle_badged` item type
+
 ## v0.17.2
 
 * Fixes

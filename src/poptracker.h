@@ -59,7 +59,7 @@ public:
     virtual ~PopTracker();
     
     static constexpr const char APPNAME[] = "PopTracker";
-    static constexpr const char VERSION_STRING[] = "0.17.2";
+    static constexpr const char VERSION_STRING[] = "0.18.0";
     
 protected:
     virtual bool start();
