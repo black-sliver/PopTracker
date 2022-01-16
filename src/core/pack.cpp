@@ -38,7 +38,7 @@ Pack::~Pack()
 }
 
 Pack::Info Pack::getInfo() const
-{ 
+{
     if (!isValid()) return {};
     
     std::vector<Pack::VariantInfo> variants;
@@ -198,6 +198,14 @@ std::vector<Pack::Info> Pack::ListAvailable()
 
         closedir(d);
     }
+    std::sort(res.begin(), res.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
+        int n = strcasecmp(lhs.packName.c_str(), rhs.packName.c_str());
+        if (n<0) return true;
+        if (n>0) return false;
+        int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
+        if (n<0) return true;
+        return false;
+    });
     return res;
 }
 Pack::Info Pack::Find(std::string uid, std::string version)
