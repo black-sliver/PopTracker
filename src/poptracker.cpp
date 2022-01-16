@@ -218,7 +218,7 @@ bool PopTracker::start()
                 std::string uid = to_string(jPack["uid"],"");
                 std::string version = to_string(jPack["version"],"");
                 Pack::Info info = Pack::Find(uid, version);
-                if (info.path.empty()) info = Pack::Find(to_string(jPack["uid"],""));
+                if (info.path.empty()) info = Pack::Find(uid); // try without version
                 if (!scheduleLoadTracker(info.path, variant)) {
                     printf("Could not load pack uid \"%s\" (\"%s\")\n", uid.c_str(), info.path.c_str());
                 } else {

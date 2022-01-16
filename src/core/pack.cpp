@@ -210,6 +210,7 @@ std::vector<Pack::Info> Pack::ListAvailable()
 }
 Pack::Info Pack::Find(std::string uid, std::string version)
 {
+    std::vector<Pack::Info> packs;
     for (auto& searchPath: _searchPaths) {
         DIR *d = opendir(searchPath.c_str());
         if (!d) continue;
@@ -217,11 +218,23 @@ Pack::Info Pack::Find(std::string uid, std::string version)
         while ((dir = readdir(d)) != NULL)
         {
             Pack pack(os_pathcat(searchPath, dir->d_name));
-            if (pack.isValid() && pack.getUID() == uid && (version.empty() || pack.getVersion()==version))
-                return pack.getInfo();
+            if (pack.isValid() && pack.getUID() == uid) {
+                if (version.empty())
+                    packs.push_back(pack.getInfo());
+                else
+                    return pack.getInfo();
+            }
         }
 
         closedir(d);
+    }
+    if (!packs.empty()) {
+        std::sort(packs.begin(), packs.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
+            int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
+            if (m<0) return true;
+            return false;
+        });
+        return packs.back();
     }
     return {};
 }
