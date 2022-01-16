@@ -670,6 +670,23 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         _layoutRefs.push_back(node.getKey());
         return addLayoutNode(container, _tracker->getLayout(node.getKey()), depth+1);
     }
+    else if (node.getType() == "text") {
+        Label *w = new Label(0,0,0,0, _font, node.getText());
+        Label::HAlign halign = Label::HAlign::LEFT;
+        Label::VAlign valign = Label::VAlign::TOP;
+        if (node.getHAlignment() == "center")
+            halign = Label::HAlign::CENTER;
+        else if (node.getHAlignment() == "right")
+            halign = Label::HAlign::RIGHT;
+        if (node.getVAlignment() == "center")
+            valign = Label::VAlign::MIDDLE;
+        else if (node.getVAlignment() == "bottom")
+            valign = Label::VAlign::BOTTOM;
+        w->setTextAlignment(halign, valign);
+        w->setSize(w->getAutoSize());
+        w->setGrow(1,0);
+        container->addChild(w);
+    }
     else {
         fprintf(stderr, "Invalid or unsupported node: %s\n", node.getType().c_str());
         return false;

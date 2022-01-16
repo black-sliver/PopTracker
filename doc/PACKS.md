@@ -397,6 +397,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 * `"map"`: has optional `"maps"` which is array of map ids, if missing all maps are added
 * `"layout"`: pastes a different named object here (`"key": "name_of_layout"`)
 * `"recentpins"`: pinned items, uses `{"style":"{wrapped,?}","compact":bool}`
+* `"text"`: has property `"text": "string"` to display a string
 
 
 ## Ui Hints

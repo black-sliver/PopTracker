@@ -51,6 +51,7 @@ protected:
     std::string _item;
     std::string _header;
     std::string _key;
+    std::string _text;
     std::list< std::list< std::string > > _rows;
     std::list<std::string> _maps;
     std::list<LayoutNode> _content;
@@ -60,6 +61,7 @@ public:
     const std::string& getKey() const { return _key; }
     const std::string& getItem() const { return _item; }
     const std::string& getHeader() const { return _header; }
+    const std::string& getText() const { return _text; }
     const std::list<LayoutNode>& getChildren() const { return _content; }
     const std::list< std::list< std::string > >& getRows() const { return _rows; }
     const Size& getItemSize() const { return _itemSize; }
