@@ -1,4 +1,6 @@
 #include "label.h"
+#include <string.h>
+
 
 namespace Ui {
 
