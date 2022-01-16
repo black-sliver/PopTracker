@@ -151,7 +151,7 @@ ifdef IS_WIN32
   WIN32AR = $(AR)
   WIN32STRIP = strip
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
+  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN32_ZIP)
   else
@@ -164,7 +164,7 @@ else ifdef IS_WIN64
   WIN64AR = $(AR)
   WIN64STRIP = strip
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
+  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
     native: $(WIN64_ZIP)
   else
