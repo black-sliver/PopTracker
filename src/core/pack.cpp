@@ -203,7 +203,7 @@ std::vector<Pack::Info> Pack::ListAvailable()
         if (n<0) return true;
         if (n>0) return false;
         int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
-        if (n<0) return true;
+        if (m<0) return true;
         return false;
     });
     return res;
