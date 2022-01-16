@@ -34,7 +34,7 @@ static T* getFromList(std::list<T*> list, int index)
 Tabs::Tabs(int x, int y, int w, int h, FONT font)
     : Container(x,y,w,h), _font(font)
 {
-    _buttonbox = new HBox(0, 0, w, 32);
+    _buttonbox = new HFlexBox(0, 0, w, 32, HFlexBox::HAlign::CENTER);
     // hbox lives outside of _children, so we have to handle events manually.
     // TODO: solve this differently? 
     onClick += { this, [this](void*, int x, int y, int button) {
@@ -191,8 +191,7 @@ void Tabs::relayout()
         setSize(_size||_minSize);
         return;
     }
-    _buttonbox->setWidth(_buttonbox->getMinWidth());
-    _buttonbox->setLeft((_size.width-_buttonbox->getWidth())/2);
+    _buttonbox->setWidth(_size.width); // NOTE: this change requires halign for buttonbox
 }
 void Tabs::render(Renderer renderer, int offX, int offY)
 {

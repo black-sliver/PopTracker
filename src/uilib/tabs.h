@@ -6,7 +6,7 @@
 //       for now we just size everything "manually"
 
 #include "container.h"
-#include "hbox.h"
+#include "hflexbox.h"
 #include "button.h"
 #include <list>
 
@@ -29,7 +29,7 @@ public:
     
 protected:
     void relayout();
-    HBox* _buttonbox;
+    HFlexBox* _buttonbox;
     std::list<Button*> _buttons;
     FONT _font;
     int _spacing = 0;
