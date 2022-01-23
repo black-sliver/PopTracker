@@ -233,20 +233,29 @@ int Tracker::ProviderCountForCode(const std::string& code)
         // TODO: use a helper to access Lua instead of having _L here
         int args = 0;
         auto pos = code.find('|');
+        int t;
         if (pos == code.npos) {
-            lua_getglobal(_L, code.c_str()+1);
+            t = lua_getglobal(_L, code.c_str()+1);
         } else {
-            lua_getglobal(_L, code.substr(1, pos-1).c_str());
-            std::string::size_type next;
-            while ((next = code.find('|', pos+1)) != code.npos) {
-                lua_pushstring(_L, code.substr(pos+1, next-pos-1).c_str());
+            t = lua_getglobal(_L, code.substr(1, pos-1).c_str());
+            if (t == LUA_TFUNCTION) {
+                std::string::size_type next;
+                while ((next = code.find('|', pos+1)) != code.npos) {
+                    lua_pushstring(_L, code.substr(pos+1, next-pos-1).c_str());
+                    args++;
+                    pos = next;
+                }
+                lua_pushstring(_L, code.substr(pos+1).c_str());
                 args++;
-                pos = next;
             }
-            lua_pushstring(_L, code.substr(pos+1).c_str());
-            args++;
         }
-        if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
+        if (t != LUA_TFUNCTION) {
+            fprintf(stderr, "Missing Lua function for %s\n", code.c_str());
+            _providerCountCache[code] = 0;
+            lua_pop(_L, -1);
+            return 0;
+        }
+        else if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
             fprintf(stderr, "Error running %s:\n%s\n",
                 code.c_str(), lua_tostring(_L,-1));
             // TODO: clean up lua stack?
