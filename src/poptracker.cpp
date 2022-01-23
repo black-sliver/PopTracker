@@ -330,6 +330,7 @@ bool PopTracker::start()
             const char* ext[] = {"*.json"};
             auto filename = tinyfd_openFileDialog("Load State",
                     lastName.c_str(), 1, ext, "JSON Files", 0);
+            if (!filename || !*filename) return;
             std::string s;
             if (!readFile(filename, s)) {
                 fprintf(stderr, "Error reading state file: %s\n", filename);
