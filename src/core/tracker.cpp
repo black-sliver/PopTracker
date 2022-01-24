@@ -251,19 +251,20 @@ int Tracker::ProviderCountForCode(const std::string& code)
         }
         if (t != LUA_TFUNCTION) {
             fprintf(stderr, "Missing Lua function for %s\n", code.c_str());
+            lua_pop(_L, 1); // non-function variable or nil
             _providerCountCache[code] = 0;
-            lua_pop(_L, -1);
             return 0;
         }
         else if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
+            auto err = lua_tostring(_L, -1);
             fprintf(stderr, "Error running %s:\n%s\n",
-                code.c_str(), lua_tostring(_L,-1));
-            // TODO: clean up lua stack?
+                code.c_str(), err ? err : "Unknown error");
+            lua_pop(_L, 1); // error object
             _providerCountCache[code] = 0;
             return 0;
         } else {
             int n = lua_tonumber(_L, -1);
-            lua_pop(_L,1);
+            lua_pop(_L, 1); // result
             _providerCountCache[code] = n;
             return n;
         }
