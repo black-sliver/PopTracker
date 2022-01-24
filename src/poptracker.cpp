@@ -407,10 +407,11 @@ bool PopTracker::frame()
 {
     if (_asio) _asio->poll();
     if (_scriptHost) _scriptHost->autoTrack();
-    
+
+    auto now = std::chrono::steady_clock::now();
+
 #define SHOW_FPS
 #ifdef SHOW_FPS
-    auto now = std::chrono::steady_clock::now();
     // time since last frame
     auto td = std::chrono::duration_cast<std::chrono::milliseconds>(now - _frameTimer).count();
     if (td > _maxFrameTime) _maxFrameTime = td;
@@ -452,9 +453,9 @@ bool PopTracker::frame()
         _config["export_dir"] = _exportDir;
         saveConfig();
     }
-    
+
     // load new tracker AFTER rendering a frame
-    if (!_newTracker.empty()) {
+    if (res && !_newTracker.empty()) {
         printf("Loading Tracker %s:%s!\n", _newTracker.c_str(), _newVariant.c_str()); fflush(stdout);
         if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
             fprintf(stderr, "Error loading tracker/pack!\n"); fflush(stderr);
@@ -465,6 +466,15 @@ bool PopTracker::frame()
         _newTracker = "";
         _newVariant = "";
     }
+
+    // auto-save state
+    if (res && _tracker && AUTOSAVE_INTERVAL>0 &&
+            std::chrono::duration_cast<std::chrono::seconds>(now - _autosaveTimer).count() >= AUTOSAVE_INTERVAL)
+    {
+        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), true);
+        _autosaveTimer = std::chrono::steady_clock::now();
+    }
+
     return res;
 }
 
@@ -569,6 +579,9 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         // restore previous state
         StateManager::loadState(_tracker, _scriptHost, true);
     }
+
+    _autosaveTimer = std::chrono::steady_clock::now();
+
     return res;
 }
 bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)

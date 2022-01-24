@@ -17,7 +17,6 @@
 
 class PopTracker final : public App {
 private:
-
     Ui::Ui *_ui = nullptr;
     Ui::DefaultTrackerWindow *_win = nullptr;
     Ui::BroadcastWindow *_broadcast = nullptr;
@@ -44,7 +43,8 @@ private:
     std::string _newTracker;
     std::string _newVariant;
     bool _newTrackerLoadAutosave = false;
-    
+    std::chrono::steady_clock::time_point _autosaveTimer;
+
     bool loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     bool scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     void unloadTracker();
@@ -60,7 +60,8 @@ public:
     
     static constexpr const char APPNAME[] = "PopTracker";
     static constexpr const char VERSION_STRING[] = "0.18.0";
-    
+    static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
+
 protected:
     virtual bool start();
     virtual bool frame();

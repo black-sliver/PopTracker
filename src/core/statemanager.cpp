@@ -75,7 +75,11 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
             filename = os_pathcat(dirname, name+".json");
         }
         printf("Saving state \"%s\" to file...\n", name.c_str());
-        return writeFile(filename, state.dump());
+        std::string new_state = state.dump();
+        std::string old_state;
+        if (!readFile(filename, old_state) || old_state != new_state)
+            return writeFile(filename, new_state);
+        return true;
     }    
 }
 bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
