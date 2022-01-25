@@ -3040,7 +3040,7 @@ char * tinyfd_openFileDialog(
     int aAllowMultipleSelects ) /* 0 or 1 */
 {
 	char lString[MAX_PATH_OR_CMD];
-	char lBuff[MAX_PATH_OR_CMD];
+	static char lBuff[MAX_PATH_OR_CMD];
 	char * p;
 	char * lPointerInputBox;
 	int i;
