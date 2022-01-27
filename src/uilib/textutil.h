@@ -4,6 +4,7 @@
 // helper functions for text rendering
 
 #include "label.h"
+#include <string.h>
 
 
 namespace Ui {
