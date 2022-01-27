@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
 #include "../uilib/colorhelper.h"
+#include "../uilib/textutil.h"
 
 
 namespace Ui {
@@ -151,18 +152,18 @@ void Item::render(Renderer renderer, int offX, int offY)
     }
     if (!_overlay.empty() && _font && !_overlayTex) {
         // text
-        SDL_Surface* tsurf = TTF_RenderUTF8_Blended(_font, _overlay.c_str(), {
+        SDL_Surface* tsurf = RenderText(_font, _overlay.c_str(), {
             _overlayColor.r, _overlayColor.g, _overlayColor.b, _overlayColor.a
-        });
+        }, Label::HAlign::RIGHT);
         // light
-        SDL_Surface* lsurf = TTF_RenderUTF8_Blended(_font, _overlay.c_str(), {
+        SDL_Surface* lsurf = RenderText(_font, _overlay.c_str(), {
             255, 255, 255, 255
-        });
+        }, Label::HAlign::RIGHT);
         SDL_SetSurfaceAlphaMod(lsurf, 96);
         // shadow
-        SDL_Surface* ssurf = TTF_RenderUTF8_Blended(_font, _overlay.c_str(), {
+        SDL_Surface* ssurf = RenderText(_font, _overlay.c_str(), {
             0, 0, 0, 255
-        });
+        }, Label::HAlign::RIGHT);
         // combine
         SDL_Surface* surf = nullptr;
         if (tsurf && lsurf && ssurf) {
