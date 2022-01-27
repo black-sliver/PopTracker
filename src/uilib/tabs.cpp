@@ -168,6 +168,7 @@ const std::string& Tabs::getActiveTabName() const
 }
 void Tabs::relayout()
 {
+    _buttonbox->setWidth(getWidth()); // minHeight depends on width -> set first
     _buttonbox->relayout();
     int top = _buttonbox->getHeight() + _spacing;
     auto size = getSize();
