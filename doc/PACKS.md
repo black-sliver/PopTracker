@@ -272,6 +272,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
             ],
             "chest_unopened_img": "path/to/chest.png", // default if children do not override
             "chest_opened_img": "path/to/chest.png",
+            "overlay_background": "#000000", // set background for number of unopened chests
             "children": [
                 {
                     "name": "Location or check name",

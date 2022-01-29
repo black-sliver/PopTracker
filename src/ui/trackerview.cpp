@@ -177,7 +177,8 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
     w->addStage(1,0, sOpened.c_str(), sOpened.length()); // TODO: +img_mods
     w->setStage(opened?1:0,0);
     w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
-    
+    w->setOverlayBackgroundColor(sec.getOverlayBackground());
+
     if (compact) {
         int itemcount = sec.getItemCount();
         int looted = sec.getItemCleared();

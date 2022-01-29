@@ -36,13 +36,14 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
     return false;
 }
 
-std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR)
+std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
 {
+    // TODO: pass inherited values as parent instead
     std::list<Location> locs;
     
     if (j.type() == json::value_t::array) {
         for (auto& v : j) {
-            for (auto& loc : FromJSON(v, parentAccessRules, parentVisibilityRules, parentName, closedImgR, openedImgR)) {
+            for (auto& loc : FromJSON(v, parentAccessRules, parentVisibilityRules, parentName, closedImgR, openedImgR, overlayBackgroundR)) {
                 locs.push_back(std::move(loc)); // TODO: move constructor
             }
         }
@@ -111,7 +112,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     
     std::string closedImg = to_string(j["chest_unopened_img"], closedImgR); // TODO: avoid copy
     std::string openedImg = to_string(j["chest_opened_img"], openedImgR);
-    
+    std::string overlayBackground = to_string(j["overlay_background"], overlayBackgroundR);
+
     // TODO: if maplocation or sections in j, add locations to locs
     if (j["sections"].type() == json::value_t::array)
     {
@@ -135,7 +137,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
                 fprintf(stderr, "Location: bad section\n");
                 continue;
             }
-            loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg));
+            loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
         }
         locs.push_back(loc);
     }
@@ -147,7 +149,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     
     if (j["children"].type() == json::value_t::array) {
         std::string fullname = parentName.empty() ? name : (parentName + "/" + name);
-        for (auto& loc : Location::FromJSON(j["children"], accessRules, visibilityRules, fullname, closedImg, openedImg)) {
+        for (auto& loc : Location::FromJSON(j["children"], accessRules, visibilityRules, fullname, closedImg, openedImg, overlayBackground)) {
             locs.push_back(std::move(loc));
         }
     } else if (j["children"].type() != json::value_t::null) {
@@ -168,13 +170,15 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
 }
 
 
-LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg)
+LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
 {
+    // TODO: pass inherited values as parent instead
     LocationSection sec;
     sec._name = to_string(j["name"],sec._name);
     sec._clearAsGroup = to_bool(j["clear_as_group"],sec._clearAsGroup);
     sec._closedImg = to_string(j["chest_unopened_img"], closedImg);
     sec._openedImg = to_string(j["chest_opened_img"], openedImg);
+    sec._overlayBackground = to_string(j["overlay_background"], overlayBackground);
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
     auto tmp = to_string(j["hosted_item"], "");
     commasplit(tmp, sec._hostedItems);

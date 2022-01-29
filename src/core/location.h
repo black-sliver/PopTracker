@@ -14,7 +14,8 @@ public:
     static LocationSection FromJSON(nlohmann::json& j,
             const std::list< std::list<std::string> >& parentAccessRules={},
             const std::list< std::list<std::string> >& parentVisibilityRules={},
-            const std::string& closedImg="", const std::string& openedImg="");
+            const std::string& closedImg="", const std::string& openedImg="",
+            const std::string& overlayBackground="");
     Signal<> onChange;
 protected:
     std::string _name;
@@ -26,6 +27,7 @@ protected:
     std::list<std::string> _hostedItems;
     std::list< std::list<std::string> > _accessRules;
     std::list< std::list<std::string> > _visibilityRules;
+    std::string _overlayBackground;
 public:
     // getters
     const std::string& getName() const { return _name; }
@@ -39,6 +41,7 @@ public:
     const std::string& getClosedImage() const { return _closedImg; }
     const std::string& getOpenedImage() const { return _openedImg; }
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
+    const std::string& getOverlayBackground() const { return _overlayBackground; }
 
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
@@ -69,7 +72,8 @@ public:
     static std::list<Location> FromJSON(nlohmann::json& j,
         const std::list< std::list<std::string> >& parentAccessRules={},
         const std::list< std::list<std::string> >& parentVisibilityRules={},
-        const std::string& parentName="", const std::string& closedImg="", const std::string& openedImg="");
+        const std::string& parentName="", const std::string& closedImg="",
+        const std::string& openedImg="", const std::string& overlayBackground="");
 
 protected:
     std::string _name;
