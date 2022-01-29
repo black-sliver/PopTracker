@@ -133,6 +133,8 @@ LayoutNode LayoutNode::FromJSON(json& j)
                 fprintf(stderr, "WARN: tabbed item not an object\n");
             }
         }
+    } else if (node._type == "tabbed") {
+        fprintf(stderr, "WARN: tabs is not an array\n");
     }
     
     return node;
