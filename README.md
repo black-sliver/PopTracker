@@ -61,5 +61,9 @@ We do not allow direct access to process memory or sockets from Lua. Instead
 [UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables"
 starting with v0.16.
 
+### Archipelago Multiworld
+[Archipelago](https://archipelago.gg) allows connecting to a Multiworld as a tracker.
+A test implementation of an Archipelago client is included. See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md).
+
 ### Other systems
 No work has been done for other systems yet.

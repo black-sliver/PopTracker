@@ -1,6 +1,6 @@
 # PopTracker build instructions
 
-We only use `make` at the moment. Feel free to create your own project/build setup.
+We only use `make` at the moment. Feel free to create your own project/build setup, see [Why no XYZ?!](#why-not-xyz).
 
 `make native` builds a native binary\
 `make cross` cross-compiles a windows binary on *nix\
@@ -81,3 +81,16 @@ The build will link against brew libraries.
 If you run `make CONF=DIST`, this will build non-brew versions of the libraries
 and replace the references in the resulting app bundle.\
 Dependencies to build the bundle: run `brew install automake libtool autoconf`
+
+## Why not XYZ?!
+
+The release builds for Windows and macos are very custom since we do not want to force msys or brew on anyone and use a
+gnu toolchain for development.
+
+* Meson's submodules system would be great, but some of them are very outdated or incomplete and maintinaing the recipes
+  for all dependencies is too much work.
+* CMake did fail when trying to create the static windows build, at which point we'd need to modify and maintain CMake
+  files for subprojects.
+* Autotools could probably be used to strip down the Makefile, feel free to provide an example.
+* An additional VS solution could be maintained by someone, feel free to fork, PR and document.
+* An additional XCode project could be maintained by someone, feel free to fork, PR and document.
