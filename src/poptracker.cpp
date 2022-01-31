@@ -576,7 +576,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     if (at) {
         if (_autoTrackerDisabled)
             at->disable();
-        at->onError += {this,  [this](void*, const std::string& msg) {
+        at->onError += {this,  [](void*, const std::string& msg) {
             tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
         }};
         auto ap = at->getAP();
