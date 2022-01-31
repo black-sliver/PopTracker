@@ -16,6 +16,7 @@ extern "C" {
 #include "core/log.h"
 #include <tinyfiledialogs.h>
 #include "http/http.h"
+#include "ap/archipelago.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -137,6 +138,11 @@ PopTracker::PopTracker(int argc, char** argv)
     }
     if (_config["export_dir"].is_string())
         _exportDir = _config["export_dir"];
+
+    if (_config["at_uri"].is_string())
+        _atUri = _config["at_uri"];
+    if (_config["at_slot"].is_string())
+        _atSlot = _config["at_slot"];
 
     saveConfig();
 
@@ -286,8 +292,31 @@ bool PopTracker::start()
             auto at = _scriptHost->getAutoTracker();
             if (!at) return;
             if (at->getState() == AutoTracker::State::Disabled) {
-                at->enable();
-                _autoTrackerDisabled = false;
+                auto flags = _pack->getVariantFlags();
+                if (flags.count("ap")) {
+                    // TODO: replace tinyfd by GUI overlay
+                    const char* s;
+                    s = tinyfd_inputBox("PopTracker", "Enter archipelago server:port", _atUri.empty()?"localhost":_atUri.c_str());
+                    if (!s) return;
+                    std::string uri = s;
+                    s = tinyfd_inputBox("PopTracker", "Enter slot", (_atUri==uri)?_atSlot.c_str():"Player");
+                    if (!s) return;
+                    std::string slot = s;
+                    s = tinyfd_inputBox("PopTracker", "Enter password", nullptr);
+                    if (!s) return;
+                    std::string password = s;
+                    _atUri = uri;
+                    _atSlot = slot;
+                    _atPassword = password;
+                    if (at->enable(_atUri, _atSlot, _atPassword)) {
+                        _autoTrackerDisabled = false;
+                        _config["at_uri"] = _atUri;
+                        _config["at_slot"] = _atSlot;
+                    }
+                } else {
+                    if (at->enable())
+                        _autoTrackerDisabled = false;
+                }
             }
             else if (at->getState() != AutoTracker::State::Disabled) {
                 at->disable();
@@ -502,10 +531,12 @@ void PopTracker::unloadTracker()
     delete _scriptHost;
     delete _tracker;
     delete _pack;
+    delete _archipelago;
     _L = nullptr;
     _tracker = nullptr;
     _scriptHost = nullptr;
     _pack = nullptr;
+    _archipelago = nullptr;
 }
 bool PopTracker::loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
 {
@@ -541,8 +572,23 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     ScriptHost::Lua_Register(_L);
     _scriptHost->Lua_Push(_L);
     lua_setglobal(_L, "ScriptHost");
-    if (_scriptHost->getAutoTracker() && _autoTrackerDisabled)
-        _scriptHost->getAutoTracker()->disable();
+    AutoTracker* at = _scriptHost->getAutoTracker();
+    if (at) {
+        if (_autoTrackerDisabled)
+            at->disable();
+        at->onError += {this,  [this](void*, const std::string& msg) {
+            tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+        }};
+        auto ap = at->getAP();
+        if (ap) {
+            printf("Creating Archipelago Interface...\n");
+            _archipelago = new Archipelago(_L, ap);
+            printf("Registering in Lua...\n");
+            Archipelago::Lua_Register(_L);
+            _archipelago->Lua_Push(_L);
+            lua_setglobal(_L, "Archipelago");
+        }
+    }
     
     printf("Registering classes in Lua...\n");
     LuaItem::Lua_Register(_L); // TODO: move this to Tracker or ScriptHost

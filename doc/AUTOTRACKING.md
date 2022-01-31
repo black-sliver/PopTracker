@@ -7,6 +7,8 @@
     as provided by QUsb2Snes, Usb2Snes and SNI
 * Variables
   * [UAT Protocol](https://github.com/black-sliver/UAT)
+* Archipelago Multiworld
+  * see [archipelago.gg](https://archipelago.gg)
 
 
 ## Atomicity
@@ -111,3 +113,26 @@ ScriptHost:AddVariableWatch("Alchemy", {"acid_rain"}, updateAlchemy)
 ```
 
 See [examples/uat-example](../examples/uat-example) for a full example.
+
+
+## Archipelago Interface
+
+This is fully callback-driven.
+
+Archipelago auto-tracking is enabled by adding "ap" to a variant's flags in
+manifest.json and clicking on "AT" when the pack is loaded.
+
+* when connection to a server is established, Clear handlers are called so the
+  Lua script can clear all locations and items.
+* when an item is received, Item handlers are called
+* when a location is checked, Location handlers are called
+* when a location is scouted, Scout handlers are called
+* when a bounce is received, Bounced handlers are called
+
+### global Archipelago
+* `.PlayerNumber` returns the slot number of the connected player or -1 if not connected
+* `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared
+* `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name
+* `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
+* `:AddScoutHandler(name, callback)` called when a location was scouted; args: location_id, location_name, item_id, item_name, item_player
+* `:AddBouncedHandler(name, callback)` called when the server sends a bounce; args: json bounce message as table

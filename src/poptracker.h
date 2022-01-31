@@ -12,6 +12,7 @@
 #include "core/scripthost.h"
 #include "core/imagereference.h"
 #include "core/version.h"
+#include "ap/archipelago.h"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -27,6 +28,7 @@ private:
     lua_State* _L = nullptr;
     Tracker *_tracker = nullptr;
     ScriptHost *_scriptHost = nullptr;
+    Archipelago *_archipelago = nullptr;
     Pack *_pack = nullptr;
     ImageReference _imageReference;
     bool _autoTrackerDisabled = false;
@@ -44,6 +46,8 @@ private:
     std::string _newVariant;
     bool _newTrackerLoadAutosave = false;
     std::chrono::steady_clock::time_point _autosaveTimer;
+
+    std::string _atUri, _atSlot, _atPassword;
 
     bool loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     bool scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);

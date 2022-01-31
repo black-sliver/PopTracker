@@ -3,6 +3,7 @@
 
 #include "../usb2snes/usb2snes.h"
 #include "../uat/uatclient.h"
+#include "../ap/aptracker.h"
 #include "signal.h"
 #include <string>
 #include <string.h>
@@ -25,7 +26,29 @@ public:
     AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& name="PopTracker")
             : _name(name)
     {
-        if (strcasecmp(platform.c_str(), "snes")==0) {
+        if (flags.find("ap") != flags.end()) {
+            _ap = new APTracker(_name);
+            _state = State::Disabled;
+            _ap->onError += {this, [this](void* sender, const std::string& msg) {
+                if (_state != State::Disabled && _state != State::Disconnected) {
+                    _state = State::Disconnected;
+                    onStateChange.emit(this, _state);
+                }
+                if (!msg.empty()) {
+                    onError.emit(this, "AP: " + msg);
+                }
+            }};
+            _ap->onStateChanged += {this, [this](void* sender, auto state) {
+                State newstate =
+                        state == APClient::State::SLOT_CONNECTED ? State::ConsoleConnected :
+                        state == APClient::State::ROOM_INFO ? State::BridgeConnected :
+                        State::Disconnected;
+                if (_state != newstate) {
+                    _state = newstate;
+                    onStateChange.emit(this, _state);
+                }
+            }};
+        } else if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(_name);
         } else if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
@@ -93,6 +116,7 @@ public:
     Signal<State> onStateChange;
     Signal<> onDataChange;
     Signal<const std::list<std::string>&> onVariablesChanged;
+    Signal<const std::string&> onError;
     State getState() const { return _state; }
     
     bool doStuff()
@@ -139,6 +163,11 @@ public:
             if (_state != oldState) {
                 onStateChange.emit(this, _state);
             }
+            return true;
+        }
+
+        // AP AUTOTRACKING
+        if (_ap && _ap->poll()) {
             return true;
         }
 
@@ -253,12 +282,24 @@ public:
         return {};
     }
     
-    void enable()
+    bool enable(const std::string& uri="", const std::string& slot="", const std::string& password="")
     {
-        if (_state == State::Disabled && (_snes || _uat)) {
+        if (_state != State::Disabled) return true;
+        if (_snes || _uat) {
+            // snes and uat will auto-connect when polling (doStuff())
             _state = State::Disconnected;
             onStateChange.emit(this, _state);
+            return true;
         }
+        else if (_ap) {
+            // ap requires explicit connection to a server
+            if (_ap->connect(uri, slot, password)) {
+                _state = State::Disconnected;
+                onStateChange.emit(this, _state);
+                return true;
+            }
+        }
+        return false;
     }
 
     void disable()
@@ -282,13 +323,21 @@ public:
                 && _uat->getState() != UATClient::State::DISCONNECTING) {
             _uat->disconnect(websocketpp::close::status::going_away);
         }
+        if (_ap)
+            _ap->disconnect();
         onStateChange.emit(this, _state);
+    }
+
+    APTracker* getAP() const
+    {
+        return _ap;
     }
 
 protected:
     State _state = State::Disconnected;
     USB2SNES *_snes = nullptr;
     UATClient *_uat = nullptr;
+    APTracker *_ap = nullptr;
     std::string _slot; // selected slot for UAT
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     std::string _name;

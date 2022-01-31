@@ -1,3 +1,9 @@
 [submodule "lib/lua"]
 	path = lib/lua
 	url = git://github.com/lua/lua
+[submodule "lib/apclientpp"]
+	path = lib/apclientpp
+	url = https://github.com/black-sliver/apclientpp.git
+[submodule "lib/wswrap"]
+	path = lib/wswrap
+	url = https://github.com/black-sliver/wswrap.git
