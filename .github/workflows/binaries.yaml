@@ -53,6 +53,10 @@ jobs:
         echo "POP_NAME=poptracker_`./build/darwin-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV 
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST
+    - name: Check Build
+      run: |
+        open -n ./build/darwin-x86_64/poptracker.app --args --version
+        du -sh ./build/darwin-x86_64/poptracker.app
     - name: Store app bundle
       uses: actions/upload-artifact@v2
       with:
