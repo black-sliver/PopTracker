@@ -1,5 +1,20 @@
 # PopTracker Changelog
 
+## v0.18.1
+
+* Fixes
+  * Warn instead of crash when trying to call a missing Lua function
+  * Fix crash when cancelling import/load state
+  * Fix some minor memory leaks
+* App Features
+  * Added preliminary support for Archipelago Multiworld connection
+  * Allow most texts to break into multiple lines ('\n')
+  * Allow tabs to break into multiple lines (automatically)
+  * Auto-save every 60 seconds
+* Pack Features
+  * Add support for text nodes
+  * Add support for overlay_background in location items
+
 ## v0.18.0
 
 * Fixes
