@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <random>
 
 
 class APTracker final {
@@ -37,17 +38,13 @@ public:
         if (newUuid) {
             // generate a new uuid thread-safe
             _uuid.clear();
-            struct timespec ts;
-            unsigned rng;
-            if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
-                rng = (unsigned)ts.tv_sec;
-                rng ^= (unsigned)ts.tv_nsec;
-            } else {
-                rng = (unsigned)time(nullptr);
-            }
             const char uuid_chars[] = "0123456789abcdef";
-            for (int n=0; n<16; n++)
-                _uuid += uuid_chars[rand_r(&rng) % strlen(uuid_chars)];
+            std::random_device dev;
+            std::mt19937 rng(dev());
+            std::uniform_int_distribution<std::mt19937::result_type> dist(0,strlen(uuid_chars));
+            for (int n=0; n<16; n++) {
+                _uuid.append(1, uuid_chars[dist(rng)]);
+            }
             writeFile(uuidFilename, _uuid);
         } else {
             // update mtime of uuid file
