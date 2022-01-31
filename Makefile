@@ -176,7 +176,7 @@ else ifdef IS_WIN64
 else ifdef IS_OSX
   EXE = $(NIX_EXE)
   ifeq ($(CONF), DIST) # TODO dmg?
-    native: $(OSX_APP) $(OSX_ZIP)
+    native: $(OSX_APP) $(OSX_ZIP) test_osx_app
   else
     native: $(NIX_EXE)
   endif
@@ -189,7 +189,7 @@ else
   endif
 endif
 
-.PHONY: all native cross wasm clean
+.PHONY: all native cross wasm clean test_osx_app
 all: native cross wasm
 wasm: $(HTML)
 
@@ -243,7 +243,11 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 
 $(OSX_APP): $(NIX_EXE)
 	./macosx/bundle_macosx_app.sh --version=$(VERSION) --deployment-target=$(DEPLOYMENT_TARGET) "$(NIX_EXE)"
-	
+
+test_osx_app: $(OSX_APP)
+	# test that the app bundle is correctly build
+	open -n ./$(OSX_APP) --args --version
+
 $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	rm -f $@
 	(cd $(dir $<) && \
