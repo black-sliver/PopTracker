@@ -246,7 +246,7 @@ $(OSX_APP): $(NIX_EXE)
 
 test_osx_app: $(OSX_APP)
 	# test that the app bundle is correctly build
-	open -n ./$(OSX_APP) --args --version
+	cd ./$(OSX_APP)/Contents/MacOS; ./poptracker --version
 
 $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	rm -f $@

@@ -55,8 +55,9 @@ jobs:
       run: make CONF=DIST
     - name: Check Build
       run: |
-        open -n ./build/darwin-x86_64/poptracker.app --args --version
+        open -n ./build/darwin-x86_64/poptracker.app --args --version # this seems not to work?
         du -sh ./build/darwin-x86_64/poptracker.app
+        cd ./build/darwin-x86_64/poptracker.app/Contents/MacOS && ./poptracker --version
     - name: Store app bundle
       uses: actions/upload-artifact@v2
       with:
