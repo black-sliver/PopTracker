@@ -160,7 +160,7 @@ fi
 cd $LIB_SDL_IMAGE_DEST_DIR
 
 git pull
-git checkout $LIB_SDL_IMAGE_TAG
+#git checkout $LIB_SDL_IMAGE_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -180,7 +180,7 @@ fi
 cd $LIB_SDL_TTF_DEST_DIR
 
 git pull
-git checkout $LIB_SDL_TTF_TAG
+#git checkout $LIB_SDL_TTF_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
