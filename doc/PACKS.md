@@ -112,6 +112,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `:SetOverlay(string)`: set overlay text (see JsonItem), only available in PopTracker
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
+* `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 
 *Probably more to come.*
 
@@ -125,6 +126,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
 * `:SetOverlayBackground(string)`: set background: "#000000" is RGB, "" is transparent, only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
+* `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 
 *Probably more to come.*
 

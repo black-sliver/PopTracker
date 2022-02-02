@@ -72,6 +72,9 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"MaskInput")==0) {
         lua_pushstring(L, "");
         return 1; // FIXME: not implemented
+    } else if (strcmp(key,"Owner")==0) {
+        lua_newtable(L); // dummy
+        return 1;
     }
     
     return 0;

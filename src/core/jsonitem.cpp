@@ -268,6 +268,9 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "MaxCount")==0) {
         lua_pushinteger(L, _maxCount);
         return 1;
+    } else if (strcmp(key,"Owner")==0) {
+        lua_newtable(L); // dummy
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
