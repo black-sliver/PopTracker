@@ -47,7 +47,7 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 ## Ubuntu / Debian
 
 ### Native
-- `sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libssl-dev libcrypto-dev # install dependencies`
+- `sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libssl-dev # install dependencies`
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
 
 
