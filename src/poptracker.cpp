@@ -357,6 +357,11 @@ bool PopTracker::start()
                         Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
             }
+            if (filename != _exportFile) {
+                _exportFile = "";
+                _exportUID = "";
+                _exportDir = os_dirname(_exportFile);
+            }
             json j;
             try {
                 j = parse_jsonc(s);
@@ -407,6 +412,8 @@ bool PopTracker::start()
                 Dlg::MsgBox("PopTracker", "Error loading state!",
                         Dlg::Buttons::OK, Dlg::Icon::Error);
             }
+            _exportFile = filename;
+            _exportUID = _pack->getUID();
         }
     }};
     
