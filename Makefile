@@ -12,8 +12,7 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
       $(wildcard $(LIB_DIR)/wswrap/src/*.cpp) \
-      $(wildcard $(SRC_DIR)/http/*.cpp) \
-      $(wildcard $(LIB_DIR)/tinyfiledialogs/*.cpp)
+      $(wildcard $(SRC_DIR)/http/*.cpp)
       #lib/gifdec/gifdec.c
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \

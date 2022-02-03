@@ -7,6 +7,7 @@ extern "C" {
 #include <SDL2/SDL_image.h>
 #include "ui/trackerwindow.h"
 #include "ui/broadcastwindow.h"
+#include "uilib/dlg.h"
 #include "core/luaitem.h"
 #include "core/imagereference.h"
 #include "core/fileutil.h"
@@ -14,13 +15,13 @@ extern "C" {
 #include "core/jsonutil.h"
 #include "core/statemanager.h"
 #include "core/log.h"
-#include <tinyfiledialogs.h>
 #include "http/http.h"
 #include "ap/archipelago.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
 using nlohmann::json;
+using Ui::Dlg;
 
 
 PopTracker::PopTracker(int argc, char** argv)
@@ -59,19 +60,19 @@ PopTracker::PopTracker(int argc, char** argv)
 
 #ifndef WITHOUT_UPDATE_CHECK
     if (_config.find("check_for_updates") == _config.end()) {
-        auto res = tinyfd_messageBox("PopTracker",
+        auto res = Dlg::MsgBox("PopTracker",
                 "Check for PopTracker updates on start?",
-                "yesno", "question", 1);
-        _config["check_for_updates"] = (res != 0);
+                Dlg::Buttons::YesNo, Dlg::Icon::Question);
+        _config["check_for_updates"] = (res == Dlg::Result::Yes);
     }
 #endif
 
     if (_config.find("add_emo_packs") == _config.end()) {
 #if defined _WIN32 || defined WIN32
-        auto res = tinyfd_messageBox("PopTracker",
+        auto res = Dlg::MsgBox("PopTracker",
                 "Add Documents\\EmoTracker\\packs to the search path?",
-                "yesno", "question", 1);
-        _config["add_emo_packs"] = (res != 0);
+                Dlg::Buttons::YesNo, Dlg::Icon::Question);
+        _config["add_emo_packs"] = (res == Dlg::Result::Yes);
 #else
         _config["add_emo_packs"] = false;
 #endif
@@ -294,17 +295,11 @@ bool PopTracker::start()
             if (at->getState() == AutoTracker::State::Disabled) {
                 auto flags = _pack->getVariantFlags();
                 if (flags.count("ap")) {
-                    // TODO: replace tinyfd by GUI overlay
-                    const char* s;
-                    s = tinyfd_inputBox("PopTracker", "Enter archipelago server:port", _atUri.empty()?"localhost":_atUri.c_str());
-                    if (!s) return;
-                    std::string uri = s;
-                    s = tinyfd_inputBox("PopTracker", "Enter slot", (_atUri==uri)?_atSlot.c_str():"Player");
-                    if (!s) return;
-                    std::string slot = s;
-                    s = tinyfd_inputBox("PopTracker", "Enter password", nullptr);
-                    if (!s) return;
-                    std::string password = s;
+                    // TODO: replace inputbox by GUI overlay
+                    std::string uri, slot, password;
+                    if (!Dlg::InputBox("PopTracker", "Enter archipelago server:port", _atUri.empty()?"localhost":_atUri, uri)) return;
+                    if (!Dlg::InputBox("PopTracker", "Enter slot", (_atUri==uri)?_atSlot.c_str():"Player", slot)) return;
+                    if (!Dlg::InputBox("PopTracker", "Enter password", "", password, true)) return;
                     _atUri = uri;
                     _atSlot = slot;
                     _atPassword = password;
@@ -335,52 +330,47 @@ bool PopTracker::start()
                 lastName = _exportFile;
             }
 
-            const char* ext[] = {"*.json"};
-            auto filename = tinyfd_saveFileDialog("Save State",
-                    lastName.c_str(), 1, ext, "JSON Files");
-            if (filename && *filename) {
-                if (StateManager::saveState(_tracker, _scriptHost,
-                        _win->getHints(), true, filename, true))
-                {
-                    _exportFile = filename;
-                    _exportUID = _pack->getUID();
-                    _exportDir = os_dirname(_exportFile);
-                }
-                else
-                {
-                    tinyfd_messageBox("PopTracker", "Error saving state!",
-                            "ok", "error", 0);
-                }
+            std::string filename;
+            if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
+            if (StateManager::saveState(_tracker, _scriptHost,
+                    _win->getHints(), true, filename, true))
+            {
+                _exportFile = filename;
+                _exportUID = _pack->getUID();
+                _exportDir = os_dirname(_exportFile);
+            }
+            else
+            {
+                Dlg::MsgBox("PopTracker", "Error saving state!",
+                        Dlg::Buttons::OK, Dlg::Icon::Error);
             }
         }
         if (item == Ui::TrackerWindow::MENU_LOAD_STATE)
         {
             std::string lastName = _exportFile.empty() ? (_exportDir + OS_DIR_SEP) : _exportFile;
-            const char* ext[] = {"*.json"};
-            auto filename = tinyfd_openFileDialog("Load State",
-                    lastName.c_str(), 1, ext, "JSON Files", 0);
-            if (!filename || !*filename) return;
+            std::string filename;
+            if (!Dlg::OpenFile("Load State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
             std::string s;
             if (!readFile(filename, s)) {
-                fprintf(stderr, "Error reading state file: %s\n", filename);
-                tinyfd_messageBox("PopTracker", "Could not read state file!",
-                        "ok", "error", 0);
+                fprintf(stderr, "Error reading state file: %s\n", filename.c_str());
+                Dlg::MsgBox("PopTracker", "Could not read state file!",
+                        Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
             }
             json j;
             try {
                 j = parse_jsonc(s);
             } catch (...) {
-                fprintf(stderr, "Error parsing state file: %s\n", filename);
-                tinyfd_messageBox("PopTracker", "Selected file is not valid json!",
-                        "ok", "error", 0);
+                fprintf(stderr, "Error parsing state file: %s\n", filename.c_str());
+                Dlg::MsgBox("PopTracker", "Selected file is not valid json!",
+                        Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
             }
             auto jPack = j["pack"];
             if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
-                fprintf(stderr, "Json is not a state file: %s\n", filename);
-                tinyfd_messageBox("PopTracker", "Selected file is not a state file!",
-                        "ok", "error", 0);
+                fprintf(stderr, "Json is not a state file: %s\n", filename.c_str());
+                Dlg::MsgBox("PopTracker", "Selected file is not a state file!",
+                        Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
             }
             if (_pack->getUID() != jPack["uid"] || _pack->getVariant() != jPack["variant"]) {
@@ -388,7 +378,8 @@ bool PopTracker::start()
                 if (packInfo.uid != jPack["uid"]) {
                     std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"]) + "!";
                     fprintf(stderr, "%s\n", msg.c_str());
-                    tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+                    Dlg::MsgBox("PopTracker", msg,
+                            Dlg::Buttons::OK, Dlg::Icon::Error);
                     return;
                 }
                 bool variantMatch = false;
@@ -403,17 +394,18 @@ bool PopTracker::start()
                             " does not have requested variant "
                             + sanitize_print(jPack["variant"]);
                     fprintf(stderr, "%s\n", msg.c_str());
-                    tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+                    Dlg::MsgBox("PopTracker", msg,
+                            Dlg::Buttons::OK, Dlg::Icon::Error);
                     return;
                 }
                 if (!loadTracker(packInfo.path, jPack["variant"], false)) {
-                    tinyfd_messageBox("PopTracker", "Error loading pack!",
-                            "ok", "error", 0);
+                    Dlg::MsgBox("PopTracker", "Error loading pack!",
+                            Dlg::Buttons::OK, Dlg::Icon::Error);
                 }
             }
             if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
-                tinyfd_messageBox("PopTracker", "Error loading state!",
-                        "ok", "error", 0);
+                Dlg::MsgBox("PopTracker", "Error loading state!",
+                        Dlg::Buttons::OK, Dlg::Icon::Error);
             }
         }
     }};
@@ -577,7 +569,8 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         if (_autoTrackerDisabled)
             at->disable();
         at->onError += {this,  [](void*, const std::string& msg) {
-            tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+            Dlg::MsgBox("PopTracker", msg,
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
         }};
         auto ap = at->getAP();
         if (ap) {
@@ -658,7 +651,7 @@ void PopTracker::updateAvailable(const std::string& version, const std::string& 
     }
     
     std::string msg = "Update to PopTracker " + version + " available. Download?";
-    if (tinyfd_messageBox("PopTracker", msg.c_str(), "yesno", "question", 1))
+    if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
     {
 #if defined _WIN32 || defined WIN32
         ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
@@ -678,14 +671,15 @@ void PopTracker::updateAvailable(const std::string& version, const std::string& 
             msg += ": ";
             msg += strerror(errno);
             fprintf(stderr, "Update: %s\n", msg.c_str());
-            tinyfd_messageBox("PopTracker", msg.c_str(), "ok", "error", 0);
+            Dlg::MsgBox("PopTracker", msg,
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
             exit(0);
         }
 #endif
     }
     else {
         msg = "Skip version " + version + "?";
-        if (tinyfd_messageBox("PopTracker", msg.c_str(), "yesno", "question", 1))
+        if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
         {
             printf("Update: ignoring %s\n", version.c_str());
             ignore.push_back(version);

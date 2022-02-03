@@ -74,7 +74,8 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
             mkdir_recursive(dirname.c_str());
             filename = os_pathcat(dirname, name+".json");
         }
-        printf("Saving state \"%s\" to file...\n", name.c_str());
+        printf("Saving state \"%s\" to file %s...\n",
+                external ? "export" : name.c_str(), filename.c_str());
         std::string new_state = state.dump();
         std::string old_state;
         if (!readFile(filename, old_state) || old_state != new_state)
@@ -106,7 +107,8 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
                 sanitize_dir(pack->getUID()),
                 sanitize_dir(pack->getVersion()),
                 sanitize_dir(pack->getVariant()), name+".json");
-        printf("Loading state \"%s\" from file %s...", name.c_str(), filename.c_str());
+        printf("Loading state \"%s\" from file %s...",
+                external ? "import" : name.c_str(), filename.c_str());
         if (!readFile(filename, s)) {
             printf(" missing\n");
             return false;
