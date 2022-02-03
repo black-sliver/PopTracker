@@ -332,7 +332,6 @@ Dlg::Result Dlg::MsgBox(const std::string& title, const std::string& message, Dl
 
 bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out, bool multi)
 {
-    printf("dflt: %s\n", dflt.c_str());
 #ifdef __WIN32__
     using namespace std::string_literals;
 
@@ -410,7 +409,6 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     using namespace std::string_literals;
 
     // TODO: implement multi-select
-    assert(!multi);
     // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
     bool res = false;
     wchar_t buf[MAX_PATH]; *buf = 0;
