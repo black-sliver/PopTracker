@@ -368,7 +368,7 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrFilter = lpwFilter;
     ofn.lpstrTitle = lpwTitle;
-    ofn.Flags = OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     if (GetOpenFileNameW(&ofn)) {
         // filenames are in local (ansi) encoding at the moment
         int tmplen = WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, nullptr, 0, nullptr, nullptr);
@@ -441,7 +441,7 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrFilter = lpwFilter;
     ofn.lpstrTitle = lpwTitle;
-    ofn.Flags = OFN_OVERWRITEPROMPT;
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
     if (GetSaveFileNameW(&ofn)) {
         // filenames are in local (ansi) encoding at the moment
         int tmplen = WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, nullptr, 0, nullptr, nullptr);
