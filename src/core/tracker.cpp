@@ -75,7 +75,10 @@ bool Tracker::AddItems(const std::string& file) {
                         o.luaItem->setState((n&2)?1:0);
                 }
             }
-            onStateChanged.emit(this, i->getID());
+            if (_bulkUpdate)
+                _bulkItemUpdates.push_back(i->getID());
+            else
+                onStateChanged.emit(this, i->getID());
         }};
         if (item.getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
             // update composite when changing part items (and get initial state)
@@ -569,7 +572,10 @@ LuaItem * Tracker::CreateLuaItem()
         if (!_bulkUpdate) _reachableCache.clear();
         _providerCountCache.clear();
         LuaItem* i = (LuaItem*)sender;
-        onStateChanged.emit(this, i->getID());
+        if (_bulkUpdate)
+            _bulkItemUpdates.push_back(i->getID());
+        else
+            onStateChanged.emit(this, i->getID());
     }};
     return &i;
 }
@@ -622,10 +628,11 @@ bool Tracker::loadState(nlohmann::json& state)
 {
     _reachableCache.clear();
     _providerCountCache.clear();
+    _bulkItemUpdates.clear();
     if (state.type() != json::value_t::object) return false;
     auto& j = state["tracker"]; // state's tracker data
     if (j["format_version"] != 1) return false; // incompatible state format
-    
+
     _bulkUpdate = true;
     auto& jJsonItems = j["json_items"];
     if (jJsonItems.type() == json::value_t::object) {
@@ -658,7 +665,10 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
+    for (const auto& id: _bulkItemUpdates)
+        onStateChanged.emit(this, id);
+    _bulkItemUpdates.clear();
     _bulkUpdate = false;
-    
+
     return true;
 }

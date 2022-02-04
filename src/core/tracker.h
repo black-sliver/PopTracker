@@ -94,6 +94,7 @@ protected:
     std::map<std::string, Map> _maps;
     std::map<std::string, int> _reachableCache;
     std::map<std::string, int> _providerCountCache;
+    std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
 
     int isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules);
