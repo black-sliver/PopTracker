@@ -355,7 +355,7 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
     LPWSTR lpwTitle = (LPWSTR)malloc(title.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, lpwTitle, title.length()+1);
     LPWSTR lpwDflt = (LPWSTR)malloc(dflt.length()*2+2);
-    MultiByteToWideChar(CP_UTF8, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
+    MultiByteToWideChar(CP_ACP, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
     if (dflt.length()*2+2 <= sizeof(buf)) memcpy(buf, lpwDflt, dflt.length()*2+2);
     LPWSTR lpwFilter = (LPWSTR)malloc(filter.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), filter.length()+1, lpwFilter, filter.length()+1);
@@ -427,7 +427,7 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     LPWSTR lpwTitle = (LPWSTR)malloc(title.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, lpwTitle, title.length()+1);
     LPWSTR lpwDflt = (LPWSTR)malloc(dflt.length()*2+2);
-    MultiByteToWideChar(CP_UTF8, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
+    MultiByteToWideChar(CP_ACP, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
     if (dflt.length()*2+2 <= sizeof(buf)) memcpy(buf, lpwDflt, dflt.length()*2+2);
     LPWSTR lpwFilter = (LPWSTR)malloc(filter.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), filter.length()+1, lpwFilter, filter.length()+1);
