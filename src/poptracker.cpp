@@ -350,17 +350,17 @@ bool PopTracker::start()
             std::string lastName = _exportFile.empty() ? (_exportDir + OS_DIR_SEP) : _exportFile;
             std::string filename;
             if (!Dlg::OpenFile("Load State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
+            if (filename != _exportFile) {
+                _exportFile = filename;
+                _exportDir = os_dirname(_exportFile);
+                _exportUID.clear();
+            }
             std::string s;
             if (!readFile(filename, s)) {
                 fprintf(stderr, "Error reading state file: %s\n", filename.c_str());
                 Dlg::MsgBox("PopTracker", "Could not read state file!",
                         Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
-            }
-            if (filename != _exportFile) {
-                _exportFile = "";
-                _exportUID = "";
-                _exportDir = os_dirname(_exportFile);
             }
             json j;
             try {
@@ -412,8 +412,7 @@ bool PopTracker::start()
                 Dlg::MsgBox("PopTracker", "Error loading state!",
                         Dlg::Buttons::OK, Dlg::Icon::Error);
             }
-            _exportFile = filename;
-            _exportUID = _pack->getUID();
+            if (_pack) _exportUID = _pack->getUID();
         }
     }};
     
