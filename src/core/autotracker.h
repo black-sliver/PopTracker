@@ -99,6 +99,9 @@ public:
         if (_uat) delete _uat;
         _uat = nullptr;
 
+        if (_ap) delete _ap;
+        _ap = nullptr;
+
         if (spawnedWorkers) {
             // wait a bit if we started a thread to increase readability of logs
             std::this_thread::sleep_for(std::chrono::milliseconds(21));
