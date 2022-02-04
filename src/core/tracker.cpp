@@ -3,6 +3,7 @@
 #include <cstring>
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"
+#include "util.h"
 using nlohmann::json;
 
 const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
@@ -502,19 +503,29 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
             else if (s[0] == '@') {
                 const char* start = s.c_str()+1;
                 const char* t = strrchr(s.c_str()+1, '/');
-                if (!t) continue; // invalid location
+                if (!t) {
+                    printf("Invalid location %s for access rule!\n",
+                            sanitize_print(s).c_str());
+                    continue; // invalid location
+                }
                 std::string sublocid = s.substr(1, t-start);
                 std::string subsecname = t+1;
                 auto& subloc = getLocation(sublocid, true);
+                bool match = false;
                 for (auto& subsec: subloc.getSections()) {
                     if (subsec.getName() != subsecname) continue;
                     int sub = visibilityRules ? isVisible(subsec) : isReachable(subsec); // check subsection visibility for isVisible
                     if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
-                    else if (optional && sub) sub=2;
-                    if (sub==2) reachable = 2;
+                    else if (optional && sub==0) sub=2;
+                    if (sub==2 && reachable) reachable = 2;
                     if (sub==0) reachable = 0;
+                    match = true;
                     break;
+                }
+                if (!match) {
+                    printf("Could not find location %s for access rule!\n",
+                            sanitize_print(s).c_str());
                 }
                 if (!reachable) break;
             }
