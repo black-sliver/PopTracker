@@ -91,7 +91,7 @@ static BOOL CALLBACK InputBoxDlgProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARA
 
 static LPWORD DWORD_ALIGN(LPWORD lpIn)
 {
-   size_t ul = (size_t)lpIn;
+   ULONG_PTR ul = (ULONG_PTR)lpIn;
 
    ul += 3;
    ul >>= 2;
@@ -100,7 +100,7 @@ static LPWORD DWORD_ALIGN(LPWORD lpIn)
    return (LPWORD)ul;
 }
 
-static LPVOID InitDialogU(LPVOID buf, size_t buflen, LPCSTR title, DWORD style, WORD ctrlno, short x, short y, short cx, short cy)
+static LPVOID InitDialogU(LPVOID buf, ULONG_PTR buflen, LPCSTR title, DWORD style, WORD ctrlno, short x, short y, short cx, short cy)
 {
     int nchar;
 
@@ -152,7 +152,7 @@ static LPVOID InitDialogU(LPVOID buf, size_t buflen, LPCSTR title, DWORD style, 
     return wbuf;
 }
 
-static LPVOID CreateDlgControlU(LPVOID buf, size_t buflen, WORD ctrlclass, WORD id, LPCSTR text, DWORD style, short x, short y, short cx, short cy)
+static LPVOID CreateDlgControlU(LPVOID buf, ULONG_PTR buflen, WORD ctrlclass, WORD id, LPCSTR text, DWORD style, short x, short y, short cx, short cy)
 {
     int nchar;
 
@@ -198,9 +198,10 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     // This builds a dialog template in memory
     // Dialog template format:
     // 1 DLGTEMPLATE followed by
-    // followed by some variable length "data" sections
-    // n DLGITEMTEMPLATE each
-    // each followed by some variable length "data" sections
+    // some variable length "data" sections
+    // n DLGITEMTEMPLATE each followed by
+    // by some variable length "data" sections
+    // DLGITEMTEMPLATE have to be DWORD aligned (4 bytes)
 
     // TODO: after some thought this should probably move all strings to
     // Set*Text so we can easily define the template with structs on the stack
@@ -210,7 +211,7 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     void* userdata[] = {textbuf, (void*)textbuflen};
 
     // Allocate buffer for dialog template
-    size_t dlgbuflen = 1024;
+    ULONG_PTR dlgbuflen = 1024;
     LPVOID dlgbuf = malloc(dlgbuflen);
     memset(dlgbuf, 0, dlgbuflen);
     LPVOID bufp = dlgbuf;
@@ -408,7 +409,6 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
 #ifdef __WIN32__
     using namespace std::string_literals;
 
-    // TODO: implement multi-select
     // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
     bool res = false;
     wchar_t buf[MAX_PATH]; *buf = 0;
