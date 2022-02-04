@@ -1,5 +1,17 @@
 # PopTracker Changelog
 
+## v0.18.2
+
+* Fixes
+  * Fix some locations not updating when loading/resetting state
+  * Fix "glitch-reachable" for @-access_rules
+  * Fixed multiple issues handling Archipelago connect errors and disconnect
+* App Features
+  * Win32: enable "visual style" (fancier MessageBoxes)
+  * Remember last import/export file when loading state
+* Pack Features
+  * Return empty table for Item.Owner to support more packs
+
 ## v0.18.1
 
 * Fixes
