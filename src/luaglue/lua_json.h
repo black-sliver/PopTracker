@@ -73,6 +73,9 @@ static void json_to_lua(lua_State* L, json& j)
         case json::value_t::string:
             lua_pushstring(L, j.get<std::string>().c_str());
             break;
+        case json::value_t::null:
+            lua_pushnil(L);
+            break;
         case json::value_t::object:
             lua_newtable(L);
             for (auto it=j.begin(); it!=j.end(); ++it) {
