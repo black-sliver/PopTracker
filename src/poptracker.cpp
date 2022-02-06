@@ -278,14 +278,8 @@ bool PopTracker::start()
         }
         if (item == Ui::TrackerWindow::MENU_RELOAD)
         {
-#if 0
-            if (!_pack) return;
-            scheduleLoadTracker(_pack->getPath(), _pack->getVariant(), false);
-#else
             if (!_tracker) return;
             StateManager::loadState(_tracker, _scriptHost, false, "reset");
-#endif
-            
         }
         if (item == Ui::TrackerWindow::MENU_TOGGLE_AUTOTRACKER)
         {
@@ -404,8 +398,12 @@ bool PopTracker::start()
                     return;
                 }
                 if (!loadTracker(packInfo.path, jPack["variant"], false)) {
+                    fprintf(stderr, "Error loading pack!\n");
+#ifdef DONT_IGNORE_PACK_ERRORS
                     Dlg::MsgBox("PopTracker", "Error loading pack!",
                             Dlg::Buttons::OK, Dlg::Icon::Error);
+                    unloadTracker();
+#endif
                 }
             }
             if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
@@ -482,15 +480,20 @@ bool PopTracker::frame()
     }
 
     // load new tracker AFTER rendering a frame
-    if (res && !_newTracker.empty()) {
-        printf("Loading Tracker %s:%s!\n", _newTracker.c_str(), _newVariant.c_str()); fflush(stdout);
-        if (!loadTracker(_newTracker, _newVariant, _newTrackerLoadAutosave)) {
-            fprintf(stderr, "Error loading tracker/pack!\n"); fflush(stderr);
-            // TODO: display error
+    if (res && !_newPack.empty()) {
+        printf("Loading Tracker %s:%s!\n", sanitize_print(_newPack).c_str(),
+                sanitize_print(_newVariant).c_str());
+        if (!loadTracker(_newPack, _newVariant, _newTrackerLoadAutosave)) {
+            fprintf(stderr, "Error loading pack!\n");
+#ifdef DONT_IGNORE_PACK_ERRORS
+            Dlg::MsgBox("PopTracker", "Error loading pack!",
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
+            unloadTracker();
+#endif
         } else {
-            printf("Tracker loaded!\n"); fflush(stdout);
+            printf("Tracker loaded!\n");
         }
-        _newTracker = "";
+        _newPack = "";
         _newVariant = "";
     }
 
@@ -633,7 +636,7 @@ bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string&
 {
     // TODO: (load and) verify pack already?
     if (! pathExists(pack)) return false;
-    _newTracker = pack;
+    _newPack = pack;
     _newVariant = variant;
     _newTrackerLoadAutosave = loadAutosave;
     return true;

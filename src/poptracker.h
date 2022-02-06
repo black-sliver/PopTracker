@@ -42,7 +42,7 @@ private:
     std::chrono::steady_clock::time_point _fpsTimer;
     std::chrono::steady_clock::time_point _frameTimer;
     
-    std::string _newTracker;
+    std::string _newPack;
     std::string _newVariant;
     bool _newTrackerLoadAutosave = false;
     std::chrono::steady_clock::time_point _autosaveTimer;
