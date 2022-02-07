@@ -192,6 +192,8 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `"consumable"`:
   + has count (0 = off)
   + adds `"max_quantity": 0`
+  + adds `"increment": 1` can be used if an item pickup is always a certain count, since 0.18.3
+  + adds `"decrement": 1` can be used if using an item always uses up multiple, since 0.18.3
   + adds optional `"initial_quantity": 0`
   + adds optional `"overlay_background": ""` set text background color with "#000000" notation
   + adds optional `"overlay_font_size": 0` set font size of overlay text

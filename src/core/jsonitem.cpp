@@ -58,7 +58,9 @@ JsonItem JsonItem::FromJSON(json& j)
     item._img           = to_string(j["img"], "");
     item._disabledImg   = to_string(j["disabled_img"], item._img);
     item._maxCount      = to_int(j["max_quantity"], -1);
-    
+    item._increment     = to_int(j["increment"], 1);
+    item._decrement     = to_int(j["decrement"], 1);
+
     if (item._type == Type::PROGRESSIVE_TOGGLE) {
         item._type = Type::PROGRESSIVE;
         item._loop = true;
@@ -215,13 +217,17 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
     } else if (_type == Type::CONSUMABLE) {
         // left,fwd = +1, right,back = -1
         if (action == Action::Primary || action == Action::Next) {
-            int n = _count+1;
-            if (_maxCount>=0 && n>_maxCount) return false;
+            int n = _count+_increment;
+            if (_maxCount>=0 && n>_maxCount) n = _maxCount;
+            if (n < 0) n = 0;
+            if (n == _count) return false;
             _count = n;
-            _stage1 = 1;
+            _stage1 = (n>0);
         } else if (action == Action::Secondary || action == Action::Prev) {
-            int n = _count-1;
-            if (n<0) return false;
+            int n = _count-_decrement;
+            if (_maxCount>=0 && n>_maxCount) n = _maxCount;
+            if (n < 0) n = 0;
+            if (n == _count) return false;
             _count = n;
             _stage1 = (n>0);
         } else {

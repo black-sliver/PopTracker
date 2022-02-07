@@ -81,6 +81,8 @@ protected:
     int _stage2 = 0; // for toggle this is always 0, for staged item this is the stage. "ActiveStage"
     int _count = 0; // for consumables. "quantity" in json
     int _maxCount = 0; // for consumable
+    int _increment = 1; // for consumable
+    int _decrement = 1; // for consumables
     std::string _baseItem; // for toggle_badged
     
 public:
