@@ -138,7 +138,7 @@ public:
     int getAutoWidth() const { return _autoSize.width; }
     int getAutoHeight() const { return _autoSize.height; }
     int getHGrow() const { return _hGrow; }
-    int getVGrow() const { return _hGrow; }
+    int getVGrow() const { return _vGrow; }
     void setLeft(int x) { setPosition({x,_pos.top}); }
     void setTop(int y) { setPosition({_pos.left,y}); }
     virtual void setPosition(const Position& pos) { _pos = pos; }
