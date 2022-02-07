@@ -81,8 +81,8 @@ JsonItem JsonItem::FromJSON(json& j)
     if (item._type == Type::COMPOSITE_TOGGLE && j["images"].type() == json::value_t::array) {
         // we convert composite toggle to a 4-staged item and only have special
         // code for mouse presses and for linking it to the "parts" in Tracker
-        std::string leftCode = j["item_left"];
-        std::string rightCode = j["item_right"];
+        std::string leftCode = to_string(j["item_left"], "");
+        std::string rightCode = to_string(j["item_right"], "");
         for (uint8_t n=0; n<4; n++) {
             for (auto& v: j["images"]) {
                 if (to_bool(v["left"],false) == !!(n&1) && to_bool(v["right"],false) == !!(n&2)) {
