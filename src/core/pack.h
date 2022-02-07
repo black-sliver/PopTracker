@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <chrono>
 #include <nlohmann/json.hpp>
 #include "zip.h"
 
@@ -44,6 +45,7 @@ public:
     std::set<std::string> getVariantFlags() const;
     std::string getPlatform() const;
     std::string getVersion() const;
+    bool hasFilesChanged() const;
     
     static std::vector<Info> ListAvailable();
     static Info Find(std::string uid, std::string version="");
@@ -58,7 +60,9 @@ protected:
     std::string _gameName;
     std::string _variantName;
     nlohmann::json _manifest;
-    
+
+    std::chrono::system_clock::time_point _loaded;
+
     static std::vector<std::string> _searchPaths;
 };
 

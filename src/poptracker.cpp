@@ -279,7 +279,10 @@ bool PopTracker::start()
         if (item == Ui::TrackerWindow::MENU_RELOAD)
         {
             if (!_tracker) return;
-            StateManager::loadState(_tracker, _scriptHost, false, "reset");
+            if (_pack && _pack->hasFilesChanged())
+                scheduleLoadTracker(_pack->getPath(), _pack->getVariant(), false);
+            else
+                StateManager::loadState(_tracker, _scriptHost, false, "reset");
         }
         if (item == Ui::TrackerWindow::MENU_TOGGLE_AUTOTRACKER)
         {

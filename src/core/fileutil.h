@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <chrono>
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
@@ -276,6 +277,20 @@ static int mkdir_recursive(const char *dir, mode_t mode=0750) {
     int res = MKDIR(tmp, mode);
     free(tmp);
     return res;
+}
+
+static bool getFileMTime(const char* path, std::chrono::system_clock::time_point& tp)
+{
+    struct stat st;
+    if (stat(path, &st)) return false;
+    auto duration = std::chrono::seconds(st.st_mtime);
+    tp = std::chrono::system_clock::time_point(duration);
+    return true;
+}
+
+static bool getFileMTime(const std::string& path, std::chrono::system_clock::time_point& tp)
+{
+    return getFileMTime(path.c_str(), tp);
 }
 
 #endif // _CORE_FILEUTIL_H

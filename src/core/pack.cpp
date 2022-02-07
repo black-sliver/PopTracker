@@ -10,6 +10,7 @@ std::vector<std::string> Pack::_searchPaths;
 
 Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
 {
+    _loaded = std::chrono::system_clock::now();
     std::string s;
     if (fileExists(path)) {
         _zip = new Zip(path);
@@ -180,6 +181,38 @@ std::set<std::string> Pack::getVariantFlags() const
         if (f.is_string()) set.insert(f.get<std::string>());
     }
     return set;
+}
+
+static bool fileNewerThan(const std::string& path, const std::chrono::system_clock::time_point& than)
+{
+    std::chrono::system_clock::time_point tp;
+    return (!getFileMTime(path, tp) || tp > than); // assume changed on error
+}
+
+static bool dirNewerThan(const char* path, const std::chrono::system_clock::time_point& than)
+{
+    DIR *d = opendir(path);
+    if (!d) return true; // error -> assume changed
+    struct dirent *dir;
+    while ((dir = readdir(d)) != NULL)
+    {
+        if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
+        auto f = os_pathcat(path, dir->d_name);
+        if (dir->d_type == DT_DIR && dirNewerThan(f.c_str(), than)) return true;
+        else if (dir->d_type != DT_DIR && fileNewerThan(f, than)) return true;
+    }
+    closedir(d);
+    return false;
+}
+
+bool Pack::hasFilesChanged() const
+{
+    if (_zip) {
+        if (fileNewerThan(_path, _loaded)) return true;
+    } else {
+        if (dirNewerThan(_path.c_str(), _loaded)) return true;
+    }
+    return false;
 }
 
 std::vector<Pack::Info> Pack::ListAvailable()
