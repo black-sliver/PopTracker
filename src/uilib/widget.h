@@ -188,6 +188,7 @@ public:
     Signal<int,int,unsigned> onMouseMove; // TODO: MouseMoveEventArgs& ?
     Signal<int,int,unsigned> onMouseEnter;
     Signal<> onMouseLeave;
+    Signal<int,int,unsigned> onScroll;
     Signal<> onDestroy;
 
 #ifndef NDEBUG

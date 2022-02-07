@@ -150,6 +150,16 @@ bool Ui::render()
                     }
                     break;
                 }
+                case SDL_MOUSEWHEEL: {
+                    int x = ev.wheel.x * 16;
+                    int y = ev.wheel.y * 16;
+                    unsigned mod = 0;
+                    auto winIt = _windows.find(ev.motion.windowID);
+                    if (winIt != _windows.end()) {
+                        winIt->second->onScroll.emit(winIt->second, x, y, mod);
+                    }
+                    break;
+                }
                 case SDL_WINDOWEVENT: {
                     if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                         int x = ev.window.data1;

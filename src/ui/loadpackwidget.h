@@ -3,8 +3,9 @@
 
 #include "../uilib/container.h"
 #include "../uilib/simplecontainer.h"
-#include "../uilib/vbox.h"
 #include "../uilib/hbox.h"
+#include "../uilib/vbox.h"
+#include "../uilib/scrollvbox.h"
 #include "../uilib/label.h"
 #include "../uilib/fontstore.h"
 #include "../core/signal.h"
@@ -28,7 +29,7 @@ protected:
     FONT _font;
     FONT _smallFont;
     
-    VBox *_packs;
+    ScrollVBox *_packs;
     VBox *_variants;
     HBox *_main;
     Label *_curPackLabel = nullptr;

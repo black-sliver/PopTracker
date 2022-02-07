@@ -2,6 +2,7 @@
 #include "../core/pack.h"
 #include "../uilib/hbox.h"
 #include "../uilib/vbox.h"
+#include "../uilib/scrollvbox.h"
 #include "../uilib/label.h"
 #include "defaults.h" // DEFAULT_FONT_*
 
@@ -20,7 +21,7 @@ LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore)
         }
     }};
     
-    auto packs = new VBox(0,0,0,0);
+    auto packs = new ScrollVBox(0,0,0,0);
     packs->setGrow(1,1);
     packs->setMargin(0);
     packs->setSpacing(1);
@@ -103,10 +104,11 @@ void LoadPackWidget::update()
         lbl->setMinSize(lbl->getAutoSize());
         lbl->setSize({_size.width/2,32}); // TODO; hbox with even split instead
         _packs->addChild(lbl);
+        auto spacer = new Label(0, 0, 0, 0, nullptr, "");
+        spacer->setGrow(1,1);
+        _packs->addChild(spacer);
     }
-    auto spacer = new Label(0, 0, 0, 0, nullptr, "");
-    spacer->setGrow(1,1);
-    _packs->addChild(spacer);
+    _main->setSize(_size);
     _main->relayout(); // TODO: have this be done automatically
 }
 

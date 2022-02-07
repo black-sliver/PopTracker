@@ -134,6 +134,9 @@ protected:
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
             }
         }};
+        onScroll += { this, [this](void* s, int x, int y, unsigned mod) {
+            if (_hoverChild) _hoverChild->onScroll.emit(_hoverChild, x, y, mod);
+        }};
     }
 };
 
