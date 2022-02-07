@@ -183,6 +183,12 @@ std::set<std::string> Pack::getVariantFlags() const
     return set;
 }
 
+static bool fileNewerThan(const struct stat* st, const std::chrono::system_clock::time_point& than)
+{
+    auto duration = std::chrono::seconds(st->st_mtime);
+    return (std::chrono::system_clock::time_point(duration) > than);
+}
+
 static bool fileNewerThan(const std::string& path, const std::chrono::system_clock::time_point& than)
 {
     std::chrono::system_clock::time_point tp;
@@ -198,8 +204,10 @@ static bool dirNewerThan(const char* path, const std::chrono::system_clock::time
     {
         if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
         auto f = os_pathcat(path, dir->d_name);
-        if (dir->d_type == DT_DIR && dirNewerThan(f.c_str(), than)) return true;
-        else if (dir->d_type != DT_DIR && fileNewerThan(f, than)) return true;
+        struct stat st;
+        if (stat(f.c_str(), &st) != 0) return true;
+        if (S_ISDIR(st.st_mode) && dirNewerThan(f.c_str(), than)) return true;
+        else if (!S_ISDIR(st.st_mode) && fileNewerThan(&st, than)) return true;
     }
     closedir(d);
     return false;
