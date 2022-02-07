@@ -344,6 +344,10 @@ Name is optional and will be displayed above the section.
 
 Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_name/secion_name")`
 
+`hosted_item` is a comma separated list of item codes that are always in this section.
+
+`item_count` is the number of checks (chests, ...) and defaults to 1 unless `hosted_item` is used, in which case it defaults to 0.
+
 **Tracker Lua Interface:**
 
 * `Tracker:FindObjectForCode('@location_name/section_name')` returns a Section or nil

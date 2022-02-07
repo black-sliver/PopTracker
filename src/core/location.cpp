@@ -179,9 +179,10 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
     sec._closedImg = to_string(j["chest_unopened_img"], closedImg);
     sec._openedImg = to_string(j["chest_opened_img"], openedImg);
     sec._overlayBackground = to_string(j["overlay_background"], overlayBackground);
-    sec._itemCount = to_int(j["item_count"], sec._itemCount);
     auto tmp = to_string(j["hosted_item"], "");
     commasplit(tmp, sec._hostedItems);
+    sec._itemCount = sec._hostedItems.empty() ? 1 : 0;
+    sec._itemCount = to_int(j["item_count"], sec._itemCount);
     if (j["access_rules"].type() == json::value_t::array) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["access_rules"]) {
