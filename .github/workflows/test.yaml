@@ -62,6 +62,7 @@ jobs:
     steps:
     - uses: msys2/setup-msys2@v2
       with:
+        release: false
         update: true
         install: >-
           base-devel
