@@ -13,6 +13,7 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf)
     }
     if (name=="overlay" && !arg.empty()) {
         auto overlay = IMG_Load_RW(SDL_RWFromMem((void*)arg.c_str(), (int)arg.length()), 1);
+        overlay = makeTransparent(overlay, 0xff, 0x00, 0xff, false);
         if (overlay) {
             SDL_BlitSurface(overlay, nullptr, surf, nullptr);
             SDL_FreeSurface(overlay);
