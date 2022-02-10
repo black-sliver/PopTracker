@@ -62,7 +62,6 @@ JsonItem JsonItem::FromJSON(json& j)
     item._decrement     = to_int(j["decrement"], 1);
 
     if (item._type == Type::PROGRESSIVE_TOGGLE) {
-        item._type = Type::PROGRESSIVE;
         item._loop = true;
         item._allowDisabled = true;
     }
@@ -160,7 +159,7 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             _stage1 = !_stage1;
         }
     } else if (_type == Type::PROGRESSIVE && !_allowDisabled) {
-        // left,fwd = next, right,back = prev, middle = nothing
+        // left,fwd = next, right,back = prev, middle = next+always loop
         int n = _stage2;
         if (action == Action::Primary || action == Action::Next) {
             n++;
@@ -182,6 +181,49 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         if (n == _stage2) return false;
         _stage2 = n;
     } else if (_type == Type::PROGRESSIVE/* && _allowDisabled*/) {
+        // left,fwd = next, right,back = prev, middle = next+always loop
+        // has virtual 0th stage as disabled fist stage
+        int a = _stage1;
+        int n = _stage2;
+        if (action == Action::Primary || action == Action::Next) {
+            if (!a) {
+                a = 1;
+            } else {
+                n++;
+                if (n>=(int)_stages.size()) {
+                    if (_loop) {
+                        n = 0;
+                        a = 0;
+                    }
+                    else n--;
+                }
+            }
+        } else if (action == Action::Secondary || action == Action::Prev) {
+            if (a && n == 0) {
+                a = 0;
+            } else {
+                n--;
+                if (n<0) {
+                    if (_loop) {
+                        n = (int)_stages.size()-1;
+                        a = 1;
+                    }
+                    else n++;
+                }
+            }
+        } else {
+            // single button control
+            if (!a) a = 1;
+            else n++;
+            if (n >= (int)_stages.size()) {
+                n = 0;
+                a = 0;
+            }
+        }
+        if (a == _stage1 && n == _stage2) return false;
+        _stage1 = a;
+        _stage2 = n;
+    } else if (_type == Type::PROGRESSIVE_TOGGLE) {
         // left,middle = toggle, right,fwd = next, back = prev
         if (action == Action::Primary || action == Action::Toggle) {
             _stage1 = !_stage1;
