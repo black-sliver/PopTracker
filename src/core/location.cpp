@@ -38,7 +38,7 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
 
 std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
 {
-    // TODO: pass inherited values as parent instead
+    // TODO: sine we store all intermediate locations now, we could pass a parent to FromJSON instead of all arguments
     std::list<Location> locs;
     
     if (j.type() == json::value_t::array) {
@@ -113,15 +113,20 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     std::string closedImg = to_string(j["chest_unopened_img"], closedImgR); // TODO: avoid copy
     std::string openedImg = to_string(j["chest_opened_img"], openedImgR);
     std::string overlayBackground = to_string(j["overlay_background"], overlayBackgroundR);
+    std::string parent = to_string(j["parent"], "");
+    if (!parent.empty()) {
+        fprintf(stderr, "Location: parent unsupported for %s\n",
+                sanitize_print(name).c_str());
+    }
 
-    // TODO: if maplocation or sections in j, add locations to locs
-    if (j["sections"].type() == json::value_t::array)
     {
         Location loc;
         loc._name = name;
         loc._parentName = parentName;
         loc._id = loc._parentName.empty() ? loc._name : (loc._parentName + "/" + loc._name);
-        if (j["map_locations"].type() == json::value_t::array) {
+        loc._accessRules = accessRules;
+        loc._visibilityRules = visibilityRules;
+        if (j["map_locations"].is_array()) {
             for (auto& v : j["map_locations"]) {
                 if (v.type() != json::value_t::object) {
                     fprintf(stderr, "Location: bad map location\n");
@@ -129,24 +134,23 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
                 }
                 loc._mapLocations.push_back(MapLocation::FromJSON(v));
             }
-        } else if (j["map_locations"].type() != json::value_t::null) {
+        } else if (!j["map_locations"].is_null()) {
             fprintf(stderr, "Location: invalid map locations\n");
         }
-        for (auto& v: j["sections"]) {
-            if (v.type() != json::value_t::object) {
-                fprintf(stderr, "Location: bad section\n");
-                continue;
+        if (j["sections"].is_array()) {
+            for (auto& v: j["sections"]) {
+                if (v.type() != json::value_t::object) {
+                    fprintf(stderr, "Location: bad section\n");
+                    continue;
+                }
+                loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
             }
-            loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
+        } else if (!j["sections"].is_null()) {
+            fprintf(stderr, "Location: invalid sections\n");
         }
         locs.push_back(loc);
     }
-    else if (j["map_locations"].type() != json::value_t::null &&
-             j["sections"].type() == json::value_t::null)
-    {
-        fprintf(stderr, "Location: incomplete object\n");
-    }
-    
+
     if (j["children"].type() == json::value_t::array) {
         std::string fullname = parentName.empty() ? name : (parentName + "/" + name);
         for (auto& loc : Location::FromJSON(j["children"], accessRules, visibilityRules, fullname, closedImg, openedImg, overlayBackground)) {
