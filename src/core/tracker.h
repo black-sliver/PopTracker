@@ -76,6 +76,8 @@ public:
 
     int isReachable(const LocationSection& section);
     bool isVisible(const LocationSection& section);
+    int isReachable(const Location& location);
+    bool isVisible(const Location& location);
 
     const Pack* getPack() const;
 

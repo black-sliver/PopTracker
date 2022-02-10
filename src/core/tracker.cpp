@@ -506,27 +506,37 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
             else if (s[0] == '@') {
                 const char* start = s.c_str()+1;
                 const char* t = strrchr(s.c_str()+1, '/');
-                if (!t) {
+                std::string locid = s.substr(1);
+                auto& loc = getLocation(locid, true);
+                bool match = false;
+                int sub = 0;
+                if (!t && loc.getID().empty()) {
                     printf("Invalid location %s for access rule!\n",
                             sanitize_print(s).c_str());
                     continue; // invalid location
+                } else if (!loc.getID().empty()) {
+                    // @-Rule for location, not a section
+                    sub = visibilityRules ? isVisible(loc) : isReachable(loc); // check location visibility for isVisible
+                    match = true;
+                } else {
+                    // @-Rule for a section or missing location/section
+                    std::string sublocid = locid.substr(t-start);
+                    std::string subsecname = t+1;
+                    auto& subloc = getLocation(sublocid, true);
+                    for (auto& subsec: subloc.getSections()) {
+                        if (subsec.getName() != subsecname) continue;
+                        sub = visibilityRules ? isVisible(subsec) : isReachable(subsec); // check subsection visibility for isVisible
+                        match = true;
+                        break;
+                    }
                 }
-                std::string sublocid = s.substr(1, t-start);
-                std::string subsecname = t+1;
-                auto& subloc = getLocation(sublocid, true);
-                bool match = false;
-                for (auto& subsec: subloc.getSections()) {
-                    if (subsec.getName() != subsecname) continue;
-                    int sub = visibilityRules ? isVisible(subsec) : isReachable(subsec); // check subsection visibility for isVisible
+                if (match) {
                     if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
                     else if (optional && sub==0) sub=2;
                     if (sub==2 && reachable) reachable = 2;
                     if (sub==0) reachable = 0;
-                    match = true;
-                    break;
-                }
-                if (!match) {
+                } else {
                     printf("Could not find location %s for access rule!\n",
                             sanitize_print(s).c_str());
                 }
@@ -561,6 +571,16 @@ int Tracker::isReachable(const LocationSection& section)
 bool Tracker::isVisible(const LocationSection& section)
 {
     return isReachable(section.getVisibilityRules(), true);
+}
+
+int Tracker::isReachable(const Location& location)
+{
+    return isReachable(location.getAccessRules(), false);
+}
+
+bool Tracker::isVisible(const Location& location)
+{
+    return isReachable(location.getVisibilityRules(), true);
 }
 
 LuaItem * Tracker::CreateLuaItem()
