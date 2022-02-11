@@ -621,6 +621,19 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         }};
     }
     
+    // "legacy" packs don't load the items/layouts through Lua, but use fixed files
+    // we support a small sub-set here
+    if (_pack->hasFile("items.json"))
+        _tracker->AddItems("items.json");
+    if (_pack->hasFile("tracker_layout.json"))
+        _tracker->AddLayouts("tracker_layout.json");
+    if (_pack->hasFile("broadcast_layout.json"))
+        _tracker->AddLayouts("broadcast_layout.json");
+    if (_pack->hasFile("maps.json"))
+        _tracker->AddMaps("maps.json");
+    if (_pack->hasFile("locations.json"))
+        _tracker->AddLocations("locations.json");
+
     // run pack's init script
     printf("Running scripts/init.lua\n");
     bool res = _scriptHost->LoadScript("scripts/init.lua");

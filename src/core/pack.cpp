@@ -90,6 +90,25 @@ bool sanitizePath(const std::string& userfile, std::string& file)
     return true;
 }
 
+bool Pack::hasFile(const std::string& userfile) const
+{
+    std::string file;
+    if (!sanitizePath(userfile, file)) return false;
+
+    if (_zip) {
+        if (!_variant.empty() && _zip->hasFile(_variant+"/"+file))
+            return true;
+        if (_zip->hasFile(file))
+            return true;
+    } else {
+        if (!_variant.empty() && fileExists(os_pathcat(_path,_variant,file)))
+            return true;
+        if (fileExists(os_pathcat(_path,file)))
+            return true;
+    }
+    return false;
+}
+
 bool Pack::ReadFile(const std::string& userfile, std::string& out) const
 {
     std::string file;

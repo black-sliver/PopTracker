@@ -210,10 +210,16 @@ bool Tracker::AddLayouts(const std::string& file) {
         fprintf(stderr, "Bad json\n"); // TODO: throw lua error?
         return false;
     }
-    
+
+    if (j.find("layouts") != j.end() && j["layouts"].is_object())
+        j = j["layouts"]; // legacy layout file
+    else if (j.find("type") != j.end() && j.find("content") != j.end()
+            && j["type"].is_string() && j["content"].is_array())
+        j = json{{"tracker_broadcast", j}}; // legacy broadcast_layout
+
     for (auto& [key,value] : j.items()) {
         if (value.type() != json::value_t::object) {
-            fprintf(stderr, "Bad layout\n");
+            fprintf(stderr, "Bad layout: %s (type %d)\n", key.c_str(), (int)value.type());
             continue; // ignore
         }
         if (_layouts.find(key) != _layouts.end())

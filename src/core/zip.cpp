@@ -84,6 +84,24 @@ std::vector< std::pair<Zip::EntryType,std::string> > Zip::list(bool recursive)
     return res;
 }
 
+bool Zip::hasFile(const std::string& name)
+{
+    if (!_valid) return false;
+
+    std::string path = _dir + name;
+    if (_slashes == Slashes::FORWARD) {
+        std::replace(path.begin(), path.end(), '\\', '/');
+    } else if (_slashes == Slashes::BACKWARD) {
+        std::replace(path.begin(), path.end(), '/', '\\');
+    }
+
+    mz_uint32 index = 0;
+    if (mz_zip_reader_locate_file_v2(&_zip, path.c_str(), nullptr, 0, &index)<1) {
+        return false; // no such file
+    }
+    return true;
+}
+
 bool Zip::readFile(const std::string& name, std::string& out)
 {
     out.clear();
