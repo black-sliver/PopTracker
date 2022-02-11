@@ -191,7 +191,7 @@ bool Tracker::AddMaps(const std::string& file) {
     
     for (auto& v : j) {
         if (v.type() != json::value_t::object || v["name"].type() != json::value_t::string) {
-            fprintf(stderr, "Bad item\n");
+            fprintf(stderr, "Bad map\n");
             continue; // ignore
         }
         _maps[v["name"]] = Map::FromJSON(v);
@@ -213,7 +213,7 @@ bool Tracker::AddLayouts(const std::string& file) {
     
     for (auto& [key,value] : j.items()) {
         if (value.type() != json::value_t::object) {
-            fprintf(stderr, "Bad item\n");
+            fprintf(stderr, "Bad layout\n");
             continue; // ignore
         }
         if (_layouts.find(key) != _layouts.end())

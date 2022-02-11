@@ -200,7 +200,7 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     // 1 DLGTEMPLATE followed by
     // some variable length "data" sections
     // n DLGITEMTEMPLATE each followed by
-    // by some variable length "data" sections
+    // some variable length "data" sections
     // DLGITEMTEMPLATE have to be DWORD aligned (4 bytes)
 
     // TODO: after some thought this should probably move all strings to
