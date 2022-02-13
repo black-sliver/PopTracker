@@ -569,22 +569,53 @@ void USB2SNES::removeWatch(uint32_t addr, unsigned len)
 }
 uint8_t USB2SNES::read(uint32_t addr)
 {
-    addr = mapaddr(addr);
+    uint32_t usb2snes_addr = mapaddr(addr);
+#ifdef USB2SNES_ALLOW_READ_WITHOUT_WATCH
+    uint8_t val;
     {
         std::lock_guard<std::mutex> datalock(datamutex);
-        return data[addr];
+        val = data[usb2snes_addr];
+        for (const auto& w: watchlist)
+            if (w >= usb2snes_addr) return val;
     }
+    // value is not being watched -> add watch
+    addWatch(addr);
+    return val;
+#else
+    {
+        std::lock_guard<std::mutex> datalock(datamutex);
+        return data[usb2snes_addr];
+    }
+#endif
 }
 
 bool USB2SNES::read(uint32_t addr, unsigned len, void* out)
 {
     uint8_t* dst = (uint8_t*)out;
-    addr = mapaddr(addr);
+    uint32_t usb2snes_addr = mapaddr(addr);
+#ifdef USB2SNES_ALLOW_READ_WITHOUT_WATCH
+    bool missing = true;
     {
         std::lock_guard<std::mutex> datalock(datamutex);
-        for (size_t i=0; i<len; i++) dst[i] = data[addr+i];
+        for (size_t i=0; i<len; i++) dst[i] = data[usb2snes_addr+i];
+        for (size_t i=0; i<watchlist.size(); i++) {
+            if (watchlist[i] == usb2snes_addr) {
+                if (watchlist.size()>=i+len && watchlist[i+len-1] == usb2snes_addr+len-1)
+                    missing = false;
+                break;
+            } else if (watchlist[i] > usb2snes_addr) {
+                break;
+            }
+        }
+    }
+    if (missing) addWatch(addr, len);
+#else
+    {
+        std::lock_guard<std::mutex> datalock(datamutex);
+        for (size_t i=0; i<len; i++) dst[i] = data[usb2snes_addr+i];
     }
     return true;
+#endif
 }
 
 bool USB2SNES::hasFeature(std::string feat)
