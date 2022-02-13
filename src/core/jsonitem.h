@@ -85,6 +85,13 @@ public:
     
     virtual int providesCode(const std::string code) const override {
         // TODO: split at ':' for consumables to be able to check for a specific amount?
+        if (_type == Type::COMPOSITE_TOGGLE) {
+            // composites do not provide left/right codes since that would duplicate numbers
+            if (std::find(_codes.begin(), _codes.end(), code) != _codes.end())
+                return ((_stage2&1) ? 1 : 0) + ((_stage2&2) ? 1 : 0);
+            else
+                return 0;
+        }
         if ((int)_stages.size()>_stage2) {
             if (_allowDisabled && !_stage1) return 0;
             for (int i=_stage2; i>=0; i--) {
