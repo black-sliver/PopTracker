@@ -29,7 +29,7 @@ provided, either through auto-detection (not implemented), variant's flags
 
 ### global ScriptHost
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])` returns a reference (name) to the watch
-* `:RemoveMemoryWatch(name)` removed named memory watch, or all if name=true
+* `:RemoveMemoryWatch(name)` removes named memory watch
 * callback signature:
 `function(Segment)` (see [type Segment](#type-segment))
 
@@ -88,7 +88,7 @@ if available, also add the flag `"uatbridge"`.
 
 
 ### global AutoTracker
-Reading from AutoTracker may be slower than reading from Store (watch callback argument). returns a reference (name) to the watch
+Reading from AutoTracker may be slower than reading from Store (watch callback argument).
 * `variant :ReadVariable(variable_name)` returns what the remote sent for the variable_name
 
 

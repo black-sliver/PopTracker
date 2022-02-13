@@ -22,7 +22,7 @@ public:
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
     std::string AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
-    bool RemoveMemoryWatch(LuaVariant name);
+    bool RemoveMemoryWatch(const std::string& name);
     std::string AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
     bool RemoveWatchForCode(const std::string& name);
     std::string AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int interval);
@@ -60,8 +60,6 @@ protected:
     std::vector<std::pair<std::string, CodeWatch> > _codeWatches;
     std::vector<std::pair<std::string, VarWatch> > _varWatches;
     AutoTracker *_autoTracker = nullptr;
-    
-    bool _removeMemoryWatch(const std::string& name);
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ScriptHost";
