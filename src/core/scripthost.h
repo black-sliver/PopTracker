@@ -8,7 +8,6 @@
 #include "tracker.h"
 #include "luaitem.h"
 #include <string>
-#include <list>
 #include <vector> // TODO: replace by new[] uint8_t?
 
 class ScriptHost;
@@ -57,9 +56,9 @@ protected:
     lua_State *_L;
     Pack *_pack;
     Tracker *_tracker;
-    std::list<MemoryWatch> _memoryWatches;
-    std::map<std::string, CodeWatch> _codeWatches;
-    std::map<std::string, VarWatch> _varWatches;
+    std::vector<MemoryWatch> _memoryWatches;
+    std::vector<std::pair<std::string, CodeWatch> > _codeWatches;
+    std::vector<std::pair<std::string, VarWatch> > _varWatches;
     AutoTracker *_autoTracker = nullptr;
     
     bool _removeMemoryWatch(const std::string& name);

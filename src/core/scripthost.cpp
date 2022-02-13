@@ -56,7 +56,10 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     }};
     _autoTracker->onDataChange += {this, [this](void* sender) {
         DEBUG_printf("AutoTracker: Data changed!\n");
-        for (auto& w : _memoryWatches) {
+        for (size_t i=0; i<_memoryWatches.size(); i++) {
+            // NOTE: since watches can change in a callback, we use vector
+            auto& w = _memoryWatches[i];
+            auto name = w.name;
             auto newData = _autoTracker->read((unsigned)w.addr, (unsigned)w.len);
             if (w.data != newData) {
                 DEBUG_printf("  %s changed\n", w.name.c_str());
@@ -66,31 +69,40 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                 if (lua_pcall(_L, 1, 0, 0)) {
                     printf("Error calling Memory Watch Callback for %s: %s\n",
                             w.name.c_str(), lua_tostring(_L, -1));
-                    // TODO: clean up lua stack
+                    lua_pop(_L, 1);
                 }
             }
+            if (_memoryWatches.size() <= i) break;
+            if (_memoryWatches[i].name != name) // current item not unchanged
+                i--;
         }
     }};
     _autoTracker->onVariablesChanged += {this, [this](void*, const std::list<std::string>& vars) {
         std::list<std::string> watchVars;
         DEBUG_printf("AutoTracker: Variables changed!\n");
-        for (const auto& it: _varWatches) {
+        for (size_t i=0; i<_varWatches.size(); i++) {
+            // NOTE: since watches can change in a callback, we use vector
+            const auto& pair = _varWatches[i];
+            auto name = pair.first;
             for (const auto& varName: vars) {
-                if (it.second.names.find(varName) != it.second.names.end())
+                if (pair.second.names.find(varName) != pair.second.names.end())
                     watchVars.push_back(varName);
             }
             if (!watchVars.empty()) {
-                lua_rawgeti(_L, LUA_REGISTRYINDEX, it.second.callback);
+                lua_rawgeti(_L, LUA_REGISTRYINDEX, pair.second.callback);
                 _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
                 json j = watchVars;
                 json_to_lua(_L, j); // args2: variable names
                 if (lua_pcall(_L, 2, 0, 0)) {
                     printf("Error calling Variable Watch Callback for %s: %s\n",
-                            it.first.c_str(), lua_tostring(_L, -1));
-                    // TODO: clean up lua stack
+                            pair.first.c_str(), lua_tostring(_L, -1));
+                    lua_pop(_L, 1);
                 }
             }
             watchVars.clear();
+            if (_varWatches.size() <= i) break;
+            if (_varWatches[i].first != name) // current item not unchanged
+                i--;
         }
     }};
     AutoTracker::Lua_Register(_L);
@@ -99,7 +111,10 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     
     _tracker->onStateChanged += { this, [this](void* s, const std::string& id) {
         const auto& item = _tracker->getItemById(id);
-        for (auto& pair: _codeWatches) {
+        for (size_t i=0; i<_codeWatches.size(); i++) {
+            // NOTE: since watches can change in a callback, we use vector
+            auto& pair = _codeWatches[i];
+            auto name = pair.first;
             if (item.canProvideCode(pair.second.code)) {
                 printf("Item %s changed, which can provide code \"%s\" for watch \"%s\"\n",
                         id.c_str(), pair.second.code.c_str(), pair.first.c_str());
@@ -108,10 +123,13 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                 if (lua_pcall(_L, 1, 0, 0)) {
                     printf("Error calling Memory Watch Callback for %s: %s\n",
                             pair.first.c_str(), lua_tostring(_L, -1));
-                    // TODO: clean up lua stack
+                    lua_pop(_L, 1);
                     return;
                 }
             }
+            if (_codeWatches.size() <= i) break;
+            if (_codeWatches[i].first != name) // current item not unchanged
+                i--;
         }
     }};
 }
@@ -263,16 +281,25 @@ bool ScriptHost::AddWatchForCode(const std::string& name, const std::string& cod
 {
     RemoveWatchForCode(name);
     if (code.empty() || !callback.valid()) return false;
-    _codeWatches[name] = { callback.ref, code };
+    for (auto it = _codeWatches.begin(); it != _codeWatches.end(); it++) {
+        if (it->first == name) {
+            _codeWatches.erase(it);
+            break;
+        }
+    }
+    _codeWatches.push_back({name, { callback.ref, code }});
     return true;
 }
 
 bool ScriptHost::RemoveWatchForCode(const std::string& name)
 {
-    auto it = _codeWatches.find(name);
-    if (it == _codeWatches.end()) return false;
-    luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
-    _codeWatches.erase(it);
+    for (auto it = _codeWatches.begin(); it != _codeWatches.end(); it++) {
+        if (it->first == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
+            _codeWatches.erase(it);
+            break;
+        }
+    }
     return true;
 }
 
@@ -293,16 +320,25 @@ bool ScriptHost::AddVariableWatch(const std::string& name, const json& variables
         fprintf(stderr, "WARNING: AddVariableWatch: `variables` is empty or invalid!\n");
         return false;
     }
-    _varWatches[name] = { callback.ref, varnames };
+    for (auto it = _varWatches.begin(); it != _varWatches.end(); it++) {
+        if (it->first == name) {
+            _varWatches.erase(it);
+            break;
+        }
+    }
+    _varWatches.push_back({name, { callback.ref, varnames }});
     return true;
 }
 
 bool ScriptHost::RemoveVariableWatch(const std::string& name)
 {
-    auto it = _varWatches.find(name);
-    if (it == _varWatches.end()) return false;
-    luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
-    _varWatches.erase(it);
+    for (auto it = _varWatches.begin(); it != _varWatches.end(); it++) {
+        if (it->first == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->second.callback);
+            _varWatches.erase(it);
+            break;
+        }
+    }
     return true;
 }
 
