@@ -402,9 +402,18 @@ Location& Tracker::getLocation(const std::string& id, bool partialMatch)
             return loc;
     }
     if (partialMatch) {
-        for (auto& loc : _locations) {
-            if (loc.getName() == id)
-                return loc;
+        if (id.find('/') == id.npos) {
+            for (auto& loc : _locations) {
+                if (loc.getName() == id)
+                    return loc;
+            }
+        } else {
+            std::string search = "/" + id;
+            for (auto& loc : _locations) {
+                const auto& s = loc.getID();
+                if (s.size()>search.size() && s.compare(s.size()-search.size(), search.size(), search) == 0)
+                    return loc;
+            }
         }
     }
     return blankLocation;
@@ -525,8 +534,8 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                     sub = visibilityRules ? isVisible(loc) : isReachable(loc); // check location visibility for isVisible
                     match = true;
                 } else {
-                    // @-Rule for a section or missing location/section
-                    std::string sublocid = locid.substr(t-start);
+                    // @-Rule for a section (also run for missing location)
+                    std::string sublocid = locid.substr(0, t-start);
                     std::string subsecname = t+1;
                     auto& subloc = getLocation(sublocid, true);
                     for (auto& subsec: subloc.getSections()) {
