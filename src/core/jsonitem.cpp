@@ -311,7 +311,13 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
         lua_pushboolean(L, _stage1);
         return 1;
     } else if (strcmp(key, "CurrentStage")==0) {
-        lua_pushinteger(L, _stage2);
+        if (_type == Type::PROGRESSIVE && _allowDisabled) {
+            // progressive toggles w/ allow_disabled have an added 0-stage.
+            // TODO: implement this properly some time
+            lua_pushinteger(L, _stage1 ? _stage2 + 1 : 0);
+        } else {
+            lua_pushinteger(L, _stage2);
+        }
         return 1;
     } else if (strcmp(key, "MaxCount")==0) {
         lua_pushinteger(L, _maxCount);
@@ -335,6 +341,8 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         return true;
     } else if (strcmp(key, "Active")==0) {
         bool val = lua_isinteger(L, -1) ? (lua_tointeger(L, -1)>0) : (bool)lua_toboolean(L, -1);
+        if (_type == Type::PROGRESSIVE && _allowDisabled && !val)
+            _stage2 = 0;
         if (_stage1 != val) {
             _stage1 = val;
             onChange.emit(this);
@@ -343,8 +351,21 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key, "CurrentStage")==0) {
         int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (val<0) val=0;
+        int en = _stage1;
+        if (_type == Type::PROGRESSIVE && _allowDisabled) {
+            // progressive toggles w/ allow_disabled have an added 0-stage.
+            // TODO: implement this properly some time
+            if (val == 0) {
+                en = 0;
+                val = 0;
+            } else {
+                en = 1;
+                val--;
+            }
+        }
         if (_stages.size()>0 && (size_t)val>=_stages.size()) val=(size_t)_stages.size()-1;
-        if (_stage2 != val) {
+        if (_stage2 != val || _stage1 != en) {
+            _stage1 = en;
             _stage2 = val;
             onChange.emit(this);
         }
