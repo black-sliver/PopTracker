@@ -22,6 +22,11 @@ If you find a non-working case, please report.
 
 ## Memory Interface (USB2SNES)
 
+For snes, the inferface uses bus addresses, a valid address mapping has to be
+provided, either through auto-detection (not implemented), variant's flags
+"lorom", "hirom", "exlorom" or "exhirom", or the internal game-name table.
+
+
 ### global ScriptHost
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])`
 * `:RemoveMemoryWatch(name)`

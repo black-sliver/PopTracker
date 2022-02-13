@@ -1,6 +1,7 @@
 #include "scripthost.h"
 #include "../luaglue/luamethod.h"
 #include <stdio.h>
+#include "gameinfo.h"
 
 
 #ifdef DEBUG_TRACKER
@@ -25,7 +26,10 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
 ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     : _L(L), _pack(pack), _tracker(tracker)
 {
-    _autoTracker = new AutoTracker(_pack->getPlatform(), _pack->getVariantFlags());
+    auto flags = _pack->getVariantFlags();
+    auto gameFlags = GameInfo::Find(_pack->getGameName()).flags;
+    flags.insert(gameFlags.begin(), gameFlags.end());
+    _autoTracker = new AutoTracker(_pack->getPlatform(), flags);
     _autoTracker->onDataChange += {this, [this](void* sender) {
         DEBUG_printf("AutoTracker: Data changed!\n");
         for (auto& w : _memoryWatches) {

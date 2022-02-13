@@ -50,6 +50,15 @@ public:
             }};
         } else if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(_name);
+            if (flags.find("lorom") != flags.end()) {
+                _snes->setMapping(USB2SNES::Mapping::LOROM);
+            } else if (flags.find("hirom") != flags.end()) {
+                _snes->setMapping(USB2SNES::Mapping::HIROM);
+            } else if (flags.find("exlorom") != flags.end()) {
+                _snes->setMapping(USB2SNES::Mapping::EXLOROM);
+            } else if (flags.find("exhirom") != flags.end()) {
+                _snes->setMapping(USB2SNES::Mapping::EXHIROM);
+            }
         } else if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
             _uat->setInfoHandler([this](const UATClient::Info& info) {
