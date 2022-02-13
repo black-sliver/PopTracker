@@ -476,7 +476,6 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             return ((addr&0x7f0000) >> 1) + (addr&0x7fff); // pretty sure this is correct
             break;
         case Mapping::HIROM:
-        case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
             // FASTROM MIRROR
             if (addr>=0x800000) addr -= 0x800000;
             // SRAM
@@ -521,6 +520,9 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             // WRAM in lower banks
             if ((addr&0xffff) < 0x2000)
                 return 0xf50000 + (addr&0x1fff);
+            break;
+        case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
+            return addr&0x3ffff; // NOTE: this can not access SRAM
             break;
     }
     return 0;

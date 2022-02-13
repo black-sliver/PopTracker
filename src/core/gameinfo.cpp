@@ -32,6 +32,7 @@ const std::map<std::string, GameInfo> GameInfo::_games = {
         {},
         {"hirom"},
     }},
+#if 0 // SoMR tracker uses direct ROM addresses
     { "secret of mana randomizer", {
         "Secret of Mana Randomizer",
         {"somr"},
@@ -42,6 +43,7 @@ const std::map<std::string, GameInfo> GameInfo::_games = {
         {"seiken densetsu 2"},
         {"hirom"},
     }},
+#endif
     { "illusion of gaia randomizer", {
         "Illusion of Gaia Randomizer",
         {"iogr"},
