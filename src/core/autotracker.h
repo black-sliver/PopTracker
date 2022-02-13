@@ -358,6 +358,8 @@ protected:
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "AutoTracker";
     static const LuaInterface::MethodMap Lua_Methods;
+
+    virtual int Lua_Index(lua_State *L, const char* key) override;
 };
 
 #endif //_CORE_AUTOTRACKER_H

@@ -30,6 +30,30 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     auto gameFlags = GameInfo::Find(_pack->getGameName()).flags;
     flags.insert(gameFlags.begin(), gameFlags.end());
     _autoTracker = new AutoTracker(_pack->getPlatform(), flags);
+    _autoTracker->onStateChange += {this, [this](void*, AutoTracker::State state)
+    {
+        if (state == AutoTracker::State::ConsoleConnected) {
+            int t = lua_getglobal(_L, "autotracker_started");
+            if (t != LUA_TFUNCTION) {
+                lua_pop(_L, 1);
+            } else if (lua_pcall(_L, 0, 0, 0) != LUA_OK) {
+                auto err = lua_tostring(_L, -1);
+                fprintf(stderr, "Error running autotracker_started:\n%s\n",
+                    err ? err : "Unknown error");
+                lua_pop(_L, 1); // error object
+            }
+        } else if (state == AutoTracker::State::Disabled) {
+            int t = lua_getglobal(_L, "autotracker_stopped");
+            if (t != LUA_TFUNCTION) {
+                lua_pop(_L, 1);
+            } else if (lua_pcall(_L, 0, 0, 0) != LUA_OK) {
+                auto err = lua_tostring(_L, -1);
+                fprintf(stderr, "Error running autotracker_stopped:\n%s\n",
+                    err ? err : "Unknown error");
+                lua_pop(_L, 1); // error object
+            }
+        }
+    }};
     _autoTracker->onDataChange += {this, [this](void* sender) {
         DEBUG_printf("AutoTracker: Data changed!\n");
         for (auto& w : _memoryWatches) {

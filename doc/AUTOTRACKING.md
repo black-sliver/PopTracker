@@ -40,6 +40,7 @@ Reading from AutoTracker may be slower than reading from Segment (watch callback
 * `int :ReadU16(baseaddr[,offset])` as above, 16bit
 * `int :ReadU24(baseaddr[,offset])` as above, 24bit
 * `int :ReadU32(baseaddr[,offset])` as above, 32bit
+* `table .SelectedConnectorType` currently is an empty table for compatibility
 
 ### type Segment
 Reading from Segment (watch callback argument) is preferred. `address` is the absolute memory address.
@@ -141,3 +142,9 @@ manifest.json and clicking on "AT" when the pack is loaded.
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
 * `:AddScoutHandler(name, callback)` called when a location was scouted; args: location_id, location_name, item_id, item_name, item_player
 * `:AddBouncedHandler(name, callback)` called when the server sends a bounce; args: json bounce message as table
+
+
+## Other Stuff
+in addition to above interfaces, the Tracker will call
+* `autotracker_started` when a game is connected
+* `autotracker_stopped` when a auto-tracking is disabled by the user
