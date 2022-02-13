@@ -1,5 +1,28 @@
 # PopTracker Changelog
 
+## v0.19.0
+
+* Fixes
+  * Fix modifying watches from watch callbacks
+  * Fix vertical strech of some widgets
+  * Fix/ignore composite toggles with bad left/right
+  * Fix what codes a composite toggles provides
+  * Fix setting progressive with allow_disabled from Lua
+  * Change progressive with allow_disabled to what people expect
+* App Features
+  * Actually reload pack with the reload button when files changed
+  * Make pack list scrollable
+  * Make snes auto-tracking work for SRAM (requires usb2snes mapping)
+* Pack Features
+  * Add support for consumable increment and decrement
+  * Added snes memory mapping flags (hirom, lorom, exhirom, exlorom) for AT
+  * Support @-rules for locations (not just sections)
+  * More lenient typing from Lua and json
+  * Change return value of `Add*Watch*` to be a watch reference (currently name)
+  * Allow saving/loading nil for Lua items
+  * Make ovarlay's/badge's pink background transparen
+  * Partial support for 'legacy' packs
+
 ## v0.18.2
 
 * Fixes

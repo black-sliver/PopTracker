@@ -8,7 +8,7 @@ This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
 
-Copy or unpack gamepacks to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs` (ZIPs supported starting with v0.14.0).
+Copy or unpack tracker packs to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs`.
 On Windows it will also find packs installed in EmoTracker.
 On macOS EXEDIR is *inside* the app bundle.
 
@@ -58,8 +58,7 @@ See their respective documentation.
 
 ### PC Games
 We do not allow direct access to process memory or sockets from Lua. Instead
-[UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables"
-starting with v0.16.
+[UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables".
 
 ### Archipelago Multiworld
 [Archipelago](https://archipelago.gg) allows connecting to a Multiworld as a tracker.
