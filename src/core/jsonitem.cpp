@@ -325,7 +325,7 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
 }
 bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     if (strcmp(key, "AcquiredCount")==0) {
-        int val = luaL_checkinteger(L, -1);
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (_count != val) {
             _count = val;
             if (_type == Type::CONSUMABLE)
@@ -341,7 +341,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         }
         return true;
     } else if (strcmp(key, "CurrentStage")==0) {
-        int val = luaL_checkinteger(L, -1);
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (val<0) val=0;
         if (_stages.size()>0 && (size_t)val>=_stages.size()) val=(size_t)_stages.size()-1;
         if (_stage2 != val) {
@@ -350,7 +350,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         }
         return true;
     } else if (strcmp(key, "MaxCount")==0) {
-        int val = luaL_checkinteger(L, -1);
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (_maxCount != val) {
             _maxCount = val;
             if (_maxCount<_count) {

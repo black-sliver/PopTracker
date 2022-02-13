@@ -172,7 +172,7 @@ int LuaItem::providesCode(const std::string code) const
         return false;
     }
     
-    int res = luaL_checkinteger(_L, -1);
+    int res = lua_isinteger(_L, -1) ? (int)lua_tointeger(_L, -1) : (int)luaL_checknumber(_L, -1);
     lua_pop(_L,1);
     return res;
 }

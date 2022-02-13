@@ -21,7 +21,7 @@ int LocationSection::Lua_Index(lua_State *L, const char *key)
 bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
 {
     if (strcmp(key,"AvailableChestCount")==0) {
-        int val = luaL_checkinteger(L, -1);
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         int cleared = _itemCount - val;
         if (cleared < 0) cleared = 0;
         if (cleared > _itemCount) cleared = _itemCleared;
