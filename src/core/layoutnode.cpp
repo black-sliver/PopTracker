@@ -13,6 +13,11 @@ static LayoutNode::OptionalBool to_OptionalBool(const json& j)
 }
 static LayoutNode::Size to_size(const json& j, LayoutNode::Size dflt)
 {
+    if (j.is_null()) return dflt;
+    if (j.is_number()) {
+        int x = j.get<int>();
+        return {x, x};
+    }
     std::string s = to_string(j,"");
     if (s.empty()) return dflt;
     LayoutNode::Size res = dflt;
