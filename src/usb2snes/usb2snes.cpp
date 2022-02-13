@@ -517,7 +517,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
                 return 0x400000 + (addr & 0x3f7fff); // this may be wrong
             // SRAM
             if (addr>=0xa00000 && addr<=0xbfffff && (addr&0x7fff)>=0x6000)
-                return 0xe00000 + ((addr>>16)-0xa0) * 2000 + (addr&0xffff)-0x6000;
+                return 0xe00000 + ((addr>>16)-0xa0) * 0x2000 + (addr&0xffff)-0x6000;
             // WRAM in lower banks
             if ((addr&0xffff) < 0x2000)
                 return 0xf50000 + (addr&0x1fff);
