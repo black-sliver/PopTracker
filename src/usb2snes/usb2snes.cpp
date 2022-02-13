@@ -245,11 +245,11 @@ USB2SNES::USB2SNES(const std::string& name)
                     update_count++;
                     last_update = std::chrono::system_clock::now();
                     std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - last_ups_display;
-                    if (elapsed.count() >= 1 && update_count>0) {
+                    if (elapsed.count() >= 5 && update_count>0) {
                         double ups = (double)update_count / elapsed.count();
                         last_ups_display = std::chrono::system_clock::now();
                         update_count = 0;
-                        printf("UPS: %.3f\n", (float)ups);
+                        printf("UPS: %7.3f\n", (float)ups);
                     }
                 }
                 last_addr = actwatchlist[last_watch];
