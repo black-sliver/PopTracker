@@ -11,6 +11,14 @@
 
 class USB2SNES {
     public:
+        enum class Mapping {
+            UNKNOWN,
+            LOROM,
+            HIROM,
+            EXLOROM,
+            EXHIROM
+        };
+
         USB2SNES(const std::string& appname);
         ~USB2SNES();
         bool connect(std::vector<std::string> uris = {QUSB2SNES_URI,LEGACY_URI});
@@ -20,6 +28,7 @@ class USB2SNES {
         static constexpr auto LEGACY_URI = "ws://localhost:8080";
         bool wsConnected();
         bool snesConnected();
+        void setMapping(Mapping mapping);
         void addWatch(uint32_t addr, unsigned len=1);
         void removeWatch(uint32_t addr, unsigned len=1);
         uint8_t read(uint32_t addr);
@@ -125,8 +134,9 @@ class USB2SNES {
         size_t next_uri = 0;
         size_t optimum_read_block_size = 512; // NOTE: qusb2snes 0.7.19 on linux read takes 20ms/128B, so "native" 512 has worse performance. TODO: fix this in qusb2snes
         size_t read_holes_are_free = true;//false;
-        
-        static uint32_t mapaddr(uint32_t addr);
+        Mapping mapping = Mapping::UNKNOWN;
+
+        uint32_t mapaddr(uint32_t addr);
 };
 
 template<typename T>

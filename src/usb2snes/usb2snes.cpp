@@ -457,19 +457,85 @@ bool USB2SNES::dostuff()
 uint32_t USB2SNES::mapaddr(uint32_t addr)
 {
     // WRAM
-    if (addr>>16 == 0x7e || addr>>16==0x7f) return 0xF50000 + (addr&0xffff);
-    // TODO: SRAM
-    // ROM
-    if (addr>=0x800000) return addr-0x800000;
-    return addr;
+    if ((addr>>16)==0x7e || (addr>>16)==0x7f) return 0xF50000 + (addr&0x1ffff);
+    // CART
+    switch (mapping) {
+        case Mapping::LOROM:
+            // FASTROM MIRROR
+            if (addr>=0x800000) addr -= 0x800000;
+            // SRAM
+            if ((addr>>16) >= 0x70 && (addr>>16) <= 0x7f && (addr&0xffff) < 0x8000)
+                return 0xe00000 + ((addr>>16)-0x70) * 0x8000 + (addr&0xffff);
+            // WRAM in lower banks
+            if ((addr&0xffff) < 0x2000)
+                return 0xf50000 + (addr&0x1fff);
+            // RESERVED / HARDWARE
+            if ((addr&0xffff) < 0x8000)
+                return 0;
+            // ROM
+            return ((addr&0x7f0000) >> 1) + (addr&0x7fff); // pretty sure this is correct
+            break;
+        case Mapping::HIROM:
+        case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
+            // FASTROM MIRROR
+            if (addr>=0x800000) addr -= 0x800000;
+            // SRAM
+            if ((addr>>16) >= 0x20 && (addr>>16) <= 0x3f && (addr&0xffff) >= 0x6000 && (addr&0xffff) <= 0x7fff)
+                return 0xe00000 + ((addr>>16)-0x20) * 0x2000 + (addr&0xffff)-0x6000;
+            // WRAM in lower banks
+            if (addr>=0x000000 && addr<=0x3fffff && (addr&0xffff) < 0x2000)
+                return 0xf50000 + (addr&0x1fff);
+            // ROM
+            return addr & 0x3fffff;
+            break;
+        case Mapping::EXLOROM:
+            // NOTE: this is probably completely wrong, but we need *something*
+            // SRAM
+            if ((addr>>16) >= 0xf0 && (addr>>16) <= 0xff && (addr&0xffff) < 0x8000)
+                return 0xe00000 + ((addr>>16)-0x70) * 0x8000 + (addr&0xffff);
+            // WRAM in lower banks
+            if ((addr&0xffff) < 0x2000)
+                return 0xf50000 + (addr&0x1fff);
+            // RESERVED / HARDWARE
+            if ((addr&0xffff) < 0x8000)
+                return 0;
+            // ROM1
+            if (addr&0x800000)
+                return ((addr&0x7f0000) >> 1) + (addr&0x7fff);
+            // ROM2
+            return 0x400000 + ((addr&0x7f0000) >> 1) + (addr&0x7fff);
+        case Mapping::EXHIROM:
+            // ROM1
+            if (addr>=0xc00000 && addr<=0xffffff)
+                return addr & 0x3fffff;
+            if (addr>=0x800000 && addr<=0xbfffff && (addr&0x8000))
+                return addr & 0x3f7fff; // this may be wrong
+            // ROM2
+            if (addr>=0x400000 && addr<0x7e0000)
+                return 0x400000 + (addr & 0x3ffff);
+            if (addr>=0x000000 && addr<=0x3fffff && (addr&0x8000))
+                return 0x400000 + (addr & 0x3f7fff); // this may be wrong
+            // SRAM
+            if (addr>=0xa00000 && addr<=0xbfffff && (addr&0x7fff)>=0x6000)
+                return 0xe00000 + ((addr>>16)-0xa0) * 2000 + (addr&0xffff)-0x6000;
+            // WRAM in lower banks
+            if ((addr&0xffff) < 0x2000)
+                return 0xf50000 + (addr&0x1fff);
+            break;
+    }
+    return 0;
 }
-bool is_rom(uint32_t addr)
+static bool is_rom(uint32_t usb2snes_addr)
 {
-    // WRAM
-    if (addr>>16 == 0x7e || addr>>16==0x7f) return false;
-    // TODO: SRAM
-    return true;
+    return usb2snes_addr < 0xe00000;
 }
+
+void USB2SNES::setMapping(USB2SNES::Mapping value)
+{
+    // FIXME: all old watches are invalid now
+    mapping = value;
+}
+
 void USB2SNES::addWatch(uint32_t addr, unsigned len)
 {
     uint32_t usb2snes_addr = mapaddr(addr);
@@ -481,7 +547,7 @@ void USB2SNES::addWatch(uint32_t addr, unsigned len)
         }
         sort(watchlist.begin(), watchlist.end());
         for (size_t i=0; i<len; i++) {
-            if (is_rom(addr+i)) continue;
+            if (is_rom(usb2snes_addr+i)) continue;
             if (std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), usb2snes_addr+i)==no_rom_watchlist.end())
                 no_rom_watchlist.push_back(usb2snes_addr+i);
         }

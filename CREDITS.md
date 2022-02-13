@@ -8,6 +8,7 @@
 ## Other Contributors
 
 * [Cyb3R](https://github.com/Cyb3RGER)
+* [jsd1982](https://github.com/JamesDunne) & [total](https://github.com/tewtal) - providing snes/sni/usb2snes infos
 
 ## Libraries
 
