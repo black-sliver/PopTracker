@@ -177,16 +177,16 @@ LuaItem* ScriptHost::CreateLuaItem()
     return _tracker->CreateLuaItem();
 }
 
-bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval)
+std::string ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval)
 {
     if (interval==0) interval=500; /*orig:1000*/ // default
     
     _removeMemoryWatch(name);
     
-    if (!callback.valid()) return false;
+    if (!callback.valid()) return ""; // TODO: somehow return nil instead
     if (addr<0 || len<1) {
         luaL_unref(_L, LUA_REGISTRYINDEX, callback.ref);
-        return false;
+        return ""; // TODO: somehow return nil instead
     }
     
     // AutoTracker watches are dumb, so we need to keep track of the state
@@ -209,10 +209,10 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
         }
         if (updateInterval) _autoTracker->setInterval(w.interval);
         _memoryWatches.push_back(w);
-        return true;
+        return name;
     } else {
         luaL_unref(_L, LUA_REGISTRYINDEX, w.callback);
-        return false;
+        return ""; // TODO: somehoe return nil instead
     }
 }
 
@@ -277,10 +277,10 @@ bool ScriptHost::_removeMemoryWatch(const std::string& name)
     return false;
 }
 
-bool ScriptHost::AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback)
+std::string ScriptHost::AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback)
 {
     RemoveWatchForCode(name);
-    if (code.empty() || !callback.valid()) return false;
+    if (code.empty() || !callback.valid()) return ""; // TODO: return nil somehow;
     for (auto it = _codeWatches.begin(); it != _codeWatches.end(); it++) {
         if (it->first == name) {
             _codeWatches.erase(it);
@@ -288,7 +288,7 @@ bool ScriptHost::AddWatchForCode(const std::string& name, const std::string& cod
         }
     }
     _codeWatches.push_back({name, { callback.ref, code }});
-    return true;
+    return name;
 }
 
 bool ScriptHost::RemoveWatchForCode(const std::string& name)
@@ -303,22 +303,22 @@ bool ScriptHost::RemoveWatchForCode(const std::string& name)
     return true;
 }
 
-bool ScriptHost::AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int)
+std::string ScriptHost::AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int)
 {
     RemoveVariableWatch(name);
     if (!variables.is_array()) {
         fprintf(stderr, "WARNING: AddVariableWatch: `variables` has to be an array!\n");
-        return false;
+        return ""; // TODO: return nil somehow
     }
     if (!callback.valid()) {
         fprintf(stderr, "WARNING: AddVariableWatch: callback is invalid!\n");
-        return false;
+        return ""; // TODO: return nil somehow
     }
     std::set<std::string> varnames;
     for (auto& var: variables) if (var.is_string()) varnames.insert(var.get<std::string>());
     if (varnames.empty()) {
         fprintf(stderr, "WARNING: AddVariableWatch: `variables` is empty or invalid!\n");
-        return false;
+        return ""; // TODO: return nil somehow
     }
     for (auto it = _varWatches.begin(); it != _varWatches.end(); it++) {
         if (it->first == name) {
@@ -327,7 +327,7 @@ bool ScriptHost::AddVariableWatch(const std::string& name, const json& variables
         }
     }
     _varWatches.push_back({name, { callback.ref, varnames }});
-    return true;
+    return name;
 }
 
 bool ScriptHost::RemoveVariableWatch(const std::string& name)

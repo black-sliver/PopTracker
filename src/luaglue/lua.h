@@ -34,6 +34,10 @@ public:
     {
         lua_pushstring(L, s);
     }
+    void Push(const std::string& s)
+    {
+        lua_pushstring(L, s.c_str());
+    }
     void Push(lua_Integer i)
     {
         lua_pushinteger(L, i);

@@ -70,7 +70,7 @@ The following interfaces are provided:
 * `bool :LoadScript(luafilename)`: load and execute a lua script
 * `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
-* `bool :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0
+* `bool :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2
 * `bool :RemoveWatchForCode(name)`: remove watch by name
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 

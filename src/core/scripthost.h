@@ -21,11 +21,11 @@ public:
     
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
-    bool AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
+    std::string AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
     bool RemoveMemoryWatch(LuaVariant name);
-    bool AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
+    std::string AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
     bool RemoveWatchForCode(const std::string& name);
-    bool AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int interval);
+    std::string AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int interval);
     bool RemoveVariableWatch(const std::string& name);
     void resetWatches();
     
