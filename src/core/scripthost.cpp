@@ -14,7 +14,7 @@
 const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, LoadScript, const char*),
     LUA_METHOD(ScriptHost, AddMemoryWatch, const char*, int, int, LuaRef, int),
-    LUA_METHOD(ScriptHost, RemoveMemoryWatch, const char*),
+    LUA_METHOD(ScriptHost, RemoveMemoryWatch, LuaVariant),
     LUA_METHOD(ScriptHost, AddWatchForCode, const char*, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveWatchForCode, const char*),
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
@@ -139,7 +139,7 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
 {
     if (interval==0) interval=500; /*orig:1000*/ // default
     
-    RemoveMemoryWatch(name);
+    _removeMemoryWatch(name);
     
     if (!callback.valid()) return false;
     if (addr<0 || len<1) {
@@ -174,7 +174,18 @@ bool ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaR
     }
 }
 
-bool ScriptHost::RemoveMemoryWatch(const std::string& name)
+bool ScriptHost::RemoveMemoryWatch(LuaVariant v)
+{
+    if (v.isFalse()) return true;
+    if (v.isTrue()) {
+        while (!_memoryWatches.empty())
+            _removeMemoryWatch(_memoryWatches.front().name);
+        return true;
+    }
+    return _removeMemoryWatch(v.toString());
+}
+
+bool ScriptHost::_removeMemoryWatch(const std::string& name)
 {
     // TODO: use a map instead?
     for (auto it=_memoryWatches.begin(); it!=_memoryWatches.end(); it++) {

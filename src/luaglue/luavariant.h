@@ -100,6 +100,14 @@ public:
                 return "<not implemented>";
         }
     }
+
+    bool isFalse() const {
+        return type == LUA_TBOOLEAN && !boolean;
+    }
+
+    bool isTrue() const {
+        return type == LUA_TBOOLEAN && boolean;
+    }
 };
 
 

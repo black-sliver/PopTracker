@@ -29,7 +29,7 @@ provided, either through auto-detection (not implemented), variant's flags
 
 ### global ScriptHost
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])`
-* `:RemoveMemoryWatch(name)`
+* `:RemoveMemoryWatch(name)` removed named memory watch, or all if name=true
 * callback signature:
 `function(Segment)` (see [type Segment](#type-segment))
 
