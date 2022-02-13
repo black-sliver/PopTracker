@@ -334,7 +334,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         }
         return true;
     } else if (strcmp(key, "Active")==0) {
-        bool val = lua_toboolean(L, -1);
+        bool val = lua_isinteger(L, -1) ? (lua_tointeger(L, -1)>0) : (bool)lua_toboolean(L, -1);
         if (_stage1 != val) {
             _stage1 = val;
             onChange.emit(this);
