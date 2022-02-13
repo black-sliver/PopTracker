@@ -12,6 +12,11 @@ const std::map<std::string, GameInfo> GameInfo::_games = {
         {},
         {"exhirom"},
     }},
+    { "super metroid randomizer", {
+        "Super Metroid Randomizer",
+        {},
+        {"lorom"},
+    }},
     { "a link to the past randomizer", {
         "A Link to the Past Randomizer",
         {"alttpr"},
