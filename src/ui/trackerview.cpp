@@ -740,11 +740,11 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
     }
     
     for (const auto& sec : loc.getSections()) {
-        if (!_tracker->isVisible(sec)) continue;
+        if (!_tracker->isVisible(loc, sec)) continue;
 
         Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
 
-        int reachable = _tracker->isReachable(sec);
+        int reachable = _tracker->isReachable(loc, sec);
         bool cleared = false; // not implemented
 
         if (!sec.getName().empty()) {
@@ -802,7 +802,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
     bool hasVisible = false;
 
     for (const auto& sec: loc.getSections()) {
-        if (_tracker->isVisible(sec)) {
+        if (_tracker->isVisible(loc, sec)) {
             hasVisible = true;
         } else {
             continue;
@@ -821,7 +821,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
             if (!match) continue;
         }
 
-        int reachable = _tracker->isReachable(sec);
+        int reachable = _tracker->isReachable(loc, sec);
         if (reachable==1) {
             hasReachable = true;
         } else if (reachable==0) {

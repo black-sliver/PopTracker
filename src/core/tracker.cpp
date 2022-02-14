@@ -458,7 +458,7 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
     return false; // nothing changed
 }
 
-int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules)
+int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string> parents)
 {
     // TODO: return enum instead of int
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
@@ -531,7 +531,7 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                     continue; // invalid location
                 } else if (!loc.getID().empty()) {
                     // @-Rule for location, not a section
-                    sub = visibilityRules ? isVisible(loc) : isReachable(loc); // check location visibility for isVisible
+                    sub = visibilityRules ? isVisible(loc, parents) : isReachable(loc, parents); // check location visibility for isVisible
                     match = true;
                 } else {
                     // @-Rule for a section (also run for missing location)
@@ -540,7 +540,7 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                     auto& subloc = getLocation(sublocid, true);
                     for (auto& subsec: subloc.getSections()) {
                         if (subsec.getName() != subsecname) continue;
-                        sub = visibilityRules ? isVisible(subsec) : isReachable(subsec); // check subsection visibility for isVisible
+                        sub = visibilityRules ? isVisible(subloc, subsec, parents) : isReachable(subloc, subsec, parents); // check subsection visibility for isVisible
                         match = true;
                         break;
                     }
@@ -578,24 +578,48 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
     return glitchedReachable ? 2 : checkOnlyReachable ? 3 : 0;
 }
 
-int Tracker::isReachable(const LocationSection& section)
+int Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string> parents)
 {
-    return isReachable(section.getAccessRules(), false);
+    // FIXME: we should use a custom list that does less string copies
+    std::string id = location.getID() + "/" + section.getName();
+    if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
+        printf("access_rule recursion detected: %s!\n", id.c_str());
+        // returning 0 here should mean this path is unreachable, other paths that are logical "or" should be resolved
+        return 0;
+    }
+    parents.push_back(id);
+    return isReachable(section.getAccessRules(), false, parents);
 }
 
-bool Tracker::isVisible(const LocationSection& section)
+bool Tracker::isVisible(const Location& location, const LocationSection& section, std::list<std::string> parents)
 {
-    return isReachable(section.getVisibilityRules(), true);
+    std::string id = location.getID() + "/" + section.getName();
+    if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
+        printf("visibility_rule recursion detected: %s!\n", id.c_str());
+        return 0;
+    }
+    parents.push_back(id);
+    return isReachable(section.getVisibilityRules(), true, parents);
 }
 
-int Tracker::isReachable(const Location& location)
+int Tracker::isReachable(const Location& location, std::list<std::string> parents)
 {
-    return isReachable(location.getAccessRules(), false);
+    if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
+        printf("access_rule recursion detected: %s!\n", location.getID().c_str());
+        return 0;
+    }
+    parents.push_back(location.getID());
+    return isReachable(location.getAccessRules(), false, parents);
 }
 
-bool Tracker::isVisible(const Location& location)
+bool Tracker::isVisible(const Location& location, std::list<std::string> parents)
 {
-    return isReachable(location.getVisibilityRules(), true);
+    if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
+        printf("visibility_rule recursion detected: %s!\n", location.getID().c_str());
+        return 0;
+    }
+    parents.push_back(location.getID());
+    return isReachable(location.getVisibilityRules(), true, parents);
 }
 
 LuaItem * Tracker::CreateLuaItem()

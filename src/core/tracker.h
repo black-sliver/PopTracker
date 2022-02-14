@@ -74,10 +74,10 @@ public:
     nlohmann::json saveState() const;
     bool loadState(nlohmann::json& state);
 
-    int isReachable(const LocationSection& section);
-    bool isVisible(const LocationSection& section);
-    int isReachable(const Location& location);
-    bool isVisible(const Location& location);
+    int isReachable(const Location& location, const LocationSection& section, std::list<std::string> parents={});
+    bool isVisible(const Location& location, const LocationSection& section, std::list<std::string> parents={});
+    int isReachable(const Location& location, std::list<std::string> parents={});
+    bool isVisible(const Location& location, std::list<std::string> parents={});
 
     const Pack* getPack() const;
 
@@ -99,7 +99,7 @@ protected:
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
 
-    int isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules);
+    int isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string> parents={});
 
 
 protected: // Lua interface implementation
