@@ -458,7 +458,31 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
     return false; // nothing changed
 }
 
-int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string> parents)
+int Tracker::isReachable(const Location& location, const LocationSection& section)
+{
+    std::list<std::string> parents;
+    return isReachable(location, section, parents);
+}
+
+bool Tracker::isVisible(const Location& location, const LocationSection& section)
+{
+    std::list<std::string> parents;
+    return isReachable(location, section, parents);
+}
+
+int Tracker::isReachable(const Location& location)
+{
+    std::list<std::string> parents;
+    return isReachable(location, parents);
+}
+
+bool Tracker::isVisible(const Location& location)
+{
+    std::list<std::string> parents;
+    return isReachable(location, parents);
+}
+
+int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
 {
     // TODO: return enum instead of int
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
@@ -578,9 +602,8 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
     return glitchedReachable ? 2 : checkOnlyReachable ? 3 : 0;
 }
 
-int Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string> parents)
+int Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
-    // FIXME: we should use a custom list that does less string copies
     std::string id = location.getID() + "/" + section.getName();
     if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
         printf("access_rule recursion detected: %s!\n", id.c_str());
@@ -588,10 +611,12 @@ int Tracker::isReachable(const Location& location, const LocationSection& sectio
         return 0;
     }
     parents.push_back(id);
-    return isReachable(section.getAccessRules(), false, parents);
+    int res = isReachable(section.getAccessRules(), false, parents);
+    parents.pop_back();
+    return res;
 }
 
-bool Tracker::isVisible(const Location& location, const LocationSection& section, std::list<std::string> parents)
+bool Tracker::isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
     std::string id = location.getID() + "/" + section.getName();
     if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
@@ -599,27 +624,33 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
         return 0;
     }
     parents.push_back(id);
-    return isReachable(section.getVisibilityRules(), true, parents);
+    int res = isReachable(section.getVisibilityRules(), true, parents);
+    parents.pop_back();
+    return res;
 }
 
-int Tracker::isReachable(const Location& location, std::list<std::string> parents)
+int Tracker::isReachable(const Location& location, std::list<std::string>& parents)
 {
     if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
         printf("access_rule recursion detected: %s!\n", location.getID().c_str());
         return 0;
     }
     parents.push_back(location.getID());
-    return isReachable(location.getAccessRules(), false, parents);
+    int res = isReachable(location.getAccessRules(), false, parents);
+    parents.pop_back();
+    return res;
 }
 
-bool Tracker::isVisible(const Location& location, std::list<std::string> parents)
+bool Tracker::isVisible(const Location& location, std::list<std::string>& parents)
 {
     if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
         printf("visibility_rule recursion detected: %s!\n", location.getID().c_str());
         return 0;
     }
     parents.push_back(location.getID());
-    return isReachable(location.getVisibilityRules(), true, parents);
+    int res = isReachable(location.getVisibilityRules(), true, parents);
+    parents.pop_back();
+    return res;
 }
 
 LuaItem * Tracker::CreateLuaItem()
