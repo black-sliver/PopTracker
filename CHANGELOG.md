@@ -20,7 +20,7 @@
   * More lenient typing from Lua and json
   * Change return value of `Add*Watch*` to be a watch reference (currently name)
   * Allow saving/loading nil for Lua items
-  * Make ovarlay's/badge's pink background transparen
+  * Make overlay's/badge's pink background transparent
   * Partial support for 'legacy' packs
 
 ## v0.18.2

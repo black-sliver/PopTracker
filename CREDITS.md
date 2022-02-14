@@ -21,3 +21,6 @@
 * [miniz](https://github.com/richgel999/miniz)
 * [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/)
 * [OpenSSL](https://www.openssl.org/)
+* [libpng](http://www.libpng.org/)
+* [libjpeg](https://www.ijg.org/)
+* [zlib](https://zlib.net/)
