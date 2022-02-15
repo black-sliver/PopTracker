@@ -467,7 +467,7 @@ int Tracker::isReachable(const Location& location, const LocationSection& sectio
 bool Tracker::isVisible(const Location& location, const LocationSection& section)
 {
     std::list<std::string> parents;
-    return isReachable(location, section, parents);
+    return isVisible(location, section, parents);
 }
 
 int Tracker::isReachable(const Location& location)
@@ -479,7 +479,7 @@ int Tracker::isReachable(const Location& location)
 bool Tracker::isVisible(const Location& location)
 {
     std::list<std::string> parents;
-    return isReachable(location, parents);
+    return isVisible(location, parents);
 }
 
 int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
