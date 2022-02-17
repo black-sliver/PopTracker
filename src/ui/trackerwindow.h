@@ -19,7 +19,7 @@ public:
     TrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
     virtual ~TrackerWindow();
     
-    virtual void setTracker(Tracker* tracker);
+    virtual void setTracker(Tracker* tracker) = 0;
     virtual void setSize(Size size) override;
     
     virtual void setAutoTrackerState(AutoTracker::State state);

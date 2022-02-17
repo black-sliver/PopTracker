@@ -12,8 +12,9 @@ public:
     
     DefaultTrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
     virtual ~DefaultTrackerWindow();
-    
-    virtual void setTracker(Tracker *tracker, const std::string& layout="tracker_default") override;
+
+    virtual void render(Renderer renderer, int offX, int offY) override;
+    virtual void setTracker(Tracker* tracker) override;
     virtual void setAutoTrackerState(AutoTracker::State state) override;
     virtual void setSize(Size size) override;
     virtual void showOpen();
@@ -32,6 +33,9 @@ protected:
     Label *_lblTooltip = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;
     AutoTracker::State _autoTrackerState = AutoTracker::State::Disconnected;
+    float _aspectRatio = 1;
+
+    virtual void setTracker(Tracker *tracker, const std::string& layout) override;
 };
 
 } // namspace Ui

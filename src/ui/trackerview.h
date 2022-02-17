@@ -24,6 +24,8 @@ public:
     void relayout();
     
     std::list< std::pair<std::string,std::string> > getHints() const;
+    const std::string& getLayoutRoot() const;
+    Tracker* getTracker();
     
     Signal<const std::string&> onItemHover;
     

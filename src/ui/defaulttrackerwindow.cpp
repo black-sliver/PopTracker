@@ -134,25 +134,29 @@ DefaultTrackerWindow::~DefaultTrackerWindow()
     _lblAutoTracker = nullptr;
 }
 
+void DefaultTrackerWindow::setTracker(Tracker* tracker)
+{
+    std::string layout = _aspectRatio > 1 ? "tracker_horizontal" : _aspectRatio < 1 ? "tracker_vertical" : "tracker_default";
+    if (tracker && !tracker->hasLayout(layout)) {
+        if (tracker->hasLayout("tracker_default")) layout = "tracker_default";
+        else if (tracker->hasLayout("tracker_horizontal")) layout = "tracker_horizontal";
+        else if (tracker->hasLayout("tracker_vertical")) layout = "tracker_vertical";
+    }
+    setTracker(tracker, layout);
+}
+
 void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
 {
+    if (_view && _view->getTracker() == tracker && _view->getLayoutRoot() == layout) return;
+
     _lblAutoTracker->setTextColor({0,0,0});
     TrackerWindow::setTracker(tracker, layout);
     if (tracker) {
+        tracker->onLayoutChanged -= this;
         tracker->onLayoutChanged += {this, [this,tracker](void *s, const std::string& layout) {
             if (_btnBroadcast) _btnBroadcast->setVisible(tracker->hasLayout("tracker_broadcast"));
             if (_btnPackSettings) _btnPackSettings->setVisible(tracker->hasLayout("settings_popup"));
-            if (!tracker->hasLayout("tracker_default")) {
-                // TODO: get preferred orientation from settings
-                if (tracker->hasLayout("tracker_horizontal")) {
-                    tracker->onLayoutChanged -= this;
-                    setTracker(tracker, "tracker_horizontal");
-                }
-                else if (tracker->hasLayout("tracker_vertical")) {
-                    tracker->onLayoutChanged -= this;
-                    setTracker(tracker, "tracker_vertical");
-                }
-            }
+            setTracker(tracker); // reevaluate preferred and fall-back layout
         }};
         _view->onItemHover += {this, [this,tracker](void *s, const std::string& itemid) {
             if (itemid.empty()) _lblTooltip->setText("");
@@ -172,6 +176,18 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
         if (_btnExport) _btnExport->setVisible(false);
     }
     raiseChild(_loadPackWidget);
+}
+
+void DefaultTrackerWindow::render(Renderer renderer, int offX, int offY)
+{
+    if (_view) {
+        float oldAspectRatio = _aspectRatio;
+        _aspectRatio = (float)getWidth() / (float)getHeight();
+        Tracker* tracker = _view->getTracker();
+        if (tracker && ((_aspectRatio > 1 && oldAspectRatio <= 1) || (_aspectRatio < 1 && oldAspectRatio >= 1)))
+            setTracker(tracker); // reevaluate preferred and fall-back layout
+    }
+    TrackerWindow::render(renderer, offX, offY);
 }
 
 void DefaultTrackerWindow::setAutoTrackerState(AutoTracker::State state)

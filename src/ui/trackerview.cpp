@@ -291,6 +291,16 @@ std::list< std::pair<std::string,std::string> > TrackerView::getHints() const
     return hints;
 }
 
+const std::string& TrackerView::getLayoutRoot() const
+{
+    return _layoutRoot;
+}
+
+Tracker* TrackerView::getTracker()
+{
+    return _tracker;
+}
+
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
