@@ -2,6 +2,7 @@
 #include "../core/assets.h"
 #include "../ui/defaults.h" // DEFAULT_FONT_*
 #include <SDL2/SDL_syswm.h>
+#include <algorithm>
 
 namespace Ui {
 
@@ -149,7 +150,12 @@ void Window::setPosition(const Position& pos)
 void Window::setMinSize(Size size)
 {
     Container::setMinSize(size);
-    size = size && Size{1680,720};
+    // limit min window width/height to of 5/6 of the screen min. dimension
+    int w = 720;
+    SDL_DisplayMode dm;
+    if (SDL_GetDesktopDisplayMode(0, &dm) == 0)
+        w = std::min(dm.w, dm.h) * 5 / 6;
+    size = size && Size{w,w};
     SDL_SetWindowMinimumSize(_win, size.width, size.height);
 }
 
