@@ -7,7 +7,7 @@ namespace Ui {
 
 class ScrollVBox : public Container {
 protected:
-    int _margin=0;
+    int _padding=0;
     int _spacing=2;
 public:
     ScrollVBox(int x, int y, int w, int h)
@@ -22,23 +22,23 @@ public:
     {
         if (!_children.empty()) {
             auto& last = _children.back();
-            w->setPosition({_margin, last->getTop() + last->getHeight() + _spacing});
+            w->setPosition({_padding, last->getTop() + last->getHeight() + _spacing});
             Container::addChild(w);
-            setHeight(w->getTop() + w->getHeight() + _margin);
-            if (w->getLeft() + w->getWidth() + _margin > _size.width) setWidth(w->getLeft() + w->getWidth() + _margin);
+            setHeight(w->getTop() + w->getHeight() + _padding);
+            if (w->getLeft() + w->getWidth() + _padding > _size.width) setWidth(w->getLeft() + w->getWidth() + _padding);
         } else {
-            w->setPosition({_margin,_margin});
-            setSize({w->getWidth()+2*_margin, w->getHeight()+2*_margin});
+            w->setPosition({_padding,_padding});
+            setSize({w->getWidth()+2*_padding, w->getHeight()+2*_padding});
             Container::addChild(w);
         }
         // keep track of max and min size
-        _maxSize = {-1,2*_margin};
-        _minSize = {0,2*_margin};
+        _maxSize = {-1,2*_padding};
+        _minSize = {0,2*_padding};
         for (auto& child : _children) {
-            if (_maxSize.width<0 || _maxSize.width>(child->getLeft()+child->getMaxWidth()+_margin))
-                _maxSize.width=child->getLeft()+child->getMaxWidth()+_margin;
-            if (child->getLeft()+child->getMinWidth()+_margin>_minSize.width)
-                _minSize.width=child->getLeft()+child->getMinWidth()+_margin;
+            if (_maxSize.width<0 || _maxSize.width>(child->getLeft()+child->getMaxWidth()+_padding))
+                _maxSize.width=child->getLeft()+child->getMaxWidth()+_padding;
+            if (child->getLeft()+child->getMinWidth()+_padding>_minSize.width)
+                _minSize.width=child->getLeft()+child->getMinWidth()+_padding;
             if (_maxSize.height != -1) {
                 if (child->getMaxHeight() == -1)
                     _maxSize.height = -1; // undefined = no max
@@ -68,13 +68,13 @@ public:
         Container::setSize(size);
         // TODO: move this to relayout and run relayout instead
         for (auto child : _children) {
-            child->setLeft(_margin);
-            child->setWidth(size.width-child->getLeft()-_margin);
+            child->setLeft(_padding);
+            child->setWidth(size.width-child->getLeft()-_padding);
         }
         // FIXME: make this depend on vgrow of *all* chrildren
         if (!_children.empty() && _children.back()->getVGrow()) {
             // FIXME: this code actually gets run for every addChild()
-            int h = size.height - _children.back()->getTop()-_margin;
+            int h = size.height - _children.back()->getTop()-_padding;
             if (h>0) _children.back()->setHeight(h);
         }
         relayout(); // required to update scroll position + max scroll
@@ -85,7 +85,7 @@ public:
         if (_scrollY > 0) _scrollY = 0;
         else if (_children.empty()) _scrollY = 0;
 
-        int y = _margin + _scrollY;
+        int y = _padding + _scrollY;
         for (auto& child : _children) {
             child->setTop(y);
             y += child->getHeight() + _spacing;
@@ -105,10 +105,10 @@ public:
             _scrollMaxY = 0;
         }
 
-        _minSize.height = 2*_margin;
+        _minSize.height = 2*_padding;
     }
 
-    virtual void setMargin(int margin) { _margin = margin; } // TODO: relayout?
+    virtual void setPadding(int padding) { _padding = padding; } // TODO: relayout?
     virtual void setSpacing(int spacing) { _spacing = spacing; } // TODO: relayout?
 
     virtual void scrollBy(int x, int y)

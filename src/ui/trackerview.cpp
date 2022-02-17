@@ -721,7 +721,7 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
     Container* tooltip;
     {
         auto tmp = new VBox(x, y, 100, 100);
-        tmp->setMargin(2*TOOL_OFF);
+        tmp->setPadding(2*TOOL_OFF);
         tmp->setSpacing(TOOL_OFF);
         tooltip = tmp;
     }

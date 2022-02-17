@@ -23,13 +23,13 @@ LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore)
     
     auto packs = new ScrollVBox(0,0,0,0);
     packs->setGrow(1,1);
-    packs->setMargin(0);
+    packs->setPadding(0);
     packs->setSpacing(1);
     _packs = packs;
     
     auto variants = new VBox(0,0,0,0);
     variants->setGrow(1,1);
-    variants->setMargin(0);
+    variants->setPadding(0);
     variants->setSpacing(1);
     _variants = variants;
     
@@ -38,7 +38,7 @@ LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore)
     hbox->addChild(packs);
     hbox->addChild(variants);
     hbox->setSpacing(1);
-    hbox->setMargin(2);
+    hbox->setPadding(2);
     addChild(hbox);
     _main = hbox;
 }

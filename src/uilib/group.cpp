@@ -10,7 +10,7 @@ constexpr SDL_Color TITLE_BG = { 0x21,0x21,0x21,255 };
 Group::Group(int x, int y, int w, int h, FONT font, const std::string& title)
     : VBox(x,y,w,h)
 {
-    _margin = 4;
+    _padding = 4;
     _spacing = 4;
     // TODO: have label with background color, padding and gravity instead of overriding render()?
     _lbl = new Label(x+TITLE_MARGIN, y, w-2*TITLE_MARGIN, TITLE_HEIGHT,

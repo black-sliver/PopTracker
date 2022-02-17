@@ -17,7 +17,7 @@ public:
     };
     
 protected:
-    int _margin=2;
+    int _padding=2;
     int _spacing=2;
     HAlign _halign;
 
@@ -51,8 +51,8 @@ public:
         // backtrack through previous row to align center/right
         if (row.empty()) return;
         if (_halign == HAlign::CENTER || _halign == HAlign::RIGHT) {
-            int usedW = row.back()->getLeft() + row.back()->getWidth() - _margin;
-            int offX = (_size.width - 2*_margin) - usedW;
+            int usedW = row.back()->getLeft() + row.back()->getWidth() - _padding;
+            int offX = (_size.width - 2*_padding) - usedW;
             if (_halign == HAlign::CENTER) offX/=2;
             for (auto& w : row)
                 w->setLeft(w->getLeft()+offX);
@@ -62,12 +62,12 @@ public:
         // TODO: move actual relayout to render stage?
         _minSize.width = 0; // TODO: subscribe to children's onMinWidthChanged instead
         _minSize.height = 0;
-        int x=_margin;
-        int y=_margin;
+        int x=_padding;
+        int y=_padding;
         int nextY = y + _spacing;
         std::list<Widget*> row;
         for (auto& child : _children) {
-            if (x>0 && x+child->getWidth()+_margin>_size.width) {
+            if (x>0 && x+child->getWidth()+_padding>_size.width) {
                 alignRow(row);
                 row.clear();
                 y = nextY;
@@ -83,12 +83,12 @@ public:
                 _minSize.width = child->getMinWidth();
         }
         alignRow(row);
-        _minSize.height = nextY - _margin - _spacing;
-        if (_minSize.width>0) _minSize.width += 2*_margin;
-        if (_minSize.height>0) _minSize.height += 2*_margin;
+        _minSize.height = nextY - _padding - _spacing;
+        if (_minSize.width>0) _minSize.width += 2*_padding;
+        if (_minSize.height>0) _minSize.height += 2*_padding;
         _size.height = _minSize.height;
     }
-    virtual void setMargin(int margin) { _margin = margin; } // TODO: relayout?
+    virtual void setPadding(int padding) { _padding = padding; } // TODO: relayout?
     virtual void setSpacing(int spacing) { _spacing = spacing; } // TODO: relayout?
 };
 

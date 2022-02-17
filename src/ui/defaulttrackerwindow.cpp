@@ -9,7 +9,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
 {
     auto hbox = new HBox(0,0,_size.width,32);
     hbox->setBackground({0,0,0,255});
-    hbox->setMargin(2);
+    hbox->setPadding(2);
     hbox->setSpacing(2);
     hbox->setGrow(1,1);
     _menu = hbox;
