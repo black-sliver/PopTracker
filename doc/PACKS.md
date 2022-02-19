@@ -127,6 +127,8 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `:SetOverlayBackground(string)`: set background: "#000000" is RGB, "" is transparent, only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
+* `.Increment`: sets or gets the increment (left-click) value of consumables
+* `.Decrement`: sets or gets the decrement (right-click) value of consumables
 
 *Probably more to come.*
 

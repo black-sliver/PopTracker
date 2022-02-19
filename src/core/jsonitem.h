@@ -49,6 +49,8 @@ protected:
     std::vector<Stage> _stages;
     bool _overlayBackgroundChanged = false;
     bool _overlayFontSizeChanged = false;
+    bool _incrementChanged = false;
+    bool _decrementChanged = false;
 
 public:    
     virtual size_t getStageCount() const override { return _stages.size(); }

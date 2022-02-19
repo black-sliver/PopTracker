@@ -322,8 +322,14 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "MaxCount")==0) {
         lua_pushinteger(L, _maxCount);
         return 1;
-    } else if (strcmp(key,"Owner")==0) {
+    } else if (strcmp(key, "Owner")==0) {
         lua_newtable(L); // dummy
+        return 1;
+    } else if (strcmp(key, "Increment")==0) {
+        lua_pushinteger(L, _increment);
+        return 1;
+    } else if (strcmp(key, "Decrement")==0) {
+        lua_pushinteger(L, _decrement);
         return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
@@ -380,6 +386,18 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
             }
         }
         return true;
+    } else if (strcmp(key, "Increment")==0) {
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
+        if (_increment == val) return true;
+        _increment = val;
+        _incrementChanged = true;
+        return true;
+    } else if (strcmp(key, "Decrement")==0) {
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
+        if (_decrement == val) return true;
+        _decrement = val;
+        _decrementChanged = true;
+        return 1;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return false;
@@ -397,6 +415,10 @@ json JsonItem::save() const
         data["overlay_background"] = _overlayBackground;
     if (_overlayFontSizeChanged)
         data["overlay_font_size"] = _overlayFontSize;
+    if (_incrementChanged)
+        data["increment"] = _increment;
+    if (_decrementChanged)
+        data["decrement"] = _decrement;
     return data;
 }
 bool JsonItem::load(json& j)
@@ -405,6 +427,8 @@ bool JsonItem::load(json& j)
         std::string overlay = to_string(j["overlay"], _overlay);
         std::string overlayBackground = to_string(j["overlay_background"], _overlayBackground);
         int overlayFontSize = to_int(j["overlay_font_size"], _overlayFontSize);
+        int increment = to_int(j["increment"], _increment);
+        int decrement = to_int(j["decrement"], _decrement);
         auto state = j["state"];
         int stage1 = _stage1, stage2 = _stage2;
         if (state.type() == json::value_t::array) {
@@ -417,7 +441,9 @@ bool JsonItem::load(json& j)
                 || _stage1 != stage1 || _stage2 != stage2
                 || _overlay != overlay
                 || _overlayBackground != overlayBackground
-                || _overlayFontSize != overlayFontSize)
+                || _overlayFontSize != overlayFontSize
+                || _increment != increment
+                || _decrement != decrement)
         {
             _count = count;
             _maxCount = maxCount;
@@ -428,6 +454,10 @@ bool JsonItem::load(json& j)
             _overlayBackground = overlayBackground;
             _overlayFontSizeChanged = _overlayFontSize != overlayFontSize;
             _overlayFontSize = overlayFontSize;
+            _incrementChanged = _increment != increment;
+            _increment = increment;
+            _decrementChanged = _decrement != decrement;
+            _decrement = decrement;
             onChange.emit(this);
         }
         return true;
