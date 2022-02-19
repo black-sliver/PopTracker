@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <random>
+#include <stdint.h>
 
 
 class APTracker final {
@@ -136,7 +137,7 @@ public:
                 _itemIndex++;
             }
         });
-        _ap->set_location_checked_handler([this](const std::list<int>& locations) {
+        _ap->set_location_checked_handler([this](const std::list<int64_t>& locations) {
             auto lock = EventLock(_event);
             for (int location: locations) {
                 onLocationChecked.emit(this, location, _ap->get_location_name(location));
@@ -193,8 +194,8 @@ public:
     Signal<APClient::State> onStateChanged;
     Signal<> onClear; // called when state has to be cleared
     Signal<int, int, const std::string&> onItem; // index, item, item_name
-    Signal<int, const std::string&, int, const std::string&, int> onScout; // location, location_name, item, item_name, target player
-    Signal<int, const std::string&> onLocationChecked; // location, location_name
+    Signal<int64_t, const std::string&, int64_t, const std::string&, int> onScout; // location, location_name, item, item_name, target player
+    Signal<int64_t, const std::string&> onLocationChecked; // location, location_name
     Signal<const json&> onBounced; // packet
 
 private:
