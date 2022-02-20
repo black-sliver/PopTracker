@@ -214,7 +214,7 @@ bool Tracker::AddLayouts(const std::string& file) {
     if (j.find("layouts") != j.end() && j["layouts"].is_object())
         j = j["layouts"]; // legacy layout file
     else if (j.find("type") != j.end() && j.find("content") != j.end()
-            && j["type"].is_string() && j["content"].is_array())
+            && j["type"].is_string() && (j["content"].is_array() || j["content"].is_object()))
         j = json{{"tracker_broadcast", j}}; // legacy broadcast_layout
 
     for (auto& [key,value] : j.items()) {
