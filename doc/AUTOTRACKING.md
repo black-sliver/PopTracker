@@ -137,7 +137,7 @@ manifest.json and clicking on "AT" when the pack is loaded.
 
 ### global Archipelago
 * `.PlayerNumber` returns the slot number of the connected player or -1 if not connected
-* `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared
+* `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared; args: slot_data
 * `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
 * `:AddScoutHandler(name, callback)` called when a location was scouted; args: location_id, location_name, item_id, item_name, item_player
