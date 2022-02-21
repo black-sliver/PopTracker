@@ -135,12 +135,14 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             _tracker->changeItemState(id, ::BaseItem::Action::Toggle);
         }
     }};
-    w->onMouseEnter += {this, [this,id] (void *s, int x, int y, unsigned btns) {
-        onItemHover.emit(this, id);
-    }};
-    w->onMouseLeave += {this, [this] (void *s) {
-        onItemHover.emit(this, "");
-    }};
+    if (!id.empty() && !origItem.getName().empty()) { // skip hover for non-item items
+        w->onMouseEnter += {this, [this,id] (void *s, int x, int y, unsigned btns) {
+            onItemHover.emit(this, id);
+        }};
+        w->onMouseLeave += {this, [this] (void *s) {
+            onItemHover.emit(this, "");
+        }};
+    }
     w->onDestroy += {this, [this,id] (void *s) {
         _items[id].remove((Item*)s);
     }};
