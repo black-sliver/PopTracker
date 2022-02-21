@@ -79,6 +79,7 @@ public:
     }
 
     virtual bool isHit(int x, int y) const override {
+        if (_backgroundColor.a && Widget::isHit(x, y)) return true;
         x -= _pos.left;
         y -= _pos.top;
         for (const auto& w: _children) {

@@ -26,7 +26,11 @@ public:
     virtual bool setActiveTab(const std::string& name);
     virtual bool setActiveTab(int index);
     virtual const std::string& getActiveTabName() const;
-    
+
+    virtual bool isHit(int x, int y) const override {
+        return _buttonbox->isHit(x - _pos.left, y - _pos.top) || Container::isHit(x, y);
+    }
+
 protected:
     void relayout();
     HFlexBox* _buttonbox;
