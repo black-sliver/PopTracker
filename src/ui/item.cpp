@@ -139,17 +139,17 @@ void Item::render(Renderer renderer, int offX, int offY)
             finalh = (int)(_size.width / ar + 0.5);
             finalw = _size.width;
         }
-        SDL_Rect dest = {
-            .x = offX+_pos.left + (_size.width-finalw+1)/2,
-            .y = offY+_pos.top  + (_size.height-finalh+1)/2,
-            .w = finalw,
-            .h = finalh
+        _renderSize = { finalw, finalh };
+        _renderPos = {
+            _pos.left + (_size.width-finalw+1)/2, // FIXME: make this depend on gravity
+            _pos.top /* + (_size.height-finalh+1)/2*/, // FIXME: make this depend on gravity
         };
-        SDL_RenderCopy(renderer, tex, NULL, &dest);
     } else {
-        SDL_Rect dest = {.x = offX+_pos.left, .y = offY+_pos.top, .w = _size.width, .h = _size.height};
-        SDL_RenderCopy(renderer, tex, NULL, &dest);
+        _renderSize = _size;
+        _renderPos = _pos;
     }
+    SDL_Rect dest = {.x = offX+_renderPos.left, .y = offY+_renderPos.top, .w = _renderSize.width, .h = _renderSize.height};
+    SDL_RenderCopy(renderer, tex, NULL, &dest);
     if (!_overlay.empty() && _font && !_overlayTex) {
         // text
         SDL_Surface* tsurf = RenderText(_font, _overlay.c_str(), {

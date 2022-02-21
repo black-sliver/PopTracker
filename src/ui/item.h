@@ -33,6 +33,11 @@ public:
     virtual void setOverlayBackgroundColor(Widget::Color color);
     virtual std::string getOverlay() const { return _overlay; }
     virtual Widget::Color getOverlayColor() const { return _overlayColor; }
+    virtual int getMinX() const { return _renderPos.left; }
+    virtual int getMiny() const { return _renderPos.top; }
+    virtual int getMaxX() const { return _renderPos.left + _renderSize.width - 1; }
+    virtual int getMaxY() const { return _renderPos.top + _renderSize.height - 1; }
+
 protected:
     std::vector< std::vector<SDL_Surface*> > _surfs;
     std::vector< std::vector<SDL_Texture*> > _texs; // TODO: use texture store to avoid storing duplicates
@@ -40,13 +45,16 @@ protected:
     int _quality=-1;
     int _stage1=0;
     int _stage2=0;
-    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters={});
-    void freeStage(int stage1, int stage2);
+    Size _renderSize;
+    Position _renderPos;
     FONT _font;
     std::string _overlay;
     Widget::Color _overlayColor = {255,255,255};
     Widget::Color _overlayBackgroundColor = {};
     SDL_Texture *_overlayTex = nullptr;
+
+    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters={});
+    void freeStage(int stage1, int stage2);
 };
 
 } // namespace Ui

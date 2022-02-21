@@ -15,35 +15,34 @@ public:
     virtual void addChild(Widget* w) override {
         if (!_children.empty()) {
             auto& last = _children.back();
-            w->setPosition({_padding, last->getTop() + last->getHeight() + _spacing});
+            w->setPosition({_padding + w->getMargin().left, last->getTop() + last->getHeight() + _spacing + w->getMargin().top});
             Container::addChild(w);
             setHeight(w->getTop() + w->getHeight() + _padding);
             if (w->getLeft() + w->getWidth() + _padding > _size.width) setWidth(w->getLeft() + w->getWidth() + _padding);
         } else {
-            w->setPosition({_padding,_padding});
-            setSize({w->getWidth()+2*_padding, w->getHeight()+2*_padding});
+            w->setPosition({_padding + w->getMargin().left, _padding + w->getMargin().top});
+            setSize({w->getLeft() + w->getWidth() + _padding, w->getTop() + w->getHeight() + _padding});
             Container::addChild(w);
         }
         // keep track of max and min size
         _maxSize = {-1,2*_padding};
         _minSize = {0,2*_padding};
         if (!_children.empty()) {
-            // handle spacing and handle case where first child has different margin
-            auto child = _children.front();
-            _minSize.height = child->getTop() + _padding - _spacing;
-            _maxSize.height = child->getTop() + _padding - _spacing;
+            // handle spacing
+            _minSize.height = _padding - _spacing;
+            _maxSize.height = _padding - _spacing;
         }
         for (auto& child : _children) {
             if (_maxSize.width<0 || _maxSize.width>(child->getLeft()+child->getMaxWidth()+_padding))
                 _maxSize.width=child->getLeft()+child->getMaxWidth()+_padding;
             if (child->getLeft()+child->getMinWidth()+_padding>_minSize.width)
                 _minSize.width=child->getLeft()+child->getMinWidth()+_padding;
-            _minSize.height += child->getMinHeight()+_spacing;
+            _minSize.height += child->getMinHeight() + child->getMargin().top + _spacing;
             if (_maxSize.height != -1) {
                 if (child->getMaxHeight() == -1)
                     _maxSize.height = -1; // undefined = no max
                 else
-                    _maxSize.height += child->getMaxHeight()+_spacing;
+                    _maxSize.height += child->getMaxHeight() + child->getMargin().top + _spacing;
             }
         }
         if (_maxSize.width >= 0 && _minSize.width>_maxSize.width)
@@ -77,9 +76,11 @@ public:
         _minSize.height = 0; // TODO: subscribe to children's onMinWidthChanged instead
         int y = _padding;
         for (auto& child : _children) {
+            y += child->getMargin().top;
+            child->setLeft(child->getMargin().left + _padding);
             child->setTop(y);
             y += child->getHeight() + _spacing;
-            _minSize.height += child->getMinHeight() + _spacing;
+            _minSize.height += child->getMinHeight() + child->getMargin().top + _spacing;
         }
         if (_minSize.height>0) _minSize.height += 2*_padding - _spacing;
     }

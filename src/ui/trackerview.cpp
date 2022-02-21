@@ -460,8 +460,20 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     }
     else if (node.getType() == "array") {
         // TODO: set spacing from layout.json
-        Container *w = node.getOrientation()==LayoutNode::Orientation::HORIZONTAL ?
-                (Container*)new HBox(0,0,0,0) : (Container*)new VBox(0,0,0,0);        
+        Container *w;
+        if (node.getOrientation() == LayoutNode::Orientation::HORIZONTAL) {
+            HBox *hbox = new HBox(0,0,0,0);
+            hbox->setPadding(0);
+            hbox->setSpacing(0);
+            w = hbox;
+        } else {
+            VBox *vbox = new VBox(0,0,0,0);
+            vbox->setPadding(0);
+            vbox->setSpacing(0);
+            w = vbox;
+        }
+        const auto& m = node.getMargin();
+        w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
         container->addChild(w);
@@ -517,6 +529,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             int calculatedWidth = w->getMaxHeight()*w->getAutoWidth()/w->getAutoHeight(); // keep aspect ratio
             w->setMinSize({calculatedWidth, w->getMaxHeight()});
         }
+        const auto& m = node.getMargin();
+        w->setMargin({m.left, m.top, m.right, m.bottom});
         container->addChild(w);
     }
     else if (node.getType() == "itemgrid") {

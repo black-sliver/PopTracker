@@ -42,6 +42,22 @@ static LayoutNode::Orientation to_orientation(const json& j)
     return LayoutNode::Orientation::UNDEFINED;
 }
 
+static LayoutNode::Spacing to_spacing(const json& j, LayoutNode::Spacing dflt)
+{
+    if (j.is_null()) return dflt;
+    if (j.is_number()) {
+        return {j.get<int>()};
+    }
+    std::string s = to_string(j,"");
+    if (s.empty()) return dflt;
+    LayoutNode::Spacing res = dflt;
+    char* next = nullptr;
+    res.left = (int)strtol(s.c_str(), &next, 0);
+    res.top = (next && *next) ? (int)strtol(next+1, &next, 0) : res.left;
+    res.right = (next && *next) ? (int)strtol(next+1, &next, 0) : res.left;
+    res.bottom = (next && *next) ? (int)strtol(next+1, &next, 0) : res.top;
+    return res;
+}
 
 LayoutNode LayoutNode::FromJSONString(const std::string& j)
 {
@@ -73,6 +89,7 @@ LayoutNode LayoutNode::FromJSON(json& j)
     node._size.y      = to_int(j["height"], -1);
     node._maxSize.x   = to_int(j["max_width"], -1);
     node._maxSize.y   = to_int(j["max_height"], -1);
+    node._margin      = to_spacing(j["margin"], {});
         
     node._compact    = to_bool(j["compact"], false);
     node._dropShadow = to_OptionalBool(j["dropshadow"]);

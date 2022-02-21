@@ -5,6 +5,7 @@
 #include "../core/signal.h"
 #include "size.h"
 #include "position.h"
+#include "spacing.h"
 #include "cursor.h"
 #include <string>
 
@@ -92,7 +93,7 @@ protected:
             }
         }};
     }
-    
+
     Widget(Widget&) = delete;
     
     bool _enabled = true;
@@ -107,6 +108,7 @@ protected:
     bool _visible = true;
     SDL_Cursor *_cursor = nullptr;
     static SDL_Cursor *_defaultCursor;
+    Spacing _margin = {0,0,0,0};
     
 public:
     virtual ~Widget()
@@ -147,7 +149,16 @@ public:
     virtual void setSize(Size size) { _size = size; }
     virtual void setGrow(int h, int v) { _hGrow=h; _vGrow=v; }
     virtual void setBackground(Color color) { _backgroundColor = color; }
-    
+    virtual int getMinX() const { return _pos.left; }
+    virtual int getMinY() const { return _pos.top; }
+    virtual int getMaxX() const { return _pos.left + _size.width - 1; }
+    virtual int getMaxY() const { return _pos.top + _size.height - 1; }
+
+    virtual bool isHit(int x, int y) const
+    {
+        return x>=getMinX() && x<=getMaxX() && y>=getMinY() && y<=getMaxY();
+    }
+
     const Size& getMinSize() const { return _minSize; }
     int getMinWidth() const { return _minSize.width; }
     int getMinHeight() const { return _minSize.height; }
@@ -183,7 +194,10 @@ public:
         _cursor = SDL_CreateSystemCursor((SDL_SystemCursor)cur);
         if (isDisplayed) SDL_SetCursor(_cursor);
     }
-    
+
+    void setMargin(const Spacing& margin) { _margin = margin; }
+    const Spacing& getMargin() const { return _margin; }
+
     Signal<int,int,int> onClick; // TODO: MouseClickEventArgs& ?
     Signal<int,int,unsigned> onMouseMove; // TODO: MouseMoveEventArgs& ?
     Signal<int,int,unsigned> onMouseEnter;

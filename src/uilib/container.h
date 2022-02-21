@@ -78,6 +78,15 @@ public:
         return (w == this || (_hoverChild && _hoverChild->isHover(w)));
     }
 
+    virtual bool isHit(int x, int y) const override {
+        x -= _pos.left;
+        y -= _pos.top;
+        for (const auto& w: _children) {
+            if (w->isHit(x, y)) return true;
+        }
+        return false;
+    }
+
 #ifndef NDEBUG
     void dumpTree(size_t depth=0) {
         printf("%s", std::string(depth, ' ').c_str());
@@ -104,7 +113,7 @@ protected:
         onClick += { this, [this](void* s, int x, int y, int button) {
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
                 auto& child = *childIt;
-                if (child->getVisible() && x>=child->getLeft() && x<child->getLeft()+child->getWidth() && y>=child->getTop() && y<child->getTop()+child->getHeight()) {
+                if (child->getVisible() && child->isHit(x, y)) {
                     child->onClick.emit(child, x-child->getLeft(), y-child->getTop(), button);
                     break;
                 }
@@ -115,7 +124,7 @@ protected:
             _hoverChild = nullptr;
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
                 auto& child = *childIt;
-                if (child->getVisible() && x>=child->getLeft() && x<child->getLeft()+child->getWidth() && y>=child->getTop() && y<child->getTop()+child->getHeight()) {
+                if (child->getVisible() && child->isHit(x, y)) {
                     _hoverChild = child;
                     if (_hoverChild != oldHoverChild) {
                         if (oldHoverChild) oldHoverChild->onMouseLeave.emit(oldHoverChild);
