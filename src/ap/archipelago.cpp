@@ -27,9 +27,10 @@ bool Archipelago::AddClearHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onClear += {this, [this, ref, name](void*) {
+    _ap->onClear += {this, [this, ref, name](void*, const json& slotData) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        if (lua_pcall(_L, 0, 0, 0)) {
+        json_to_lua(_L, slotData);
+        if (lua_pcall(_L, 1, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ClearHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
@@ -102,10 +103,9 @@ bool Archipelago::AddBouncedHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onBounced += {this, [this, ref, name](void*, const nlohmann::json& data) {
-        nlohmann::json j = data;
+    _ap->onBounced += {this, [this, ref, name](void*, const json& data) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        json_to_lua(_L, j);
+        json_to_lua(_L, data);
         if (lua_pcall(_L, 1, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago BouncedHandler for %s: %s\n",

@@ -57,7 +57,7 @@ static json lua_to_json(lua_State* L, int n=-1)
     return j;
 }
 
-static void json_to_lua(lua_State* L, json& j)
+static void json_to_lua(lua_State* L, const json& j)
 {
     switch (j.type()) {
         case json::value_t::number_integer:

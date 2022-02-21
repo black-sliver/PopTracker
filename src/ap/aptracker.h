@@ -106,12 +106,12 @@ public:
         clean_up:
             disconnect();
         });
-        _ap->set_slot_connected_handler([this]() {
+        _ap->set_slot_connected_handler([this](const json& slotData) {
             auto lock = EventLock(_event);
             onStateChanged.emit(this, _ap->get_state());
             printf("TODO: clean up state\n");
             _itemIndex = 0;
-            onClear.emit(this);
+            onClear.emit(this, slotData);
 
             // update mtime of uuid file
             touchUUID();
@@ -192,7 +192,7 @@ public:
 
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
-    Signal<> onClear; // called when state has to be cleared
+    Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
     Signal<int, int, const std::string&> onItem; // index, item, item_name
     Signal<int64_t, const std::string&, int64_t, const std::string&, int> onScout; // location, location_name, item, item_name, target player
     Signal<int64_t, const std::string&> onLocationChecked; // location, location_name
