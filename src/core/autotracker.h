@@ -142,7 +142,10 @@ public:
         }
 
         // USB2SNES AUTOTRACKING
-        if (_snes) _snes->connect();
+        if (_snes && _snesAddresses.empty())
+            _snes->connect();
+        else if (_snes)
+            _snes->connect(_snesAddresses);
         if (_snes && _snes->dostuff()) {
             State oldState = _state;
             bool wsConnected = _snes->wsConnected();
@@ -345,6 +348,28 @@ public:
         return _ap;
     }
 
+    void setSnesAddresses(const std::vector<std::string>& addresses)
+    {
+        _snesAddresses = addresses;
+        // fix up addresses:
+        // 1. add ws:// if missing
+        // 2. add both legacy and new ports if missing
+        auto count = _snesAddresses.size();
+        for (size_t i=0; i<count; i++) {
+            auto& addr = _snesAddresses[i];
+            auto p = addr.find("://");
+            if (addr.length()<3 || p == addr.npos) {
+                addr.insert(0, "ws://");
+                p = 2;
+            }
+            if (addr.find(":", p+3) == addr.npos) {
+                std::string legacy = addr + ":8080"; // legacy port
+                addr += ":23074"; // qusb port
+                _snesAddresses.push_back(legacy); // this invalidates addr ref
+            }
+        }
+    }
+
 protected:
     State _state = State::Disconnected;
     USB2SNES *_snes = nullptr;
@@ -354,6 +379,7 @@ protected:
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     std::string _name;
     bool _sentState = false;
+    std::vector<std::string> _snesAddresses;
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "AutoTracker";

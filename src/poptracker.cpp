@@ -145,6 +145,9 @@ PopTracker::PopTracker(int argc, char** argv)
     if (_config["at_slot"].is_string())
         _atSlot = _config["at_slot"];
 
+    if (_config["usb2snes"].is_null())
+        _config["usb2snes"] = "";
+
     saveConfig();
 
     _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
@@ -593,6 +596,19 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
             _archipelago->Lua_Push(_L);
             lua_setglobal(_L, "Archipelago");
         }
+        std::vector<std::string> snesAddresses;
+        auto snesCfg = _config.find("usb2snes");
+        if (snesCfg != _config.end() && snesCfg.value().is_string()) {
+            std::string s = snesCfg.value();
+            if (!s.empty()) snesAddresses.push_back(s);
+        } else if (snesCfg != _config.end() && snesCfg.value().is_array()) {
+            for (const auto& v: snesCfg.value())
+                if (v.is_string()) {
+                    std::string s = v;
+                    if (!s.empty()) snesAddresses.push_back(s);
+                }
+        }
+        at->setSnesAddresses(snesAddresses);
     }
     
     printf("Registering classes in Lua...\n");
