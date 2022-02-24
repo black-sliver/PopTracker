@@ -34,14 +34,20 @@ public:
     
     static std::string certfile; // https://curl.se/docs/caextract.html
     
-    static bool Get(const std::string& uri, std::string& response)
+    static bool Get(const std::string& uri, std::string& response, int redirect_limit = 3)
     {
         asio::io_context io_context;
         
         bool res = false;
-        if (!GetAsync(io_context, uri, [&response, &res](int code, const std::string& r) {
-            response = r;
-            res = (code == 200);
+        if (!GetAsync(io_context, uri, [&response, &res, redirect_limit](int code, const std::string& r) {
+            if (code == 302 && redirect_limit != 0) {
+                res = Get(r, response, redirect_limit - 1);
+            } else if (code == 302) {
+                res = false;
+            } else {
+                response = r;
+                res = (code == 200);
+            }
         })) return false;
         
         io_context.run();
@@ -219,6 +225,11 @@ private:
             return code;
         }
 
+        const std::string& get_redirect() const
+        {
+            return location;
+        }
+
         virtual void stop() = 0;
 
     protected:
@@ -259,7 +270,9 @@ private:
                         //    socket_.shutdown();
                         if (code < 100 && fail_handler)
                             fail_handler();
-                        if (code >= 100 && response_handler)
+                        else if (code == 302 && response_handler)
+                            response_handler(code, location);
+                        else if (code >= 100 && response_handler)
                             response_handler(code, content);
                     } else {
                         receive_response(socket_);
@@ -335,6 +348,9 @@ private:
                         else if (strcasecmp(name.c_str(), "Content-Length") == 0) {
                             content_length = (size_t)std::stoll(value);
                         }
+                        else if (strcasecmp(name.c_str(), "Location") == 0) {
+                            location = value;
+                        }
                         // next line
                         last_pos = pos + 2;
                     } else {
@@ -395,6 +411,7 @@ private:
         bool chunked;
         bool in_content;
         size_t content_length;
+        std::string location;
         response_callback response_handler;
 
     protected:
