@@ -14,6 +14,11 @@
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
 
 #if defined(__APPLE__) && !defined(MACOS)
 #define MACOS
@@ -21,6 +26,12 @@
 
 #if defined(_WIN32) && !defined(WIN32)
 #define WIN32
+#endif
+
+#if defined(MACOS) || defined(__FreeBSD__)
+#include <copyfile.h>
+#elif !defined(WIN32)
+#include <sys/sendfile.h>
 #endif
 
 
@@ -87,17 +98,40 @@ static std::string os_dirname(const std::string& filename)
 }
 
 #include <sys/stat.h>
-static inline bool fileExists(const std::string& path)
+static inline bool fileExists(const char* path)
 {
     struct stat st;
-    if (stat(path.c_str(), &st) != 0) return false;
+    if (stat(path, &st) != 0) return false;
     return S_ISREG(st.st_mode);
 }
-static inline bool pathExists(const std::string& path)
+
+static inline bool fileExists(const std::string& path)
+{
+    return fileExists(path.c_str());
+}
+
+static inline bool dirExists(const char* path)
 {
     struct stat st;
-    if (stat(path.c_str(), &st) != 0) return false;
+    if (stat(path, &st) != 0) return false;
+    return S_ISDIR(st.st_mode);
+}
+
+static inline bool dirExists(const std::string& path)
+{
+    return dirExists(path.c_str());
+}
+
+static inline bool pathExists(const char* path)
+{
+    struct stat st;
+    if (stat(path, &st) != 0) return false;
     return true;
+}
+
+static inline bool pathExists(const std::string& path)
+{
+    return pathExists(path.c_str());
 }
 
 static std::string getCwd()
@@ -245,8 +279,6 @@ static std::string getConfigPath(const std::string& appname="", const std::strin
 }
 #endif
 
-#include <sys/stat.h>
-#include <sys/types.h>
 #ifdef WIN32
 #define MKDIR(a,b) mkdir(a)
 #else
@@ -277,6 +309,62 @@ static int mkdir_recursive(const char *dir, mode_t mode=0750) {
     int res = MKDIR(tmp, mode);
     free(tmp);
     return res;
+}
+
+static int os_copyfile(const char* src, const char* dst)
+{
+#ifdef WIN32
+    if (!CopyFileA(src, dst, 0)) return -1;
+    return 0;
+#else
+    int input, output;
+    if ((input = open(src, O_RDONLY)) == -1)
+    {
+        return -1;
+    }
+    if ((output = creat(dst, 0660)) == -1)
+    {
+        close(input);
+        return -1;
+    }
+
+#if defined(__APPLE__) || defined(__FreeBSD__)
+    int result = fcopyfile(input, output, 0, COPYFILE_ALL);
+#else
+    off_t bytesCopied = 0;
+    struct stat fileinfo = {0};
+    fstat(input, &fileinfo);
+    int result = sendfile(output, input, &bytesCopied, fileinfo.st_size);
+#endif
+
+    close(input);
+    close(output);
+
+    return result;
+#endif
+}
+
+static bool copy_recursive(const char* src, const char* dst);
+static bool copy_recursive(const char* src, const char* dst)
+{
+    if (fileExists(src)) {
+        return (os_copyfile(src, dst) >= 0);
+    } else if (dirExists(src)) {
+        mkdir_recursive(dst);
+        DIR *d = opendir(src);
+        if (!d) return false;
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL)
+        {
+            if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
+            auto fsrc = os_pathcat(src, dir->d_name);
+            auto fdst = os_pathcat(dst, dir->d_name);
+            if (!copy_recursive(fsrc.c_str(), fdst.c_str())) return false;
+        }
+        closedir(d);
+        return true;
+    }
+    return false;
 }
 
 static bool getFileMTime(const char* path, std::chrono::system_clock::time_point& tp)

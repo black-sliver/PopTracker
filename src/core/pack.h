@@ -51,7 +51,8 @@ public:
     static std::vector<Info> ListAvailable();
     static Info Find(std::string uid, std::string version="");
     static void addSearchPath(const std::string& path);
-    
+    static bool isInSearchPath(const std::string& path);
+
 protected:
     Zip* _zip;
     std::string _path;

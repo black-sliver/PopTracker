@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <time.h> 
 #include <stdint.h>
+#include "../core/fileutil.h"
+#include "droptype.h"
 
 
 static uint64_t getMicroTicks()
@@ -218,6 +220,42 @@ bool Ui::render()
                         printf("Ui: window event %d for %d\n", ev.window.event, ev.window.windowID);
                     }
                     #endif
+                    break;
+                }
+                case SDL_DROPBEGIN: {
+                    // this event is more or less useless:
+                    // * it fires on drop, not on drag over
+                    // * it does not contain file/text/mime
+                    if (ev.drop.file) free(ev.drop.file);
+                    break;
+                }
+                case SDL_DROPFILE: {
+                    if (ev.drop.file) {
+                        auto winit = _windows.find(ev.drop.windowID);
+                        if (winit != _windows.end()) {
+                            bool isDir = dirExists(ev.drop.file);
+                            winit->second->onDrop.emit(winit->second, 0, 0,
+                                    isDir ? DropType::DIR : DropType::FILE,
+                                    ev.drop.file);
+                        }
+                        free(ev.drop.file);
+                    }
+                    break;
+                }
+                case SDL_DROPTEXT: {
+                    if (ev.drop.file) {
+                        auto winit = _windows.find(ev.drop.windowID);
+                        if (winit != _windows.end()) {
+                            winit->second->onDrop.emit(winit->second, 0, 0,
+                                    DropType::TEXT,
+                                    ev.drop.file);
+                        }
+                        free(ev.drop.file);
+                    }
+                    break;
+                }
+                case SDL_DROPCOMPLETE: {
+                    if (ev.drop.file) free(ev.drop.file);
                     break;
                 }
                 #ifndef NDEBUG

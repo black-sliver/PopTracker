@@ -355,71 +355,10 @@ bool PopTracker::start()
                 _exportDir = os_dirname(_exportFile);
                 _exportUID.clear();
             }
-            std::string s;
-            if (!readFile(filename, s)) {
-                fprintf(stderr, "Error reading state file: %s\n", filename.c_str());
-                Dlg::MsgBox("PopTracker", "Could not read state file!",
-                        Dlg::Buttons::OK, Dlg::Icon::Error);
-                return;
-            }
-            json j;
-            try {
-                j = parse_jsonc(s);
-            } catch (...) {
-                fprintf(stderr, "Error parsing state file: %s\n", filename.c_str());
-                Dlg::MsgBox("PopTracker", "Selected file is not valid json!",
-                        Dlg::Buttons::OK, Dlg::Icon::Error);
-                return;
-            }
-            auto jPack = j["pack"];
-            if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
-                fprintf(stderr, "Json is not a state file: %s\n", filename.c_str());
-                Dlg::MsgBox("PopTracker", "Selected file is not a state file!",
-                        Dlg::Buttons::OK, Dlg::Icon::Error);
-                return;
-            }
-            if (_pack->getUID() != jPack["uid"] || _pack->getVariant() != jPack["variant"]) {
-                auto packInfo = Pack::Find(jPack["uid"]);
-                if (packInfo.uid != jPack["uid"]) {
-                    std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"]) + "!";
-                    fprintf(stderr, "%s\n", msg.c_str());
-                    Dlg::MsgBox("PopTracker", msg,
-                            Dlg::Buttons::OK, Dlg::Icon::Error);
-                    return;
-                }
-                bool variantMatch = false;
-                for (auto& v: packInfo.variants) {
-                    if (v.variant == jPack["variant"]) {
-                        variantMatch = true;
-                        break;
-                    }
-                }
-                if (!variantMatch) {
-                    std::string msg = "Pack " + sanitize_print(jPack["uid"]) +
-                            " does not have requested variant "
-                            + sanitize_print(jPack["variant"]);
-                    fprintf(stderr, "%s\n", msg.c_str());
-                    Dlg::MsgBox("PopTracker", msg,
-                            Dlg::Buttons::OK, Dlg::Icon::Error);
-                    return;
-                }
-                if (!loadTracker(packInfo.path, jPack["variant"], false)) {
-                    fprintf(stderr, "Error loading pack!\n");
-#ifdef DONT_IGNORE_PACK_ERRORS
-                    Dlg::MsgBox("PopTracker", "Error loading pack!",
-                            Dlg::Buttons::OK, Dlg::Icon::Error);
-                    unloadTracker();
-#endif
-                }
-            }
-            if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
-                Dlg::MsgBox("PopTracker", "Error loading state!",
-                        Dlg::Buttons::OK, Dlg::Icon::Error);
-            }
-            if (_pack) _exportUID = _pack->getUID();
+            loadState(filename);
         }
     }};
-    
+
     _win->onPackSelected += {this, [this](void *s, const std::string& pack, const std::string& variant) {
         printf("Pack selected: %s:%s\n", pack.c_str(), variant.c_str());
         if (!scheduleLoadTracker(pack, variant)) {
@@ -428,7 +367,86 @@ bool PopTracker::start()
         }
         _win->hideOpen();
     }};
-    
+
+    _win->onDrop += {this, [this](void *s, int x, int y, Ui::DropType type, const std::string& data) {
+        if (type == Ui::DropType::FILE && data.length()>=5 && strcasecmp(data.c_str()+data.length()-5, ".json") == 0) {
+            loadState(data);
+        } else if ((type == Ui::DropType::FILE && data.length()>=4 && strcasecmp(data.c_str()+data.length()-4, ".zip") == 0)
+                || (type == Ui::DropType::DIR)) {
+            // if pack is in search path, load it
+            // otherwise ask to "install" it
+            std::string filename = data;
+            while (filename.length()>0 && (filename[filename.length()-1] == '/' || filename[filename.length()-1] == '\\'))
+                filename.pop_back();
+            const char* tmp = strrchr(filename.c_str(), OS_DIR_SEP);
+            std::string packname = tmp ? (std::string)(tmp+1) : filename;
+            std::string path = filename;
+            if (!Pack::isInSearchPath(filename)) {
+                if (type == Ui::DropType::DIR && !fileExists(os_pathcat(filename, "manifest.json"))) return;
+                std::string msg = "Install pack " + packname + " ?";
+                if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) != Dlg::Result::Yes)
+                    return;
+                // default to %HOME%/PopTracker/packs if that exist, otherwise
+                // default to %APPDIR%/packs and fall back to %HOME%
+                std::string homePackDir = os_pathcat(getHomePath(), "PopTracker", "packs");
+                std::string appPackDir = os_pathcat(getAppPath(), "packs");
+                path = os_pathcat(dirExists(homePackDir) ? homePackDir : appPackDir, packname);
+                if (!copy_recursive(filename.c_str(), path.c_str())) {
+                    std::string msg = "Error copying files:\n";
+                    msg += strerror(errno);
+                    path = os_pathcat(homePackDir, packname);
+                    mkdir_recursive(homePackDir.c_str());
+                    errno = 0;
+                    if (!copy_recursive(filename.c_str(), path.c_str())) {
+                        msg += "\n"; msg += strerror(errno);
+                        Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::OK, Dlg::Icon::Error);
+                        return;
+                    }
+                }
+                printf("Installed to %s\n", path.c_str());
+            }
+            // attempt to load pack
+            if (!loadTracker(path, "standard", false)) {
+                _win->showOpen();
+            }
+        } else if (type == Ui::DropType::TEXT && strncasecmp(data.c_str(), "https://", 8)==0 && strcasecmp(data.c_str()+data.length()-4, ".zip") == 0) {
+            // ask user to download and "install" pack
+            const char* zipname = strrchr(data.c_str() + 8, '/');
+            if (!zipname) return;
+            zipname += 1;
+            std::string msg = "Download pack from " + data + " ?";
+            if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) != Dlg::Result::Yes)
+                return;
+            // TODO: show download progress
+            std::string s;
+            if (!HTTP::Get(data, s)) {
+                Dlg::MsgBox("PopTracker", "Error downloading file!", Dlg::Buttons::OK, Dlg::Icon::Error);
+                return;
+            }
+            // default to %HOME%/PopTracker/packs if that exist, otherwise
+            // default to %APPDIR%/packs and fall back to %HOME%
+            std::string homePackDir = os_pathcat(getHomePath(), "PopTracker", "packs");
+            std::string appPackDir = os_pathcat(getAppPath(), "packs");
+            std::string path = os_pathcat(dirExists(homePackDir) ? homePackDir : appPackDir, zipname);
+            if (!writeFile(path, s)) {
+                path = os_pathcat(homePackDir, zipname);
+                mkdir_recursive(homePackDir.c_str());
+                errno = 0;
+                if (!writeFile(path, s)) {
+                    std:: string msg = "Error saving file:\n";
+                    msg += strerror(errno);
+                    Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::OK, Dlg::Icon::Error);
+                    return;
+                }
+            }
+            printf("Download saved to %s\n", path.c_str());
+            // attempt to load pack
+            if (!loadTracker(path, "standard", false)) {
+                _win->showOpen();
+            }
+        }
+    }};
+
     _frameTimer = std::chrono::steady_clock::now();
     _fpsTimer = std::chrono::steady_clock::now();
     return (_win != nullptr);
@@ -545,6 +563,7 @@ void PopTracker::unloadTracker()
     _pack = nullptr;
     _archipelago = nullptr;
 }
+
 bool PopTracker::loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
 {
     printf("Cleaning up...\n");
@@ -664,6 +683,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
 
     return res;
 }
+
 bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
 {
     // TODO: (load and) verify pack already?
@@ -672,6 +692,72 @@ bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string&
     _newVariant = variant;
     _newTrackerLoadAutosave = loadAutosave;
     return true;
+}
+
+void PopTracker::loadState(const std::string& filename)
+{
+    std::string s;
+    if (!readFile(filename, s)) {
+        fprintf(stderr, "Error reading state file: %s\n", filename.c_str());
+        Dlg::MsgBox("PopTracker", "Could not read state file!",
+                Dlg::Buttons::OK, Dlg::Icon::Error);
+        return;
+    }
+    json j;
+    try {
+        j = parse_jsonc(s);
+    } catch (...) {
+        fprintf(stderr, "Error parsing state file: %s\n", filename.c_str());
+        Dlg::MsgBox("PopTracker", "Selected file is not valid json!",
+                Dlg::Buttons::OK, Dlg::Icon::Error);
+        return;
+    }
+    auto jPack = j["pack"];
+    if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
+        fprintf(stderr, "Json is not a state file: %s\n", filename.c_str());
+        Dlg::MsgBox("PopTracker", "Selected file is not a state file!",
+                Dlg::Buttons::OK, Dlg::Icon::Error);
+        return;
+    }
+    if (_pack->getUID() != jPack["uid"] || _pack->getVariant() != jPack["variant"]) {
+        auto packInfo = Pack::Find(jPack["uid"]);
+        if (packInfo.uid != jPack["uid"]) {
+            std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"]) + "!";
+            fprintf(stderr, "%s\n", msg.c_str());
+            Dlg::MsgBox("PopTracker", msg,
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
+            return;
+        }
+        bool variantMatch = false;
+        for (auto& v: packInfo.variants) {
+            if (v.variant == jPack["variant"]) {
+                variantMatch = true;
+                break;
+            }
+        }
+        if (!variantMatch) {
+            std::string msg = "Pack " + sanitize_print(jPack["uid"]) +
+                    " does not have requested variant "
+                    + sanitize_print(jPack["variant"]);
+            fprintf(stderr, "%s\n", msg.c_str());
+            Dlg::MsgBox("PopTracker", msg,
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
+            return;
+        }
+        if (!loadTracker(packInfo.path, jPack["variant"], false)) {
+            fprintf(stderr, "Error loading pack!\n");
+#ifdef DONT_IGNORE_PACK_ERRORS
+            Dlg::MsgBox("PopTracker", "Error loading pack!",
+                    Dlg::Buttons::OK, Dlg::Icon::Error);
+            unloadTracker();
+#endif
+        }
+    }
+    if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
+        Dlg::MsgBox("PopTracker", "Error loading state!",
+                Dlg::Buttons::OK, Dlg::Icon::Error);
+    }
+    if (_pack) _exportUID = _pack->getUID();
 }
 
 void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)

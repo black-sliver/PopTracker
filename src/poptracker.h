@@ -52,6 +52,7 @@ private:
     bool loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     bool scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
     void unloadTracker();
+    void loadState(const std::string& filename);
     
     void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
     static bool isNewer(const Version& v);

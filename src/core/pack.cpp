@@ -153,7 +153,12 @@ void Pack::setVariant(const std::string& variant)
     _variant = variant;
     _variantName = variant; // fall-back
     if (_manifest.type() != json::value_t::object) return;
-    _variantName = to_string(_manifest["variants"][_variant]["display_name"], _variantName);
+    auto& variants = _manifest["variants"];
+    if (variants.is_object() && variants.find(variant) == variants.end() && variants.begin() != variants.end()) {
+        _variant = variants.begin().key();
+        _variantName = _variant;
+    }
+    _variantName = to_string(variants[_variant]["display_name"], _variantName);
 }
 
 std::string Pack::getPlatform() const
@@ -298,8 +303,50 @@ Pack::Info Pack::Find(std::string uid, std::string version)
     }
     return {};
 }
+
 void Pack::addSearchPath(const std::string& path)
 {
     if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end()) return;
     _searchPaths.push_back(path);
+}
+
+static std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
+static std::string CleanUpPath(const std::string& path)
+{
+#ifdef WIN32
+    char buf[_MAX_PATH];
+    char* p = _fullpath(buf, path.c_str(), sizeof(buf));
+    std::string s = p ? (std::string)p : path;
+    s = ReplaceAll(ReplaceAll(s, "//", "/"), "\\\\", "\\");
+    if (s[s.length()-1] == '/' || s[s.length()-1] == '\\')
+        s.pop_back();
+#else
+    char* p = realpath(path.c_str(), nullptr);
+    std::string s = p ? (std::string)p : path;
+    if (p) free(p);
+    p = nullptr;
+    s = ReplaceAll(s, "//", "/");
+    if (s[s.length()-1] == '/')
+        s.pop_back();
+#endif
+    return s;
+}
+
+bool Pack::isInSearchPath(const std::string& uncleanPath)
+{
+    std::string path = CleanUpPath(uncleanPath);
+    for (const auto& uncleanSearchPath: _searchPaths) {
+        std::string searchPath = CleanUpPath(uncleanSearchPath) + OS_DIR_SEP;
+        if (strncmp(path.c_str(), searchPath.c_str(), searchPath.length()) == 0)
+            return true;
+    }
+    return false;
 }

@@ -6,6 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "container.h"
 #include "fontstore.h"
+#include "droptype.h"
 
 #define WINDOW_DEFAULT_POSITION {SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED}
 
@@ -48,6 +49,8 @@ public:
     std::string getDisplayName() const;
     Position getPositionOnDisplay() const;
     void grabFocus();
+
+    Signal<int, int, DropType, std::string> onDrop; // x, y, type, data
 };
 
 } // namespace Ui
