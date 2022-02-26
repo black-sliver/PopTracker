@@ -59,7 +59,7 @@ JsonItem JsonItem::FromJSON(json& j)
     item._disabledImg   = to_string(j["disabled_img"], item._img);
     item._maxCount      = to_int(j["max_quantity"], -1);
     item._increment     = to_int(j["increment"], 1);
-    item._decrement     = to_int(j["decrement"], 1);
+    item._decrement     = to_int(j["decrement"], item._increment);
 
     if (item._type == Type::PROGRESSIVE_TOGGLE) {
         item._loop = true;
