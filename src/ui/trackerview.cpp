@@ -510,7 +510,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         Container *w = new Group(0,0,0,0,_font,node.getHeader());
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
-        container->addChild(w);   
+        container->addChild(w);
     }
     else if (node.getType() == "item") {
         auto sz = node.getItemSize();
