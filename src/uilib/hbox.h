@@ -17,7 +17,7 @@ public:
             auto& last = _children.back();
             w->setPosition({last->getLeft() + last->getWidth() + _spacing + w->getMargin().left, _padding + w->getMargin().top});
             Container::addChild(w);
-            setWidth(w->getLeft() + w->getWidth() + _padding);
+            _size.width = w->getLeft() + w->getWidth() + _padding;
             if (w->getTop() + w->getHeight() + _padding > _size.height) setHeight(w->getTop() + w->getHeight() + _padding);
         } else {
             w->setPosition({_padding + w->getMargin().left, _padding + w->getMargin().top});
