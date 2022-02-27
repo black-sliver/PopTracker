@@ -554,18 +554,22 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             sz.x = 32; sz.y = 32; // fall-back
         }
         LayoutNode::Size sp = node.getItemMargin();
+        int halign = node.getHAlignment() == "center" ? 0 : node.getHAlignment() == "right" ? 1 : -1;
         for (const auto& row: rows) {
-            int x=0;
+            int x = 0;
+            int offx = 0;
+            if (row.size() != colCount && halign != -1) {
+                offx = (int)(colCount-row.size())*(sz.x+2*sp.x);
+                if (halign == 0) offx /= 2;
+            }
             for (const auto& item: row) {
-                Item *iw = makeItem(x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
+                Item *iw = makeItem(offx+x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
                 w->addChild(iw);
                 x++;
             }
             y++;
         }
-        int spx = 2 * (int)colCount * sp.x;
-        int spy = 2 * (int)rowCount * sp.y;
-        w->setSize({(int)colCount*sz.x+spx,(int)rowCount*sz.y+spy});
+        w->setSize({(int)colCount*(sz.x+2*sp.x),(int)rowCount*(sz.y+2*sp.y)});
         // FIXME: this is a dirty work-around. make auto-layout better
         w->setMinSize(w->getSize());
         container->addChild(w);
