@@ -1,0 +1,179 @@
+{
+	"tracker_default": {
+		"type": "container",
+		"content": {
+			"type": "dock",
+			"dropshadow": false,
+			"content": [
+				{
+					"dock": "top",
+					"background": "#fff",
+					"type": "array",
+					"orientation": "vertical",
+					"margin": "0,0,0,0",
+					"content": [
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8" ] ]
+				                },
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "green7x8" ] ]
+				                },
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "blue7x8" ] ]
+				                },
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "h_align": "left",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "h_align": "center",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "-1,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                },
+				                {
+				                    "type": "itemgrid",
+				                    "margin": "-1,0,0,0",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "1,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+        					        "item_margin": "-1,0",
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                },
+				                {
+        					        "item_margin": "-2,0",
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
+				                }
+				            ]
+				        },
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "itemgrid",
+				                    "rows": [ [ "red7x8" ] ]
+				                },
+				                {
+				                    "type": "itemgrid",
+				                    "margin": "-1,0,0,0",
+				                    "rows": [ [ "green7x8" ] ]
+				                },
+				                {
+				                    "type": "itemgrid",
+				                    "margin": "-2,0,0,0",
+				                    "rows": [ [ "blue7x8" ] ]
+				                },
+				            ]
+				        },,
+					    {
+					        "type": "array",
+					        "orientation": "horizontal",
+					        "margin": "0,0,0,0",
+				            "content": [
+				                {
+				                    "type": "array",
+				                    "orientation": "vertical",
+				                    "margin": "0,0,0,0",
+				                    "content": [
+				                        {
+				                            "type": "itemgrid",
+				                            "rows": [ [ "red7x8" ] ]
+				                        }
+			                        ]
+		                        },
+				                {
+				                    "type": "array",
+				                    "orientation": "vertical",
+		                            "margin": "-1,0,0,0",
+				                    "content": [
+				                        {
+				                            "type": "itemgrid",
+				                            "rows": [ [ "green7x8" ] ]
+				                        }
+			                        ]
+		                        },
+				                {
+				                    "type": "array",
+				                    "orientation": "vertical",
+		                            "margin": "-2,0,0,0",
+				                    "content": [
+				                        {
+				                            "type": "itemgrid",
+				                            "rows": [ [ "blue7x8" ] ]
+				                        }
+			                        ]
+		                        }
+				            ]
+				        }
+					]
+				}
+			]
+		}
+	}
+}
