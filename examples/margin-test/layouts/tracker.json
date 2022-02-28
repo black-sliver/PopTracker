@@ -49,7 +49,7 @@
 				            "content": [
 				                {
 				                    "type": "itemgrid",
-				                    "h_align": "left",
+				                    "h_alignment": "left",
 				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
 				                }
 				            ]
@@ -61,7 +61,7 @@
 				            "content": [
 				                {
 				                    "type": "itemgrid",
-				                    "h_align": "center",
+				                    "h_alignment": "center",
 				                    "rows": [ [ "red7x8","green7x8","blue7x8" ] ]
 				                }
 				            ]
