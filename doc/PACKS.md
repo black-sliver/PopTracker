@@ -337,6 +337,8 @@ Rule-goups inside `{` `}` are a different set of rules to mark the section as "c
 
 `{<checkrule1>, <checkrule2>}` in example above are combined as: `(<checkrule1> AND <checkrule2>)` have to be met to check.
 
+In PopTracker (since 0.19.1) rules can be specified as json array instead of string, which allows to use `,` inside names or arguments
+
 **Sections:** 
 The popup is segmented into sections.
 

@@ -56,15 +56,30 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
     
     std::string name = to_string(j["name"], "");
     std::list< std::list<std::string> > accessRules;
-    if (j["access_rules"].type() == json::value_t::array) {
+    if (j["access_rules"].is_array()) {
         // TODO: merge code with Section's access rules
         for (const auto& v : j["access_rules"]) {
-            if (v.type() != json::value_t::string) {
+            std::list<std::string> newRule;
+            if (v.is_string()) {
+                // string with individual codes separated by comma
+                commasplit(v, newRule);
+            }
+            else if (v.is_array()) {
+                // we also allow rules to be arrays of strings instead
+                for (const auto& part: v) {
+                    if (!part.is_string()) {
+                        fprintf(stderr, "Location: bad access rule in \"%s\"\n",
+                            sanitize_print(name).c_str());
+                        continue;
+                    }
+                    newRule.push_back(part);
+                }
+            }
+            else {
                 fprintf(stderr, "Location: bad access rule in \"%s\"\n",
                     sanitize_print(name).c_str());
                 continue;
             }
-            auto newRule = commasplit(v);
             for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -77,21 +92,36 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
         }
     } else {
         accessRules = parentAccessRules; // TODO: avoid copy
-        if (j["access_rules"].type() != json::value_t::null) {
+        if (!j["access_rules"].is_null()) {
             fprintf(stderr, "Location: invalid access rules in \"%s\"\n",
                     sanitize_print(name).c_str());
         }
     }
     std::list< std::list<std::string> > visibilityRules;
-    if (j["visibility_rules"].type() == json::value_t::array) {
+    if (j["visibility_rules"].is_array()) {
         // TODO: merge code with Section's access rules
         for (const auto& v : j["visibility_rules"]) {
-            if (v.type() != json::value_t::string) {
+            std::list<std::string> newRule;
+            if (v.is_string()) {
+                // string with individual codes separated by comma
+                commasplit(v, newRule);
+            }
+            else if (v.is_array()) {
+                // we also allow rules to be arrays of strings instead
+                for (const auto& part: v) {
+                    if (!part.is_string()) {
+                        fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
+                            sanitize_print(name).c_str());
+                        continue;
+                    }
+                    newRule.push_back(part);
+                }
+            }
+            else {
                 fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
                     sanitize_print(name).c_str());
                 continue;
             }
-            auto newRule = commasplit(v);
             for (auto oldRule : parentVisibilityRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -104,7 +134,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list< std::list<std::
         }
     } else {
         visibilityRules = parentVisibilityRules; // TODO: avoid copy
-        if (j["visibility_rules"].type() != json::value_t::null) {
+        if (!j["visibility_rules"].is_null()) {
             fprintf(stderr, "Location: invalid visibility rules in \"%s\"\n",
                     sanitize_print(name).c_str());
         }
@@ -187,15 +217,30 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
     commasplit(tmp, sec._hostedItems);
     sec._itemCount = sec._hostedItems.empty() ? 1 : 0;
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
-    if (j["access_rules"].type() == json::value_t::array) {
+    if (j["access_rules"].is_array()) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["access_rules"]) {
-            if (v.type() != json::value_t::string) {
+            std::list<std::string> newRule;
+            if (v.is_string()) {
+                // string with individual codes separated by comma
+                commasplit(v, newRule);
+            }
+            else if (v.is_array()) {
+                // we also allow rules to be arrays of strings instead
+                for (const auto& part: v) {
+                    if (!part.is_string()) {
+                        fprintf(stderr, "Location: bad access rule in \"%s\"\n",
+                            sanitize_print(sec._name).c_str());
+                        continue;
+                    }
+                    newRule.push_back(part);
+                }
+            }
+            else {
                 fprintf(stderr, "Location: bad access rule in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
                 continue;
             }
-            auto newRule = commasplit(v);
             for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -208,20 +253,35 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
         }
     } else {
         sec._accessRules = parentAccessRules;
-        if (j["access_rules"].type() != json::value_t::null) {
+        if (!j["access_rules"].is_null()) {
             fprintf(stderr, "Location: Section: invalid access rules in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
         }
     }
-    if (j["visibility_rules"].type() == json::value_t::array) {
+    if (j["visibility_rules"].is_array()) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["visibility_rules"]) {
-            if (v.type() != json::value_t::string) {
+            std::list<std::string> newRule;
+            if (v.is_string()) {
+                // string with individual codes separated by comma
+                commasplit(v, newRule);
+            }
+            else if (v.is_array()) {
+                // we also allow rules to be arrays of strings instead
+                for (const auto& part: v) {
+                    if (!part.is_string()) {
+                        fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
+                            sanitize_print(sec._name).c_str());
+                        continue;
+                    }
+                    newRule.push_back(part);
+                }
+            }
+            else {
                 fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
                 continue;
             }
-            auto newRule = commasplit(v);
             for (auto oldRule : parentVisibilityRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -234,7 +294,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
         }
     } else {
         sec._visibilityRules = parentVisibilityRules;
-        if (j["visibility_rules"].type() != json::value_t::null) {
+        if (!j["visibility_rules"].is_null()) {
             fprintf(stderr, "Location: Section: invalid visibility rules in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
         }
