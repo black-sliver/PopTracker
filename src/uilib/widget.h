@@ -207,10 +207,11 @@ public:
 
 #ifndef NDEBUG
     void dumpInfo() {    
-        printf("%s [w=%d,h=%d,minw=%d,minh=%d,maxw=%d,maxh=%d,bg=#%02x%02x%02x(%02x)]\n",
+        printf("%s [w=%d,h=%d,minw=%d,minh=%d,maxw=%d,maxh=%d,bg=#%02x%02x%02x(%02x),x=%d,y=%d]\n",
             typeid(*this).name(),
             getWidth(), getHeight(), getMinWidth(), getMinHeight(), getMaxWidth(), getMaxHeight(),
-            _backgroundColor.r, _backgroundColor.g, _backgroundColor.b, _backgroundColor.a);
+            _backgroundColor.r, _backgroundColor.g, _backgroundColor.b, _backgroundColor.a,
+            getLeft(), getTop());
     }
 #endif
 };
