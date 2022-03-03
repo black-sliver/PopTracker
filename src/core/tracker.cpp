@@ -167,7 +167,7 @@ bool Tracker::AddLocations(const std::string& file) {
     
     _reachableCache.clear();
     _providerCountCache.clear();
-    for (auto& loc : Location::FromJSON(j)) {
+    for (auto& loc : Location::FromJSON(j, _locations)) {
         //loc.dump(true);
         _locations.push_back(std::move(loc)); // TODO: move constructor
         for (auto& sec : _locations.back().getSections()) {

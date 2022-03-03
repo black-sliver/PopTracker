@@ -279,6 +279,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
             "chest_unopened_img": "path/to/chest.png", // default if children do not override
             "chest_opened_img": "path/to/chest.png",
             "overlay_background": "#000000", // set background for number of unopened chests
+            "parent": "parent's name", // read below
             "children": [
                 {
                     "name": "Location or check name",
@@ -338,6 +339,11 @@ Rule-goups inside `{` `}` are a different set of rules to mark the section as "c
 `{<checkrule1>, <checkrule2>}` in example above are combined as: `(<checkrule1> AND <checkrule2>)` have to be met to check.
 
 In PopTracker (since 0.19.1) rules can be specified as json array instead of string, which allows to use `,` inside names or arguments
+
+**Parent:**
+With `"parent"`, the location's parent can be overwritten. Since PopTracker v0.19.2.
+This is useful to put a location from `dungeons.json` into a location from `overworld.json`,
+which could also be done with `@` access rules.
 
 **Sections:** 
 The popup is segmented into sections.

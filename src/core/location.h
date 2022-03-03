@@ -70,6 +70,7 @@ public:
     };
 
     static std::list<Location> FromJSON(nlohmann::json& j,
+        const std::list<Location>& parentLookup,
         const std::list< std::list<std::string> >& parentAccessRules={},
         const std::list< std::list<std::string> >& parentVisibilityRules={},
         const std::string& parentName="", const std::string& closedImg="",
