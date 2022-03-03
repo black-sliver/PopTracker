@@ -49,6 +49,9 @@ See [BUILD.md](BUILD.md).
 
 *more to be tested*
 
+Join the [Community Discord](https://discord.com/invite/gwThqMCPgK) to find pack
+repositories and get updates.
+
 ## Auto-tracking
 ### SNES Games
 Requires [SNI](https://github.com/alttpo/sni)
@@ -61,8 +64,16 @@ We do not allow direct access to process memory or sockets from Lua. Instead
 [UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables".
 
 ### Archipelago Multiworld
-[Archipelago](https://archipelago.gg) allows connecting to a Multiworld as a tracker.
-A test implementation of an Archipelago client is included. See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md).
+[Archipelago](https://archipelago.gg) allows connecting to a Multiworld as a
+tracker. An Archipelago client is included. Click on the grey "AT" to connect to
+a server if the pack supports it.
+See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md) for more details.
 
 ### Other systems
 No work has been done for other systems yet.
+
+## Version Numbering
+
+* Major update (X.0.0) may break everything
+* Minor update (0.X.0) may change render output (i.e. window captures break)
+* Revisions (0.0.X) should only fix bugs and add non-breaking features
