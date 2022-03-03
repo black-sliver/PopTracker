@@ -18,7 +18,7 @@ Group::Group(int x, int y, int w, int h, FONT font, const std::string& title)
     if (_lbl->getWidth() < _lbl->getAutoWidth()) {
         _lbl->setWidth(_lbl->getAutoWidth());
     }
-    _lbl->setMinSize({_lbl->getMinWidth(), _lbl->getHeight()});
+    _lbl->setMinSize(_lbl->getSize());
     _lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
     _minSize.width = _lbl->getWidth() + 2*TITLE_MARGIN;
     _minSize.height = TITLE_HEIGHT;
