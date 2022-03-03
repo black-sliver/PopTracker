@@ -60,6 +60,8 @@ protected:
     int _maxWidth;
     Size _itemSize;
     Size _itemMargin;
+    std::string _itemHAlign; // TODO: enum class
+    std::string _itemVAlign; // TODO: enum class
     Size _size;
     Size _maxSize;
     Spacing _margin;
@@ -92,6 +94,8 @@ public:
     const std::string& getBackground() const { return _background; }
     const std::list<std::string>& getMaps() const { return _maps; }
     Size getItemMargin() const { return _itemMargin; }
+    const std::string& getItemHAlignment() const { return _itemHAlign; }
+    const std::string& getItemVAlignment() const { return _itemVAlign; }
 };
 
 constexpr const LayoutNode::Spacing LayoutNode::Spacing::UNDEFINED = {INT_MIN, INT_MIN, INT_MIN, INT_MIN};

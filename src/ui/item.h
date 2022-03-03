@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <SDL2/SDL_ttf.h>
+#include "../uilib/label.h"
 
 namespace Ui {
 
@@ -37,6 +38,10 @@ public:
     virtual int getMiny() const { return _renderPos.top; }
     virtual int getMaxX() const { return _renderPos.left + _renderSize.width - 1; }
     virtual int getMaxY() const { return _renderPos.top + _renderSize.height - 1; }
+    void setImageAlignment(Label::HAlign halign, Label::VAlign valign) {
+        _halign = halign;
+        _valign = valign;
+    }
 
 protected:
     std::vector< std::vector<SDL_Surface*> > _surfs;
@@ -52,6 +57,8 @@ protected:
     Widget::Color _overlayColor = {255,255,255};
     Widget::Color _overlayBackgroundColor = {};
     SDL_Texture *_overlayTex = nullptr;
+    Label::HAlign _halign = Label::HAlign::LEFT;
+    Label::VAlign _valign = Label::VAlign::TOP;
 
     virtual void addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters={});
     void freeStage(int stage1, int stage2);

@@ -140,9 +140,13 @@ void Item::render(Renderer renderer, int offX, int offY)
             finalw = _size.width;
         }
         _renderSize = { finalw, finalh };
+        int xalign = _halign == Label::HAlign::LEFT ? 0 : (_size.width-finalw+1);
+        if (_halign != Label::HAlign::RIGHT) xalign /= 2;
+        int yalign = _valign == Label::VAlign::TOP ? 0 : (_size.height-finalh+1);
+        if (_valign != Label::VAlign::BOTTOM) yalign /= 2;
         _renderPos = {
-            _pos.left /*+ (_size.width-finalw+1)/2*/, // FIXME: make this depend on gravity
-            _pos.top /* + (_size.height-finalh+1)/2*/, // FIXME: make this depend on gravity
+            _pos.left + xalign,
+            _pos.top + yalign,
         };
     } else {
         _renderSize = _size;

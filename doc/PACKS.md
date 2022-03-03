@@ -397,6 +397,8 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "margin":      "left,top,right,bootom",
         "item_margin": "<horizontal>,<vertical>", // margin in px
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
+        "item_h_alignment": "{left,right,center,strech}", // align image inside item; PopTracker since 0.19.1
+        "item_v_alignment": "{top,bottom,center,strech}", // as above; strech is not implemented for either
         "dropshadow":  bool // enable/disable drop shadow, not implemented yet
     }
 

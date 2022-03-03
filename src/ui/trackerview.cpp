@@ -43,6 +43,23 @@ std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std:
     return filters;
 }
 
+static Label::HAlign str2itemHalign(const std::string& s, Label::HAlign dflt=Label::HAlign::LEFT)
+{
+    if (s.empty()) return dflt;
+    if (s == "center") return Label::HAlign::CENTER;
+    if (s == "right") return Label::HAlign::RIGHT;
+    if (s == "left") return Label::HAlign::LEFT;
+    return dflt;
+}
+
+static Label::VAlign str2itemValign(const std::string& s, Label::VAlign dflt=Label::VAlign::TOP)
+{
+    if (s.empty()) return dflt;
+    if (s == "bottom") return Label::VAlign::BOTTOM;
+    if (s == "center" || s == "middle") return Label::VAlign::MIDDLE;
+    if (s == "top") return Label::VAlign::TOP;
+    return dflt;
+}
 
 Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseItem& origItem, int stage1, int stage2)
 {
@@ -520,6 +537,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (maxSz.x>0 && sz.x<1) sz.x = maxSz.x;
         if (maxSz.y>0 && sz.y<1) sz.y = maxSz.y;
         Item *w = makeItem(0,0,sz.x,sz.y, _tracker->getItemByCode(node.getItem()));
+        w->setImageAlignment(str2itemHalign(node.getItemHAlignment()), str2itemValign(node.getItemVAlignment()));
         if (maxSz.x > 0) w->setMaxSize( {maxSz.x, w->getMaxWidth()} );
         if (maxSz.y > 0) w->setMaxSize( {w->getMaxHeight(), maxSz.y} );
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
@@ -559,6 +577,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         }
         LayoutNode::Size sp = node.getItemMargin();
         int halign = node.getHAlignment() == "center" ? 0 : node.getHAlignment() == "right" ? 1 : -1;
+        Label::HAlign itemHalign = str2itemHalign(node.getItemHAlignment());
+        Label::VAlign itemValign = str2itemValign(node.getItemHAlignment());
         int maxX = 0, maxY = 0;
         for (const auto& row: rows) {
             int x = 0;
@@ -569,6 +589,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             }
             for (const auto& item: row) {
                 Item *iw = makeItem(offx+x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
+                iw->setImageAlignment(itemHalign, itemValign);
                 w->addChild(iw);
                 if (iw->getLeft() + iw->getWidth() > maxX) maxX = iw->getLeft() + iw->getWidth();
                 if (iw->getTop() + iw->getHeight() > maxY) maxY = iw->getTop() + iw->getHeight();

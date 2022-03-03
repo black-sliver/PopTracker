@@ -85,6 +85,8 @@ LayoutNode LayoutNode::FromJSON(json& j)
     node._itemSize.x  = to_int(j["item_width"], node._itemSize.x);
     node._itemSize.y  = to_int(j["item_height"], node._itemSize.y);
     node._itemMargin  = to_size(j["item_margin"],{5,5}); // this is possibly supposed to be left,top,right,bottom
+    node._itemHAlign  = to_string(j["item_h_alignment"], "");
+    node._itemVAlign  = to_string(j["item_v_alignment"], "");
     node._size.x      = to_int(j["width"], -1);
     node._size.y      = to_int(j["height"], -1);
     node._maxSize.x   = to_int(j["max_width"], -1);
