@@ -57,10 +57,10 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
             //Size curSize = Size::FromPosition(_view->getPosition()+_view->getSize());
             Size curSize = getSize();
             Size minSize = Size::FromPosition(_view->getPosition()+_view->getMinSize());
-            Size newSize = curSize || minSize;
+            Size newSize = curSize || minSize || Size{96,96};
             if (newSize != curSize) {
                 printf("Layout changed ... ");
-                printf("%d,%d || %d,%d = %d,%d\n", curSize.width, curSize.height, minSize.width, minSize.height, newSize.width, newSize.height);
+                printf("%d,%d || %d,%d || 96,96= %d,%d\n", curSize.width, curSize.height, minSize.width, minSize.height, newSize.width, newSize.height);
                 resize(newSize);
             }
         }};
