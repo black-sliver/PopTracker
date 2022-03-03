@@ -57,8 +57,8 @@ public:
 private:
     bool calculateMinSize(Widget* child)
     {
-        int minw = child->getLeft() + child->getMinWidth();
-        int minh = child->getTop() + child->getMinHeight();
+        int minw = child->getLeft() + child->getMinWidth() + child->getMargin().right;
+        int minh = child->getTop() + child->getMinHeight() + child->getMargin().bottom;
         Size old = _minSize;
         if (minw>_minSize.width) _minSize.width = minw;
         if (minh>_minSize.height) _minSize.height = minh;
@@ -68,8 +68,8 @@ private:
     {
         int maxw = child->getMaxWidth();
         int maxh = child->getMaxHeight();
-        if (maxw>=0) maxw += child->getLeft();
-        if (maxh>=0) maxh += child->getTop();
+        if (maxw>=0) maxw += child->getLeft() + child->getMargin().right;
+        if (maxh>=0) maxh += child->getTop() + child->getMargin().bottom;
         Size old = _maxSize;
         if (maxw>=0 && maxw<_maxSize.width)  _maxSize.width = maxw;
         if (maxh>=0 && maxh<_maxSize.height) _maxSize.height = maxh;

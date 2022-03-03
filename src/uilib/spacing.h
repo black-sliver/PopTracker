@@ -13,7 +13,7 @@ struct Spacing final {
     constexpr Spacing() : left(0), top(0), right(0), bottom(0) {}
     constexpr Spacing(int s) : left(s), top(s), right(s), bottom(s) {}
     constexpr Spacing(int x, int y) : left(x), top(y), right(x), bottom(y) {}
-    constexpr Spacing(int l, int t, int r, int b) : left(l), top(t), right(t), bottom(b) {}
+    constexpr Spacing(int l, int t, int r, int b) : left(l), top(t), right(r), bottom(b) {}
     bool operator==(const Spacing& other) const { return left==other.left && top==other.top && right==other.right && bottom==other.bottom; }
     bool operator!=(const Spacing& other) const { return !(*this == other); }
 };

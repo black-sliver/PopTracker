@@ -394,6 +394,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "orientation": "{horizontal,vertical}", // how to orient children
         "max_height":  integer, // maximum height in px
         "max_width":   integer, // maximum width in px
+        "margin":      "left,top,right,bootom",
         "item_margin": "<horizontal>,<vertical>", // margin in px
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
         "dropshadow":  bool // enable/disable drop shadow, not implemented yet
@@ -411,6 +412,11 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 * `"layout"`: pastes a different named object here (`"key": "name_of_layout"`)
 * `"recentpins"`: pinned items, uses `{"style":"{wrapped,?}","compact":bool}`
 * `"text"`: has property `"text": "string"` to display a string
+
+**Margin:**
+
+Margin can alternatively be specified as "x,y" or single int and is an offset of the widget's position and size.
+Margin defaults to 0 for items and "inner arrays" (array inside array), 5 for everything else.
 
 
 ## Ui Hints

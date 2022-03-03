@@ -141,7 +141,7 @@ void Item::render(Renderer renderer, int offX, int offY)
         }
         _renderSize = { finalw, finalh };
         _renderPos = {
-            _pos.left + (_size.width-finalw+1)/2, // FIXME: make this depend on gravity
+            _pos.left /*+ (_size.width-finalw+1)/2*/, // FIXME: make this depend on gravity
             _pos.top /* + (_size.height-finalh+1)/2*/, // FIXME: make this depend on gravity
         };
     } else {

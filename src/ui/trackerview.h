@@ -21,6 +21,7 @@ public:
     
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setSize(Size size) override;
+    virtual void addChild(Widget* child) override;
     void relayout();
     
     std::list< std::pair<std::string,std::string> > getHints() const;

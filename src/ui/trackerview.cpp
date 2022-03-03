@@ -474,7 +474,9 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             vbox->setSpacing(0);
             w = vbox;
         }
-        const auto& m = node.getMargin();
+        auto dfltMargin = (dynamic_cast<HBox*>(container) || dynamic_cast<VBox*>(container))
+                ? LayoutNode::Spacing{0,0,0,0} : LayoutNode::Spacing{5,5,5,5};
+        const auto& m = node.getMargin(dfltMargin);
         w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
@@ -531,7 +533,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             int calculatedWidth = w->getMaxHeight()*w->getAutoWidth()/w->getAutoHeight(); // keep aspect ratio
             w->setMinSize({calculatedWidth, w->getMaxHeight()});
         }
-        const auto& m = node.getMargin();
+        const auto& m = node.getMargin({0,0,0,0});
         w->setMargin({m.left, m.top, m.right, m.bottom});
         container->addChild(w);
     }
@@ -543,6 +545,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             if (row.size()>colCount) colCount = row.size();
         }
         Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight()); // TODO: itemgrid
+        const auto& m = node.getMargin();
+        w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         int y=0;
         auto sz = node.getItemSize();
@@ -555,6 +559,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         }
         LayoutNode::Size sp = node.getItemMargin();
         int halign = node.getHAlignment() == "center" ? 0 : node.getHAlignment() == "right" ? 1 : -1;
+        int maxX = 0, maxY = 0;
         for (const auto& row: rows) {
             int x = 0;
             int offx = 0;
@@ -565,10 +570,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             for (const auto& item: row) {
                 Item *iw = makeItem(offx+x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
                 w->addChild(iw);
+                if (iw->getLeft() + iw->getWidth() > maxX) maxX = iw->getLeft() + iw->getWidth();
+                if (iw->getTop() + iw->getHeight() > maxY) maxY = iw->getTop() + iw->getHeight();
                 x++;
             }
             y++;
         }
+        //w->setSize({maxX, maxY});
         w->setSize({(int)colCount*(sz.x+2*sp.x),(int)rowCount*(sz.y+2*sp.y)});
         // FIXME: this is a dirty work-around. make auto-layout better
         w->setMinSize(w->getSize());
@@ -731,6 +739,14 @@ void TrackerView::setSize(Size size)
     //if (size == _size) return;
     // TODO: resize on next frame?
     SimpleContainer::setSize(size);
+}
+
+void TrackerView::addChild(Widget* child)
+{
+    if (!child) return;
+    // TODO: move margin to SimpleContainer?
+    child->setPosition({child->getLeft() + child->getMargin().left, child->getTop() + child->getMargin().top});
+    SimpleContainer::addChild(child);
 }
 
 Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)

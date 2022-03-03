@@ -5,6 +5,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "direction.h"
+#include <climits>
 
 class LayoutNode;
 
@@ -28,6 +29,7 @@ public:
         constexpr Size() : x(0), y(0) {}
     };
 
+    struct Spacing;
     struct Spacing final {
         int left;
         int top;
@@ -37,6 +39,9 @@ public:
         constexpr Spacing(int s) : left(s), top(s), right(s), bottom(s) {}
         constexpr Spacing(int x, int y) : left(x), top(y), right(x), bottom(y) {}
         constexpr Spacing(int l, int t, int r, int b) : left(l), top(t), right(r), bottom(b) {}
+        bool operator==(const Spacing& other) const { return left==other.left && top==other.top && right==other.right && bottom==other.bottom; }
+        bool operator!=(const Spacing& other) const { return !(*this == other); }
+        static const Spacing UNDEFINED;
     };
 
     static LayoutNode FromJSON(nlohmann::json& j);
@@ -79,7 +84,7 @@ public:
     const Size& getItemSize() const { return _itemSize; }
     const Size& getSize() const { return _size; }
     const Size& getMaxSize() const { return _maxSize; }
-    const Spacing& getMargin() const { return _margin; }
+    const Spacing& getMargin(const Spacing& dflt={5,5,5,5}) const { return _margin==Spacing::UNDEFINED ? dflt : _margin; }
     Orientation getOrientation() const { return _orientation; }
     Direction getDock() const { return _dock; }
     std::string getHAlignment() const { return _hAlignment; }
@@ -88,5 +93,7 @@ public:
     const std::list<std::string>& getMaps() const { return _maps; }
     Size getItemMargin() const { return _itemMargin; }
 };
+
+constexpr const LayoutNode::Spacing LayoutNode::Spacing::UNDEFINED = {INT_MIN, INT_MIN, INT_MIN, INT_MIN};
 
 #endif // _CORE_LAYOUTNODE_H
