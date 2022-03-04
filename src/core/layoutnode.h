@@ -86,8 +86,7 @@ public:
     const Size& getItemSize() const { return _itemSize; }
     const Size& getSize() const { return _size; }
     const Size& getMaxSize() const { return _maxSize; }
-    const Spacing& getMargin(const Spacing& dflt={5,5,5,5}) const { return _margin==Spacing::UNDEFINED ? dflt : _margin; }
-    const Spacing getMargin(Spacing&& dflt) const { return _margin==Spacing::UNDEFINED ? dflt : _margin; }
+    Spacing getMargin(const Spacing& dflt={5,5,5,5}) const { return _margin==Spacing::UNDEFINED ? dflt : _margin; }
     Orientation getOrientation() const { return _orientation; }
     Direction getDock() const { return _dock; }
     std::string getHAlignment() const { return _hAlignment; }

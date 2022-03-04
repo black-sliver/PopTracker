@@ -493,7 +493,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         }
         auto dfltMargin = (dynamic_cast<HBox*>(container) || dynamic_cast<VBox*>(container))
                 ? LayoutNode::Spacing{0,0,0,0} : LayoutNode::Spacing{5,5,5,5};
-        const auto& m = node.getMargin(dfltMargin);
+        auto m = node.getMargin(dfltMargin);
         w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
@@ -551,7 +551,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             int calculatedWidth = w->getMaxHeight()*w->getAutoWidth()/w->getAutoHeight(); // keep aspect ratio
             w->setMinSize({calculatedWidth, w->getMaxHeight()});
         }
-        const auto& m = node.getMargin({0,0,0,0});
+        auto m = node.getMargin({0,0,0,0});
         w->setMargin({m.left, m.top, m.right, m.bottom});
         container->addChild(w);
     }
@@ -563,7 +563,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             if (row.size()>colCount) colCount = row.size();
         }
         Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight()); // TODO: itemgrid
-        const auto& m = node.getMargin();
+        auto m = node.getMargin();
         w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         int y=0;
