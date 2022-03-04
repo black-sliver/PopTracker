@@ -14,14 +14,11 @@ Group::Group(int x, int y, int w, int h, FONT font, const std::string& title)
     _spacing = 4;
     // TODO: have label with background color, padding and gravity instead of overriding render()?
     _lbl = new Label(TITLE_MARGIN, 0, 0, TITLE_HEIGHT, font, title.c_str());
-    _lbl->setWidth(_lbl->getAutoWidth() + 2*TITLE_MARGIN);
+    _lbl->setWidth(_lbl->getAutoWidth());
     _lbl->setMinSize(_lbl->getSize());
     _lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
-    _minSize.width = _lbl->getWidth() + 2*TITLE_MARGIN;
-    _minSize.height = TITLE_HEIGHT;
-    // this is consistent with VBox::addChild, but keeps TITLE_MARGIN
-    setSize({_lbl->getWidth() + 2*TITLE_MARGIN, _lbl->getHeight()}); 
-    Container::addChild(_lbl);
+    _lbl->setMargin({TITLE_MARGIN,-4,TITLE_MARGIN,0});
+    addChild(_lbl);
 }
 
 
