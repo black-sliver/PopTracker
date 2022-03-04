@@ -213,8 +213,8 @@ bool PopTracker::start()
                 pos.top = to_int(jPos[1],pos.top);
             }
             if (jSize.type() == json::value_t::array) {
-                size.width = to_int(jSize[0],size.width);
-                size.height = to_int(jSize[1],size.height);
+                size.width = std::max(96, std::min(8192, to_int(jSize[0],size.width)));
+                size.height = std::max(96, std::min(4096, to_int(jSize[1],size.height)));
             }
         }
         auto jPack = _config["pack"];

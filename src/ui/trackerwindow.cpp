@@ -57,10 +57,10 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
             //Size curSize = Size::FromPosition(_view->getPosition()+_view->getSize());
             Size curSize = getSize();
             Size minSize = Size::FromPosition(_view->getPosition()+_view->getMinSize());
-            Size newSize = curSize || minSize || Size{96,96};
+            Size newSize = (curSize || minSize || Size{96,96}) && Size{8192,4096};
             if (newSize != curSize) {
                 printf("Layout changed ... ");
-                printf("%d,%d || %d,%d || 96,96= %d,%d\n", curSize.width, curSize.height, minSize.width, minSize.height, newSize.width, newSize.height);
+                printf("%d,%d || %d,%d => %d,%d\n", curSize.width, curSize.height, minSize.width, minSize.height, newSize.width, newSize.height);
                 resize(newSize);
             }
         }};
@@ -97,7 +97,7 @@ void TrackerWindow::render(Renderer renderer, int offX, int offY)
 {
     // FIX THIS: we need to setSize twice to fully do all auto-sizing, see below
     if (_resizeScheduled) { // TODO: move this work-around to trackerView::render instead?
-        printf("Resizing...\n");
+        printf("Resizing... (%d,%d)\n", _resizeSize.width, _resizeSize.height);
         Window::setSize(_resizeSize);
         if (_menu) _menu->setSize({_size.width-_menu->getLeft(), _menu->getHeight()});
         if (_view && _rendered) {
