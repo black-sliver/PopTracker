@@ -85,9 +85,16 @@ static std::string to_string(const nlohmann::json& j, const std::string& key, co
 }
 static int to_int(const nlohmann::json& j, int dflt)
 {
+    if (j.type() == nlohmann::json::value_t::number_integer) return j.get<int>();
+    if (j.type() == nlohmann::json::value_t::number_unsigned) return (int)j.get<unsigned>();
     // TODO: float?
-    return (j.type() == nlohmann::json::value_t::number_integer) ? j.get<int>() : 
-           (j.type() == nlohmann::json::value_t::number_unsigned) ? (int)j.get<unsigned>() : dflt;
+    if (j.is_string()) {
+        auto s = j.get<std::string>();
+        char* end;
+        long n = strtol(s.c_str(), &end, 10);
+        if (end && end != s.c_str() && *end == 0) return (int)n;
+    }
+    return dflt;
 }
 static Direction to_direction(const nlohmann::json& j, Direction dflt=Direction::UNDEFINED)
 {
