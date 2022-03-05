@@ -64,7 +64,11 @@ public:
         if (_backgroundColor.a > 0) {
             const auto& c = _backgroundColor;
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-            SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, _size.height };
+            SDL_Rect r = { offX+_pos.left-_margin.left,
+                           offY+_pos.top-_margin.top,
+                           _size.width+_margin.left+_margin.right,
+                           _size.height+_margin.top+_margin.bottom
+            };
             SDL_RenderFillRect(renderer, &r);
         }
         // TODO: background image

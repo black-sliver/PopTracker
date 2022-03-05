@@ -104,7 +104,11 @@ void Item::render(Renderer renderer, int offX, int offY)
     if (_backgroundColor.a > 0) {
         const auto& c = _backgroundColor;
         SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-        SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, _size.height };
+        SDL_Rect r = { offX+_pos.left-_margin.left,
+                       offY+_pos.top-_margin.top,
+                       _size.width+_margin.left+_margin.right,
+                       _size.height+_margin.top+_margin.bottom
+        };
         SDL_RenderFillRect(renderer, &r);
     }
     auto tex  = (_stage1<(int)_texs.size() && _stage2<(int)_texs[_stage1].size()) ? _texs[_stage1][_stage2] : nullptr;
