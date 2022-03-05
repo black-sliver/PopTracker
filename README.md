@@ -50,7 +50,7 @@ See [BUILD.md](BUILD.md).
 *more to be tested*
 
 Join the [Community Discord](https://discord.com/invite/gwThqMCPgK) to find pack
-repositories and get updates.
+repositories, follow updates and get support.
 
 ## Auto-tracking
 ### SNES Games

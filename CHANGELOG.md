@@ -1,12 +1,32 @@
 # PopTracker Changelog
 
+## v0.20.0
+
+* Fixes
+  * Detect access/visibility rule recursion
+  * Fix order of events for Archipelago auto-tracking
+  * Make consumable decrement step default to increment step
+* App Features
+  * Automatically switch between horizontal and vertical layout
+  * Limit maximum min window size based on screen size
+  * Limit window size to 96x96 - 8kx4k
+  * Add drag&drop support for packs and saves into the main window
+  * Add option to set usb2snes ip/host to PopTracker.json
+* Pack Features
+  * Add support for more legacy packs
+  * Add support for `margin`
+  * Add partial support for `h_alignment` in item grids
+  * Add `item_h_alignment`
+  * Allow rules to be arrays instead of comma separated strings
+  * Allow most integers to be in quotes in json
+
 ## v0.19.0
 
 * Fixes
   * Fix modifying watches from watch callbacks
   * Fix vertical strech of some widgets
   * Fix/ignore composite toggles with bad left/right
-  * Fix what codes a composite toggles provides
+  * Fix what codes composite toggles provide
   * Fix setting progressive with allow_disabled from Lua
   * Change progressive with allow_disabled to what people expect
 * App Features

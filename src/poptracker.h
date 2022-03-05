@@ -64,7 +64,7 @@ public:
     virtual ~PopTracker();
     
     static constexpr const char APPNAME[] = "PopTracker";
-    static constexpr const char VERSION_STRING[] = "0.19.0";
+    static constexpr const char VERSION_STRING[] = "0.20.0";
     static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
 
 protected:
