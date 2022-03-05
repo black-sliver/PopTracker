@@ -5,6 +5,14 @@
 #include "../luaglue/luainterface.h"
 #include <algorithm>
 #include <nlohmann/json.hpp>
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
+
+#define JSONITEM_CI_QUIRK // define to get some packs to work that depend on CI codes
+
 
 class JsonItem final : public LuaInterface<JsonItem>, public BaseItem {
     friend class LuaInterface;
@@ -78,7 +86,14 @@ public:
     }
     
     virtual bool canProvideCode(const std::string& code) const override {
+#ifdef JSONITEM_CI_QUIRK
+        auto cmp = [&code](const std::string& s) {
+            return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
+        };
+        if (std::find_if(_codes.begin(), _codes.end(), cmp) != _codes.end()) return true;
+#else
         if (std::find(_codes.begin(), _codes.end(), code) != _codes.end()) return true;
+#endif
         for (const auto& stage: _stages)
             if (stage.hasCode(code))
                 return true;
