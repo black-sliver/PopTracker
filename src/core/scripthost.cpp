@@ -67,6 +67,13 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             auto newData = _autoTracker->read((unsigned)w.addr, (unsigned)w.len);
             if (w.data != newData) {
                 DEBUG_printf("  %s changed\n", w.name.c_str());
+#ifdef DEBUG_TRACKER
+                for (size_t i=0; i<(std::min(w.data.size(), newData.size())); i++) {
+                    if (w.data[i] != newData[i])
+                        DEBUG_printf("%02x: %02x -> %02x\n", (unsigned)i,
+                                ((unsigned)w.data[i])&0xff, ((unsigned)newData[i])&0xff);
+                }
+#endif
                 w.data = newData;
                 lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
                 _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
