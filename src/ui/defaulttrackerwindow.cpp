@@ -149,7 +149,7 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
 {
     if (_view && _view->getTracker() == tracker && _view->getLayoutRoot() == layout) return;
 
-    _lblAutoTracker->setTextColor({0,0,0});
+    if (!tracker) setAutoTrackerState(AutoTracker::State::Unavailable);
     TrackerWindow::setTracker(tracker, layout);
     if (tracker) {
         tracker->onLayoutChanged -= this;
