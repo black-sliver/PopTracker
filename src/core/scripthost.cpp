@@ -52,6 +52,10 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                     err ? err : "Unknown error");
                 lua_pop(_L, 1); // error object
             }
+            // re-add watches to new backend object
+            for (const auto& w: _memoryWatches) {
+                _autoTracker->addWatch((unsigned)w.addr, (unsigned)w.len);
+            }
         }
     }};
     _autoTracker->onDataChange += {this, [this](void* sender) {
