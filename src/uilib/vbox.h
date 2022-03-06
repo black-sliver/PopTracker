@@ -70,8 +70,8 @@ private:
         _minSize = {0,2*_padding};
         if (!_children.empty()) {
             // handle spacing
-            _minSize.height = _padding - _spacing;
-            _maxSize.height = _padding - _spacing;
+            _minSize.height = 2*_padding - _spacing;
+            _maxSize.height = 2*_padding - _spacing;
         }
         for (auto& child : _children) {
             if (child->getMaxWidth()>=0) {
