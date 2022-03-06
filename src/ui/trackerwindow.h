@@ -22,11 +22,11 @@ public:
     virtual void setTracker(Tracker* tracker) = 0;
     virtual void setSize(Size size) override;
     
-    virtual void setAutoTrackerState(AutoTracker::State state);
+    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name);
     
     std::list< std::pair<std::string,std::string> > getHints() const;
     
-    Signal<const std::string&> onMenuPressed;
+    Signal<const std::string&, int> onMenuPressed;
     
     static const std::string MENU_LOAD;
     static const std::string MENU_RELOAD;

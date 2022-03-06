@@ -3,6 +3,7 @@
 
 #include "trackerwindow.h"
 #include "loadpackwidget.h"
+#include <vector>
 
 namespace Ui {
 
@@ -15,7 +16,7 @@ public:
 
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setTracker(Tracker* tracker) override;
-    virtual void setAutoTrackerState(AutoTracker::State state) override;
+    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name) override;
     virtual void setSize(Size size) override;
     virtual void showOpen();
     virtual void hideOpen();
@@ -29,10 +30,11 @@ protected:
     ImageButton *_btnExport = nullptr;
     ImageButton *_btnBroadcast = nullptr;
     ImageButton *_btnPackSettings = nullptr;
-    Label *_lblAutoTracker = nullptr;
+    HBox *_hboxAutoTrackers = nullptr;
+    std::vector<Label*> _lblsAutoTrackers;
     Label *_lblTooltip = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;
-    AutoTracker::State _autoTrackerState = AutoTracker::State::Disconnected;
+    std::vector<AutoTracker::State> _autoTrackerStates;
     float _aspectRatio = 1;
 
     virtual void setTracker(Tracker *tracker, const std::string& layout) override;

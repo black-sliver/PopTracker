@@ -242,7 +242,7 @@ bool PopTracker::start()
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
     SDL_FreeSurface(icon);
     
-    _win->onMenuPressed += { this, [this](void*, const std::string& item) {
+    _win->onMenuPressed += { this, [this](void*, const std::string& item, int index) {
         if (item == Ui::TrackerWindow::MENU_BROADCAST) {
             if (!_tracker) return;
             if (_broadcast) {
@@ -292,9 +292,9 @@ bool PopTracker::start()
             if (!_scriptHost || !_scriptHost->getAutoTracker()) return;
             auto at = _scriptHost->getAutoTracker();
             if (!at) return;
-            if (at->getState() == AutoTracker::State::Disabled) {
-                auto flags = _pack->getVariantFlags();
-                if (flags.count("ap")) {
+            auto backend = at->getName(index);
+            if (at->getState(index) == AutoTracker::State::Disabled) {
+                if (backend == "AP") {
                     // TODO: replace inputbox by GUI overlay
                     std::string uri, slot, password;
                     if (!Dlg::InputBox("PopTracker", "Enter archipelago server:port", _atUri.empty()?"localhost":_atUri, uri)) return;
@@ -303,19 +303,29 @@ bool PopTracker::start()
                     _atUri = uri;
                     _atSlot = slot;
                     _atPassword = password;
-                    if (at->enable(_atUri, _atSlot, _atPassword)) {
-                        _autoTrackerDisabled = false;
+                    if (at->enable(index, _atUri, _atSlot, _atPassword)) {
+                        _autoTrackerAllDisabled = false;
+                        _autoTrackerDisabled[backend] = false;
                         _config["at_uri"] = _atUri;
                         _config["at_slot"] = _atSlot;
                     }
                 } else {
-                    if (at->enable())
-                        _autoTrackerDisabled = false;
+                    if (at->enable(index)) {
+                        _autoTrackerAllDisabled = false;
+                        _autoTrackerDisabled[backend] = false;
+                    }
                 }
             }
-            else if (at->getState() != AutoTracker::State::Disabled) {
-                at->disable();
-                _autoTrackerDisabled = true;
+            else if (at->getState(index) != AutoTracker::State::Disabled) {
+                at->disable(index);
+                _autoTrackerDisabled[backend] = true;
+                _autoTrackerAllDisabled = true;
+                for (const auto& pair: _autoTrackerDisabled) {
+                    if (!pair.second) {
+                        _autoTrackerAllDisabled = false;
+                        break;
+                    }
+                }
             }
         }
         if (item == Ui::TrackerWindow::MENU_SAVE_STATE)
@@ -600,8 +610,8 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     lua_setglobal(_L, "ScriptHost");
     AutoTracker* at = _scriptHost->getAutoTracker();
     if (at) {
-        if (_autoTrackerDisabled)
-            at->disable();
+        if (_autoTrackerAllDisabled)
+            at->disable(-1); // -1 = all
         at->onError += {this,  [](void*, const std::string& msg) {
             Dlg::MsgBox("PopTracker", msg,
                     Dlg::Buttons::OK, Dlg::Icon::Error);
@@ -649,10 +659,10 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     printf("Updating UI\n");
     _win->setTracker(_tracker);
     if (auto at = _scriptHost->getAutoTracker()) {
-        _win->setAutoTrackerState(at->getState());
-        at->onStateChange += {this, [this](void*, AutoTracker::State state)
+        at->onStateChange += {this, [this](void* sender, int index, AutoTracker::State state)
         {
-            if (_win) _win->setAutoTrackerState(state);
+            AutoTracker* at = (AutoTracker*)sender;
+            if (_win) _win->setAutoTrackerState(index, state, at->getName(index));
         }};
     }
     

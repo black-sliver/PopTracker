@@ -31,7 +31,8 @@ private:
     Archipelago *_archipelago = nullptr;
     Pack *_pack = nullptr;
     ImageReference _imageReference;
-    bool _autoTrackerDisabled = false;
+    bool _autoTrackerAllDisabled = false;
+    std::map<std::string, bool> _autoTrackerDisabled;
     asio::io_service *_asio = nullptr;
     std::string _exportFile;
     std::string _exportUID;

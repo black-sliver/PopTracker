@@ -22,3 +22,8 @@ int AutoTracker::Lua_Index(lua_State *L, const char* key) {
     printf("Get AutoTracker.%s unknown\n", key);
     return 0;
 }
+
+const std::string AutoTracker::BACKEND_AP_NAME = "AP";
+const std::string AutoTracker::BACKEND_UAT_NAME = "UAT";
+const std::string AutoTracker::BACKEND_SNES_NAME = "SNES";
+const std::string AutoTracker::BACKEND_NONE_NAME = "";

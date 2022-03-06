@@ -37,6 +37,7 @@ void TrackerWindow::setTracker(Tracker* tracker)
 
 void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
 {
+    if (!tracker) setAutoTrackerState(-1, AutoTracker::State::Unavailable, "");
     removeChild(_view);
     delete _view;
     _view = nullptr;
@@ -73,7 +74,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
     }
 }
 
-void TrackerWindow::setAutoTrackerState(AutoTracker::State state)
+void TrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name)
 {
 }
 

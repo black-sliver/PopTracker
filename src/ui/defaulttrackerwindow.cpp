@@ -19,28 +19,28 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnLoad->setDarkenGreyscale(false);
     hbox->addChild(_btnLoad);
     _btnLoad->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_LOAD);
+        onMenuPressed.emit(this, MENU_LOAD, 0);
     }};
     
     _btnReload = new ImageButton(0,0,32-4,32-4, asset("reload.png").c_str());
     _btnReload->setVisible(false);
     hbox->addChild(_btnReload);
     _btnReload->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_RELOAD);
+        onMenuPressed.emit(this, MENU_RELOAD, 0);
     }};
     
     _btnImport = new ImageButton(0,0,32-4,32-4, asset("import.png").c_str());
     _btnImport->setVisible(false);
     hbox->addChild(_btnImport);
     _btnImport->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_LOAD_STATE);
+        onMenuPressed.emit(this, MENU_LOAD_STATE, 0);
     }};
 
     _btnExport = new ImageButton(0,0,32-4,32-4, asset("export.png").c_str());
     _btnExport->setVisible(false);
     hbox->addChild(_btnExport);
     _btnExport->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_SAVE_STATE);
+        onMenuPressed.emit(this, MENU_SAVE_STATE, 0);
     }};
 
 #ifndef __EMSCRIPTEN__ // no multi-window support (yet)
@@ -48,7 +48,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnBroadcast->setVisible(false);
     hbox->addChild(_btnBroadcast);
     _btnBroadcast->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_BROADCAST);
+        onMenuPressed.emit(this, MENU_BROADCAST, 0);
     }};
 #endif
     
@@ -56,16 +56,14 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnPackSettings->setVisible(false);
     hbox->addChild(_btnPackSettings);
     _btnPackSettings->onClick += { this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_PACK_SETTINGS);
+        onMenuPressed.emit(this, MENU_PACK_SETTINGS, 0);
     }};
-    
-    _lblAutoTracker = new Label(0,0,32-4,32-4,_font, "AT");
-    _lblAutoTracker->setTextColor({0,0,0});
-    hbox->addChild(_lblAutoTracker);
-    _lblAutoTracker->onClick += {this, [this](void*, int x, int y, int button) {
-        onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER);
-    }};
-    
+
+    _hboxAutoTrackers = new HBox(0,0,0,32-4);
+    _hboxAutoTrackers->setPadding(4);
+    _hboxAutoTrackers->setSpacing(6);
+    hbox->addChild(_hboxAutoTrackers);
+
     _lblTooltip = new Label(0,0,0,0,_font,"");
     _lblTooltip->setGrow(1,1);
     _lblTooltip->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
@@ -107,21 +105,6 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
             _lblTooltip->setText("");
         }};
     }
-    _lblAutoTracker->onMouseEnter += {this, [this](void *s, int x, int y, unsigned buttons)
-    {
-        const char* state = _autoTrackerState == AutoTracker::State::Disconnected ? "Offline" :
-                            _autoTrackerState == AutoTracker::State::BridgeConnected ? "No Game/Console" :
-                            _autoTrackerState == AutoTracker::State::ConsoleConnected ? "Online" :
-                            _autoTrackerState == AutoTracker::State::Disabled ? "Disabled" :
-                            _autoTrackerState == AutoTracker::State::Unavailable ? nullptr :
-                                "Unknown";
-        if (state)
-            _lblTooltip->setText(std::string("Auto Tracker: ") + state);
-    }};
-    _lblAutoTracker->onMouseLeave += {this, [this](void *s)
-    {
-        _lblTooltip->setText("");
-    }};
 }
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
@@ -131,7 +114,8 @@ DefaultTrackerWindow::~DefaultTrackerWindow()
     _btnReload = nullptr;
     _btnBroadcast = nullptr;
     _btnPackSettings = nullptr;
-    _lblAutoTracker = nullptr;
+    _hboxAutoTrackers = nullptr;
+    _lblsAutoTrackers.clear();
 }
 
 void DefaultTrackerWindow::setTracker(Tracker* tracker)
@@ -149,7 +133,6 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
 {
     if (_view && _view->getTracker() == tracker && _view->getLayoutRoot() == layout) return;
 
-    if (!tracker) setAutoTrackerState(AutoTracker::State::Unavailable);
     TrackerWindow::setTracker(tracker, layout);
     if (tracker) {
         tracker->onLayoutChanged -= this;
@@ -190,25 +173,83 @@ void DefaultTrackerWindow::render(Renderer renderer, int offX, int offY)
     TrackerWindow::render(renderer, offX, offY);
 }
 
-void DefaultTrackerWindow::setAutoTrackerState(AutoTracker::State state)
+void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name)
 {
-    _autoTrackerState = state;
-    if (!_lblAutoTracker) return;
-    if (state == AutoTracker::State::Disconnected) {
-        _lblAutoTracker->setTextColor({255,0,0});
-    } else if (state == AutoTracker::State::BridgeConnected) {
-        _lblAutoTracker->setTextColor({255,255,0});
-    } else if (state == AutoTracker::State::ConsoleConnected) {
-        _lblAutoTracker->setTextColor({0,255,0});
-    } else if (state == AutoTracker::State::Disabled) {
-        _lblAutoTracker->setTextColor({128,128,128});
-    } else if (state == AutoTracker::State::Unavailable) {
-        _lblAutoTracker->setTextColor({0,0,0}); // hidden
+    if (index<0) {
+        // clear all labels
+        for (size_t i=0; i<_lblsAutoTrackers.size(); i++) {
+            _autoTrackerStates[i] = state;
+            auto lbl = _lblsAutoTrackers[i];
+            lbl->setText(name);
+            lbl->setWidth(lbl->getAutoWidth());
+        }
+        if (!_lblsAutoTrackers.empty()) {
+            _hboxAutoTrackers->relayout();
+            auto menu = dynamic_cast<HBox*>(_menu);
+            if (menu) menu->relayout();
+        }
+        return;
     }
 
-    if (isHover(_lblAutoTracker)) {
+    Label* lbl = nullptr;
+    if (_lblsAutoTrackers.size() > (size_t)index) {
+        lbl = _lblsAutoTrackers[index];
+        auto oldWidth = lbl->getWidth();
+        lbl->setText(name);
+        lbl->setWidth(lbl->getAutoWidth());
+        if (lbl->getWidth() != oldWidth) {
+            _hboxAutoTrackers->relayout();
+            auto menu = dynamic_cast<HBox*>(_menu);
+            if (menu) menu->relayout();
+        }
+        _autoTrackerStates[index] = state;
+    } else {
+        printf("adding label #%d \"%s\"\n", index, name.c_str());
+        lbl = new Label(0,0,0,32-4,_font, name);
+        lbl->setWidth(lbl->getAutoWidth());
+        lbl->setTextColor({0,0,0});
+        lbl->onClick += {this, [this,index](void*, int x, int y, int button) {
+            onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER, index);
+        }};
+        lbl->onMouseEnter += {this, [this,index](void *s, int x, int y, unsigned buttons)
+        {
+            auto state = _autoTrackerStates[index];
+            const char* text = state == AutoTracker::State::Disconnected ? "Offline" :
+                               state == AutoTracker::State::BridgeConnected ? "No Game/Console" :
+                               state == AutoTracker::State::ConsoleConnected ? "Online" :
+                               state == AutoTracker::State::Disabled ? "Disabled" :
+                               state == AutoTracker::State::Unavailable ? nullptr : "Unknown";
+            if (text)
+                _lblTooltip->setText(std::string("Auto Tracker: ") + text);
+        }};
+        lbl->onMouseLeave += {this, [this](void *s)
+        {
+            _lblTooltip->setText("");
+        }};
+        _lblsAutoTrackers.push_back(lbl);
+        _autoTrackerStates.push_back(state);
+        _hboxAutoTrackers->addChild(lbl);
+        _hboxAutoTrackers->relayout();
+        auto menu = dynamic_cast<HBox*>(_menu);
+        if (menu) menu->relayout();
+    }
+
+    lbl->setTextAlignment(Label::HAlign::CENTER, Label::VAlign::MIDDLE);
+    if (state == AutoTracker::State::Disconnected) {
+        lbl->setTextColor({255,0,0});
+    } else if (state == AutoTracker::State::BridgeConnected) {
+        lbl->setTextColor({255,255,0});
+    } else if (state == AutoTracker::State::ConsoleConnected) {
+        lbl->setTextColor({0,255,0});
+    } else if (state == AutoTracker::State::Disabled) {
+        lbl->setTextColor({128,128,128});
+    } else if (state == AutoTracker::State::Unavailable) {
+        lbl->setTextColor({0,0,0}); // hidden
+    }
+
+    if (isHover(lbl)) {
         // update tool tip if current tool tip is AT state
-        _lblAutoTracker->onMouseEnter.emit(_lblAutoTracker, 0, 0, 0);
+        lbl->onMouseEnter.emit(lbl, 0, 0, 0);
     }
 }
 

@@ -30,8 +30,11 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     auto gameFlags = GameInfo::Find(_pack->getGameName()).flags;
     flags.insert(gameFlags.begin(), gameFlags.end());
     _autoTracker = new AutoTracker(_pack->getPlatform(), flags);
-    _autoTracker->onStateChange += {this, [this](void*, AutoTracker::State state)
+    _autoTracker->onStateChange += {this, [this](void*, int index, AutoTracker::State state)
     {
+        const auto backend = _autoTracker ? _autoTracker->getName(index) : "";
+        // currently started/stopped calls are specific "memory" auto-tracking
+        if (backend.empty() || backend == "AP" || backend == "UAT") return;
         if (state == AutoTracker::State::ConsoleConnected) {
             int t = lua_getglobal(_L, "autotracker_started");
             if (t != LUA_TFUNCTION) {

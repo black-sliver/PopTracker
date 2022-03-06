@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <vector> // TODO: replace by uint8_t* ?
+#include <map>
 #include <list>
 #include <set>
 #include <chrono>
@@ -28,28 +29,35 @@ public:
     {
         if (flags.find("ap") != flags.end()) {
             _ap = new APTracker(_name);
-            _state = State::Disabled;
-            _ap->onError += {this, [this](void* sender, const std::string& msg) {
-                if (_state != State::Disabled && _state != State::Disconnected) {
-                    _state = State::Disconnected;
-                    onStateChange.emit(this, _state);
+            _lastBackendIndex++;
+            int apIndex = _lastBackendIndex;
+            _backendIndex[_ap] = apIndex;
+            _state.push_back(State::Disabled);
+            _ap->onError += {this, [this, apIndex](void* sender, const std::string& msg) {
+                if (_state[apIndex] != State::Disabled && _state[apIndex] != State::Disconnected) {
+                    _state[apIndex] = State::Disconnected;
+                    onStateChange.emit(this, apIndex, _state[apIndex]);
                 }
                 if (!msg.empty()) {
                     onError.emit(this, "AP: " + msg);
                 }
             }};
-            _ap->onStateChanged += {this, [this](void* sender, auto state) {
+            _ap->onStateChanged += {this, [this, apIndex](void* sender, auto state) {
                 State newstate =
                         state == APClient::State::SLOT_CONNECTED ? State::ConsoleConnected :
                         state == APClient::State::ROOM_INFO ? State::BridgeConnected :
                         State::Disconnected;
-                if (_state != newstate) {
-                    _state = newstate;
-                    onStateChange.emit(this, _state);
+                if (_state[apIndex] != newstate) {
+                    _state[apIndex] = newstate;
+                    onStateChange.emit(this, apIndex, _state[apIndex]);
                 }
             }};
-        } else if (strcasecmp(platform.c_str(), "snes")==0) {
+        }
+        if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(_name);
+            _lastBackendIndex++;
+            _backendIndex[_snes] = _lastBackendIndex;
+            _state.push_back(State::Disconnected);
             if (flags.find("lorom") != flags.end()) {
                 _snes->setMapping(USB2SNES::Mapping::LOROM);
             } else if (flags.find("hirom") != flags.end()) {
@@ -59,8 +67,12 @@ public:
             } else if (flags.find("exhirom") != flags.end()) {
                 _snes->setMapping(USB2SNES::Mapping::EXHIROM);
             }
-        } else if (flags.find("uat") != flags.end()) {
+        }
+        if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
+            _lastBackendIndex++;
+            _backendIndex[_uat] = _lastBackendIndex;
+            _state.push_back(State::Disconnected);
             _uat->setInfoHandler([this](const UATClient::Info& info) {
                 // TODO: let user select the slot and send sync after that
                 _slot = info.slots.empty() ? "" : info.slots.front();
@@ -81,11 +93,11 @@ public:
                 // NOTE: for UAT we pass the event straight through
                 onVariablesChanged.emit(this, varNames);
             });
-        } else {
+        }
+        if (_state.empty()) {
             printf("No auto-tracking back-end for %s%s\n",
                     platform.c_str(),
                     flags.empty() ? " (no flags)" : "");
-            _state = State::Unavailable;
         }
     }
     
@@ -124,70 +136,90 @@ public:
         BridgeConnected,
         ConsoleConnected
     };
-    
-    Signal<State> onStateChange;
+
+    Signal<int, State> onStateChange;
     Signal<> onDataChange;
     Signal<const std::list<std::string>&> onVariablesChanged;
     Signal<const std::string&> onError;
-    State getState() const { return _state; }
-    
+    State getState(int index) const { return _state.size() < (size_t)index ? State::Unavailable : _state[index]; }
+    State getState(const std::string& name) {
+        if (name == BACKEND_AP_NAME)  return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
+        if (name == BACKEND_UAT_NAME) return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
+        if (name == BACKEND_SNES_NAME)  return _snes ? getState(_backendIndex[_snes]) : State::Unavailable;
+        return State::Unavailable;
+    }
+
+    const std::string& getName(int index) {
+        if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;
+        if (_uat && _backendIndex[_uat] == index) return BACKEND_UAT_NAME;
+        if (_snes && _backendIndex[_snes] == index) return BACKEND_SNES_NAME;
+        return BACKEND_NONE_NAME;
+    }
+
     bool doStuff()
     {
+        bool res = false;
+
         if (!_sentState) {
             _sentState = true;
-            onStateChange.emit(this, _state);
-        }
-        if (_state == State::Disabled || _state == State::Unavailable) {
-            return false;
+            for (int i=0; i<(int)_state.size(); i++)
+                onStateChange.emit(this, i, _state[i]);
         }
 
         // USB2SNES AUTOTRACKING
-        if (_snes && _snesAddresses.empty())
-            _snes->connect();
-        else if (_snes)
-            _snes->connect(_snesAddresses);
-        if (_snes && _snes->dostuff()) {
-            State oldState = _state;
-            bool wsConnected = _snes->wsConnected();
-            bool snesConnected = wsConnected ? _snes->snesConnected() : false;
-            
-            if (snesConnected) {
-                _state = State::ConsoleConnected;
-            } else if (wsConnected) {
-                _state = State::BridgeConnected;
-            } else {
-                _state = State::Disconnected;
+        if (_snes && backendEnabled(_snes)) {
+            if (_snesAddresses.empty())
+                _snes->connect();
+            else
+                _snes->connect(_snesAddresses);
+            if (_snes->dostuff()) {
+                int index = _backendIndex[_snes];
+                State oldState = _state[index];
+                bool wsConnected = _snes->wsConnected();
+                bool snesConnected = wsConnected ? _snes->snesConnected() : false;
+
+                if (snesConnected) {
+                    _state[index] = State::ConsoleConnected;
+                } else if (wsConnected) {
+                    _state[index] = State::BridgeConnected;
+                } else {
+                    _state[index] = State::Disconnected;
+                }
+
+                if (_state[index] != oldState) {
+                    onStateChange.emit(this, index, _state[index]);
+                } else if (_state[index] == State::ConsoleConnected) {
+                    onDataChange.emit(this);
+                }
+
+                res = true;
             }
-            
-            if (_state != oldState) {
-                onStateChange.emit(this, _state);
-            } else if (_state == State::ConsoleConnected) {
-                onDataChange.emit(this);
-            }
-            
-            return true;
         }
 
         // UAT AUTOTRACKING
-        if (_uat) _uat->connect();
-        if (_uat && _uat->poll()) {
-            State oldState = _state;
-            _state = _uat->getState() == UATClient::State::GAME_CONNECTED ? State::ConsoleConnected :
-                     _uat->getState() == UATClient::State::SOCKET_CONNECTED ? State::BridgeConnected :
-                    State::Disconnected;
-            if (_state != oldState) {
-                onStateChange.emit(this, _state);
+        if (_uat && backendEnabled(_uat)) {
+            _uat->connect();
+            if (_uat->poll()) {
+                int index = _backendIndex[_uat];
+                State oldState = _state[index];
+                _state[index] =
+                        _uat->getState() == UATClient::State::GAME_CONNECTED ? State::ConsoleConnected :
+                        _uat->getState() == UATClient::State::SOCKET_CONNECTED ? State::BridgeConnected :
+                        State::Disconnected;
+                if (_state[index] != oldState) {
+                    onStateChange.emit(this, index, _state[index]);
+                }
+                res = true;
             }
-            return true;
         }
 
         // AP AUTOTRACKING
-        if (_ap && _ap->poll()) {
-            return true;
+        if (_ap && backendEnabled(_ap)) {
+            if (_ap->poll())
+                res = true;
         }
 
-        // NO UPDATES
-        return false;
+        return res;
     }
     
     bool addWatch(unsigned addr, unsigned len)
@@ -297,50 +329,61 @@ public:
         return {};
     }
     
-    bool enable(const std::string& uri="", const std::string& slot="", const std::string& password="")
+    bool enable(int index, const std::string& uri="", const std::string& slot="", const std::string& password="")
     {
-        if (_state != State::Disabled) return true;
-        if (_snes || _uat) {
+        if (_state.size() < (size_t)index) return false;
+        if (_state[index] != State::Disabled) return true;
+        if ((_snes && _backendIndex[_snes] == index)
+                || (_uat && _backendIndex[_uat] == index)) {
             // snes and uat will auto-connect when polling (doStuff())
-            _state = State::Disconnected;
-            onStateChange.emit(this, _state);
+            _state[index] = State::Disconnected;
+            onStateChange.emit(this, index, _state[index]);
             return true;
         }
-        else if (_ap) {
+        else if (_ap && _backendIndex[_ap] == index) {
             // ap requires explicit connection to a server
             if (_ap->connect(uri, slot, password)) {
-                _state = State::Disconnected;
-                onStateChange.emit(this, _state);
+                _state[index] = State::Disconnected;
+                onStateChange.emit(this, index, _state[index]);
                 return true;
             }
         }
         return false;
     }
 
-    void disable()
+    void disable(int index)
     {
-        if (_state == State::Unavailable) return;
-        _state = State::Disabled;
-        if (_snes) {
-            // connect() after disconnect() needs to join the worker thread,
-            // which may block. as a work-around we start a new USB2SNES and
-            // destruct the old one on a different thread.
-            // We should probably rewrite USB2SNES support.
-            if (_snes->mayBlockOnExit()) {
-                auto snes = _snes;
-                std::thread([snes]() { delete snes; }).detach();
-            } else {
-                delete _snes;
+        // -1 = all
+        if (_state.empty()) return;
+        int tmp = index;
+        for (int index = ((tmp==-1)?0:tmp); index < ((tmp==-1)?(int)_state.size():(tmp+1)); index++) {
+            if (_state.size() < (size_t)index) return;
+            if (_state[index] == State::Unavailable) continue;
+            _state[index] = State::Disabled;
+            if (_snes && _backendIndex[_snes] == index) {
+                // connect() after disconnect() needs to join the worker thread,
+                // which may block. as a work-around we start a new USB2SNES and
+                // destruct the old one on a different thread.
+                // We should probably rewrite USB2SNES support.
+                if (_snes->mayBlockOnExit()) {
+                    auto snes = _snes;
+                    std::thread([snes]() { delete snes; }).detach();
+                } else {
+                    delete _snes;
+                }
+                _snes = new USB2SNES(_name);
+                _backendIndex.erase(_snes);
+                _backendIndex[_snes] = index;
             }
-            _snes = new USB2SNES(_name);
+            if (_uat && _backendIndex[_uat] == index
+                    && _uat->getState() != UATClient::State::DISCONNECTED
+                    && _uat->getState() != UATClient::State::DISCONNECTING) {
+                _uat->disconnect(websocketpp::close::status::going_away);
+            }
+            if (_ap && _backendIndex[_ap] == index)
+                _ap->disconnect();
+            onStateChange.emit(this, index, _state[index]);
         }
-        if (_uat && _uat->getState() != UATClient::State::DISCONNECTED
-                && _uat->getState() != UATClient::State::DISCONNECTING) {
-            _uat->disconnect(websocketpp::close::status::going_away);
-        }
-        if (_ap)
-            _ap->disconnect();
-        onStateChange.emit(this, _state);
     }
 
     APTracker* getAP() const
@@ -371,7 +414,9 @@ public:
     }
 
 protected:
-    State _state = State::Disconnected;
+    std::map<void*, int> _backendIndex;
+    int _lastBackendIndex = -1;
+    std::vector<State> _state;
     USB2SNES *_snes = nullptr;
     UATClient *_uat = nullptr;
     APTracker *_ap = nullptr;
@@ -380,6 +425,18 @@ protected:
     std::string _name;
     bool _sentState = false;
     std::vector<std::string> _snesAddresses;
+
+    static const std::string BACKEND_AP_NAME;
+    static const std::string BACKEND_UAT_NAME;
+    static const std::string BACKEND_SNES_NAME;
+    static const std::string BACKEND_NONE_NAME;
+
+    bool backendEnabled(void* backend)
+    {
+        if (!backend) return false;
+        int index = _backendIndex[backend];
+        return (_state[index] != State::Disabled && _state[index] != State::Unavailable);
+    }
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "AutoTracker";
