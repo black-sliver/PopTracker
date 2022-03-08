@@ -1,5 +1,18 @@
 # PopTracker Changelog
 
+## v0.20.1
+
+* Fixes
+  * Fix "AT" button sometimes being invisible
+  * Re-add memory watches when toggling "AT"
+  * Change background fill to cover margin
+  * Fix wrong min/max size of groups
+* Pack Features
+  * Allow case mismatch of codes in layout json
+* App Features
+  * Allow multiple auto-tracking back-ends at the same time
+  * Clear all checks in a location with right mouse button
+
 ## v0.20.0
 
 * Fixes

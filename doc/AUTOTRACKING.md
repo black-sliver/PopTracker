@@ -126,7 +126,7 @@ See [examples/uat-example](../examples/uat-example) for a full example.
 This is fully callback-driven.
 
 Archipelago auto-tracking is enabled by adding "ap" to a variant's flags in
-manifest.json and clicking on "AT" when the pack is loaded.
+manifest.json and clicking on "AP" in the menu when the pack is loaded.
 
 * when connection to a server is established, Clear handlers are called so the
   Lua script can clear all locations and items.
