@@ -44,12 +44,13 @@ bool Archipelago::AddItemHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onItem += {this, [this, ref, name](void*, int index, int item, const std::string& item_name) {
+    _ap->onItem += {this, [this, ref, name](void*, int index, int item, const std::string& item_name, int player) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push((lua_Integer)index);
         Lua(_L).Push((lua_Integer)item);
         Lua(_L).Push(item_name.c_str());
-        if (lua_pcall(_L, 3, 0, 0)) {
+        Lua(_L).Push((lua_Integer)player);
+        if (lua_pcall(_L, 4, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ItemHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
