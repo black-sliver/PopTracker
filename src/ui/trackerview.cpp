@@ -217,7 +217,8 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
             if (sec.getName() != name) continue;
             // check hosted items with chests if "clear_as_group" is set
             if (sec.getClearAsGroup()) {
-                for (const auto& item : sec.getHostedItems()) {
+                std::list<std::string> codes = sec.getHostedItems();
+                for (const auto& item: codes) {
                     if (_tracker->changeItemState(_tracker->getItemByCode(item).getID(),
                             btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary));
                 }
@@ -646,6 +647,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                     _mapTooltipOwner = nullptr;
                     if (_hoverChild == _mapTooltip) _hoverChild = nullptr;
                     _mapTooltip->onMouseLeave -= this;
+                    _mapTooltip->onClick -= this;
                     // remove child from container
                     removeChild(_mapTooltip);
                     // removing a child may fire a signal, so we need to make sure not to double-free
@@ -704,6 +706,57 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                             auto tmp = _mapTooltip;
                             _mapTooltip = nullptr;
                             delete tmp;
+                        }
+                    }
+                }};
+                _mapTooltip->onClick += { this, [this](void* sender, int x, int y, int btn) {
+                    if (!_mapTooltip) return;
+                    // right click in a corner or on the first label clears all checks
+                    if (btn != MouseButton::BUTTON_RIGHT) return;
+                    int x1 = 4;
+                    int y1 = 4;
+                    int x2 = _mapTooltip->getWidth()-5;
+                    int y2 = _mapTooltip->getHeight()-5;
+                    bool corner = (x<x1 || x>x2) && (y<y1 || y>y2);
+                    const Widget* hit = nullptr;
+                    const Widget* lbl = nullptr;
+                    if (!corner) {
+                        hit = _mapTooltip->getHit(x, y);
+                        for (const Widget* w: _mapTooltip->getChildren()) {
+                            if (dynamic_cast<const Label*>(w)) {
+                                lbl = w;
+                                break;
+                            }
+                        }
+                    }
+                    if (corner || (hit == lbl && lbl != nullptr)) {
+                        // clearing locations will destroy the onClick and with it the captures, so make copies below
+                        Tracker* tracker = _tracker;
+                        std::string name = _mapTooltipName;
+                        // clear all checks
+                        // NOTE: clearing a section fires events which may invalidate the iterator, so we count with n
+                        bool done = false;
+                        int last = -1;
+                        while (!done) {
+                            auto& loc = tracker->getLocation(name);
+                            int n = 0;
+                            for (auto& sec : loc.getSections()) {
+                                done = true;
+                                if (!tracker->isVisible(loc, sec)) continue;
+                                if (n != last+1) {
+                                    n++;
+                                    continue;
+                                }
+                                last = n;
+                                sec.clearItem(true);
+                                std::list<std::string> codes = sec.getHostedItems();
+                                for (const auto& item: codes) {
+                                    tracker->changeItemState(tracker->getItemByCode(item).getID(),
+                                            ::BaseItem::Action::Primary);
+                                }
+                                done = false;
+                                break;
+                            }
                         }
                     }
                 }};

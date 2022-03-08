@@ -92,6 +92,14 @@ public:
         return false;
     }
 
+    virtual const Widget* getHit(int x, int y) const override {
+        for (const auto& w: _children) {
+            if (w->getHit(x - w->getLeft(), y - w->getTop())) return w;
+        }
+        if (Widget::isHit(x + _pos.left, y + _pos.top)) return this;
+        return nullptr;
+    }
+
 #ifndef NDEBUG
     void dumpTree(size_t depth=0) {
         printf("%s", std::string(depth, ' ').c_str());

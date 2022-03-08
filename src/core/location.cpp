@@ -328,10 +328,10 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
 }
 
 
-bool LocationSection::clearItem()
+bool LocationSection::clearItem(bool all)
 {
     if (_itemCleared >= _itemCount) return false;
-    if (_clearAsGroup)
+    if (_clearAsGroup || all)
         _itemCleared = _itemCount;
     else
         _itemCleared++;

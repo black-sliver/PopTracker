@@ -35,7 +35,7 @@ public:
     const std::list< std::list<std::string> > getVisibilityRules() const { return _visibilityRules; }
     int getItemCount() const { return _itemCount; }
     int getItemCleared() const { return _itemCleared; }
-    bool clearItem();
+    bool clearItem(bool all = false);
     bool unclearItem();
     bool getClearAsGroup() const { return _clearAsGroup; }
     const std::string& getClosedImage() const { return _closedImg; }

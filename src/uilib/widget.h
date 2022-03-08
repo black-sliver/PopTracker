@@ -159,6 +159,11 @@ public:
         return x>=getMinX() && x<=getMaxX() && y>=getMinY() && y<=getMaxY();
     }
 
+    virtual const Widget* getHit(int x, int y) const
+    {
+        return isHit(x + _pos.left, y + _pos.top) ? this : nullptr;
+    }
+
     const Size& getMinSize() const { return _minSize; }
     int getMinWidth() const { return _minSize.width; }
     int getMinHeight() const { return _minSize.height; }
