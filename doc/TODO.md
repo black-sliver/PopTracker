@@ -3,10 +3,10 @@
 Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 
 ## Current Plans
-see [github projects](https://github.com/black-sliver/PopTracker/projects)
+see [github projects](https://github.com/black-sliver/PopTracker/projects) (outdated)
 
 ## Help wanted
-- OSX binaries (.dmg, building SDL from source)
+- OSX .dmg
 - Custom application icon
 - Fancier GUI
   - Better widgets ("real" buttons)
@@ -20,22 +20,18 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects)
     - try to determine if location state needs update?
 - show version somewhere in the app
 - MemoryWatch: only run callback if all bytes of a watch have been read to avoid potential races (this has to add race-free bool to SNES::readBlock)
-- auto-tracking for other systems than SNES
+- auto-tracking for N64?
 - pins
 - notes
 - background color of groups/titles
 - alignment of widgets inside widgets
-- Makefile: make native on windows
-- Makefile: 32bit exe
-- Log warning/error when duplicate ID is detected
+- Makefile: 32bit exe (static linking is currently somewhat broken)
 - Show error (+reason) when loading a pack fails
-- Log facility besides stdout
+- Log/console/error window as part of the UI
 - Remove toolbar and put everything inside a context menu on desktop?
 - Update websocketpp, update asio (or use a different websocket implementation)
   - included websocketpp is patched to allow std::thread on mingw
   - included asio is the latest one that works with websocketpp 0.8.1
-- Handle click on locations (tooltip->onClick should do something, so we don't need to move the mouse too much)
-  - right click square or tooltip = full clear of accessible?
 - Item: `swap_actions: <bool>` (swaps left and right mouse button, alttpr)
 - Map/Locations:
   - number overlay on map (X unreachable red, Y reachable white)
@@ -52,6 +48,7 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects)
   - see [here](https://stackoverflow.com/questions/54617194/how-to-save-files-from-c-to-browser-storage-with-emscripten)
     and [here](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 - implement SD2SNES/websocketpp for wasm
+  - see [ap-soeclient](https://github.com/black-sliver/ap-soeclient/) as an example
 - implement pack loading
 
 ## UI stuff soon™

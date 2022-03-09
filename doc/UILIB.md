@@ -71,9 +71,5 @@ Fixed member functions, only propagating from window to widgets:
 - `ParentResized` (for future layout system)
 
 ## Checks to Widget mapping
-```
-Possibly:
-Toggles:     StagedImageButton::addStage(0, greyscale(image)), ::addStage(1, image)
-Consumables: CountImageButton::addStage(-1, image), ::addStage(0, greyscale(image)), ::setMaxCount(max)
-Progressive: DoubleStagedImageButton::addStage(0, 0, greyscale(image0), ::addStage(0, 1, image0), ::addStage(1, 0, grepscale(image1)), ...
-```
+Currently we have a generic UI::Item, which requires conversion of eveything to
+stages (individual images).
