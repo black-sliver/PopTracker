@@ -328,7 +328,12 @@ public:
         }
         return {};
     }
-    
+
+    int GetConnectionState(const std::string& backend)
+    {
+        return (int)getState(backend);
+    }
+
     bool enable(int index, const std::string& uri="", const std::string& slot="", const std::string& password="")
     {
         if (_state.size() < (size_t)index) return false;

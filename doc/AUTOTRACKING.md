@@ -145,6 +145,11 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 
 
 ## Other Stuff
-in addition to above interfaces, the Tracker will call
-* `autotracker_started` when a game is connected
-* `autotracker_stopped` when a auto-tracking is disabled by the user
+in addition to above interfaces, the tracker will call
+* `autotracker_started` when a game is connected (currently memory only)
+* `autotracker_stopped` when a auto-tracking is disabled by the user (currently memory only)
+
+in addition, the following back-end agnostic functions are provided
+* `AutoTracker:GetConnectionState(backend_name)` will return an integer corresponding to the current state (since 0.20.2).
+  * Valid backend names are: `"SNES"`, `"UAT"`, `"AP"` (case sensitive)
+  * States are: -1: Unavailable, 0: Disabled, 1: Disconnected, 2: Socket Connected (not ready), 3: Game/Console Connected (ready)
