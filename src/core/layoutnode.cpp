@@ -23,6 +23,7 @@ static LayoutNode::Size to_size(const json& j, LayoutNode::Size dflt)
     LayoutNode::Size res = dflt;
     char* next = nullptr;
     res.x = (int)strtol(s.c_str(), &next, 0);
+    if (next && *next=='.') next = strchr(next, ','); // skip fraction of float
     res.y = (next && *next) ? (int)strtol(next+1, &next, 0) : res.x;
     return res;
 }
@@ -53,8 +54,11 @@ static LayoutNode::Spacing to_spacing(const json& j, LayoutNode::Spacing dflt)
     LayoutNode::Spacing res = dflt;
     char* next = nullptr;
     res.left = (int)strtol(s.c_str(), &next, 0);
+    if (next && *next=='.') next = strchr(next, ','); // skip fraction of float
     res.top = (next && *next) ? (int)strtol(next+1, &next, 0) : res.left;
+    if (next && *next=='.') next = strchr(next, ','); // skip fraction of float
     res.right = (next && *next) ? (int)strtol(next+1, &next, 0) : res.left;
+    if (next && *next=='.') next = strchr(next, ','); // skip fraction of float
     res.bottom = (next && *next) ? (int)strtol(next+1, &next, 0) : res.top;
     return res;
 }
