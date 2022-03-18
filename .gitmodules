@@ -1,6 +1,6 @@
 [submodule "lib/lua"]
 	path = lib/lua
-	url = git://github.com/lua/lua
+	url = https://github.com/lua/lua.git
 [submodule "lib/apclientpp"]
 	path = lib/apclientpp
 	url = https://github.com/black-sliver/apclientpp.git
