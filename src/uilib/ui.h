@@ -4,6 +4,7 @@
 #include "window.h"
 #include <map>
 #include <string>
+#include <mutex>
 
 #define DEFAULT_FPS_LIMIT 120
 
@@ -18,6 +19,9 @@ protected:
     unsigned _globalMouseButton = 0;
     bool _fallbackRenderer = false;
     unsigned _fpsLimit = DEFAULT_FPS_LIMIT;
+
+    std::mutex _eventMutex;
+    static int eventFilter(void *userdata, SDL_Event *event);
 public:
     Ui(const char *name, bool fallbackRenderer);
     virtual ~Ui();

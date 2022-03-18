@@ -8,10 +8,27 @@
 #include "droptype.h"
 
 
+#if defined __LINUX__ || defined __FREEBSD__ || defined __OPENBSD__ || defined __NETBSD__
+#   define UI_HAS_CONTINUOUS_RESIZE // for X we get continuous resize events
+#endif
+#ifndef __WIN32__
+#   define UI_SINGLE_THREADED_PUMP_EVENTS // windows receives all events in the main thread
+#endif
+#if !defined UI_HAS_CONTINUOUS_RESIZE && !defined UI_SINGLE_THREADED_PUMP_EVENTS
+    // determine if we need to use the mutex for polled events
+#   define EVENT_LOCK(self) std::unique_lock<std::mutex> __eventLock(self->_eventMutex)
+#   define EVENT_UNLOCK(self) __eventLock.unlock()
+#else
+    // no locking required -> nops
+#   define EVENT_LOCK(self)
+#   define EVENT_UNLOCK(self)
+#endif
+
+
 static uint64_t getMicroTicks()
 {
     timespec tp;
-     if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) return 0;
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) return 0;
     uint64_t micros = tp.tv_sec; micros *= 1000000;
     micros += tp.tv_nsec/1000;
     return micros;
@@ -53,6 +70,12 @@ Ui::Ui(const char *name, bool fallbackRenderer)
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     //SDL_GL_SetSwapInterval(-1); // adaptive vsync
 #endif
+
+#ifndef UI_HAS_CONTINUOUS_RESIZE
+    // we need to hook into event handling to get continuous resize events
+    // TODO: AddEventWatch?
+    SDL_SetEventFilter(Ui::eventFilter, this);
+#endif
 }
 
 Ui::~Ui()
@@ -61,6 +84,11 @@ Ui::~Ui()
     for (auto win: _windows)
         delete win.second;
     printf("Ui: Destroying SDL...\n");
+#ifndef UI_HAS_CONTINUOUS_RESIZE
+    // see above
+    // TODO: DelEventWatch?
+    SDL_SetEventFilter(nullptr, nullptr);
+#endif
     TTF_Quit();
     SDL_Quit();
 }
@@ -75,6 +103,26 @@ void Ui::destroyWindow(Window *win)
             break;
         }
     }
+}
+
+int Ui::eventFilter(void* userdata, SDL_Event *ev)
+{
+    Ui* ui = (Ui*)userdata;
+    if (ev->type == SDL_WINDOWEVENT) {
+        if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            if (!ui->_eventMutex.try_lock()) return 1; // already handling events, skip resize / push to list instead
+            int x = ev->window.data1;
+            int y = ev->window.data2;
+            auto winit = ui->_windows.find(ev->window.windowID);
+            if (winit != ui->_windows.end()) {
+                // NOTE: calls below may push new events, looping is disabled using the try_lock above
+                winit->second->setSize({x,y});
+                winit->second->render();
+            }
+            ui->_eventMutex.unlock();
+        }
+    }
+    return 1; // add to queue
 }
 
 bool Ui::render()
@@ -133,6 +181,7 @@ bool Ui::render()
                     break;
                 }
                 case SDL_MOUSEBUTTONUP: {
+                    EVENT_LOCK(this);
                     int button = ev.button.button;
                     int x = ev.button.x;
                     int y = ev.button.y;
@@ -140,9 +189,11 @@ bool Ui::render()
                     if (winIt != _windows.end()) {
                         winIt->second->onClick.emit(winIt->second, x, y, button);
                     }
+                    EVENT_UNLOCK(this);
                     break;
                 }
                 case SDL_MOUSEMOTION: {
+                    EVENT_LOCK(this);
                     unsigned buttons = ev.motion.state;
                     int x = ev.motion.x;
                     int y = ev.motion.y;
@@ -150,9 +201,11 @@ bool Ui::render()
                     if (winIt != _windows.end()) {
                         winIt->second->onMouseMove.emit(winIt->second, x, y, buttons);
                     }
+                    EVENT_UNLOCK(this);
                     break;
                 }
                 case SDL_MOUSEWHEEL: {
+                    EVENT_LOCK(this);
                     int x = ev.wheel.x * 16;
                     int y = ev.wheel.y * 16;
                     unsigned mod = 0;
@@ -160,10 +213,12 @@ bool Ui::render()
                     if (winIt != _windows.end()) {
                         winIt->second->onScroll.emit(winIt->second, x, y, mod);
                     }
+                    EVENT_UNLOCK(this);
                     break;
                 }
                 case SDL_WINDOWEVENT: {
                     if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                        EVENT_LOCK(this);
                         int x = ev.window.data1;
                         int y = ev.window.data2;
                         auto winit = _windows.find(ev.window.windowID);
@@ -171,8 +226,10 @@ bool Ui::render()
                             winit->second->setSize({x,y});
                             destructiveEvent = true;
                         }
+                        EVENT_UNLOCK(this);
                     }
                     else if (ev.window.event == SDL_WINDOWEVENT_CLOSE) {
+                        EVENT_LOCK(this);
                         if (_windows.begin() != _windows.end() && _windows.begin()->first == ev.window.windowID) {
                             // Quit application when closing main window
                             // TODO: handle this through a callback
@@ -185,13 +242,16 @@ bool Ui::render()
                             delete winit->second;
                             _windows.erase(winit);
                         }
+                        EVENT_UNLOCK(this);
                     }
                     else if (ev.window.event == SDL_WINDOWEVENT_LEAVE) {
                         // NOTE: SDL does not have one cursor per window, which is complete BS
+                        EVENT_LOCK(this);
                         auto winit = _windows.find(ev.window.windowID);
                         if (winit != _windows.end()) {
                             winit->second->onMouseLeave.emit(winit->second);
                         }
+                        EVENT_UNLOCK(this);
                     }
                     else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
                         // SDL eats the mouse event that was used to get focus,
@@ -209,6 +269,7 @@ bool Ui::render()
                     #if 0 // this is not neccessary
                     else if (ev.window.event == SDL_WINDOWEVENT_TAKE_FOCUS) {
                         // focus offered -> grab focus
+                        EVENT_LOCK_GUARD(this);
                         auto winit = _windows.find(ev.window.windowID);
                         if (winit != _windows.end()) {
                             winit->second->grabFocus();
@@ -231,6 +292,7 @@ bool Ui::render()
                 }
                 case SDL_DROPFILE: {
                     if (ev.drop.file) {
+                        EVENT_LOCK(this);
                         auto winit = _windows.find(ev.drop.windowID);
                         if (winit != _windows.end()) {
                             bool isDir = dirExists(ev.drop.file);
@@ -238,18 +300,21 @@ bool Ui::render()
                                     isDir ? DropType::DIR : DropType::FILE,
                                     ev.drop.file);
                         }
+                        EVENT_UNLOCK(this);
                         free(ev.drop.file);
                     }
                     break;
                 }
                 case SDL_DROPTEXT: {
                     if (ev.drop.file) {
+                        EVENT_LOCK(this);
                         auto winit = _windows.find(ev.drop.windowID);
                         if (winit != _windows.end()) {
                             winit->second->onDrop.emit(winit->second, 0, 0,
                                     DropType::TEXT,
                                     ev.drop.file);
                         }
+                        EVENT_UNLOCK(this);
                         free(ev.drop.file);
                     }
                     break;
@@ -278,9 +343,13 @@ bool Ui::render()
     } while (_fpsLimit && (FRAME_TIME>_lastRenderDuration && t1-t0+1 < FRAME_TIME-_lastRenderDuration)); // TODO: microseconds?
 #endif
     
-    for (auto win: _windows)
-        win.second->render();
-    
+    {
+        EVENT_LOCK(this);
+        for (auto win: _windows)
+            win.second->render();
+        EVENT_UNLOCK(this);
+    }
+
     uint32_t t2 = SDL_GetTicks();
     uint32_t td = t2-t1;
 #if !defined VSYNC && !defined __EMSCRIPTEN__
