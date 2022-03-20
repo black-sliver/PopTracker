@@ -1,5 +1,14 @@
 # PopTracker Changelog
 
+## v0.20.2
+
+* App Features
+  * Allow continuous resizing of windows on Windows and Mac
+* Pack Features
+  * Allow non-integers in margin (ignoring the fraction)
+  * Add Player number as argument to Archipelago ItemHandler
+  * Add AutoTracker:GetConnectionState
+
 ## v0.20.1
 
 * Fixes
