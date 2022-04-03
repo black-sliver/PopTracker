@@ -155,7 +155,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 **Type:**
 * `"progressive"`:
   + has any number of states (`"stages"`)
-  + and optional on/off if `"allow_disabled": true`
+  + adds automatic "off" stage if `"allow_disabled": true` (default true)
   + adds optional `"initial_stage_idx": 0`
   + adds array of states (`"stages"`)
   
@@ -202,7 +202,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
   + adds alias `badge_font_size` for `overlay_font_size`
   
 * `"progressive_toggle"`:
-  + has on/off for each stage. Like progressive with `allow_disabled: true`.
+  + like progressive with `allow_disabled: false`, but the current stage can be toggled between "on" and "off"
 
 * `"composite_toggle"`:
   + is linked to two items left and right that have to be defined before
