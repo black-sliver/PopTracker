@@ -7,3 +7,6 @@
 [submodule "lib/wswrap"]
 	path = lib/wswrap
 	url = https://github.com/black-sliver/wswrap.git
+[submodule "examples/template_pack"]
+	path = examples/template_pack
+	url = https://github.com/Cyb3RGER/template_pack.git
