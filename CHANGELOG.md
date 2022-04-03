@@ -1,5 +1,9 @@
 # PopTracker Changelog
 
+## v0.20.3
+* App Features
+  * Update apclient to 0.2.6
+
 ## v0.20.2
 
 * App Features
