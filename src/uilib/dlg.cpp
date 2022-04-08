@@ -242,7 +242,7 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     dlgbuflen = (uint8_t*)endp - (uint8_t*)bufp;
 
     // Textbox
-    style = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP;
+    style = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL;
     if (password) style |= ES_PASSWORD;
     bufp = CreateDlgControlU(bufp, dlgbuflen, EDIT_CLASS, ID_INPUT, textbuf, style, 10, 26, 120, 13);
     if (!bufp) goto err;
