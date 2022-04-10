@@ -29,8 +29,19 @@
                 "required": [
                     "package_version",
                     "download_url",
-                    "sha256",
                     "changelog"
+                ],
+                "oneOf": [
+                    {
+                        "properties": {
+                            "download_url": {
+                                "type": "null"
+                            }
+                        }
+                    },
+                    {
+                        "required": ["sha256"]
+                    }
                 ]
             }
         }
