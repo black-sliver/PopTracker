@@ -78,6 +78,18 @@ PopTracker::PopTracker(int argc, char** argv)
 #endif
     }
 
+    int dnt = -1;
+    auto dntIt = _config.find("do_not_track");
+    if (dntIt != _config.end() && dntIt.value().is_boolean()) {
+        dnt = dntIt.value().get<bool>() ? 1 : 0;
+    } else if (dntIt != _config.end() && dntIt.value().is_number()) {
+        dnt = dntIt.value().get<int>();
+    } else {
+        _config["do_not_track"] = nullptr;
+    }
+    if (dnt > 0) // only support 1 and null for now
+        _httpDefaultHeaders.push_back("DNT: 1");
+
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
 #ifndef WITHOUT_UPDATE_CHECK
@@ -86,8 +98,9 @@ PopTracker::PopTracker(int argc, char** argv)
         std::string s;
         const std::string url = "https://api.github.com/repos/black-sliver/PopTracker/releases?per_page=8";
         // .../releases/latest would be better, but does not return pre-releases
-        if (!HTTP::GetAsync(*_asio, url,
-                [this](int code, const std::string& content)
+        auto requestHeaders = _httpDefaultHeaders;
+        if (!HTTP::GetAsync(*_asio, url, requestHeaders,
+                [this](int code, const std::string& content, HTTP::Headers)
                 {
                     if (code == 200) {
                         try {
@@ -429,7 +442,8 @@ bool PopTracker::start()
                 return;
             // TODO: show download progress
             std::string s;
-            if (!HTTP::Get(data, s)) {
+            auto requestHeaders = _httpDefaultHeaders;
+            if (HTTP::Get(data, s, requestHeaders) != HTTP::OK) {
                 Dlg::MsgBox("PopTracker", "Error downloading file!", Dlg::Buttons::OK, Dlg::Icon::Error);
                 return;
             }

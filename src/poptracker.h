@@ -34,6 +34,7 @@ private:
     bool _autoTrackerAllDisabled = false;
     std::map<std::string, bool> _autoTrackerDisabled;
     asio::io_service *_asio = nullptr;
+    std::list<std::string> _httpDefaultHeaders;
     std::string _exportFile;
     std::string _exportUID;
     std::string _exportDir;

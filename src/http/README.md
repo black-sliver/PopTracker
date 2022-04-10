@@ -11,11 +11,12 @@ platforms.
 
 ## API
 
-`bool HTTP::Get(const std::string& uri, std::string& response);`
+`int HTTP::Get(const std::string& uri, std::string& response[, const std::list<std::string>& headers]);`
 
-Returns true if GET resulted in Status 200, `response` has the response body.
+Returns HTTP status code, `response` has the response body.
 
-`bool HTTP::GetAsync(asio::io_context& io_context, const std::string& uri, response_callback cb, fail_callback fail = nullptr)`
+`bool HTTP::GetAsync(asio::io_context& io_context, const std::string& uri[, const std::list<std::string>& headers],
+                     const response_callback cb, fail_callback fail = nullptr)`
 
 Pass an asio::io_service as context.\
 Returns false if the request could not be started (no callback gets called).\

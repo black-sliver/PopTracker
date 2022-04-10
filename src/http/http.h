@@ -1,9 +1,15 @@
+#ifndef _HTTP_HTTP_H
+#define _HTTP_HTTP_H
+
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 #include <string>
 #include <iostream>
 #include <functional>
 #include <string.h>
+#include <list>
+#include <set>
+#include <map>
 
 #ifdef _MSC_VER 
 #define strncasecmp _strnicmp
@@ -29,48 +35,104 @@ using std::placeholders::_2;
 
 class HTTP {
 public:
-    typedef std::function<void(int code, const std::string&)> response_callback;
+    struct ci_less
+    {
+        // case-independent (ci) compare_less binary function
+        struct nocase_compare
+        {
+            bool operator() (const unsigned char& c1, const unsigned char& c2) const {
+                return tolower(c1) < tolower(c2);
+            }
+        };
+        bool operator() (const std::string & s1, const std::string & s2) const {
+            return std::lexicographical_compare(
+                    s1.begin(), s1.end(),   // source range
+                    s2.begin(), s2.end(),   // dest range
+                    nocase_compare());      // comparison
+        }
+    };
+    typedef std::map<std::string, std::string, ci_less> Headers;
+
+    typedef std::function<void(int code, const std::string&, const Headers&)> response_callback;
     typedef std::function<void(void)> fail_callback;
     
     static std::string certfile; // https://curl.se/docs/caextract.html
-    
-    static bool Get(const std::string& uri, std::string& response, int redirect_limit = 3)
+    static std::set<std::string> dnt_trusted_hosts; // try not to send trackable headers to hosts other than these
+
+    enum {
+        INTERNAL_ERROR = -1,
+        OK = 200,
+        REDIRECT = 302,
+        NOT_MODIFIED = 304
+    };
+
+    static int Get(const std::string& uri, std::string& response,
+            const std::list<std::string>& headers = {}, int redirect_limit = 3)
     {
         asio::io_context io_context;
-        
-        bool res = false;
-        if (!GetAsync(io_context, uri, [&response, &res, redirect_limit](int code, const std::string& r) {
-            if (code == 302 && redirect_limit != 0) {
-                res = Get(r, response, redirect_limit - 1);
-            } else if (code == 302) {
-                res = false;
+
+        int res = -1;
+        if (!GetAsync(io_context, uri, headers, [&response, &res, headers, redirect_limit]
+                (int code, const std::string& r, HTTP::Headers h)
+        {
+            if (code == REDIRECT && redirect_limit != 0) {
+                // NOTE: 302 puts location into r to make life easier
+                res = Get(r, response, headers, redirect_limit - 1);
+                if (res == REDIRECT) {
+                    response = "Too many redirects";
+                    res = INTERNAL_ERROR;
+                }
             } else {
                 response = r;
-                res = (code == 200);
+                res = code;
             }
-        })) return false;
-        
+        })) {
+            response.clear();
+            return -1;
+        }
+
         io_context.run();
         return res;
     }
 
     static bool GetAsync(asio::io_context& io_context, const std::string& uri, response_callback cb, fail_callback fail = nullptr)
     {
+        return GetAsync(io_context, uri, {}, cb, fail);
+    }
+    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, response_callback cb, fail_callback fail = nullptr)
+    {
         std::string proto, host, port, path;
         if (!parse_uri(uri, proto, host, port, path)) return false;
         if (path.empty()) path = "/";
-        
+
+        long dnt = -1;
+        for (const auto& header: headers) {
+            if (strncasecmp(header.c_str(), "dnt:", 4) == 0) {
+                if (parse_long(header.c_str()+4, dnt)) break;
+            }
+        }
+
         std::string request = 
                 "GET " + path + " HTTP/1.1\r\n"
                 //"Accept: */*\r\n"
                 "Connection: close\r\n"
-                "DNT: 1\r\n"
                 "Host: " + host + "\r\n"
-                "User-Agent: PopTracker\r\n"
-                "\r\n";
-        
-        std::cout << "HTTP: connecting to " << proto << "," << host << "," << port << " for " << path << "\n";
-        
+                "User-Agent: PopTracker\r\n";
+        for (const auto& header: headers) {
+            if (header.empty() || header.find("\n") != header.npos) {
+                std::cerr << "Invalid headers supplied to GetAsync:\n  " << header << "\n";
+                return false;
+            }
+            if (dnt != 0 && strncasecmp(header.c_str(), "If-None-Match:", 14) == 0 &&
+                    dnt_trusted_hosts.find(host) == dnt_trusted_hosts.end()) {
+                continue;
+            }
+            request.append(header + "\r\n");
+        }
+        request += "\r\n";
+
+        std::cout << "HTTP: connecting via " << proto << " to " << host << " " << port << " for " << path << "\n";
+
         base_client *c;
         tcp::resolver *resolver;
         if (strcasecmp(proto.c_str(), "https") == 0) {
@@ -124,17 +186,16 @@ public:
             delete resolver;
             delete c;
         });
-        c->set_response_handler([cb,resolver,c](int code, const std::string& r) {
+        c->set_response_handler([cb,resolver,c](int code, const std::string& r, HTTP::Headers h) {
             c->stop();
-            if (cb) cb(code, r);
+            if (cb) cb(code, r, h);
             delete resolver;
             delete c;
         });
 
         return true;
     }
-    
-private:
+
     static bool parse_uri(const std::string& uri, std::string& proto, std::string& host, std::string& port, std::string& path)
     {
         std::string::size_type pos = uri.find("://");
@@ -161,6 +222,18 @@ private:
             }
         }
         return true;
+    }
+
+private:
+    static bool parse_long(const char* s, long& out)
+    {
+        char* next = NULL;
+        long res = strtol(s, & next, 10);
+        if (errno == 0 && next != s) {
+            out = res;
+            return true;
+        }
+        return false;
     }
     
 #ifdef _WIN32
@@ -271,9 +344,9 @@ private:
                         if (code < 100 && fail_handler)
                             fail_handler();
                         else if (code == 302 && response_handler)
-                            response_handler(code, location);
+                            response_handler(code, location, headers);
                         else if (code >= 100 && response_handler)
-                            response_handler(code, content);
+                            response_handler(code, content, headers);
                     } else {
                         receive_response(socket_);
                     }
@@ -334,6 +407,7 @@ private:
                             return true;
                         }
                         debug << "HTTP: HDR: " << name << ": " << value << "\n";
+                        headers[name] = value;
                         if (strcasecmp(name.c_str(), "Transfer-Encoding") == 0) {
                             if (strcasecmp(value.c_str(), "chunked") == 0) {
                                 chunked = true;
@@ -407,6 +481,7 @@ private:
         char buffer[max_length];
         std::string data;
         std::string content;
+        Headers headers;
         int code;
         bool chunked;
         bool in_content;
@@ -520,3 +595,5 @@ private:
         asio::ssl::stream<tcp::socket> socket_;
     };
 };
+
+#endif // _HTTP_HTTP_H
