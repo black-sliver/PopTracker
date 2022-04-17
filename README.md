@@ -2,7 +2,7 @@
 
 List of packs and their update URLs.
 
-Send PRs for your packs on github.
+Send PRs for `community-packs.json` on github to add your packs.
 
 ## packs.json
 
