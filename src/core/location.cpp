@@ -86,7 +86,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
     const auto& parentVisibilityRules = parentLocation ? parentLocation->getVisibilityRules() : prevVisibilityRules;
 
     std::list< std::list<std::string> > accessRules;
-    if (j["access_rules"].is_array()) {
+    if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
         // TODO: merge code with Section's access rules
         for (const auto& v : j["access_rules"]) {
             std::list<std::string> newRule;
@@ -128,7 +128,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         }
     }
     std::list< std::list<std::string> > visibilityRules;
-    if (j["visibility_rules"].is_array()) {
+    if (j["visibility_rules"].is_array() && !j["visibility_rules"].empty()) {
         // TODO: merge code with Section's access rules
         for (const auto& v : j["visibility_rules"]) {
             std::list<std::string> newRule;
@@ -242,7 +242,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
     commasplit(tmp, sec._hostedItems);
     sec._itemCount = sec._hostedItems.empty() ? 1 : 0;
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
-    if (j["access_rules"].is_array()) {
+    if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["access_rules"]) {
             std::list<std::string> newRule;
@@ -283,7 +283,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<st
                     sanitize_print(sec._name).c_str());
         }
     }
-    if (j["visibility_rules"].is_array()) {
+    if (j["visibility_rules"].is_array() && !j["visibility_rules"].empty()) {
         // TODO: merge code with Location's access rules
         for (const auto& v : j["visibility_rules"]) {
             std::list<std::string> newRule;
