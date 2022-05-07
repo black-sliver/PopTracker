@@ -273,7 +273,9 @@ int Tracker::ProviderCountForCode(const std::string& code)
             _providerCountCache[code] = 0;
             return 0;
         } else {
-            int n = lua_tonumber(_L, -1);
+            int isnum = 0;
+            int n = lua_tonumberx(_L, -1, &isnum);
+            if (!isnum && lua_isboolean(_L, -1) && lua_toboolean(_L, -1)) n = 1;
             lua_pop(_L, 1); // result
             _providerCountCache[code] = n;
             return n;

@@ -328,7 +328,7 @@ Each `map_location` is a square on the map and shows a popup with individual che
 Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
 
 For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
-The return value has to be a number (count).
+The return value has to be a number (count) or boolean (since v0.20.4).
 
 Rules inside `[` `]` are optional (i.e. glitches work around this rule).
 
