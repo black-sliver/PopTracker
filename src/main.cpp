@@ -29,14 +29,29 @@ ULONG_PTR EnableVisualStyles(VOID)
 
 int main(int argc, char** argv)
 {
-#if defined WIN32 || defined _WIN32
-    // use --console to force open a dos window
+    const char* appName = argc>0 && argv[0] ? argv[0] : PopTracker::APPNAME;
     bool openConsole = false;
-    if (argc>1 && strcasecmp("--console", argv[1])==0) {
-        openConsole = true;
-        argv++;
-        argc--;
+    bool printVersion = false;
+    bool showHelp = false;
+
+    while (argc > 1) {
+        if (strcasecmp("--console", argv[1])==0) {
+            // use --console to force open a dos window
+            openConsole = true;
+            argv++;
+            argc--;
+        } else if (strcasecmp("--version", argv[1])==0) {
+            printVersion = true;
+            argv++;
+            argc--;
+        } else if (strcasecmp("--help", argv[1])==0) {
+            showHelp = true;
+            argv++;
+            argc--;
+        }
     }
+
+#if defined WIN32 || defined _WIN32
     // enable stdout on windows
     if(AttachConsole(ATTACH_PARENT_PROCESS) || (openConsole && AllocConsole())) {
         freopen("CONOUT$", "w", stdout);
@@ -45,14 +60,29 @@ int main(int argc, char** argv)
         setvbuf(stderr, NULL, _IONBF, 0);
     }
     EnableVisualStyles();
+#else
+    (void)openConsole; // no-op on non-windows
 #endif
 
-    if (argc>1 && strcasecmp("--version", argv[1])==0) {
+    if (showHelp) {
+        printf("Usage: %s [--help] [--console] [--version]\n"
+               "\n"
+                "    --help: show this message\n"
+                "    --console: try to open console window if not attached to a console (windows)\n"
+                "    --version: print version and exit\n"
+                "\n", appName);
+        return 0;
+    }
+
+    if (printVersion) {
         printf("%s\n", PopTracker::VERSION_STRING);
         return 0;
     }
-    printf("%s %s\n", PopTracker::APPNAME, PopTracker::VERSION_STRING);
+
     PopTracker popTracker(argc, argv);
+
+    // run GUI
+    printf("%s %s\n", PopTracker::APPNAME, PopTracker::VERSION_STRING);
     return popTracker.run();
 }
 
