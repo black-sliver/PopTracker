@@ -1,0 +1,19 @@
+# This workflow will validate json files against their schema
+
+name: validate
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y python3-pip
+        pip3 install -r util/requirements.txt
+    - name: Validate community-packs.json
+      run: |
+        python3 util/validate-packs.py community-packs.json
