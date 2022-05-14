@@ -5,7 +5,7 @@ name: validate
 on: [push, pull_request]
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
