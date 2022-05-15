@@ -153,7 +153,9 @@ public:
                 asio::error_code ec;
                 ctx.load_verify_file(certfile, ec);
                 if (ec) {
-                    std::cout << "HTTP: error loading certs: " << ec.message() << "\n";
+                    std::cout << "HTTP: error loading certs from "
+                              << certfile << ": "
+                              << ec.message() << "\n";
                 } else {
                     load_system_certs = false;
                 }

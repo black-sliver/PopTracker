@@ -90,14 +90,6 @@ PopTracker::PopTracker(int argc, char** argv, bool cli)
     if (dnt > 0) // only support 1 and null for now
         _httpDefaultHeaders.push_back("DNT: 1");
 
-    _asio = new asio::io_service();
-    HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
-
-    _packManager = new PackManager(_asio, getConfigPath(APPNAME), _httpDefaultHeaders);
-    // TODO: move repositories to config?
-    _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
-    // NOTE: signals are connected later to allow gui and non-gui interaction
-
     if (!_config["fps_limit"].is_number())
         _config["fps_limit"] = DEFAULT_FPS_LIMIT;
 
@@ -144,6 +136,14 @@ PopTracker::PopTracker(int argc, char** argv, bool cli)
         Pack::addSearchPath(_appPackDir); // system packs
         Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
     }
+
+    _asio = new asio::io_service();
+    HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
+
+    _packManager = new PackManager(_asio, getConfigPath(APPNAME), _httpDefaultHeaders);
+    // TODO: move repositories to config?
+    _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
+    // NOTE: signals are connected later to allow gui and non-gui interaction
 
     StateManager::setDir(getConfigPath(APPNAME, "saves"));
 }
