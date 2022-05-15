@@ -1,6 +1,19 @@
 # PopTracker Changelog
 
+## v0.20.4
+
+* App Features
+  * New Icon by Cyb3R
+  * Added support for pack updates
+  * Added some CLI (command line interface) features
+* Pack Features
+  * Allow returning bool from lua for $-rules
+  * Allow empty arrays in access/visibility rules
+* Fixes
+  * Fixed bug in AP UUID generation
+
 ## v0.20.3
+
 * App Features
   * Update apclient to 0.2.6
 
