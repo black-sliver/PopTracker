@@ -59,6 +59,7 @@ jobs:
         cd ./build/darwin-x86_64/poptracker.app/Contents/MacOS
         otool -L ./poptracker
         ./poptracker --version
+        ./poptracker --list-packs
     - name: Store app bundle
       uses: actions/upload-artifact@v2
       with:
