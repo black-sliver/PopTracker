@@ -633,19 +633,24 @@ private:
 
         void handshake()
         {
-            socket_.async_handshake(asio::ssl::stream_base::client,
-                    [this](const asio::error_code& error)
-            {
-                if (!error)
+            try {
+                socket_.async_handshake(asio::ssl::stream_base::client,
+                        [this](const asio::error_code& error)
                 {
-                    send_request(socket_);
-                }
-                else
-                {
-                    std::cout << "HTTP: SSL handshake failed: " << error.message() << "\n";
-                    if (fail_handler) fail_handler();
-                }
-            });
+                    if (!error)
+                    {
+                        send_request(socket_);
+                    }
+                    else
+                    {
+                        std::cout << "HTTP: SSL handshake failed: " << error.message() << "\n";
+                        if (fail_handler) fail_handler();
+                    }
+                });
+            } catch (std::exception& ex) {
+                std::cout << "HTTP: Error initializing SSL handshake: " << ex.what() << "\n";
+                if (fail_handler) fail_handler();
+            }
         }
 
         asio::ssl::stream<tcp::socket> socket_;

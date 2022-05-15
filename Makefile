@@ -341,6 +341,7 @@ test: $(EXE)
 	@echo "Testing $(EXE)"
 	@du -h $(EXE) | cut -f -1
 	@timeout 5 $(EXE) --version
+	@timeout 9 $(EXE) --list-packs
 
 clean:
 	(cd lib/lua && make -f makefile clean)
