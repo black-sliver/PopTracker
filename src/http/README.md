@@ -9,7 +9,8 @@ See https://curl.se/docs/caextract.html for an example certfile.
 Falls back to windows cert store on windows and default openssl paths on other
 platforms.
 
-## API
+
+## Static API
 
 `int HTTP::Get(const std::string& uri, std::string& response[, const std::list<std::string>& headers]);`
 
@@ -21,6 +22,12 @@ Returns HTTP status code, `response` has the response body.
 Pass an asio::io_service as context.\
 Returns false if the request could not be started (no callback gets called).\
 Calls `cb` on success, or `fail` on error.
+
+
+## HTTP Cache
+
+inherit from `HTTPCache` and use `GetCached`.
+
 
 ## How to use
 

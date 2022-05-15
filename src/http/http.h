@@ -55,6 +55,7 @@ public:
 
     typedef std::function<void(int code, const std::string&, const Headers&)> response_callback;
     typedef std::function<void(void)> fail_callback;
+    typedef std::function<void(int received, int total)> progress_callback;
     
     static std::string certfile; // https://curl.se/docs/caextract.html
     static std::set<std::string> dnt_trusted_hosts; // try not to send trackable headers to hosts other than these
@@ -95,11 +96,11 @@ public:
         return res;
     }
 
-    static bool GetAsync(asio::io_context& io_context, const std::string& uri, response_callback cb, fail_callback fail = nullptr)
+    static bool GetAsync(asio::io_context& io_context, const std::string& uri, response_callback cb, fail_callback fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
     {
-        return GetAsync(io_context, uri, {}, cb, fail);
+        return GetAsync(io_context, uri, {}, cb, fail, f, progress);
     }
-    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, response_callback cb, fail_callback fail = nullptr)
+    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, response_callback cb, fail_callback fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
     {
         std::string proto, host, port, path;
         if (!parse_uri(uri, proto, host, port, path)) return false;
@@ -179,6 +180,8 @@ public:
             // unsupported protocol
             return false;
         }
+        c->set_response_file(f); // if f is not null, output to file
+        c->set_progress_handler(progress);
 
         c->set_fail_handler([fail,resolver,c](...) {
             c->stop();
@@ -274,7 +277,9 @@ private:
         base_client(const std::string& request)
                 : request(request), code(-1), chunked(false),
                   in_content(false), content_length(0),
-                  response_handler(nullptr), fail_handler(nullptr)
+                  received_length(0), last_progress_report(0),
+                  response_file(nullptr), response_handler(nullptr),
+                  fail_handler(nullptr), progress_handler(nullptr)
         {
         }
 
@@ -292,7 +297,12 @@ private:
         {
             fail_handler = cb;
         }
-        
+
+        void set_progress_handler(progress_callback cb)
+        {
+            progress_handler = cb;
+        }
+
         int get_error_code() const
         {
             return code;
@@ -301,6 +311,11 @@ private:
         const std::string& get_redirect() const
         {
             return location;
+        }
+
+        void set_response_file(FILE* f)
+        {
+            response_file = f;
         }
 
         virtual void stop() = 0;
@@ -377,12 +392,21 @@ private:
                     auto pos = data.find("\r\n");
                     if (pos != data.npos) {
                         debug << "HTTP: Status: " << data.substr(0, pos) << "\n";
-                        if (strncasecmp(data.c_str(), "HTTP/1.", 7) == 0)
-                            code = atoi(data.c_str() + 9);
+                        if (strncasecmp(data.c_str(), "HTTP/1.", 7) == 0) {
+                            char* next = nullptr;
+                            code = (int)strtol(data.c_str() + 9, &next, 10);
+                            if (next && *next) {
+                                auto p = next-data.c_str();
+                                status = data.substr(p+1, pos-p-1);
+                            }
+                        }
                         if (code<100 || code>999) {
                             std::cout << "HTTP: bad status " << code << "\n";
+                            content = "bad status";
                             code = -1;
                             return true;
+                        } else if (code<200 || code>=300) {
+                            content = status;
                         }
                         last_pos = pos + 2;
                     } else {
@@ -459,20 +483,45 @@ private:
                         // last chunk
                         return true;
                     }
-                    content += data.substr(pos+2, chunk_len);
+                    if (response_file) {
+                        if (fwrite(data.c_str()+pos+2, 1, chunk_len, response_file) != chunk_len) {
+                            code = INTERNAL_ERROR;
+                            content = strerror(errno);
+                            if (fail_handler) fail_handler();
+                            return true; // error -> done
+                        }
+                    } else {
+                        content += data.substr(pos+2, chunk_len);
+                    }
+                    received_length += chunk_len;
                     data = data.substr(pos+2+chunk_len+2);
                     last_pos = 0;
                 }
                 else {
                     // handle regular content
-                    content += data.substr(last_pos);
+                    size_t chunk_len = data.length() - last_pos;
+                    if (response_file) {
+                        if (fwrite(data.c_str()+last_pos, 1, chunk_len, response_file) != chunk_len) {
+                            code = INTERNAL_ERROR;
+                            content = strerror(errno);
+                            if (fail_handler) fail_handler();
+                            return true; // error -> done
+                        }
+                    } else {
+                        content += data.substr(last_pos);
+                    }
+                    received_length += chunk_len;
                     data.clear();
                     last_pos = 0;
                     break;
                 }
             }
             if (last_pos) data = data.substr(last_pos);
-            if (in_content && !chunked) return content.length() >= content_length;
+            if (progress_handler && received_length && (received_length-last_progress_report>=2048 || received_length == content_length)) {
+                last_progress_report = received_length;
+                progress_handler((int)received_length, (int)content_length);
+            }
+            if (in_content && !chunked) return received_length >= content_length;
             return false;
         }
 
@@ -486,11 +535,16 @@ private:
         bool chunked;
         bool in_content;
         size_t content_length;
+        size_t received_length;
+        size_t last_progress_report;
+        std::string status;
         std::string location;
+        FILE* response_file;
         response_callback response_handler;
 
     protected:
         fail_callback fail_handler;
+        progress_callback progress_handler;
     };
     
     class tcp_client : public base_client
@@ -521,6 +575,7 @@ private:
             {
                 if (!error)
                 {
+                    debug << "HTTP: Connected" << "\n";
                     send_request(socket_);
                 }
                 else
@@ -565,6 +620,7 @@ private:
             {
                 if (!error)
                 {
+                    debug << "HTTP: Connected" << "\n";
                     handshake();
                 }
                 else
