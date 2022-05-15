@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.20.4
+## v0.20.5
 
 * App Features
   * New Icon by Cyb3R
@@ -11,6 +11,9 @@
   * Allow empty arrays in access/visibility rules
 * Fixes
   * Fixed bug in AP UUID generation
+  * Use correct bottom end of items for hit test
+  * Load integrated SSL certificates from any asset dir
+  * Catch exceptions when aborting HTTPs to avoid crashing
 
 ## v0.20.3
 

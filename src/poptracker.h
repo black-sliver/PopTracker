@@ -75,7 +75,7 @@ public:
     bool InstallPack(const std::string& uid, PackManager::confirmation_callback confirm = nullptr);
 
     static constexpr const char APPNAME[] = "PopTracker";
-    static constexpr const char VERSION_STRING[] = "0.20.4";
+    static constexpr const char VERSION_STRING[] = "0.20.5";
     static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
 
 protected:
