@@ -42,7 +42,7 @@ public:
             const char uuid_chars[] = "0123456789abcdef";
             std::random_device dev;
             std::mt19937 rng(dev());
-            std::uniform_int_distribution<std::mt19937::result_type> dist(0,strlen(uuid_chars));
+            std::uniform_int_distribution<std::mt19937::result_type> dist(0,strlen(uuid_chars)-1);
             for (int n=0; n<16; n++) {
                 _uuid.append(1, uuid_chars[dist(rng)]);
             }
