@@ -8,6 +8,9 @@ Broadcast icon
 based on CC0 https://commons.wikimedia.org/wiki/File:Broadcast_icon.png
 
 Application Icon
+drawn by Cyb3R
+
+Old Application Icon
 based on CC0 (now pixabay) vectors/map-world-old-scroll-pirate-304779
 
 New Open, Reload, Settings, Import, Export icons

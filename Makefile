@@ -103,10 +103,12 @@ WIN32CC = i686-w64-mingw32-gcc
 WIN32CPP = i686-w64-mingw32-g++
 WIN32AR = i686-w64-mingw32-ar
 WIN32STRIP = i686-w64-mingw32-strip
+WIN32WINDRES = i686-w64-mingw32-windres
 WIN64CC = x86_64-w64-mingw32-gcc
 WIN64CPP = x86_64-w64-mingw32-g++
 WIN64AR = x86_64-w64-mingw32-ar
 WIN64STRIP = x86_64-w64-mingw32-strip
+WIN64WINDRES = x86_64-w64-mingw32-windres
 
 # tool config
 #TODO: -fsanitize=address -fno-omit-frame-pointer ?
@@ -154,6 +156,7 @@ ifdef IS_WIN32
   WIN32CPP = $(CPP)
   WIN32AR = $(AR)
   WIN32STRIP = strip
+  WIN32WINDRES = windres
   # MSYS' SDL_* configure is a bloat and links full static
   WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
@@ -167,6 +170,7 @@ else ifdef IS_WIN64
   WIN64CPP = $(CPP)
   WIN64AR = $(AR)
   WIN64STRIP = strip
+  WIN64WINDRES = windres
   # MSYS' SDL_* configure is a bloat and links full static
   WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4
   ifeq ($(CONF), DIST)
@@ -210,15 +214,15 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
-$(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
+$(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
-	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_OBJ) $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN32STRIP) $@
 endif
 
-$(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
-	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
+$(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
+	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN64STRIP) $@
 endif
@@ -283,7 +287,7 @@ $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" CFLAGS="$(NIX_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib/lua
-$(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
+$(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN32_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
 	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
@@ -295,6 +299,11 @@ $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_
 	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib/lua
+
+$(WIN32_BUILD_DIR)/app.res: src/app.rc assets/icon.ico | $(WIN32_BUILD_DIR)
+	$(WIN32WINDRES) $< -O coff $@
+$(WIN64_BUILD_DIR)/app.res: src/app.rc assets/icon.ico | $(WIN64_BUILD_DIR)
+	$(WIN64WINDRES) $< -O coff $@
 
 # Build dirs
 $(NIX_BUILD_DIR):
