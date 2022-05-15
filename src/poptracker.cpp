@@ -56,26 +56,26 @@ PopTracker::PopTracker(int argc, char** argv, bool cli)
         if (Log::RedirectStdOut(logFilename)) {
             printf("%s %s\n", APPNAME, VERSION_STRING);
         }
-    }
 
 #ifndef WITHOUT_UPDATE_CHECK
-    if (_config.find("check_for_updates") == _config.end()) {
-        auto res = Dlg::MsgBox("PopTracker",
-                "Check for PopTracker updates on start?",
-                Dlg::Buttons::YesNo, Dlg::Icon::Question);
-        _config["check_for_updates"] = (res == Dlg::Result::Yes);
-    }
+        if (_config.find("check_for_updates") == _config.end()) {
+            auto res = Dlg::MsgBox("PopTracker",
+                    "Check for PopTracker updates on start?",
+                    Dlg::Buttons::YesNo, Dlg::Icon::Question);
+            _config["check_for_updates"] = (res == Dlg::Result::Yes);
+        }
 #endif
 
-    if (_config.find("add_emo_packs") == _config.end()) {
+        if (_config.find("add_emo_packs") == _config.end()) {
 #if defined _WIN32 || defined WIN32
-        auto res = Dlg::MsgBox("PopTracker",
-                "Add Documents\\EmoTracker\\packs to the search path?",
-                Dlg::Buttons::YesNo, Dlg::Icon::Question);
-        _config["add_emo_packs"] = (res == Dlg::Result::Yes);
+            auto res = Dlg::MsgBox("PopTracker",
+                    "Add Documents\\EmoTracker\\packs to the search path?",
+                    Dlg::Buttons::YesNo, Dlg::Icon::Question);
+            _config["add_emo_packs"] = (res == Dlg::Result::Yes);
 #else
-        _config["add_emo_packs"] = false;
+            _config["add_emo_packs"] = false;
 #endif
+        }
     }
 
     int dnt = -1;
@@ -136,7 +136,7 @@ PopTracker::PopTracker(int argc, char** argv, bool cli)
     }
     if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
         Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
-        if (_config["add_emo_packs"]) {
+        if (_config.value<bool>("add_emo_packs", false)) {
             Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
         }
     }
@@ -163,7 +163,7 @@ bool PopTracker::start()
     Ui::Size size = {0,0};
 
 #ifndef WITHOUT_UPDATE_CHECK
-    if (_config["check_for_updates"]) {
+    if (_config.value<bool>("check_for_updates", false)) {
         printf("Checking for update...\n");
         std::string s;
         const std::string url = "https://api.github.com/repos/black-sliver/PopTracker/releases?per_page=8";
