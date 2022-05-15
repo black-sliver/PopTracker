@@ -30,8 +30,10 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
         _uid = to_string(_manifest,"package_uid","");
         _name = to_string(_manifest,"name", _uid);
         _gameName = to_string(_manifest,"game_name", _name);
+        _versionsURL = to_string(_manifest,"versions_url", "");
     }
 }
+
 Pack::~Pack()
 {
     if (_zip) delete _zip;

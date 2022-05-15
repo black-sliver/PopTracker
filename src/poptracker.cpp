@@ -24,7 +24,7 @@ using nlohmann::json;
 using Ui::Dlg;
 
 
-PopTracker::PopTracker(int argc, char** argv)
+PopTracker::PopTracker(int argc, char** argv, bool cli)
 {
     std::string config;
     std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json");
@@ -50,7 +50,7 @@ PopTracker::PopTracker(int argc, char** argv)
                 configFilename.c_str());
         Log::UnredirectStdOut();
 #endif
-    } else {
+    } else if (!cli) {
         // enable logging
         printf("Logging to %s\n", logFilename.c_str());
         if (Log::RedirectStdOut(logFilename)) {
@@ -92,6 +92,76 @@ PopTracker::PopTracker(int argc, char** argv)
 
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
+
+    _packManager = new PackManager(_asio, getConfigPath(APPNAME), _httpDefaultHeaders);
+    // TODO: move repositories to config?
+    _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
+    // NOTE: signals are connected later to allow gui and non-gui interaction
+
+    if (!_config["fps_limit"].is_number())
+        _config["fps_limit"] = DEFAULT_FPS_LIMIT;
+
+    if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
+        _exportFile = _config["export_file"];
+        _exportUID = _config["export_uid"];
+    }
+    if (_config["export_dir"].is_string())
+        _exportDir = _config["export_dir"];
+
+    if (_config["at_uri"].is_string())
+        _atUri = _config["at_uri"];
+    if (_config["at_slot"].is_string())
+        _atSlot = _config["at_slot"];
+
+    if (_config["usb2snes"].is_null())
+        _config["usb2snes"] = "";
+
+    saveConfig();
+
+    _ui = nullptr; // UI init moved to start()
+
+    Pack::addSearchPath("packs"); // current directory
+
+    std::string cwdPath = getCwd();
+    std::string documentsPath = getDocumentsPath();
+    std::string homePath = getHomePath();
+    std::string appPath = getAppPath();
+
+    _homePackDir = os_pathcat(homePath, "PopTracker", "packs");
+    _appPackDir = os_pathcat(appPath, "packs");
+
+    if (!homePath.empty() && homePath != "." && homePath != cwdPath) {
+        Pack::addSearchPath(_homePackDir); // default user packs
+        Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
+    }
+    if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
+        Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
+        if (_config["add_emo_packs"]) {
+            Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
+        }
+    }
+    if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
+        Pack::addSearchPath(_appPackDir); // system packs
+        Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
+    }
+
+    StateManager::setDir(getConfigPath(APPNAME, "saves"));
+}
+
+PopTracker::~PopTracker()
+{
+    unloadTracker();
+    delete _packManager;
+    delete _asio;
+    _win = nullptr;
+    delete _ui;
+}
+
+bool PopTracker::start()
+{
+    Ui::Position pos = WINDOW_DEFAULT_POSITION;
+    Ui::Size size = {0,0};
+
 #ifndef WITHOUT_UPDATE_CHECK
     if (_config["check_for_updates"]) {
         printf("Checking for update...\n");
@@ -143,27 +213,7 @@ PopTracker::PopTracker(int argc, char** argv)
     }
 #endif
 
-    if (!_config["fps_limit"].is_number())
-        _config["fps_limit"] = DEFAULT_FPS_LIMIT;
-
-    if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
-        _exportFile = _config["export_file"];
-        _exportUID = _config["export_uid"];
-    }
-    if (_config["export_dir"].is_string())
-        _exportDir = _config["export_dir"];
-
-    if (_config["at_uri"].is_string())
-        _atUri = _config["at_uri"];
-    if (_config["at_slot"].is_string())
-        _atSlot = _config["at_slot"];
-
-    if (_config["usb2snes"].is_null())
-        _config["usb2snes"] = "";
-
-    saveConfig();
-
-    _ui = new Ui::Ui(APPNAME, _config["software_renderer"]?true:false);
+    _ui = new Ui::Ui(APPNAME, _config["software_renderer"] ? true : false);
     _ui->setFPSLimit(_config["fps_limit"].get<unsigned>());
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
@@ -177,44 +227,6 @@ PopTracker::PopTracker(int argc, char** argv)
         }
     }};
 
-    Pack::addSearchPath("packs"); // current directory
-
-    std::string cwdPath = getCwd();
-    std::string documentsPath = getDocumentsPath();
-    std::string homePath = getHomePath();
-    std::string appPath = getAppPath();
-
-    if (!homePath.empty() && homePath != "." && homePath != cwdPath) {
-        Pack::addSearchPath(os_pathcat(homePath,"PopTracker","packs")); // default user packs
-        Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
-    }
-    if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
-        Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
-        if (_config["add_emo_packs"]) {
-            Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
-        }
-    }
-    if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
-        Pack::addSearchPath(os_pathcat(appPath,"packs")); // system packs
-        Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
-    }
-
-    StateManager::setDir(getConfigPath(APPNAME, "saves"));
-}
-
-PopTracker::~PopTracker()
-{
-    unloadTracker();
-    delete _asio;
-    _win = nullptr;
-    delete _ui;
-}
-
-bool PopTracker::start()
-{
-    Ui::Position pos = WINDOW_DEFAULT_POSITION;
-    Ui::Size size = {0,0};
-    
     // restore state from config
     if (_config.type() == json::value_t::object) {
         auto jWindow = _config["window"];
@@ -411,14 +423,13 @@ bool PopTracker::start()
                     return;
                 // default to %HOME%/PopTracker/packs if that exist, otherwise
                 // default to %APPDIR%/packs and fall back to %HOME%
-                std::string homePackDir = os_pathcat(getHomePath(), "PopTracker", "packs");
-                std::string appPackDir = os_pathcat(getAppPath(), "packs");
-                path = os_pathcat(dirExists(homePackDir) ? homePackDir : appPackDir, packname);
+                // TODO: go through PackManager?
+                path = os_pathcat(getPackInstallDir(), packname);
                 if (!copy_recursive(filename.c_str(), path.c_str())) {
                     std::string msg = "Error copying files:\n";
                     msg += strerror(errno);
-                    path = os_pathcat(homePackDir, packname);
-                    mkdir_recursive(homePackDir.c_str());
+                    path = os_pathcat(_homePackDir, packname);
+                    mkdir_recursive(_homePackDir.c_str());
                     errno = 0;
                     if (!copy_recursive(filename.c_str(), path.c_str())) {
                         msg += "\n"; msg += strerror(errno);
@@ -440,7 +451,7 @@ bool PopTracker::start()
             std::string msg = "Download pack from " + data + " ?";
             if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) != Dlg::Result::Yes)
                 return;
-            // TODO: show download progress
+            // TODO: merge this with PackManager
             std::string s;
             auto requestHeaders = _httpDefaultHeaders;
             if (HTTP::Get(data, s, requestHeaders) != HTTP::OK) {
@@ -449,12 +460,11 @@ bool PopTracker::start()
             }
             // default to %HOME%/PopTracker/packs if that exist, otherwise
             // default to %APPDIR%/packs and fall back to %HOME%
-            std::string homePackDir = os_pathcat(getHomePath(), "PopTracker", "packs");
-            std::string appPackDir = os_pathcat(getAppPath(), "packs");
-            std::string path = os_pathcat(dirExists(homePackDir) ? homePackDir : appPackDir, zipname);
+            // TODO: use PackManager::downloadUpdate
+            std::string path = os_pathcat(getPackInstallDir(), zipname);
             if (!writeFile(path, s)) {
-                path = os_pathcat(homePackDir, zipname);
-                mkdir_recursive(homePackDir.c_str());
+                path = os_pathcat(_homePackDir, zipname);
+                mkdir_recursive(_homePackDir.c_str());
                 errno = 0;
                 if (!writeFile(path, s)) {
                     std:: string msg = "Error saving file:\n";
@@ -471,6 +481,63 @@ bool PopTracker::start()
         }
     }};
 
+    // Connect pack manager to GUI
+    _packManager->setConfirmationHandler([](const std::string& msg, auto cb) {
+        cb(Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes);
+    });
+    _packManager->onUpdateAvailable += {this, [this](void*, const std::string& uid, const std::string& version, const std::string& url, const std::string& sha256) {
+        if (!_pack || _pack->getUID() != uid) return;
+        if (version.empty() || url.empty() || sha256.empty()) {
+            printf("Invalid update information\n");
+            return;
+        }
+        std::string msg = "A pack update to version " + version + " is available.\nDownload from " + url + " ?";
+        if (Dlg::MsgBox("PopTracker", msg,
+                Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes) {
+            const auto& installDir = getPackInstallDir();
+            mkdir_recursive(installDir);
+            _packManager->downloadUpdate(url, installDir, uid, version, sha256);
+        } else if (Dlg::MsgBox("PopTracker", "Skip version " + version + "?",
+                Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes) {
+            _packManager->ignoreUpdateSHA256(uid, sha256);
+        } else {
+            // don't bug user again until restart
+            _packManager->tempIgnoreSourceVersion(uid, _pack->getVersion());
+        }
+    }};
+    _packManager->onUpdateProgress += {this, [this](void*, const std::string& url, int received, int total) {
+        // NOTE: total is 0 if size is unknown
+        _win->showProgress("Downloading ...", received, total);
+    }};
+    _packManager->onUpdateFailed += {this, [this](void*, const std::string& url, const std::string& reason) {
+        (void)url;
+        // TODO: hide progress bar overlay
+        _win->hideProgress();
+        Dlg::MsgBox("PopTracker", "Update failed: " + reason);
+    }};
+    _packManager->onUpdateComplete += {this, [this](void*, const std::string& url, const std::string& file, const std::string& uid) {
+        (void)url;
+        _win->hideProgress();
+        std::string variant = _pack ? _pack->getVariant() : "";
+        if (_pack && _pack->getUID() == uid) {
+            // FIXME: probably should capture which pack started the update
+            std::string oldPath = _pack->getPath();
+            unloadTracker();
+            std::string oldDir = os_dirname(oldPath);
+            std::string oldName = os_basename(oldPath);
+            std::string backupDir = os_pathcat(oldDir, "old");
+            mkdir_recursive(backupDir.c_str());
+            std::string backupPath = os_pathcat(backupDir, oldName);
+            if (rename(oldPath.c_str(), backupPath.c_str()) == 0) {
+                printf("Moved %s to %s\n", oldPath.c_str(), backupPath.c_str());
+            } else {
+                fprintf(stderr, "Could not move %s to %s: %s\n",
+                        oldPath.c_str(), backupPath.c_str(), strerror(errno));
+            }
+        }
+        loadTracker(file, variant);
+    }};
+
     _frameTimer = std::chrono::steady_clock::now();
     _fpsTimer = std::chrono::steady_clock::now();
     return (_win != nullptr);
@@ -478,7 +545,11 @@ bool PopTracker::start()
 
 bool PopTracker::frame()
 {
-    if (_asio) _asio->poll();
+    if (_asio) {
+        _asio->poll();
+        // when all tasks are done, poll() will stop(). Reset for next request.
+        if (_asio->stopped()) _asio->restart();
+    }
     if (_scriptHost) _scriptHost->autoTrack();
 
     auto now = std::chrono::steady_clock::now();
@@ -554,6 +625,85 @@ bool PopTracker::frame()
     }
 
     return res;
+}
+
+bool PopTracker::ListPacks(PackManager::confirmation_callback confirm)
+{
+    printf("Fetching data...\n");
+    bool done = false;
+    json installable;
+    if (confirm) _packManager->setConfirmationHandler(confirm);
+    _packManager->getAvailablePacks([&done,&installable](const json& j) {
+        done = true;
+        installable = j;
+    });
+
+    while (!done) {
+        _asio->poll();
+    }
+
+    printf("\n");
+    printf("Installed packs:\n");
+    auto installed = Pack::ListAvailable();
+    if (installed.empty()) {
+        printf("~ no packs installed ~\n");
+    }
+    for (const auto& info: installed) {
+        printf("%s %s \"%s\"\n", info.uid.c_str(), info.version.c_str(), info.packName.c_str());
+    }
+
+    printf("\n");
+    printf("Installable packs:\n");
+    if (!installable.is_object() || !installable.size()) {
+        printf("~ no packs in repositories ~\n");
+    } else {
+        for (auto& pair: installable.items()) {
+            printf("%s %s\n", pair.key().c_str(), pair.value()["name"].dump().c_str());
+        }
+    }
+
+    printf("\n");
+    return true;
+}
+
+bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_callback confirm)
+{
+    bool done = false;
+    bool res = false;
+    if (confirm) _packManager->setConfirmationHandler(confirm);
+    _packManager->onUpdateProgress += {this, [](void*, const std::string& url, int received, int total) {
+        int percent = total>0 ? received*100/total : 0;
+        printf("%3d%% [%s/%s]        \r", percent, format_bytes(received).c_str(), format_bytes(total).c_str());
+    }};
+    _packManager->onUpdateComplete += {this, [&done, &res](void*, const std::string& url, const std::string& local, const std::string&) {
+        printf("\nDownload complete.\n");
+        printf("Pack installed as %s\n", sanitize_print(local).c_str());
+        res = false;
+        done = true;
+    }};
+    _packManager->onUpdateFailed += {this, [&done, &res](void*, const std::string& url, const std::string& msg) {
+        printf("\nDownload failed: %s\n", sanitize_print(msg).c_str());
+        res = false;
+        done = true;
+    }};
+    _packManager->checkForUpdate(uid, "", "", [this](const std::string& uid, const std::string& version, const std::string& url, const std::string& sha256){
+        const auto& installDir = getPackInstallDir();
+        mkdir_recursive(installDir);
+        _packManager->downloadUpdate(url, installDir, uid, version, sha256);
+    }, [&done, &res](const std::string& uid) {
+        printf("%s has no installation candidate\n", uid.c_str());
+        res = false;
+        done = true;
+    });
+    while (!done) {
+        _asio->poll();
+    }
+    return res;
+}
+
+const std::string& PopTracker::getPackInstallDir() const
+{
+    return dirExists(_homePackDir) || !isWritable(_appPackDir) ? _homePackDir : _appPackDir;
 }
 
 void PopTracker::unloadTracker()
@@ -704,6 +854,11 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     }
 
     _autosaveTimer = std::chrono::steady_clock::now();
+
+    // check for updates
+    _packManager->checkForUpdate(_pack, [](const std::string&, const std::string&, const std::string&, const std::string&) {
+        printf("Pack update available!\n");
+    });
 
     return res;
 }

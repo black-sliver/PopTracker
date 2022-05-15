@@ -97,6 +97,17 @@ static std::string os_dirname(const std::string& filename)
     return filename.substr(0, p);
 }
 
+static std::string os_basename(const std::string& filename)
+{
+    auto p = filename.rfind("/");
+    if (OS_DIR_SEP != '/') {
+        auto p2 = filename.rfind(OS_DIR_SEP);
+        if (p == filename.npos || (p2 != filename.npos && p2>p))
+            p = p2;
+    }
+    return filename.substr(p+1);
+}
+
 #include <sys/stat.h>
 static inline bool fileExists(const char* path)
 {
@@ -132,6 +143,16 @@ static inline bool pathExists(const char* path)
 static inline bool pathExists(const std::string& path)
 {
     return pathExists(path.c_str());
+}
+
+static inline bool isWritable(const char* path)
+{
+    return (access(path, W_OK) == 0);
+}
+
+static inline bool isWritable(const std::string& path)
+{
+    return isWritable(path.c_str());
 }
 
 static std::string getCwd()
@@ -309,6 +330,10 @@ static int mkdir_recursive(const char *dir, mode_t mode=0750) {
     int res = MKDIR(tmp, mode);
     free(tmp);
     return res;
+}
+
+static inline int mkdir_recursive(const std::string& dir, mode_t mode=0750) {
+    return mkdir_recursive(dir.c_str(), mode);
 }
 
 static int os_copyfile(const char* src, const char* dst)

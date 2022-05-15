@@ -12,7 +12,8 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
       $(wildcard $(LIB_DIR)/wswrap/src/*.cpp) \
-      $(wildcard $(SRC_DIR)/http/*.cpp)
+      $(wildcard $(SRC_DIR)/http/*.cpp) \
+      $(wildcard $(SRC_DIR)/packmanager/*.cpp)
       #lib/gifdec/gifdec.c
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
@@ -21,7 +22,8 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h) \
       $(wildcard $(SRC_DIR)/ap/*.h) \
-      $(wildcard $(SRC_DIR)/http/*.h)
+      $(wildcard $(SRC_DIR)/http/*.h) \
+      $(wildcard $(SRC_DIR)/packmanager/*.h)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib

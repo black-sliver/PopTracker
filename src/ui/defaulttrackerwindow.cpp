@@ -109,13 +109,18 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
 {
-    // TODO: delete buttons
+    // TODO: make sure widgets are deleted in container's destructor or delete here
     _btnLoad = nullptr;
     _btnReload = nullptr;
     _btnBroadcast = nullptr;
     _btnPackSettings = nullptr;
     _hboxAutoTrackers = nullptr;
     _lblsAutoTrackers.clear();
+    _vboxProgress = nullptr;
+    _lblProgressTitle = nullptr;
+    _lblProgressPercent = nullptr;
+    _lblProgressValues = nullptr;
+    _pgbProgress = nullptr;
 }
 
 void DefaultTrackerWindow::setTracker(Tracker* tracker)
@@ -253,17 +258,78 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
     }
 }
 
-void DefaultTrackerWindow::setSize(Size size) {
+void DefaultTrackerWindow::setSize(Size size)
+{
     TrackerWindow::setSize(size);
     _loadPackWidget->setSize(size);
+    if (_vboxProgress) {
+        _vboxProgress->setPosition({
+            (_size.width - _vboxProgress->getWidth())/2,
+            (_size.height - _vboxProgress->getHeight())/2
+        });
+    }
 }
 
-void DefaultTrackerWindow::showOpen() {
+void DefaultTrackerWindow::showOpen()
+{
     _loadPackWidget->update();
     _loadPackWidget->setVisible(true);
 }
-void DefaultTrackerWindow::hideOpen() {
+void DefaultTrackerWindow::hideOpen()
+{
     _loadPackWidget->setVisible(false);
+}
+
+void DefaultTrackerWindow::showProgress(const std::string& text, int progress, int max)
+{
+    char percentText[5];
+    if (progress>=0 && max>0) snprintf(percentText, 5, "%3u%%", 100U*progress/max);
+    else percentText[0] = 0;
+    std::string valuesText = format_bytes(progress) + "B";
+    if (max) valuesText += " / " + format_bytes(max) + "B";
+
+    if (!_vboxProgress) {
+        int w = 300;
+        int h = 69; // FIXME: should be able to auto-size this
+        int x = (_size.width-w)/2;
+        _vboxProgress = new VBox(x, 0, w, h);
+        _vboxProgress->setPadding(5);
+        _vboxProgress->setSpacing(5);
+        _vboxProgress->setBackground({64,64,64});
+        _lblProgressTitle = new Label(0,0,0,0, _font, text);
+        _lblProgressTitle->setSize(_lblProgressTitle->getAutoSize());
+        _lblProgressTitle->setTextAlignment(Label::HAlign::CENTER, Label::VAlign::TOP);
+        _vboxProgress->addChild(_lblProgressTitle);
+        _pgbProgress = new ProgressBar(1,0,w-2,20, progress, max);
+        _vboxProgress->addChild(_pgbProgress);
+        _hboxProgressTexts = new HBox(0,0,w,0);
+        _vboxProgress->addChild(_hboxProgressTexts);
+        _lblProgressPercent = new Label(0,0,w/2-5,0, _font, percentText);
+        _lblProgressPercent->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::TOP);
+        _lblProgressPercent->setHeight(_lblProgressPercent->getAutoHeight());
+        _hboxProgressTexts->addChild(_lblProgressPercent);
+        _lblProgressValues = new Label(0,0,w/2-5,0, _font, valuesText);
+        _lblProgressValues->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::TOP);
+        _lblProgressValues->setHeight(_lblProgressValues->getAutoHeight());
+        _hboxProgressTexts->setHeight(_lblProgressValues->getHeight());
+        _hboxProgressTexts->addChild(_lblProgressValues);
+        addChild(_vboxProgress);
+        _vboxProgress->setHeight(h);
+        _vboxProgress->setTop((_size.height-_vboxProgress->getHeight())/2);
+    } else {
+        _lblProgressTitle->setText(text);
+        _pgbProgress->setProgress(progress);
+        _pgbProgress->setMax(max);
+        _lblProgressPercent->setText(percentText);
+        _lblProgressValues->setText(valuesText);
+        _vboxProgress->setVisible(true);
+        raiseChild(_vboxProgress);
+    }
+}
+
+void DefaultTrackerWindow::hideProgress()
+{
+    _vboxProgress->setVisible(false);
 }
 
 } // namespace

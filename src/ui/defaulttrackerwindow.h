@@ -3,6 +3,7 @@
 
 #include "trackerwindow.h"
 #include "loadpackwidget.h"
+#include "../uilib/progressbar.h"
 #include <vector>
 
 namespace Ui {
@@ -20,6 +21,8 @@ public:
     virtual void setSize(Size size) override;
     virtual void showOpen();
     virtual void hideOpen();
+    virtual void showProgress(const std::string& title, int progress, int max);
+    virtual void hideProgress();
     
     Signal<const std::string&,const std::string&> onPackSelected;
     
@@ -34,6 +37,12 @@ protected:
     std::vector<Label*> _lblsAutoTrackers;
     Label *_lblTooltip = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;
+    VBox *_vboxProgress = nullptr;
+    HBox *_hboxProgressTexts = nullptr;
+    Label *_lblProgressTitle = nullptr;
+    Label *_lblProgressPercent = nullptr;
+    Label *_lblProgressValues = nullptr;
+    ProgressBar *_pgbProgress = nullptr;
     std::vector<AutoTracker::State> _autoTrackerStates;
     float _aspectRatio = 1;
 

@@ -13,6 +13,7 @@
 #include "core/imagereference.h"
 #include "core/version.h"
 #include "ap/archipelago.h"
+#include "packmanager/packmanager.h"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -35,9 +36,12 @@ private:
     std::map<std::string, bool> _autoTrackerDisabled;
     asio::io_service *_asio = nullptr;
     std::list<std::string> _httpDefaultHeaders;
+    PackManager *_packManager = nullptr;
     std::string _exportFile;
     std::string _exportUID;
     std::string _exportDir;
+    std::string _homePackDir;
+    std::string _appPackDir;
 
     unsigned _frames = 0;
     unsigned _maxFrameTime = 0;
@@ -59,12 +63,17 @@ private:
     void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
     static bool isNewer(const Version& v);
 
+    const std::string& getPackInstallDir() const;
+
     bool saveConfig();
 
 public:
-    PopTracker(int argc, char** argv);
+    PopTracker(int argc, char** argv, bool cli=false);
     virtual ~PopTracker();
-    
+
+    bool ListPacks(PackManager::confirmation_callback confirm = nullptr);
+    bool InstallPack(const std::string& uid, PackManager::confirmation_callback confirm = nullptr);
+
     static constexpr const char APPNAME[] = "PopTracker";
     static constexpr const char VERSION_STRING[] = "0.20.3";
     static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
