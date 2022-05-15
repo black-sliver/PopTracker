@@ -105,7 +105,7 @@ git pull
 git checkout $LIB_PNG_TAG
 
 ./configure $CONFIGURE_FLAGS
-make
+make -j3
 
 [ -f "$LIB_PNG_TARGET" ] || (echo "Missing $LIB_PNG_TARGET..." ; exit 1)
 
@@ -125,7 +125,7 @@ git checkout $LIB_FREETYPE_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
-make
+make -j3
 
 [ -f $LIB_FREETYPE_TARGET ] || (echo "Missing $LIB_FREETYPE_TARGET..." ; exit 1)
 
@@ -145,7 +145,7 @@ git checkout $LIB_SDL_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
-make
+make -j3
 
 [ -f $LIB_SDL_TARGET ] || (echo "Missing $LIB_SDL_TARGET..." ; exit 1)
 
@@ -165,7 +165,7 @@ git checkout $LIB_SDL_IMAGE_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
-make
+make -j3
 
 [ -f $LIB_SDL_IMAGE_TARGET ] || (echo "Missing $LIB_SDL_IMAGE_TARGET..." ; exit 1)
 
@@ -185,7 +185,7 @@ git checkout $LIB_SDL_TTF_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
-make
+make -j3
 
 [ -f $LIB_SDL_TTF_TARGET ] || (echo "Missing $LIB_SDL_TTF_TARGET..." ; exit 1)
 
@@ -204,7 +204,7 @@ git pull
 git checkout $LIB_OPENSSL_TAG
 
 ./config $CONFIGURE_FLAGS
-make
+make -j3
 
 [ -f $LIB_OPENSSL_TARGET ] || (echo "Missing $LIB_OPENSSL_TARGET..." ; exit 1)
 [ -f $LIB_CRYPTO_TARGET ] || (echo "Missing $LIB_CRYPTO_TARGET..." ; exit 1)
