@@ -53,12 +53,12 @@ LIB_PNG_URL="https://github.com/glennrp/libpng.git"
 LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
 LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
-LIB_SDL_TAG="release-2.0.18"
+LIB_SDL_TAG="release-2.0.22"
 LIB_SDL_IMAGE_TAG="release-2.0.5"
-LIB_SDL_TTF_TAG="release-2.0.15"
+LIB_SDL_TTF_TAG="release-2.0.18"
 LIB_PNG_TAG="v1.6.37"
-LIB_FREETYPE_TAG="VER-2-11-1"
-LIB_OPENSSL_TAG="OpenSSL_1_1_1m"
+LIB_FREETYPE_TAG="VER-2-12-1"
+LIB_OPENSSL_TAG="OpenSSL_1_1_1o"
 
 LIB_SDL_TARGET="build/.libs/libSDL2-2.0.0.dylib"
 LIB_SDL_IMAGE_TARGET=".libs/libSDL2_image-2.0.0.dylib"
@@ -143,6 +143,7 @@ cd $LIB_SDL_DEST_DIR
 git pull
 git checkout $LIB_SDL_TAG
 
+./autogen.sh
 ./configure $CONFIGURE_FLAGS
 make
 
@@ -160,7 +161,7 @@ fi
 cd $LIB_SDL_IMAGE_DEST_DIR
 
 git pull
-#git checkout $LIB_SDL_IMAGE_TAG
+git checkout $LIB_SDL_IMAGE_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -180,7 +181,7 @@ fi
 cd $LIB_SDL_TTF_DEST_DIR
 
 git pull
-#git checkout $LIB_SDL_TTF_TAG
+git checkout $LIB_SDL_TTF_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
