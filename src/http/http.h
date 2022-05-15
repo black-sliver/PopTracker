@@ -152,7 +152,11 @@ public:
                 debug << "HTTP: loading " << certfile << "\n";
                 asio::error_code ec;
                 ctx.load_verify_file(certfile, ec);
-                load_system_certs = !!ec;
+                if (ec) {
+                    std::cout << "HTTP: error loading certs: " << ec.message() << "\n";
+                } else {
+                    load_system_certs = false;
+                }
             }
             if (load_system_certs) {
 #ifdef _WIN32
@@ -607,8 +611,14 @@ private:
         }
 
         virtual void stop() {
-            socket_.shutdown();
-            //socket_.lowest_layer().close();
+            asio::error_code ec;
+            socket_.shutdown(ec);
+            // if we get an error here, SSL connection probably just failed
+            if (ec) {
+                debug << "HTTP: ssl shutdown failed: " << ec.message() << "\n";
+                // if SSL was not up, try to close the underlying socket
+                socket_.lowest_layer().close(ec);
+            }
         }
 
     private:
