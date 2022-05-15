@@ -87,7 +87,6 @@ std::list< std::pair<std::string,std::string> > TrackerWindow::getHints() const
 
 void TrackerWindow::setSize(Size size)
 {
-    printf("setSize(%d,%d)\n", size.width, size.height);
     //if (size == _size) return; // until requirement to render twice if fixed
     // don't resize multiple times per frame -> schedule resize instead
     _resizeSize = size;
