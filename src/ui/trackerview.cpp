@@ -219,8 +219,8 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
             if (sec.getClearAsGroup()) {
                 std::list<std::string> codes = sec.getHostedItems();
                 for (const auto& item: codes) {
-                    if (_tracker->changeItemState(_tracker->getItemByCode(item).getID(),
-                            btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary));
+                    _tracker->changeItemState(_tracker->getItemByCode(item).getID(),
+                            btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary);
                 }
             }
             // NOTE: clear/unclear invalidates the iterator because it fires a change signal

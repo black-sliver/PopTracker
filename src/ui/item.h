@@ -34,10 +34,10 @@ public:
     virtual void setOverlayBackgroundColor(Widget::Color color);
     virtual std::string getOverlay() const { return _overlay; }
     virtual Widget::Color getOverlayColor() const { return _overlayColor; }
-    virtual int getMinX() const { return _renderPos.left; }
-    virtual int getMinY() const { return _renderPos.top; }
-    virtual int getMaxX() const { return _renderPos.left + _renderSize.width - 1; }
-    virtual int getMaxY() const { return _renderPos.top + _renderSize.height - 1; }
+    virtual int getMinX() const override { return _renderPos.left; }
+    virtual int getMinY() const override { return _renderPos.top; }
+    virtual int getMaxX() const override { return _renderPos.left + _renderSize.width - 1; }
+    virtual int getMaxY() const override { return _renderPos.top + _renderSize.height - 1; }
     void setImageAlignment(Label::HAlign halign, Label::VAlign valign) {
         _halign = halign;
         _valign = valign;
