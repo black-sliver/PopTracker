@@ -35,7 +35,7 @@ public:
     virtual std::string getOverlay() const { return _overlay; }
     virtual Widget::Color getOverlayColor() const { return _overlayColor; }
     virtual int getMinX() const { return _renderPos.left; }
-    virtual int getMiny() const { return _renderPos.top; }
+    virtual int getMinY() const { return _renderPos.top; }
     virtual int getMaxX() const { return _renderPos.left + _renderSize.width - 1; }
     virtual int getMaxY() const { return _renderPos.top + _renderSize.height - 1; }
     void setImageAlignment(Label::HAlign halign, Label::VAlign valign) {
