@@ -21,6 +21,7 @@ public:
     std::vector< std::pair<EntryType,std::string> > list(bool recursive=false);
     bool hasFile(const std::string& name);
     bool readFile(const std::string& name, std::string& out);
+    bool readFile(const std::string& name, std::string& out, std::string& err);
     
 private:
     enum class Slashes : unsigned {

@@ -18,8 +18,11 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
         if (root.size() == 1 && root[0].first == Zip::EntryType::DIR) {
             _zip->setDir(root[0].second);
         }
-        if (_zip->readFile("manifest.json", s)) {
+        std::string err;
+        if (_zip->readFile("manifest.json", s, err)) {
             _manifest = parse_jsonc(s);
+        } else {
+            fprintf(stderr, "%s: could not read manifest.json: %s\n", path.c_str(), err.c_str());
         }
     } else {
         if (ReadFile("manifest.json", s)) {

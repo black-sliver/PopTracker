@@ -104,34 +104,47 @@ bool Zip::hasFile(const std::string& name)
 
 bool Zip::readFile(const std::string& name, std::string& out)
 {
+    std::string err;
+    return readFile(name, out, err);
+}
+
+bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
+{
     out.clear();
-    if (!_valid) return false;
-    
+    err.clear();
+    if (!_valid) {
+        err = "Not a zip file";
+        return false;
+    }
+
     std::string path = _dir + name;
     if (_slashes == Slashes::FORWARD) {
         std::replace(path.begin(), path.end(), '\\', '/');
     } else if (_slashes == Slashes::BACKWARD) {
         std::replace(path.begin(), path.end(), '/', '\\');
     }
-    
+
     mz_uint32 index = 0;
     if (mz_zip_reader_locate_file_v2(&_zip, path.c_str(), nullptr, 0, &index)<1) {
+        err = "No such file in zip";
         return false; // no such file
     }
     
     mz_zip_archive_file_stat st;
     if (!mz_zip_reader_file_stat(&_zip, index, &st)) {
+        err = "Could not stat file in zip";
         return false;
     }
-    
+
     size_t sz = (size_t)st.m_uncomp_size;
     if (sz == 0) return true; // done
-    
+
     out.resize(sz);
     if (mz_zip_reader_extract_to_mem(&_zip, index, out.data(), sz, 0)) {
         return true;
     } else {
         out.clear();
+        err = mz_zip_get_error_string(mz_zip_peek_last_error(&_zip));
         return false;
     }
 }
