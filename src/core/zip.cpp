@@ -80,7 +80,33 @@ std::vector< std::pair<Zip::EntryType,std::string> > Zip::list(bool recursive)
             } );
         }
     }
-    
+    if (recursive || !res.empty()) return res;
+
+    // if we get here, it's maybe a funny zip that does not list the top level directory
+    // check if all entries have the same first directory; this only works for non-recursive listing
+    std::string start;
+    for (unsigned i=0; i<mz_zip_reader_get_num_files(&_zip); i++)
+    {
+        mz_zip_archive_file_stat st;
+        if (mz_zip_reader_file_stat(&_zip, i, &st)) {
+            if (!_dir.empty() && memcmp(st.m_filename, _dir.c_str(), _dir.length())!=0
+                    && memcmp(st.m_filename, bsDir.c_str(), bsDir.length())!=0)
+                continue; // directory does not match setDir()
+            std::string name = st.m_filename + _dir.length();
+            if (name.empty()) continue;
+            auto pSlash = name.find('/');
+            auto pBS = name.find('\\');
+            if (pBS < pSlash) pSlash = pBS;
+            if (start.empty()) start = name.substr(0, pSlash);
+            else if (start != name.substr(0, pSlash)) {
+                // entry with different start -> abort
+                start.clear();
+                break;
+            }
+        }
+    }
+    if (!start.empty()) res.push_back( { EntryType::DIR, start } );
+
     return res;
 }
 
