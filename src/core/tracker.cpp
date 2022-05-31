@@ -168,7 +168,50 @@ bool Tracker::AddLocations(const std::string& file) {
     _reachableCache.clear();
     _providerCountCache.clear();
     for (auto& loc : Location::FromJSON(j, _locations)) {
-        //loc.dump(true);
+        // find duplicate, warn and merge
+#ifdef MERGE_DUPLICATE_LOCATIONS // this should be default in the future
+        bool merged = false;
+        for (auto& other: _locations) {
+            if (other.getID() == loc.getID()) {
+                fprintf(stderr, "WARNING: merging duplicate location \"%s\"!\n", sanitize_print(loc.getID()).c_str());
+                other.merge(loc);
+                merged = true;
+                for (auto& sec : other.getSections()) {
+                    sec.onChange -= this;
+                    sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};
+                }
+                break;
+            }
+        }
+        if (merged) continue;
+#else
+        bool duplicate = false;
+        for (auto& other: _locations) {
+            if (other.getID() == loc.getID()) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (duplicate) {
+            std::string oldID = loc.getID();
+            std::string newID;
+            unsigned n = 1;
+            while (newID.empty()) {
+                newID = oldID + "[" + std::to_string(n) + "]";
+                for (const auto& other: _locations) {
+                    if (other.getID() == newID) {
+                        newID.clear();
+                        break;
+                    }
+                }
+                n++;
+            }
+            loc.setID(newID);
+            fprintf(stderr, "WARNING: renaming duplicate location \"%s\" to \"%s\"!\n"
+                    "  This behavior will change in the future!\n",
+                    sanitize_print(oldID).c_str(), sanitize_print(newID).c_str());
+        }
+#endif
         _locations.push_back(std::move(loc)); // TODO: move constructor
         for (auto& sec : _locations.back().getSections()) {
             sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};

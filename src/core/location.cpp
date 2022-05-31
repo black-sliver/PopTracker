@@ -218,6 +218,17 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
     return locs;
 }
 
+void Location::merge(const Location& other)
+{
+    for (auto& maploc: other._mapLocations) {
+        _mapLocations.push_back(maploc);
+    }
+    for (auto& sec: other._sections) {
+        // TODO: detect duplicates and overwrite
+        _sections.push_back(sec);
+    }
+}
+
 
 Location::MapLocation Location::MapLocation::FromJSON(json& j)
 {

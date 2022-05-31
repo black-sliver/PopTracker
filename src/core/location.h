@@ -87,6 +87,7 @@ protected:
 public:
     const std::string& getName() const { return _name; }
     const std::string& getID() const { return _id; }
+    void setID(const std::string& id) { _id = id; }
     const std::list<MapLocation>& getMapLocations() const { return _mapLocations; }
     std::list<LocationSection>& getSections() { return _sections; }
     const std::list<LocationSection>& getSections() const { return _sections; }
@@ -94,6 +95,7 @@ public:
     const std::list< std::list<std::string> >& getAccessRules() const { return _accessRules; }
     std::list< std::list<std::string> >& getVisibilityRules() { return _visibilityRules; }
     const std::list< std::list<std::string> >& getVisibilityRules() const { return _visibilityRules; }
+    void merge(const Location& other);
 
 #ifndef NDEBUG
     void dump(bool compact=false);
