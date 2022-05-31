@@ -891,7 +891,8 @@ void PopTracker::loadState(const std::string& filename)
                 Dlg::Buttons::OK, Dlg::Icon::Error);
         return;
     }
-    auto jPack = j["pack"];
+    auto jNull = json(nullptr);
+    auto& jPack = j.is_object() ? j["pack"] : jNull;
     if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
         fprintf(stderr, "Json is not a state file: %s\n", filename.c_str());
         Dlg::MsgBox("PopTracker", "Selected file is not a state file!",
