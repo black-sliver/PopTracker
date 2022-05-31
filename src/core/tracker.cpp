@@ -740,8 +740,8 @@ json Tracker::saveState() const
         for (auto& sec: loc.getSections()) {
             std::string id = loc.getID() + "/" + sec.getName();
             if (jSections.find(id) != jSections.end()) {
-                fprintf(stderr, "WARN: duplicate location: \"%s\"!\n",
-                        id.c_str());
+                fprintf(stderr, "WARNING: duplicate location section: \"%s\"!\n",
+                        sanitize_print(id).c_str());
             }
             jSections[id] = sec.save();
         }
