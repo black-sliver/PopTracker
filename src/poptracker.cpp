@@ -756,9 +756,30 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         _pack = nullptr;
         return false;
     }
+
     printf("Loading Lua libs...\n");
-    luaL_openlibs(_L);
-    
+    std::initializer_list<const luaL_Reg> luaLibs = {
+      {LUA_GNAME, luaopen_base},
+      {LUA_TABLIBNAME, luaopen_table},
+      //{LUA_IOLIBNAME, luaopen_io}, // this requires a custom version (sandbox, read-only and zip)
+      //{LUA_OSLIBNAME, luaopen_os}, // this requires a reduced version (clock, data)
+      {LUA_STRLIBNAME, luaopen_string},
+      {LUA_MATHLIBNAME, luaopen_math},
+      {LUA_UTF8LIBNAME, luaopen_utf8},
+#ifdef WITH_LUA_DEBUG
+      //{LUA_DBLIBNAME, luaopen_debug}, // this requires a run-time toggle
+#endif
+    };
+    for (const auto& lib: luaLibs) {
+        luaL_requiref(_L, lib.name, lib.func, 1);
+        lua_pop(_L, 1);
+    }
+    // block some global function until we decide what to allow
+    for (const auto& blocked: { "load", "loadfile", "loadstring" }) {
+        lua_pushnil(_L);
+        lua_setglobal(_L, blocked);
+    }
+
     printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
     printf("Registering in Lua...\n");
