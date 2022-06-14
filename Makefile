@@ -8,6 +8,7 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
       $(wildcard $(SRC_DIR)/ui/*.cpp) \
       $(wildcard $(SRC_DIR)/core/*.cpp) \
+      $(wildcard $(SRC_DIR)/luasandbox/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
@@ -19,6 +20,7 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
       $(wildcard $(SRC_DIR)/ui/*.h) \
       $(wildcard $(SRC_DIR)/core/*.h) \
+      $(wildcard $(SRC_DIR)/luasandbox/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h) \
       $(wildcard $(SRC_DIR)/ap/*.h) \

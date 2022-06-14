@@ -17,6 +17,7 @@ extern "C" {
 #include "core/log.h"
 #include "http/http.h"
 #include "ap/archipelago.h"
+#include "luasandbox/require.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -779,6 +780,9 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         lua_pushnil(_L);
         lua_setglobal(_L, blocked);
     }
+    // implement require
+    lua_pushcfunction(_L, luasandbox_require);
+    lua_setglobal(_L, "require");
 
     printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
