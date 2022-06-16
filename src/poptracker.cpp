@@ -763,7 +763,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
       {LUA_GNAME, luaopen_base},
       {LUA_TABLIBNAME, luaopen_table},
       //{LUA_IOLIBNAME, luaopen_io}, // this requires a custom version (sandbox, read-only and zip)
-      //{LUA_OSLIBNAME, luaopen_os}, // this requires a reduced version (clock, data)
+      {LUA_OSLIBNAME, luaopen_os}, // this has to be reduced in functionality
       {LUA_STRLIBNAME, luaopen_string},
       {LUA_MATHLIBNAME, luaopen_math},
       {LUA_UTF8LIBNAME, luaopen_utf8},
@@ -783,6 +783,14 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     // implement require
     lua_pushcfunction(_L, luasandbox_require);
     lua_setglobal(_L, "require");
+    // reduce os
+    lua_getglobal(_L, LUA_OSLIBNAME); // get full os
+    lua_createtable(_L, 0, 3); // create new os
+    for (const auto& field : { "clock", "date", "difftime", "time" }) {
+        lua_getfield(_L, -2, field);
+        lua_setfield(_L, -2, field);
+    }
+    lua_setglobal(_L, LUA_OSLIBNAME); // store new os, deref old os
 
     printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
