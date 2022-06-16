@@ -165,7 +165,7 @@ bool ScriptHost::LoadScript(const std::string& file)
         return false;
     }
     
-    if (luaL_loadbuffer(_L, script.c_str(), script.length(), file.c_str()) == LUA_OK) {
+    if (luaL_loadbufferx(_L, script.c_str(), script.length(), file.c_str(), "t") == LUA_OK) {
         if (lua_pcall(_L, 0, 1, 0) == LUA_OK) {
             // if it was executed successfully, pop everything from stack
             lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ? 
