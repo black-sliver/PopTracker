@@ -29,23 +29,41 @@ static json lua_to_json(lua_State* L, int n=-1)
             while (lua_next(L, (n<0) ? (n-1) : n)) {
                 // key now at -2, value at -1
                 if (lua_isinteger(L,-2)) {
-                    int key = lua_tointeger(L,-2) - 1; // nlohmann::json arrays are zero-based
-                    if (key>=0) {
+                    if (j.is_null()) j = json::array();
+                    if (j.is_object()) {
+                        // NOTE: key will be a string when converting mixed back; this has to be handled in lua
+                        int ikey = lua_tointeger(L,-2);
+                        std::string key = std::to_string(ikey);
                         j[key] = lua_to_json(L);
                     } else {
-                        fprintf(stderr, "Warning: Invalid array index: %d\n",
-                                key);
+                        int key = lua_tointeger(L,-2) - 1; // nlohmann::json arrays are zero-based
+                        if (key>=0) {
+                            j[key] = lua_to_json(L);
+                        } else {
+                            fprintf(stderr, "Warning: Invalid array index: %d\n", key);
+                        }
                     }
                 } else if (lua_isstring(L,-2)) {
+                    if (j.is_null()) j = json::object();
+                    if (j.is_array()) {
+                        // convert array to object for mixed table
+                        json arr = j;
+                        j = json::object();
+                        int i = 1;
+                        for (auto it: arr) {
+                            std::string key = std::to_string(i);
+                            j[key] = it;
+                        }
+                    }
                     const char* key = lua_tostring(L,-2);
                     j[key] = lua_to_json(L);
                 } else {
-                    fprintf(stderr, "Warning: unhandled table key type %d\n",
-                            lua_type(L,-2));
+                    fprintf(stderr, "Warning: unhandled table key type %d\n", lua_type(L,-2));
                 }
                 // pop value, keep key (used in lua_next())
                 lua_pop(L,1);
             }
+            if (j.is_null()) j = json::object(); // return empty object for empty table
             break;
         }
         case LUA_TNIL:
