@@ -767,14 +767,18 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
       {LUA_STRLIBNAME, luaopen_string},
       {LUA_MATHLIBNAME, luaopen_math},
       {LUA_UTF8LIBNAME, luaopen_utf8},
-#ifdef WITH_LUA_DEBUG
-      //{LUA_DBLIBNAME, luaopen_debug}, // this requires a run-time toggle
-#endif
     };
     for (const auto& lib: luaLibs) {
         luaL_requiref(_L, lib.name, lib.func, 1);
         lua_pop(_L, 1);
     }
+    // load lua debugger if enabled during compile AND run time
+#ifdef WITH_LUA_DEBUG
+    if (_config.value<bool>("lua_debug", false)) {
+        luaL_requiref(_L, LUA_DBLIBNAME, luaopen_debug, 1);
+        lua_pop(_L, 1);
+    }
+#endif
     // block some global function until we decide what to allow
     for (const auto& blocked: { "load", "loadfile", "loadstring" }) {
         lua_pushnil(_L);
