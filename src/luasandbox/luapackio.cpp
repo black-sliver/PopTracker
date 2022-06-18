@@ -130,7 +130,6 @@ int LuaPackIO::input(lua_State* L)
         _input = nullptr;
         _inputRef.ref = LUA_NOREF;
     }
-    lua_dumpstack(L);
     _input = File::luaL_testthis(L, 1);
     if (!_input) {
         const char* fn = luaL_checkstring(L, 1);
