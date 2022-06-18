@@ -51,14 +51,25 @@ private:
         }
         return 0;
     }
+    static int Lua_GCWrapper(lua_State *L) {
+        T *o = luaL_checkthis(L, 1);
+        o->Lua_GC(L);
+        return 0;
+    }
 protected:
     LuaInterface(){}
     virtual int Lua_Index(lua_State *L, const char *key){return 0;}
     virtual bool Lua_NewIndex(lua_State *L, const char *key){return false;}
+    virtual void Lua_GC(lua_State *L){}
 public:
     virtual ~LuaInterface() {}
     static T* luaL_checkthis(lua_State *L, int narg) {
         return * (T**)luaL_checkudata(L, narg, T::Lua_Name);
+    }
+    static T* luaL_testthis(lua_State *L, int narg) {
+        auto p = (T**)luaL_testudata(L, narg, T::Lua_Name);
+        if (p) return *p;
+        return nullptr;
     }
     // TODO: replace this by a custom constexpr_map
     using MethodMap = std::map<const std::string_view,lua_CFunction>;
@@ -70,6 +81,8 @@ public:
         lua_setfield(L,-2, "__index");
         lua_pushcfunction(L, Lua_NewIndexWrapper);
         lua_setfield(L,-2, "__newindex");
+        lua_pushcfunction(L, Lua_GCWrapper);
+        lua_setfield(L,-2, "__gc");
         lua_pop(L,1);
 #ifdef DEBUG
         printf("%s registered\n", T::Lua_Name);

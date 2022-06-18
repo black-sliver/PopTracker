@@ -14,6 +14,7 @@
 #include "core/version.h"
 #include "ap/archipelago.h"
 #include "packmanager/packmanager.h"
+#include "luasandbox/luapackio.h"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -27,6 +28,7 @@ private:
     nlohmann::json _oldConfig;
     
     lua_State* _L = nullptr;
+    LuaPackIO *_luaio = nullptr;
     Tracker *_tracker = nullptr;
     ScriptHost *_scriptHost = nullptr;
     Archipelago *_archipelago = nullptr;

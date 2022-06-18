@@ -728,11 +728,13 @@ void PopTracker::unloadTracker()
 #ifndef FIND_LUA_LEAKS // if we don't lua_close at exit, we can use valgrind to see if the allocated memory grew
     if (_L) lua_close(_L);
 #endif
+    delete _luaio;
     delete _scriptHost;
     delete _tracker;
     delete _pack;
     delete _archipelago;
     _L = nullptr;
+    _luaio = nullptr;
     _tracker = nullptr;
     _scriptHost = nullptr;
     _pack = nullptr;
@@ -762,7 +764,6 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     std::initializer_list<const luaL_Reg> luaLibs = {
       {LUA_GNAME, luaopen_base},
       {LUA_TABLIBNAME, luaopen_table},
-      //{LUA_IOLIBNAME, luaopen_io}, // this requires a custom version (sandbox, read-only and zip)
       {LUA_OSLIBNAME, luaopen_os}, // this has to be reduced in functionality
       {LUA_STRLIBNAME, luaopen_string},
       {LUA_MATHLIBNAME, luaopen_math},
@@ -795,6 +796,11 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         lua_setfield(_L, -2, field);
     }
     lua_setglobal(_L, LUA_OSLIBNAME); // store new os, deref old os
+    _luaio = new LuaPackIO(_pack);
+    LuaPackIO::Lua_Register(_L);
+    LuaPackIO::File::Lua_Register(_L);
+    _luaio->Lua_Push(_L);
+    lua_setglobal(_L, LUA_IOLIBNAME);
 
     printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
