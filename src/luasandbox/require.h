@@ -41,9 +41,9 @@ static inline int luasandbox_require(lua_State *L)
     std::string* pscript = new std::string();
     // TODO: add support for package.path
     bool ok = false;
-    for (const std::string& prefix : {"scripts/", ""}) {
+    for (const std::string prefix : {"scripts/", ""}) {
         for (const std::string& folder : {std::string(""), std::string(file)+"/"}) {
-            for (const std::string& suffix : {"", ".lua"}) {
+            for (const std::string suffix : {"", ".lua"}) {
                 ok = pack->ReadFile(prefix + folder + file + suffix, *pscript);
                 if (ok) break;
             }
