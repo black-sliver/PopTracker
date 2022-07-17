@@ -55,6 +55,7 @@ public:
     
 protected:
     std::vector<Stage> _stages;
+    bool _maxCountChanged = false;
     bool _overlayBackgroundChanged = false;
     bool _overlayFontSizeChanged = false;
     bool _incrementChanged = false;

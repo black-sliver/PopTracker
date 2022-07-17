@@ -380,6 +380,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (_maxCount != val) {
             _maxCount = val;
+            _maxCountChanged = true;
             if (_maxCount<_count && _maxCount>=0) { // less than 0 is infinite
                 _count = _maxCount;
                 onChange.emit(this);
@@ -409,8 +410,9 @@ json JsonItem::save() const
         { "overlay", _overlay },
         { "state", { _stage1, _stage2 } },
         { "count", _count },
-        { "max_count", _maxCount }
     };
+    if (_maxCountChanged)
+        data["max_count"] = _maxCount;
     if (_overlayBackgroundChanged)
         data["overlay_background"] = _overlayBackground;
     if (_overlayFontSizeChanged)
@@ -446,6 +448,7 @@ bool JsonItem::load(json& j)
                 || _decrement != decrement)
         {
             _count = count;
+            _maxCountChanged = _maxCount != maxCount;
             _maxCount = maxCount;
             _stage1 = stage1;
             _stage2 = stage2;
