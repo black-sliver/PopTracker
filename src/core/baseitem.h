@@ -80,6 +80,7 @@ protected:
     int _stage1 = 0; // for toggle this is on/off. "State"
     int _stage2 = 0; // for toggle this is always 0, for staged item this is the stage. "ActiveStage"
     int _count = 0; // for consumables. "quantity" in json
+    int _minCount = 0; // for consumable
     int _maxCount = 0; // for consumable
     int _increment = 1; // for consumable
     int _decrement = 1; // for consumables
@@ -135,6 +136,7 @@ public:
     virtual bool changeState(Action action) { return false; }
     
     int getCount() const { return _count; }
+    int getMinCount() const { return _minCount; }
     int getMaxCount() const { return _maxCount; }
     const std::string& getOverlay() const { return _overlay; }
     const std::string& getOverlayBackground() const { return _overlayBackground; }

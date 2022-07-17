@@ -57,6 +57,7 @@ JsonItem JsonItem::FromJSON(json& j)
     item._allowDisabled = to_bool(j["allow_disabled"], item._allowDisabled);
     item._img           = to_string(j["img"], "");
     item._disabledImg   = to_string(j["disabled_img"], item._img);
+    item._minCount      = to_int(j["min_quantity"], 0);
     item._maxCount      = to_int(j["max_quantity"], -1);
     item._increment     = to_int(j["increment"], 1);
     item._decrement     = to_int(j["decrement"], item._increment);
@@ -103,7 +104,7 @@ JsonItem JsonItem::FromJSON(json& j)
     }
 
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
-    item._count  = std::max(0,std::min(to_int(j["initial_quantity"],0), item._maxCount));
+    item._count  = std::max(item._minCount, std::min(to_int(j["initial_quantity"],0), item._maxCount));
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;
     
     return item;
@@ -261,21 +262,21 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         if (action == Action::Primary || action == Action::Next) {
             int n = _count+_increment;
             if (_maxCount>=0 && n>_maxCount) n = _maxCount;
-            if (n < 0) n = 0;
+            if (n < _minCount) n = _minCount;
             if (n == _count) return false;
             _count = n;
             _stage1 = (n>0);
         } else if (action == Action::Secondary || action == Action::Prev) {
             int n = _count-_decrement;
             if (_maxCount>=0 && n>_maxCount) n = _maxCount;
-            if (n < 0) n = 0;
+            if (n < _minCount) n = _minCount;
             if (n == _count) return false;
             _count = n;
             _stage1 = (n>0);
         } else {
             // single button control
             int n = _count+1;
-            if (_maxCount>=0 && n>_maxCount) n = 0;
+            if (_maxCount>=0 && n>_maxCount) n = _minCount;
             _count = n;
             _stage1 = (n>0);
         }
@@ -318,6 +319,9 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
         } else {
             lua_pushinteger(L, _stage2);
         }
+        return 1;
+    } else if (strcmp(key, "MinCount")==0) {
+        lua_pushinteger(L, _minCount);
         return 1;
     } else if (strcmp(key, "MaxCount")==0) {
         lua_pushinteger(L, _maxCount);
@@ -376,6 +380,17 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
             onChange.emit(this);
         }
         return true;
+    } else if (strcmp(key, "MinCount")==0) {
+        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
+        if (_minCount != val) {
+            _minCount = val;
+            _minCountChanged = true;
+            if (_minCount>_count) {
+                _count = _minCount;
+                onChange.emit(this);
+            }
+        }
+        return true;
     } else if (strcmp(key, "MaxCount")==0) {
         int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (_maxCount != val) {
@@ -411,6 +426,8 @@ json JsonItem::save() const
         { "state", { _stage1, _stage2 } },
         { "count", _count },
     };
+    if (_minCountChanged)
+        data["min_count"] = _minCount;
     if (_maxCountChanged)
         data["max_count"] = _maxCount;
     if (_overlayBackgroundChanged)
@@ -438,8 +455,9 @@ bool JsonItem::load(json& j)
             stage2 = to_int(state[1],stage2);
         }
         int count = to_int(j["count"],_count);
+        int minCount = to_int(j["min_count"], _minCount);
         int maxCount = to_int(j["max_count"], _maxCount);
-        if (_count != count || _maxCount != maxCount
+        if (_count != count || _minCount != minCount || _maxCount != maxCount
                 || _stage1 != stage1 || _stage2 != stage2
                 || _overlay != overlay
                 || _overlayBackground != overlayBackground
@@ -448,6 +466,8 @@ bool JsonItem::load(json& j)
                 || _decrement != decrement)
         {
             _count = count;
+            _minCountChanged = _minCount != minCount;
+            _minCount = minCount;
             _maxCountChanged = _maxCount != maxCount;
             _maxCount = maxCount;
             _stage1 = stage1;

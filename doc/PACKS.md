@@ -123,6 +123,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `bool .Active`: enable/disable item
 * `int .CurrentStage`: set/get stage for staged items
 * `int .AcquiredCount`: set/get current amount for consumables
+* `int .MinCount`: set/get min amount for consumables (available since 0.21.0)
 * `int .MaxCount`: set/get max amount for consumables (available since 0.14.0)
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
 * `:SetOverlayBackground(string)`: set background: "#000000" is RGB, "" is transparent, only available in PopTracker, since 0.17.0
@@ -194,6 +195,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 
 * `"consumable"`:
   + has count (0 = off)
+  + adds `"min_quantity": 0`, since 0.21.0
   + adds `"max_quantity": 0`
   + adds `"increment": 1` can be used if an item pickup is always a certain count, since 0.18.3
   + adds `"decrement": 1` can be used if using an item always uses up multiple, since 0.18.3
