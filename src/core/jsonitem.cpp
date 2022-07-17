@@ -380,7 +380,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
         if (_maxCount != val) {
             _maxCount = val;
-            if (_maxCount<_count) {
+            if (_maxCount<_count && _maxCount>=0) { // less than 0 is infinite
                 _count = _maxCount;
                 onChange.emit(this);
             }
