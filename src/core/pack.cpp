@@ -289,20 +289,19 @@ Pack::Info Pack::Find(std::string uid, std::string version)
         {
             Pack pack(os_pathcat(searchPath, dir->d_name));
             if (pack.isValid() && pack.getUID() == uid) {
-                if (version.empty())
-                    packs.push_back(pack.getInfo());
-                else
-                    return pack.getInfo();
+                if (pack.getVersion() == version)
+                    return pack.getInfo(); // return exact match
+                packs.push_back(pack.getInfo());
             }
         }
 
         closedir(d);
     }
     if (!packs.empty()) {
+        // fall back to latest version since an upgrade may have removed it
         std::sort(packs.begin(), packs.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
             int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
-            if (m<0) return true;
-            return false;
+            return (m<0);
         });
         return packs.back();
     }
