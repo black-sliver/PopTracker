@@ -289,7 +289,7 @@ Pack::Info Pack::Find(std::string uid, std::string version)
         {
             Pack pack(os_pathcat(searchPath, dir->d_name));
             if (pack.isValid() && pack.getUID() == uid) {
-                if (pack.getVersion() == version)
+                if (!version.empty() && pack.getVersion() == version)
                     return pack.getInfo(); // return exact match
                 packs.push_back(pack.getInfo());
             }
