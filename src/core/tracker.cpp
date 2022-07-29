@@ -569,7 +569,7 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
             }
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
-                if (s[0] != 0) { // value is count
+                if (s[0] != '@') { // value is count
                     if (it->second >= count) continue;
                     if (optional) {
                         reachable = 2;
@@ -580,9 +580,9 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                 } else { // value is glitched/not glitched
                     int sub = it->second;
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
-                    else if (optional && sub) sub=2;
-                    if (sub==2) reachable = 2;
-                    if (sub==0) reachable = 0;
+                    else if (optional && sub==0) sub=2;
+                    else if (sub==0) reachable = 0;
+                    if (sub==2 && reachable) reachable = 2;
                     if (!reachable) break;
                 }
             }
@@ -618,8 +618,8 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                     if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     if (!checkOnly && sub==3) sub=0; // or set checkable = true?
                     else if (optional && sub==0) sub=2;
+                    else if (sub==0) reachable = 0;
                     if (sub==2 && reachable) reachable = 2;
-                    if (sub==0) reachable = 0;
                 } else {
                     printf("Could not find location %s for access rule!\n",
                             sanitize_print(s).c_str());
