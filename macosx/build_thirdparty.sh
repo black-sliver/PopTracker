@@ -55,7 +55,7 @@ LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
 LIB_SDL_TAG="release-2.0.22"
 LIB_SDL_IMAGE_TAG="release-2.0.5"
-LIB_SDL_TTF_TAG="release-2.0.18"
+LIB_SDL_TTF_TAG="release-2.20.0"
 LIB_PNG_TAG="v1.6.37"
 LIB_FREETYPE_TAG="VER-2-12-1"
 LIB_OPENSSL_TAG="OpenSSL_1_1_1o"
