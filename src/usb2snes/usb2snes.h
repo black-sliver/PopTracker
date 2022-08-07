@@ -39,7 +39,9 @@ class USB2SNES {
         bool hasFeature(std::string feat);
         void setUpdateInterval(size_t interval) { update_interval = interval; }
         void clearCache();
-        
+        std::string getDeviceName();
+        void nextDevice();
+
         bool mayBlockOnExit() const;
         
     protected:
@@ -111,6 +113,7 @@ class USB2SNES {
             PING,
         };
         Op last_op = Op::NONE;
+        std::string last_dev_name;
         size_t last_dev = 0;
         size_t last_watch = 0;
         uint32_t last_addr = 0;

@@ -17,7 +17,7 @@ public:
 
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setTracker(Tracker* tracker) override;
-    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name) override;
+    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname) override;
     virtual void setSize(Size size) override;
     virtual void showOpen();
     virtual void hideOpen();
@@ -44,6 +44,8 @@ protected:
     Label *_lblProgressValues = nullptr;
     ProgressBar *_pgbProgress = nullptr;
     std::vector<AutoTracker::State> _autoTrackerStates;
+    std::vector<std::string> _autoTrackerNames;
+    std::vector<std::string> _autoTrackerSubNames;
     float _aspectRatio = 1;
 
     virtual void setTracker(Tracker *tracker, const std::string& layout) override;

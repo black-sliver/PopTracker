@@ -22,7 +22,7 @@ public:
     virtual void setTracker(Tracker* tracker) = 0;
     virtual void setSize(Size size) override;
     
-    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name);
+    virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname);
     
     std::list< std::pair<std::string,std::string> > getHints() const;
     
@@ -35,6 +35,7 @@ public:
     static const std::string MENU_BROADCAST;
     static const std::string MENU_PACK_SETTINGS;
     static const std::string MENU_TOGGLE_AUTOTRACKER;
+    static const std::string MENU_CYCLE_AUTOTRACKER;
     
     virtual void setCenterPosition(const Position& pos) { _centerPos = pos; }
     

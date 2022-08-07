@@ -355,6 +355,12 @@ bool PopTracker::start()
                 }
             }
         }
+        if (item == Ui::TrackerWindow::MENU_CYCLE_AUTOTRACKER)
+        {
+            if (!_scriptHost || !_scriptHost->getAutoTracker()) return;
+            auto at = _scriptHost->getAutoTracker();
+            at->cycle(index); // if a back-end can have multiple modes or devices, cycle them
+        }
         if (item == Ui::TrackerWindow::MENU_SAVE_STATE)
         {
             if (!_tracker) return;
@@ -875,7 +881,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         at->onStateChange += {this, [this](void* sender, int index, AutoTracker::State state)
         {
             AutoTracker* at = (AutoTracker*)sender;
-            if (_win) _win->setAutoTrackerState(index, state, at->getName(index));
+            if (_win) _win->setAutoTrackerState(index, state, at->getName(index), at->getSubName(index));
         }};
     }
     

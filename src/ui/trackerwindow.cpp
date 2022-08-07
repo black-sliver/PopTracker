@@ -12,6 +12,7 @@ const std::string TrackerWindow::MENU_SAVE_STATE = "save-state";
 const std::string TrackerWindow::MENU_BROADCAST = "broadcast";
 const std::string TrackerWindow::MENU_PACK_SETTINGS = "pack-settings";
 const std::string TrackerWindow::MENU_TOGGLE_AUTOTRACKER = "toggle-autotracker";
+const std::string TrackerWindow::MENU_CYCLE_AUTOTRACKER = "cycle-autotracker";
 
 TrackerWindow::TrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size)
     : Window(title, icon, pos, size)
@@ -37,7 +38,7 @@ void TrackerWindow::setTracker(Tracker* tracker)
 
 void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
 {
-    if (!tracker) setAutoTrackerState(-1, AutoTracker::State::Unavailable, "");
+    if (!tracker) setAutoTrackerState(-1, AutoTracker::State::Unavailable, "", "");
     removeChild(_view);
     delete _view;
     _view = nullptr;
@@ -74,7 +75,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
     }
 }
 
-void TrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name)
+void TrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname)
 {
 }
 

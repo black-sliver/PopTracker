@@ -149,11 +149,37 @@ public:
         return State::Unavailable;
     }
 
-    const std::string& getName(int index) {
+    const std::string& getName(int index)
+    {
         if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;
         if (_uat && _backendIndex[_uat] == index) return BACKEND_UAT_NAME;
         if (_snes && _backendIndex[_snes] == index) return BACKEND_SNES_NAME;
         return BACKEND_NONE_NAME;
+    }
+
+    std::string getSubName(int index)
+    {
+        if (_snes && _backendIndex[_snes] == index) return _snes->getDeviceName();
+        return "";
+    }
+
+    bool cycle(int index)
+    {
+        if (_snes && _backendIndex[_snes] == index) {
+            if (getState(index) == AutoTracker::State::Disabled) {
+                enable(index);
+            } else {
+                _snes->nextDevice();
+                if (_state[index] > State::BridgeConnected) {
+                    _state[index] = State::BridgeConnected;
+                } else if (_state[index] > State::Disconnected) {
+                    _state[index] = State::Disconnected;
+                }
+                onStateChange.emit(this, index, _state[index]);
+            }
+            return true;
+        }
+        return false;
     }
 
     bool doStuff()

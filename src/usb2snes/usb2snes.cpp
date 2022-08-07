@@ -98,13 +98,14 @@ USB2SNES::USB2SNES(const std::string& name)
                 // HANDLE RESULT
                 if (results != res.end()) {
                     if (results->size() > 0) {
-                        printf("Got %u scan results: %s\n", (unsigned)results->size(), results->dump().c_str());
+                        printf("Got %u scan results: %s (last %u)\n", (unsigned)results->size(), results->dump().c_str(), (unsigned)last_dev);
                         if (last_dev>=results->size()) last_dev=0;
-                        printf("Connecting to %s\n", results->at(last_dev).dump().c_str());
+                        last_dev_name = results->at(last_dev);
+                        printf("Connecting to %s\n", last_dev_name.c_str());
                         json jCONN = {
                             {"Opcode", "Attach"},
                             {"Space", "SNES"},
-                            {"Operands", {results->at(last_dev)}}
+                            {"Operands", {last_dev_name}}
                         };
                         last_op = Op::CONNECT;
                         client.send(hdl,jCONN.dump(),websocketpp::frame::opcode::text);
@@ -149,6 +150,9 @@ USB2SNES::USB2SNES(const std::string& name)
                             }
                         }
                         printf("Connected to %s %s\n", backend.c_str(), backend_version.to_string().c_str());
+                        if (backend != "NWAccess") // qusb has the better name for emunw in scan result
+                            last_dev_name = backend;
+                        last_dev_name = last_dev_name.substr(0, last_dev_name.find(" - ")); // cut away extra from qusb
                         read_holes_are_free = (backend == "SD2SNES") ? 512 : 128; // max hole size is a balance between wss delay and actual read cost, this is for qusb2snes 0.7.19
                         if (backend != "SD2SNES") optimum_read_block_size = 512; // clear any limits set previously if device is "virtual"
                         printf("Optimum read set to %u/%u\n", (unsigned)optimum_read_block_size, (unsigned)read_holes_are_free);
@@ -632,4 +636,18 @@ void USB2SNES::clearCache()
 {
     std::lock_guard<std::mutex> lock(datamutex);
     data.clear();
+}
+
+std::string USB2SNES::getDeviceName()
+{
+    std::lock_guard<std::mutex> lock(workmutex);
+    return last_dev_name;
+}
+
+void USB2SNES::nextDevice()
+{
+    std::lock_guard<std::mutex> lock(workmutex);
+    std::lock_guard<std::mutex> statelock(statemutex);
+    last_dev++;
+    snes_connected = false;
 }

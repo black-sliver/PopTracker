@@ -65,6 +65,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     hbox->addChild(_hboxAutoTrackers);
 
     _lblTooltip = new Label(0,0,0,0,_font,"");
+    _lblTooltip->setHeight(32-4);
     _lblTooltip->setGrow(1,1);
     _lblTooltip->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
     hbox->addChild(_lblTooltip);
@@ -178,7 +179,7 @@ void DefaultTrackerWindow::render(Renderer renderer, int offX, int offY)
     TrackerWindow::render(renderer, offX, offY);
 }
 
-void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name)
+void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname)
 {
     if (index<0) {
         // clear all labels
@@ -208,13 +209,19 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
             if (menu) menu->relayout();
         }
         _autoTrackerStates[index] = state;
+        _autoTrackerNames[index] = name;
+        _autoTrackerSubNames[index] = subname;
     } else {
         printf("adding label #%d \"%s\"\n", index, name.c_str());
         lbl = new Label(0,0,0,32-4,_font, name);
         lbl->setWidth(lbl->getAutoWidth());
         lbl->setTextColor({0,0,0});
         lbl->onClick += {this, [this,index](void*, int x, int y, int button) {
-            onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER, index);
+            if (button == BUTTON_RIGHT) {
+                onMenuPressed.emit(this, MENU_CYCLE_AUTOTRACKER, index);
+            } else {
+                onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER, index);
+            }
         }};
         lbl->onMouseEnter += {this, [this,index](void *s, int x, int y, unsigned buttons)
         {
@@ -224,8 +231,15 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
                                state == AutoTracker::State::ConsoleConnected ? "Online" :
                                state == AutoTracker::State::Disabled ? "Disabled" :
                                state == AutoTracker::State::Unavailable ? nullptr : "Unknown";
-            if (text)
-                _lblTooltip->setText(std::string("Auto Tracker: ") + text);
+            std::string name = _autoTrackerNames[index];
+            if (name.empty()) name = "Auto Tracker";
+            if (state == AutoTracker::State::ConsoleConnected && text) {
+                if (!_autoTrackerSubNames[index].empty())
+                    name = _autoTrackerSubNames[index];
+            }
+            if (text) {
+                _lblTooltip->setText(name + ": " + text);
+            }
         }};
         lbl->onMouseLeave += {this, [this](void *s)
         {
@@ -233,6 +247,8 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
         }};
         _lblsAutoTrackers.push_back(lbl);
         _autoTrackerStates.push_back(state);
+        _autoTrackerNames.push_back(name);
+        _autoTrackerSubNames.push_back(subname);
         _hboxAutoTrackers->addChild(lbl);
         _hboxAutoTrackers->relayout();
         auto menu = dynamic_cast<HBox*>(_menu);
