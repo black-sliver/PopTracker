@@ -54,11 +54,11 @@ LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
 LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
 LIB_SDL_TAG="release-2.0.22"
-LIB_SDL_IMAGE_TAG="release-2.0.5"
+LIB_SDL_IMAGE_TAG="release-2.6.1"
 LIB_SDL_TTF_TAG="release-2.20.0"
 LIB_PNG_TAG="v1.6.37"
 LIB_FREETYPE_TAG="VER-2-12-1"
-LIB_OPENSSL_TAG="OpenSSL_1_1_1o"
+LIB_OPENSSL_TAG="OpenSSL_1_1_1q"
 
 LIB_SDL_TARGET="build/.libs/libSDL2-2.0.0.dylib"
 LIB_SDL_IMAGE_TARGET=".libs/libSDL2_image-2.0.0.dylib"
