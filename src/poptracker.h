@@ -24,6 +24,7 @@ private:
     Ui::DefaultTrackerWindow *_win = nullptr;
     Ui::BroadcastWindow *_broadcast = nullptr;
     Ui::SettingsWindow *_settings = nullptr;
+    nlohmann::json _args;
     nlohmann::json _config;
     nlohmann::json _oldConfig;
     
@@ -70,10 +71,10 @@ private:
     bool saveConfig();
 
 public:
-    PopTracker(int argc, char** argv, bool cli=false);
+    PopTracker(int argc, char** argv, bool cli=false, const json& args=nullptr);
     virtual ~PopTracker();
 
-    bool ListPacks(PackManager::confirmation_callback confirm = nullptr);
+    bool ListPacks(PackManager::confirmation_callback confirm = nullptr, bool installable = true);
     bool InstallPack(const std::string& uid, PackManager::confirmation_callback confirm = nullptr);
 
     static constexpr const char APPNAME[] = "PopTracker";

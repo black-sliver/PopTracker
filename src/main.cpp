@@ -58,49 +58,79 @@ int main(int argc, char** argv)
     bool cli = false;
     bool yes = false;
     bool no = false;
-    bool listPacks = false;
+    bool listInstalled = false;
+    bool listInstallable = false;
     const char* installPack = nullptr;
+    const char* loadPack = nullptr;
+    const char* packPath = nullptr;
+    const char* packVersion = nullptr;
+    const char* packVariant = nullptr;
 
     while (argc > 1) {
         if (strcasecmp("--console", argv[1])==0) {
             // use --console to force open a dos window
             openConsole = true;
-            argv++;
-            argc--;
         } else if (strcasecmp("--version", argv[1])==0) {
             printVersion = true;
-            argv++;
-            argc--;
         } else if (strcasecmp("--help", argv[1])==0) {
             showHelp = true;
-            argv++;
-            argc--;
         } else if (strcasecmp("--yes", argv[1])==0) {
             yes = true;
             no = false;
-            argv++;
-            argc--;
         } else if (strcasecmp("--no", argv[1])==0) {
             yes = false;
             no = true;
-            argv++;
-            argc--;
         } else if (strcasecmp("--list-packs", argv[1])==0) {
-            listPacks = true;
+            listInstallable = true;
+            listInstalled = true;
             cli = true;
-            argv++;
-            argc--;
-        } else if (argc>2 && strcasecmp("--install-pack", argv[1])==0) {
+        } else if (strcasecmp("--list-installed", argv[1])==0) {
+            listInstalled = true;
+            cli = true;
+        } else if (strcasecmp("--install-pack", argv[1])==0) {
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
             installPack = argv[2];
             cli = true;
-            argv+=2;
-            argc-=2;
-        } else if (strcasecmp("--install-pack", argv[1])==0) {
-            badArg = true;
             argv++;
             argc--;
+        } else if (strcasecmp("--load-pack", argv[1]) == 0) {
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
+            loadPack = argv[2];
+            argv++;
+            argc--;
+        } else if (strcasecmp("--pack-version", argv[1]) == 0) {
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
+            packVersion = argv[2];
+            argv++;
+            argc--;
+        } else if (strcasecmp("--pack-variant", argv[1]) == 0) {
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
+            packVariant = argv[2];
+            argv++;
+            argc--;
+        } else if (argc==2) {
+            packPath = argv[1];
+        } else {
+            badArg = true;
+            break;
         }
+        argv++;
+        argc--;
     }
+
+    if ((packPath && cli) || (packPath && loadPack) || (cli && loadPack)) badArg = true;
 
 #if defined WIN32 || defined _WIN32
     // enable stdout on windows
@@ -116,16 +146,29 @@ int main(int argc, char** argv)
 #endif
 
     if (showHelp || badArg) {
-        printf("Usage: %s [--help] [--console] [--version] [--yes|--no] [--list-packs] [--install-pack <uid>]\n"
+        printf("Usage: %s [<ARGS...>] [<ACTION ARGS...>] [<ACTION>|<path/to/pack>]\n"
                "\n"
-                "    --help: show this message\n"
-                "    --console: try to open console window if not attached to a console (windows)\n"
-                "    --version: print version and exit\n"
-                "    --yes: answer yes to questions for cli tools\n"
-                "    --no: answer no to questions for cli tools\n"
-                "    --list-packs: list installed and installable packs\n"
-                "    --install-pack <uid>: download and install with given uid from repositories\n"
-                "\n", appName);
+               "  path/to/pack: will try to load this pack on startup\n"
+               "        Action args: --pack-variant\n"
+               "\n"
+               "  Args:\n"
+               "    --console: try to open console window if not attached to a console (windows)\n"
+               "    --yes: answer yes to questions for cli tools\n"
+               "    --no: answer no to questions for cli tools\n"
+               "\n"
+               "  Actions:\n"
+               "    --version: print version and exit\n"
+               "    --help: show this message\n"
+               "    --list-packs: list installed and installable packs\n"
+               "    --list-installed: list only installed packs\n"
+               "    --install-pack <uid>: download and install pack with uid from repositories\n"
+               "    --load-pack <uid>[:<version>]: load this pack on startup\n"
+               "        Action args: --pack-variant, --pack-version\n"
+               "\n"
+               "  Action args:\n"
+               "    --pack-variant <variant>: try to load this variant\n"
+               "    --pack-version <version>: try to load this version\n"
+               "\n", appName);
         return badArg ? 1 : 0;
     }
 
@@ -134,7 +177,21 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    PopTracker popTracker(argc, argv, cli);
+    // argc/argv should be empty here. we pass everything through json args
+    json args = json::object();
+    if (packPath) {
+        args["pack"] = { {"path", packPath} };
+    } else if (loadPack) {
+        args["pack"] = { {"uid", loadPack} };
+    }
+    if ((packPath || loadPack) && packVariant) {
+        args["pack"]["variant"] = packVariant;
+    }
+    if (loadPack && packVersion) {
+        args["pack"]["version"] = packVersion;
+    }
+
+    PopTracker popTracker(argc, argv, cli, args);
 
     // CLI tools
     if (cli) {
@@ -155,8 +212,8 @@ int main(int argc, char** argv)
                 f(c == 'Y');
             };
         }
-        if (listPacks) {
-            if (popTracker.ListPacks(confirm))
+        if (listInstalled || listInstallable) {
+            if (popTracker.ListPacks(confirm, listInstallable))
                 return 0;
         }
         if (installPack) {

@@ -25,8 +25,9 @@ using nlohmann::json;
 using Ui::Dlg;
 
 
-PopTracker::PopTracker(int argc, char** argv, bool cli)
+PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
+    _args = args;
     std::string config;
     std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json");
     if (readFile(configFilename, config)) {
@@ -243,7 +244,7 @@ bool PopTracker::start()
                 size.height = std::max(96, std::min(4096, to_int(jSize[1],size.height)));
             }
         }
-        auto jPack = _config["pack"];
+        auto jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
             std::string path = to_string(jPack["path"],"");
             std::string variant = to_string(jPack["variant"],"");
@@ -628,22 +629,25 @@ bool PopTracker::frame()
     return res;
 }
 
-bool PopTracker::ListPacks(PackManager::confirmation_callback confirm)
+bool PopTracker::ListPacks(PackManager::confirmation_callback confirm, bool installable)
 {
-    printf("Fetching data...\n");
-    bool done = false;
-    json installable;
-    if (confirm) _packManager->setConfirmationHandler(confirm);
-    _packManager->getAvailablePacks([&done,&installable](const json& j) {
-        done = true;
-        installable = j;
-    });
+    json installablePacks;
+    if (installable) {
+        printf("Fetching data...\n");
+        bool done = false;
+        if (confirm) _packManager->setConfirmationHandler(confirm);
+        _packManager->getAvailablePacks([&done,&installablePacks](const json& j) {
+            done = true;
+            installablePacks = j;
+        });
 
-    while (!done) {
-        _asio->poll();
+        while (!done) {
+            _asio->poll();
+        }
+
+        printf("\n");
     }
 
-    printf("\n");
     printf("Installed packs:\n");
     auto installed = Pack::ListAvailable();
     if (installed.empty()) {
@@ -652,18 +656,20 @@ bool PopTracker::ListPacks(PackManager::confirmation_callback confirm)
     for (const auto& info: installed) {
         printf("%s %s \"%s\"\n", info.uid.c_str(), info.version.c_str(), info.packName.c_str());
     }
-
     printf("\n");
-    printf("Installable packs:\n");
-    if (!installable.is_object() || !installable.size()) {
-        printf("~ no packs in repositories ~\n");
-    } else {
-        for (auto& pair: installable.items()) {
-            printf("%s %s\n", pair.key().c_str(), pair.value()["name"].dump().c_str());
+
+    if (installable) {
+        printf("Installable packs:\n");
+        if (!installablePacks.is_object() || !installablePacks.size()) {
+            printf("~ no packs in repositories ~\n");
+        } else {
+            for (auto& pair: installablePacks.items()) {
+                printf("%s %s\n", pair.key().c_str(), pair.value()["name"].dump().c_str());
+            }
         }
+        printf("\n");
     }
 
-    printf("\n");
     return true;
 }
 
