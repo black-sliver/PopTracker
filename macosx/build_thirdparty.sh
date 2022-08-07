@@ -58,7 +58,7 @@ LIB_SDL_IMAGE_TAG="release-2.6.1"
 LIB_SDL_TTF_TAG="release-2.20.0"
 LIB_PNG_TAG="v1.6.37"
 LIB_FREETYPE_TAG="VER-2-12-1"
-LIB_OPENSSL_TAG="OpenSSL_1_1_1q"
+LIB_OPENSSL_TAG="OpenSSL_1_1_1o"
 
 LIB_SDL_TARGET="build/.libs/libSDL2-2.0.0.dylib"
 LIB_SDL_IMAGE_TARGET=".libs/libSDL2_image-2.0.0.dylib"
@@ -155,7 +155,7 @@ cd "../.."
 # Build SDL_image
 
 if [ ! -d $LIB_SDL_IMAGE_DEST_DIR ]; then
-  git clone $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || (echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1)
+  git clone --recurse-submodules $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || (echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1)
 fi
 
 cd $LIB_SDL_IMAGE_DEST_DIR
@@ -175,7 +175,7 @@ cd "../.."
 # Build SDL_ttf (presumes freetype is already installed with brew)
 
 if [ ! -d $LIB_SDL_TTF_DEST_DIR ]; then
-  git clone $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || (echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1)
+  git clone --recurse-submodules $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || (echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1)
 fi
 
 cd $LIB_SDL_TTF_DEST_DIR
