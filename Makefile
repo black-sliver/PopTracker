@@ -188,6 +188,8 @@ else ifdef IS_OSX
     native: $(NIX_EXE)
   endif
 else
+  WIN32_LIBS += -lbrotlidec-static -lbrotlicommon-static # brotli is a mess
+  WIN64_LIBS +=  -lbrotlidec-static -lbrotlicommon-static
   EXE = $(NIX_EXE)
   ifeq ($(CONF), DIST) # TODO deb?
     native: $(NIX_XZ)
