@@ -127,7 +127,7 @@ endif
 else
 C_FLAGS += -O2 -fno-stack-protector -fno-common
 ifdef IS_LLVM # RELEASE or DIST with LLVM
-CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread
+CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
 LD_FLAGS = -Wl,-dead_strip -O2 -s -flto
 else # RELEASE or DIST with GCC
 CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
