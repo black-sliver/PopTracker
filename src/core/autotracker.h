@@ -172,8 +172,6 @@ public:
                 _snes->nextDevice();
                 if (_state[index] > State::BridgeConnected) {
                     _state[index] = State::BridgeConnected;
-                } else if (_state[index] > State::Disconnected) {
-                    _state[index] = State::Disconnected;
                 }
                 onStateChange.emit(this, index, _state[index]);
             }
