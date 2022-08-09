@@ -60,9 +60,8 @@ done
 SRC_DIR=`dirname $0`
 
 if test $CLEAR_THIRD_PARTY = yes ; then
-  cd $SRC_DIR
-  rm -fr $BUILD_DIR
-  rm -fr $LIB_DIR
+  rm -fr $SRC_DIR/$BUILD_DIR
+  rm -fr $SRC_DIR/$LIB_DIR
 fi
 
 # Early out if executable is not specified.
