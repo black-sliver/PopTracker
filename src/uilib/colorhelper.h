@@ -92,7 +92,22 @@ static SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
         SDL_SetSurfacePalette(surf, pal);
         SDL_FreePalette(pal); // FIXME: is this required / allowed?
     }
-    else {
+    else if (surf->format->BitsPerPixel == 24) {
+        uint8_t *data = (uint8_t*)surf->pixels;
+        auto fmt = surf->format;
+        for (int y=0; y<surf->h; y++) {
+            for (int x=0; x<surf->w; x++) {
+                uint8_t* ppixel = (uint8_t*)(data+y*surf->pitch+x*fmt->BytesPerPixel);
+                uint8_t w = makeGreyscale(ppixel[0], ppixel[1], ppixel[2], darken);
+                uint32_t pixel = (w >> fmt->Rloss) << fmt->Rshift;
+                pixel |= (w >> fmt->Gloss) << fmt->Gshift;
+                pixel |= (w >> fmt->Bloss) << fmt->Bshift;
+                memcpy(ppixel, &pixel, fmt->BytesPerPixel);
+            }
+        }
+        SDL_UnlockSurface(surf);
+    }
+    else if (surf->format->BitsPerPixel == 32) {
         uint8_t *data = (uint8_t*)surf->pixels;
         auto fmt = surf->format;
         for (int y=0; y<surf->h; y++) {
