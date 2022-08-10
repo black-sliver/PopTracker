@@ -9,6 +9,9 @@ CLEAR_LIB_DIR=no
 LIB_DIR="libs"
 DEPLOYMENT_TARGET="10.12"
 
+#WITH_FREETYPE=true  # latest SDL_TTF bundles freetype
+#WITH_PNG=true  # only required as dependency of freetype
+
 function usage() {
   echo "Usage: `basename $0` [--build-dir=] [--clear-build-dir] [--lib-dir=] [--clear-lib-dir] [--deployment-target=]"
 }
@@ -93,44 +96,48 @@ fi
 mkdir -p $BUILD_DIR
 mkdir -p $LIB_DIR
 
-# Build Png
+if [ "$WITH_PNG" ]; then
+    # Build Png
 
-if [ ! -d $LIB_PNG_DEST_DIR ]; then
-  git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR || (echo "Could not clone $LIB_PNG_URL" ; exit 1)
+    if [ ! -d $LIB_PNG_DEST_DIR ]; then
+      git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR || (echo "Could not clone $LIB_PNG_URL" ; exit 1)
+    fi
+
+    cd $LIB_PNG_DEST_DIR
+
+    git pull
+    git checkout $LIB_PNG_TAG
+
+    ./configure $CONFIGURE_FLAGS
+    make -j3
+
+    [ -f "$LIB_PNG_TARGET" ] || (echo "Missing $LIB_PNG_TARGET..." ; exit 1)
+
+    cp "$LIB_PNG_TARGET" "../../$LIB_DIR"
+    cd "../.."
 fi
 
-cd $LIB_PNG_DEST_DIR
+if [ "$WITH_FREETYPE" ]; then
+    # Build Freetype
 
-git pull
-git checkout $LIB_PNG_TAG
+    if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
+      git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || (echo "Could not clone $LIB_FREETYPE_URL" ; exit 1)
+    fi
 
-./configure $CONFIGURE_FLAGS
-make -j3
+    cd $LIB_FREETYPE_DEST_DIR
 
-[ -f "$LIB_PNG_TARGET" ] || (echo "Missing $LIB_PNG_TARGET..." ; exit 1)
+    git pull
+    git checkout $LIB_FREETYPE_TAG
 
-cp "$LIB_PNG_TARGET" "../../$LIB_DIR"
-cd "../.."
+    ./autogen.sh
+    ./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
+    make -j3
 
-# Build Freetype
+    [ -f $LIB_FREETYPE_TARGET ] || (echo "Missing $LIB_FREETYPE_TARGET..." ; exit 1)
 
-if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
-  git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || (echo "Could not clone $LIB_FREETYPE_URL" ; exit 1)
+    cp "$LIB_FREETYPE_TARGET" "../../$LIB_DIR"
+    cd "../.."
 fi
-
-cd $LIB_FREETYPE_DEST_DIR
-
-git pull
-git checkout $LIB_FREETYPE_TAG
-
-./autogen.sh
-./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
-make -j3
-
-[ -f $LIB_FREETYPE_TARGET ] || (echo "Missing $LIB_FREETYPE_TARGET..." ; exit 1)
-
-cp "$LIB_FREETYPE_TARGET" "../../$LIB_DIR"
-cd "../.."
 
 # Build SDL
 

@@ -128,7 +128,7 @@ if test $BUILD_THIRD_PARTY = yes ; then
   sh $SRC_DIR/build_thirdparty.sh \
     --deployment-target=$DEPLOYMENT_TARGET \
     --build-dir=$BUILD_DIR \
-    --lib-dir=$LIB_DIR
+    --lib-dir=$LIB_DIR || exit 1
 fi
 
 LIB_SDL2="libSDL2-2.0.0.dylib"
@@ -142,8 +142,8 @@ LIB_CRYPTO="libcrypto.1.1.dylib"
 cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2" $APP_BUNDLE_FRAMEWORKS_DIR
 cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_IMAGE" $APP_BUNDLE_FRAMEWORKS_DIR
 cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_TTF" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_PNG" $APP_BUNDLE_FRAMEWORKS_DIR
+[ -f "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" $APP_BUNDLE_FRAMEWORKS_DIR
+[ -f "$SRC_DIR/$LIB_DIR/$LIB_PNG" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_PNG" $APP_BUNDLE_FRAMEWORKS_DIR
 cp "$SRC_DIR/$LIB_DIR/$LIB_OPENSSL" $APP_BUNDLE_FRAMEWORKS_DIR
 cp "$SRC_DIR/$LIB_DIR/$LIB_CRYPTO" $APP_BUNDLE_FRAMEWORKS_DIR
 
@@ -166,7 +166,7 @@ OLD_LIB_SDL2=`otool -LX  $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF | grep $LIB_SD
 OLD_LIB_FREETYPE=`otool -LX  $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF | grep $LIB_FREETYPE | awk '{print $1}'`
 
 install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
-install_name_tool -change $OLD_LIB_FREETYPE @executable_path/../Frameworks/$LIB_FREETYPE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
+[ -f "$OLD_LIB_FREETYPE" ] && install_name_tool -change $OLD_LIB_FREETYPE @executable_path/../Frameworks/$LIB_FREETYPE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
 
 # Change paths on libpng
 
@@ -177,7 +177,7 @@ install_name_tool -id @executable_path/../Frameworks/$LIB_PNG $APP_BUNDLE_FRAMEW
 install_name_tool -id @executable_path/../Frameworks/$LIB_FREETYPE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
 
 OLD_LIB_PNG=`otool -LX $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE | grep $LIB_PNG | awk '{print $1}'`
-install_name_tool -change $OLD_LIB_PNG @executable_path/../Frameworks/$LIB_PNG $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
+[ -f "$OLD_LIB_PNG" ] && install_name_tool -change $OLD_LIB_PNG @executable_path/../Frameworks/$LIB_PNG $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
 
 # Change paths on libOpenSSL
 
