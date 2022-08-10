@@ -74,14 +74,66 @@ static SDL_Color makeGreyscale(SDL_Color c, bool darken)
     return { w, w, w, c.a };
 }
 
-static SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
+static inline uint32_t bytesToUint(const uint8_t* b, const uint8_t bytespp)
 {
+    // this is basically like memcpy, but there is no actual 24bit uint
+    uint32_t res = 0;
+    for (uint8_t i=0; i<bytespp; i++) {
+        res <<= 8;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN // [0] = msb
+        res |= b[i];
+#else // [0] = lsb
+        res |= b[bytespp-i-1];
+#endif
+    }
+    return res;
+}
+
+static inline void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytespp)
+{
+    // this is basically like memcpy, but there is no actual 24bit uint
+    for (uint8_t i=0; i<bytespp; i++) {
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN // [0] = msb
+        b[bytespp - i - 1] = (uint8_t)(d&0xff);
+#else // [0] = lsb
+        b[i] = (uint8_t)(d&0xff);
+#endif
+        d >>= 8;
+    }
+}
+
+static inline void _makeGreyscaleRGB(SDL_Surface *surf, bool darken)
+{
+    const uint8_t bytespp = surf->format->BytesPerPixel;
+    uint8_t* data = (uint8_t*)surf->pixels;
+    auto fmt = surf->format;
+    for (int y=0; y<surf->h; y++) {
+        for (int x=0; x<surf->w; x++) {
+            uint8_t* ppixel = data + y * surf->pitch + x * bytespp;
+            uint32_t pixel = bytesToUint(ppixel, bytespp);
+            uint8_t w = makeGreyscale(
+                ((pixel & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss,
+                ((pixel & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss,
+                ((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss, darken);
+            pixel &= ~(fmt->Rmask|fmt->Gmask|fmt->Bmask);
+            pixel |= (w >> fmt->Rloss) << fmt->Rshift;
+            pixel |= (w >> fmt->Gloss) << fmt->Gshift;
+            pixel |= (w >> fmt->Bloss) << fmt->Bshift;
+            uintToBytes(pixel, ppixel, bytespp);
+        }
+    }
+}
+
+static inline SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
+{
+    // inline since it should only be used in a few places
     if (SDL_LockSurface(surf) != 0) {
-        fprintf(stderr, "Could not lock surface to make greyscale: %s\n",
+        fprintf(stderr, "makeGreyscale: Could not lock surface: %s\n",
                 SDL_GetError());
         return surf;
     }
-    if (surf->format->BitsPerPixel <= 8) { // convert palette to greyscale
+    if (surf->format->BitsPerPixel <= 8 && surf->format->palette) {
+        // convert palette to greyscale
         int ncolors = surf->format->palette->ncolors;
         SDL_Palette* pal = SDL_AllocPalette(ncolors);
         for (int i=0; i<ncolors; i++) {
@@ -89,28 +141,21 @@ static SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
         }
         SDL_UnlockSurface(surf);
         
-        SDL_SetSurfacePalette(surf, pal);
-        SDL_FreePalette(pal); // FIXME: is this required / allowed?
+        SDL_SetSurfacePalette(surf, pal); // refcount++
+        SDL_FreePalette(pal); // refcount--, will not actually free it here
+    }
+    else if (surf->format->palette) {
+        fprintf(stderr, "makeGreyscale: Unsupported palette: %hhubit\n",
+                surf->format->BitsPerPixel);
+        SDL_UnlockSurface(surf);
+    }
+    else if (surf->format->BytesPerPixel > 0 && surf->format->BytesPerPixel < 5) {
+        _makeGreyscaleRGB(surf, darken);
+        SDL_UnlockSurface(surf);
     }
     else {
-        uint8_t *data = (uint8_t*)surf->pixels;
-        auto fmt = surf->format;
-        for (int y=0; y<surf->h; y++) {
-            for (int x=0; x<surf->w; x++) {
-                uint32_t* ppixel = (uint32_t*)(data+y*surf->pitch+x*fmt->BytesPerPixel);
-                uint32_t pixel = *ppixel;
-                uint8_t w = makeGreyscale(
-                    ((pixel & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss,
-                    ((pixel & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss,
-                    ((pixel & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss, darken);
-                pixel &= ~(fmt->Rmask|fmt->Gmask|fmt->Bmask);
-                pixel |= (w >> fmt->Rloss) << fmt->Rshift;
-                pixel |= (w >> fmt->Gloss) << fmt->Gshift;
-                pixel |= (w >> fmt->Bloss) << fmt->Bshift;
-                memcpy(ppixel, &pixel, fmt->BytesPerPixel);
-            }
-        }
         SDL_UnlockSurface(surf);
+        fprintf(stderr, "makeGreyscale: Unsupported pixel format\n");
     }
     return surf;
 }
