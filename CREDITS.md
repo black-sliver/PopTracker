@@ -13,7 +13,7 @@
 ## Libraries
 
 * [SDL, SDL_image, SDL_ttf](https://www.libsdl.org/)
-* [lua](https://github.com/lua/lua)
+* [Lua](https://github.com/lua/lua)
 * [nlohmann::json](https://github.com/nlohmann/json)
 * [valijson](https://github.com/tristanpenman/valijson)
 * [websocketpp](https://github.com/zaphoyd/websocketpp)
@@ -24,3 +24,4 @@
 * [libpng](http://www.libpng.org/)
 * [libjpeg](https://www.ijg.org/)
 * [zlib](https://zlib.net/)
+* [freetype](https://freetype.org/)

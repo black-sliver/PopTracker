@@ -1,5 +1,27 @@
 # PopTracker Changelog
 
+## v0.21.0
+
+* App Features
+  * Lua: replace default libs with sandboxed custom ones
+    It's still not recommended to run untrusted packs.
+  * Autotracking: better naming in tooltips
+  * SNES Autotracking: right-click cycles through devices (if multiple)
+  * More warnings and better handling for packs doing unexpected things
+  * More command line features, see `poptracker --help`
+* Pack Features
+  * Lua: support require (from ZIP or folder)
+  * Lua: stripped-down os and io (read-only, only from current pack)
+  * Support min quantity for consumables: min_quantity (JSON), MinCount (Lua)
+  * Support for more things in LuaItem saves
+  * Support odd ZIP variant
+* Fixes
+  * Fixed glitched reachable for referenced locations (`[@]` and `@->[]`)
+  * Don't crash when loading invalid files as state
+  * Fixed setting MaxCount from Lua
+  * Fixed fuzzy pack matching not always selecting the expected one
+  * Updated library version (fixing some potential security issues)
+
 ## v0.20.5
 
 * App Features
