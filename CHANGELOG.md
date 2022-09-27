@@ -3,7 +3,7 @@
 ## v0.21.0
 
 * App Features
-  * Lua: replace default libs with sandboxed custom ones
+  * Lua: replace default libs with sandboxed custom ones.
     It's still not recommended to run untrusted packs.
   * Autotracking: better naming in tooltips
   * SNES Autotracking: right-click cycles through devices (if multiple)
@@ -20,7 +20,8 @@
   * Don't crash when loading invalid files as state
   * Fixed setting MaxCount from Lua
   * Fixed fuzzy pack matching not always selecting the expected one
-  * Updated library version (fixing some potential security issues)
+  * Updated library versions (fixing some potential security issues)
+  * Fix makeGreyscale for 24bpp
 
 ## v0.20.5
 
