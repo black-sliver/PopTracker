@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## next
+
+* Pack Features
+  * Add support for Archipelago data storage api
+
 ## v0.21.0
 
 * App Features

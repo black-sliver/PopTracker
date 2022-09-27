@@ -150,6 +150,16 @@ public:
                         scout.item, _ap->get_item_name(scout.item), scout.player);
             }
         });
+        _ap->set_retrieved_handler([this](const std::map<std::string, json>& keys) {
+            auto lock = EventLock(_event);
+            for (const auto& pair: keys) {
+                onRetrieved.emit(this, pair.first, pair.second);
+            }
+        });
+        _ap->set_set_reply_handler([this](const std::string& key, const json& value, const json& old) {
+            auto lock = EventLock(_event);
+            onSetReply.emit(this, key, value, old);
+        });
         return true;
     }
 
@@ -190,6 +200,16 @@ public:
         return _ap ? _ap->get_player_number() : -1;
     }
 
+    bool SetNotify(const std::list<std::string>& keys)
+    {
+        return _ap ? _ap->SetNotify(keys) : false;
+    }
+
+    bool Get(const std::list<std::string>& keys)
+    {
+        return _ap ? _ap->Get(keys) : false;
+    }
+
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
@@ -197,6 +217,8 @@ public:
     Signal<int64_t, const std::string&, int64_t, const std::string&, int> onScout; // location, location_name, item, item_name, target player
     Signal<int64_t, const std::string&> onLocationChecked; // location, location_name
     Signal<const json&> onBounced; // packet
+    Signal<const std::string&, const json&> onRetrieved;
+    Signal<const std::string&, const json&, const json&> onSetReply;
 
 private:
     APClient* _ap = nullptr;

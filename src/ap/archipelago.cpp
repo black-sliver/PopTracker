@@ -10,6 +10,10 @@ const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
     LUA_METHOD(Archipelago, AddLocationHandler, const char*, LuaRef),
     LUA_METHOD(Archipelago, AddScoutHandler, const char*, LuaRef),
     LUA_METHOD(Archipelago, AddBouncedHandler, const char*, LuaRef),
+    LUA_METHOD(Archipelago, AddRetrievedHandler, const char*, LuaRef),
+    LUA_METHOD(Archipelago, AddSetReplyHandler, const char*, LuaRef),
+    LUA_METHOD(Archipelago, SetNotify, json),
+    LUA_METHOD(Archipelago, Get, json),
 };
 
 Archipelago::Archipelago(lua_State *L, APTracker *ap)
@@ -115,6 +119,80 @@ bool Archipelago::AddBouncedHandler(const std::string& name, LuaRef callback)
         }
     }};
     return true;
+}
+
+
+bool Archipelago::AddRetrievedHandler(const std::string& name, LuaRef callback)
+{
+    if (!_ap || !callback.valid()) return false;
+    int ref = callback.ref;
+    _ap->onRetrieved += {this, [this, ref, name](void*, const std::string& key, const json& value) {
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+        Lua(_L).Push(key.c_str());
+        json_to_lua(_L, value);
+        if (lua_pcall(_L, 2, 0, 0)) {
+            const char* err = lua_tostring(_L, -1);
+            printf("Error calling Archipelago RetrievedHandler for %s: %s\n",
+                    name.c_str(), err ? err : "Unknown");
+            lua_pop(_L, 1);
+        }
+    }};
+    return true;
+}
+
+bool Archipelago::AddSetReplyHandler(const std::string& name, LuaRef callback)
+{
+    if (!_ap || !callback.valid()) return false;
+    int ref = callback.ref;
+    _ap->onSetReply += {this, [this, ref, name](void*, const std::string& key, const json& value, const json& old) {
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+        Lua(_L).Push(key.c_str());
+        json_to_lua(_L, value);
+        json_to_lua(_L, old);
+        if (lua_pcall(_L, 3, 0, 0)) {
+            const char* err = lua_tostring(_L, -1);
+            printf("Error calling Archipelago SetReplyHandler for %s: %s\n",
+                    name.c_str(), err ? err : "Unknown");
+            lua_pop(_L, 1);
+        }
+    }};
+    return true;
+}
+
+bool Archipelago::SetNotify(const json& jKeys)
+{
+    if (!_ap || (!jKeys.is_array() && !jKeys.is_object())) {
+        printf("Archipelago.SetNotify: keys must be array/table!\n");
+        return false;
+    }
+    std::list<std::string> keys;
+    for (auto& el: jKeys.items()) {
+        if (el.value().is_string()) {
+            keys.push_back(el.value());
+        } else {
+            printf("Archipelago.SetNotify: keys must be array/table of string!\n");
+            return false;
+        }
+    }
+    return _ap->SetNotify(keys);
+}
+
+bool Archipelago::Get(const json& jKeys)
+{
+    if (!_ap || (!jKeys.is_array() && !jKeys.is_object())) {
+        printf("Archipelago.Get: keys must be array/table!\n");
+        return false;
+    }
+    std::list<std::string> keys;
+    for (auto& el: jKeys.items()) {
+        if (el.value().is_string()) {
+            keys.push_back(el.value());
+        } else {
+            printf("Archipelago.Get: keys must be array/table of string!\n");
+            return false;
+        }
+    }
+    return _ap->Get(keys);
 }
 
 int Archipelago::Lua_Index(lua_State *L, const char* key) {

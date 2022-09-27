@@ -134,6 +134,8 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * when a location is checked, Location handlers are called
 * when a location is scouted, Scout handlers are called
 * when a bounce is received, Bounced handlers are called
+* when a watched data storage value is changed, SetReply handlers are called
+* when a data storage value is polled (Get), Retrieved handlers are called
 
 ### global Archipelago
 * `.PlayerNumber` returns the slot number of the connected player or -1 if not connected
@@ -142,6 +144,10 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
 * `:AddScoutHandler(name, callback)` called when a location was scouted; args: location_id, location_name, item_id, item_name, item_player
 * `:AddBouncedHandler(name, callback)` called when the server sends a bounce; args: json bounce message as table
+* `:AddRetrievedHandler(name, callback)` called when the server replies to Get; args: key, value
+* `:AddSetReplyHandler(name, callback)` called when a watched data storage value is changed; args: key, value, old_value
+* `:Get(keys)` ask the server for values from data storage, run this from a ClearHandler, keys is an array of strings
+* `:SetNotify(keys)` ask the server to notify when a data storage value is changed, run this from a ClearHandler, keys is an array of strings
 
 
 ## Other Stuff

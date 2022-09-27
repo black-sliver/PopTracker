@@ -22,6 +22,10 @@ public:
     bool AddLocationHandler(const std::string& name, LuaRef callback);
     bool AddScoutHandler(const std::string& name, LuaRef callback);
     bool AddBouncedHandler(const std::string& name, LuaRef callback);
+    bool AddRetrievedHandler(const std::string& name, LuaRef callback);
+    bool AddSetReplyHandler(const std::string& name, LuaRef callback);
+    bool SetNotify(const json& keys);
+    bool Get(const json& keys);
 
 protected:
     lua_State *_L;

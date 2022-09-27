@@ -12,7 +12,6 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
-      $(wildcard $(LIB_DIR)/wswrap/src/*.cpp) \
       $(wildcard $(SRC_DIR)/http/*.cpp) \
       $(wildcard $(SRC_DIR)/packmanager/*.cpp)
       #lib/gifdec/gifdec.c
