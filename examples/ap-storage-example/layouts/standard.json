@@ -1,0 +1,11 @@
+{
+    "tracker_default": {
+        "type": "container",
+        "content": {
+            "type": "itemgrid",
+            "rows": [
+                [ "a", "b", "c" ]
+            ]
+        }
+    }
+}
