@@ -53,7 +53,9 @@ Pack::Info Pack::getInfo() const
         auto& v = vIt.value();
         if (v.type() == json::value_t::object) {
             for (auto it = v.begin(); it != v.end(); ++it) {
-                variants.push_back({it.key(),to_string(it.value(),"display_name",it.key())});
+                auto displayName = to_string(it.value(),"display_name",it.key());
+                if (displayName.empty()) continue;
+                variants.push_back({it.key(), displayName});
             }
         }
     }

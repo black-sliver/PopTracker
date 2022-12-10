@@ -26,8 +26,12 @@ public:
     
     Pack(const std::string& path);
     virtual ~Pack();
-    bool isValid() const { return _manifest.type() == nlohmann::json::value_t::object; } // TODO: also check if init.lua exists?
-    
+
+    bool isValid() const {
+        return (!_uid.empty());
+        // TODO: also check if init.lua exists?
+    }
+
     void setVariant(const std::string& variant);
     const std::string& getPath() const { return _path; }
     const std::string& getUID() const { return _uid; }
