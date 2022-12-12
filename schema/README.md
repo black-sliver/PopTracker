@@ -3,4 +3,4 @@
 These files are for documentation and tests. The actual validation is hardcoded.
 
 [UAT](UAT) contains json schema for UAT protocol.
-See [UAT-PROTO.md](../doc/UAT-PROTO.md) for protocol description.
+See [black-sliver/UAT/PROTOCOL.md](https://github.com/black-sliver/UAT/blob/master/PROTOCOL.md) for protocol description.
