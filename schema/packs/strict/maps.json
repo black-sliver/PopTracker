@@ -1,0 +1,27 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/strict/maps.json",
+    "allOf": [
+        {
+            "$ref": "/schema/packs/maps.json"         
+        },
+        {
+            "items": {
+                "properties": {
+                    "name": true,
+                    "location_size": {
+                        "description": "Size of locations on the map in pixels relative to the map image.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "location_border_thickness": {
+                        "description": "Thickness of the border around the locations.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "img": true
+                },
+                "additionalProperties": false
+            }
+        }
+    ]
+}
