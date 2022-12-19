@@ -1,0 +1,855 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/strict/layouts.json",
+    "title": "PopTracker Pack layouts",
+    "description": "Layouts for a PopTracker pack.",
+    "type": "object",
+    "patternProperties": {
+        "^tracker_default$": {
+            "description": "Default layout for the tracker pack.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_horizontal$": {
+            "description": "Horizontal layout for the tracker pack. Used when the window is wider then high.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_vertical$": {
+            "description": "Vertical layout for the tracker pack. Used when the window is higher then wide.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_broadcast$": {
+            "description": "Default layout for the broadcast view.",
+            "$ref": "#/$defs/layout"
+        },
+        "^settings_popup$": {
+            "description": "Layout used for the settings menu.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_capture_item$": {
+            "description": "Layout used for the capture menu. Not implemented yet.",
+            "$ref": "#/$defs/layout"
+        }
+    },
+    "additionalProperties": {
+        "description": "A layout.",
+        "$ref": "#/$defs/layout"
+    },
+    "$defs": {
+        "container_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "container"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "content": {
+                        "description": "Content of the container.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/layout"
+                            },
+                            {
+                                "type": "array",
+                                "description": "Content of the container.",
+                                "items": {
+                                    "$ref": "#/$defs/layout"
+                                }
+                            }
+                        ]
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "viewbox_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "viewbox"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "content": {
+                        "description": "Content of the viewbox.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/layout"
+                            },
+                            {
+                                "type": "array",
+                                "description": "Content of the viewbox.",
+                                "items": {
+                                    "$ref": "#/$defs/layout"
+                                }
+                            }
+                        ]
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "canvas_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "canvas"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "width": {
+                        "description": "Width of the canvas. Not implemented yet.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "height": {
+                        "description": "Height of the canvas. Not implemented yet.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "content": {
+                        "description": "Content of the canvas. Not implemented yet.",
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/layout"
+                                },
+                                {
+                                    "properties": {
+                                        "canvas_depth": {
+                                            "description": "Depth/z-index of item in canvas. Not implemented yet.",
+                                            "type": "number"
+                                        },
+                                        "canvas_top": {
+                                            "description": "Distance to top egde of canvas of the item. Not implemented yet.",
+                                            "type": "number"
+                                        },
+                                        "canvas_left": {
+                                            "description": "Distance to left egde of canvas of the item. Not implemented yet.",
+                                            "type": "number"
+                                        },
+                                        "width": {
+                                            "description": "Width of item in canvas. Not implemented yet.",
+                                            "type": "number",
+                                            "minimum": 0
+                                        },
+                                        "height": {
+                                            "description": "Height of item in canvas. Not implemented yet.",
+                                            "type": "number",
+                                            "minimum": 0
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "dock_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "dock"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "content": {
+                        "description": "Content of the dock.",
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/layout"
+                                },
+                                {
+                                    "properties": {
+                                        "dock": {
+                                            "description": "Where to dock this child to inside the dock container.",
+                                            "type": "string",
+                                            "enum": [
+                                                "top",
+                                                "bottom",
+                                                "left",
+                                                "right"
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "array_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "array"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "content": {
+                        "description": "Content of the array,",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/layout"
+                        }
+                    },
+                    "orientation": {
+                        "description": "Orientation of the array,",
+                        "type": "string",
+                        "enum": [
+                            "horizontal",
+                            "vertical"
+                        ]
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "tabbed_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "tabbed"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "tabs": {
+                        "description": "Tabs to display,",
+                        "type": "array",
+                        "items": {
+                            "description": "A tab",
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "description": "Title of the tab,",
+                                    "type": "string"
+                                },
+                                "icon": {
+                                    "description": "Icon to display next to the title. Not implemented yet.",
+                                    "type": "string"
+                                },
+                                "content": {
+                                    "description": "Content of the tab.",
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/$defs/layout"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/$defs/layout"
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "group_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "group"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "content": {
+                        "description": "Content of the group.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/layout"
+                            },
+                            {
+                                "type": "array",
+                                "description": "Content of the group.",
+                                "items": {
+                                    "$ref": "#/$defs/layout"
+                                }
+                            }
+                        ]
+                    },
+                    "header": {
+                        "description": "Header of the group.",
+                        "type": "string"
+                    },
+                    "header_background": {
+                        "description": "Background color of the header of the group.",
+                        "type": "string",
+                        "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                    },
+                    "header_content": {
+                        "description": "Content of the header of the group. Not implemented yet.",
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "description": "Type of header content. Not implemented yet.",
+                                "type": "string",
+                                "enum": [
+                                    "button_popup"
+                                ]
+                            },
+                            "style": {
+                                "description": "Style of header content. Not implemented yet.",
+                                "type": "string",
+                                "enum": [
+                                    "settings"
+                                ]
+                            },
+                            "popup_background": {
+                                "description": "Background color of the popup. Not implemented yet.",
+                                "type": "string",
+                                "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                            },
+                            "layout": {
+                                "description": "Layout name for the header content. Not implemented yet.",
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "item_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "item"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "description": "Displays an item.",
+                "properties": {
+                    "item": {
+                        "description": "Code identifier of the item.",
+                        "type": "string"
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "itemgrid_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "itemgrid"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "rows": {
+                        "description": "List of rows of items.",
+                        "type": "array",
+                        "items": {
+                            "description": "List of items for a row.",
+                            "type": "array",
+                            "items": {
+                                "description": "Code identifier of an item.",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "item_size": {
+                        "anyOf": [
+                            {
+                                "description": "Size of the items in the format of x,y.",
+                                "type": "string",
+                                "pattern": "^([0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                            },
+                            {
+                                "description": "Size of the items.",
+                                "type": "number",
+                                "minimum": 0
+                            }
+                        ]
+                    },
+                    "item_height": {
+                        "description": "Height of the items.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "item_width": {
+                        "description": "Width of the items.",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false,
+                "dependentSchemas": {
+                    "item_size": {
+                        "properties": {
+                            "item_width": false,
+                            "item_height": false
+                        }
+                    },
+                    "item_width": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    },
+                    "item_height": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    }
+                }
+            }
+        },
+        "map_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "map"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "maps": {
+                        "description": "List of maps.",
+                        "type": "array",
+                        "items": {
+                            "description": "Code identifier of a map.",
+                            "type": "string"
+                        }
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "layout_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "layout"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "key": {
+                        "description": "Name of the layout to display.",
+                        "type": "string"
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "recentpins_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "recentpins"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "style": {
+                        "description": "Style of the recent pins display. Not implemented yet.",
+                        "type": "string",
+                        "enum": [
+                            "wrapped",
+                            "wrap"
+                        ]
+                    },
+                    "compact": {
+                        "description": "Toggles the compact display for the recent pins. Not implemented yet.",
+                        "type": "boolean"
+                    },
+                    "orientation": {
+                        "description": "Orientation of the recent pins display. Not implemented yet.",
+                        "type": "string",
+                        "enum": [
+                            "horizontal",
+                            "vertical"
+                        ]
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "text_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "text"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "text": {
+                        "description": "Text to display.",
+                        "type": "string"
+                    },
+                    "type": true,
+                    "background": true,
+                    "h_alignment": true,
+                    "v_alignment": true,
+                    "max_height": true,
+                    "max_width": true,
+                    "item_h_alignment": true,
+                    "item_v_alignment": true,
+                    "dropshadow": true,
+                    "margin": true,
+                    "item_margin": true,
+                    "dock": true
+                },
+                "additionalProperties": false
+            }
+        },
+        "layout": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "Type of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "container",
+                        "dock",
+                        "array",
+                        "tabbed",
+                        "group",
+                        "item",
+                        "itemgrid",
+                        "map",
+                        "layout",
+                        "recentpins",
+                        "text"
+                    ]
+                },
+                "background": {
+                    "description": "Background color of the layout.",
+                    "type": "string",
+                    "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                },
+                "h_alignment": {
+                    "description": "Horizontal alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "v_alignment": {
+                    "description": "Vertical alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "max_height": {
+                    "description": "Maximum height for the layout in pixel.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "max_width": {
+                    "description": "Maximum width for the layout in pixel.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "item_h_alignment": {
+                    "description": "Horizontal alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "item_v_alignment": {
+                    "description": "Vertical alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "dropshadow": {
+                    "description": "Enable/disable drop shadow. Not implemented yet.",
+                    "type": "boolean"
+                },
+                "margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin values for the layout in the format of left,top,right,bottom.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){3}[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin values for the layout in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the layout.",
+                            "type": "number"
+                        }
+                    ]
+                },
+                "item_margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin value for the child/item(s) in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the child/item(s).",
+                            "type": "number"
+                        }
+                    ]
+                }
+            },            
+            "allOf": [
+                {
+                    "$ref": "#/$defs/container_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/dock_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/array_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/tabbed_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/group_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/item_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/itemgrid_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/map_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/layout_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/recentpins_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/text_type_if_block"
+                }
+            ]
+        }
+    }
+}

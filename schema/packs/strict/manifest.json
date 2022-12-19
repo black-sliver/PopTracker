@@ -1,0 +1,70 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/strict/mainfest.json",
+    "allOf": [
+        {
+            "$ref": "/schema/packs/manifest.json",
+            "additionalProperties": false
+        },
+        {
+            "properties": {
+                "variants": {
+                    "$comment": "Enforce known flags",
+                    "description": "Variants for the pack. Property keys are the pack variant uids.",
+                    "type": "object",
+                    "patternProperties": {
+                        "^$": {
+                            "description": "A pack variant.",
+                            "type": "object",
+                            
+                            "properties": {
+                                "display_name": {
+                                    "description": "Display name of the pack variant.",
+                                    "type": "string"
+                                },
+                                "flags": {
+                                    "description": "Flags for the packs.",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "A flag.",
+                                        "type": "string",
+                                        "enum": [
+                                            "ap",
+                                            "hirom",
+                                            "lorom"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "display_name"
+                            ]
+                        },
+                        "^.+$": {
+                            "description": "A pack variant.",
+                            "type": "object",
+                            "properties": {
+                                "display_name": {
+                                    "description": "Display name of the pack variant.",
+                                    "type": "string"
+                                },
+                                "flags": {
+                                    "description": "Flags for the packs.",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "A flag.",
+                                        "type": "string",
+                                        "enum": [
+                                            "ap",
+                                            "hirom",
+                                            "lorom"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -17,6 +17,7 @@ nbproject
 
 # exclude packs (they are separate projects)
 packs
+!schema/packs
 screenshots
 packlist
 pop-pack-create-versions
