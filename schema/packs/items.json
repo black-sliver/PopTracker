@@ -1,0 +1,574 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/items.json",
+    "title": "PopTracker Pack items",
+    "description": "Items for a PopTracker pack.",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Readable name of the item.",
+                "type": "string"
+            },
+            "type": {
+                "description": "Type of the item.",
+                "enum": [
+                    "static",
+                    "progressive",
+                    "toggle",
+                    "consumable",
+                    "progressive_toggle",
+                    "composite_toggle",
+                    "toggle_badged"
+                ]
+            },
+            "capturable": {
+                "description": "Allow this item to be captured on locations. Not implemented yet.",
+                "anyOf": [
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "string",
+                        "enum": [
+                            "true",
+                            "false"
+                        ]
+                    }
+                ]                
+            },
+            "codes": {
+                "$ref": "#/$defs/codes"
+            }
+        },
+        "required": [
+            "type"
+        ],        
+        "allOf": [
+            {
+                "$ref": "#/$defs/static_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/progressive_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/toggle_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/consumable_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/progressive_toggle_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/composite_toggle_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/toggle_badged_type_if_block"
+            }
+        ]
+    },
+    "$defs": {
+        "img": {
+            "description": "Image to display.",
+            "type": "string"
+        },
+        "img_mods": {
+            "description": "Modifiers to apply to the image. Multiple values are comma seperated.",
+            "examples": [
+                "@disabled",
+                "overlay|path/to/img.png"
+            ],
+            "type": "string"
+        },
+        "disabled_img": {
+            "description": "Image to display when disabled.",
+            "type": "string"
+        },
+        "disabled_img_mods": {
+            "description": "Modifiers to apply to the image when disabled. Multiple values are comma seperated.",
+            "examples": [
+                "@disabled",
+                "overlay|path/to/img.png"
+            ],
+            "type": "string"
+        },
+        "codes": {
+            "description": "Code identifier(s) of this item. Multiple values are comma seperated.",
+            "examples": [
+                "code1",
+                "code1,code2",
+                "code1, code2, code3"
+            ],
+            "type": "string"
+        },
+        "stages": {
+            "description": "Stages of the progressive item.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "img": {
+                        "$ref": "#/$defs/img"
+                    },
+                    "disabled_img": {
+                        "$ref": "#/$defs/disabled_img"
+                    },
+                    "codes": {
+                        "$ref": "#/$defs/codes"
+                    },
+                    "secondary_codes": {
+                        "description": "Secondary code identifier(s) of this item. Multiple values are comma seperated. Unused at the moment.",
+                        "examples": [
+                            "code1",
+                            "code1,code2",
+                            "code1, code2, code3"
+                        ],
+                        "type": "string"
+                    },
+                    "inherit_codes": {
+                        "description": "If set to true, stages will provide for the codes of the previous stages as well.",
+                        "anyOf": [
+                            {
+                                "type": "boolean",
+                                "default": true
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
+                    },
+                    "img_mods": {
+                        "$ref": "#/$defs/img_mods"
+                    },
+                    "disabled_img_mods": {
+                        "$ref": "#/$defs/disabled_img_mods"
+                    }
+                }
+            }
+        },
+        "initial_stage_idx": {
+            "description": "Initital stage index for the progressive item. Zero indexed.",
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\s*[0-9]*\\s*$"
+                }
+            ]
+        },
+        "loop": {
+            "description": "Allows looping through the stages.",
+            "anyOf": [
+                {
+                    "type": "boolean",
+                    "default": false
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ]
+        },
+        "static_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "static"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "img": {
+                        "$ref": "#/$defs/img"
+                    },
+                    "img_mods": {
+                        "$ref": "#/$defs/img_mods"
+                    },
+                    "disabled_img": {
+                        "$ref": "#/$defs/disabled_img"
+                    },
+                    "disabled_img_mods": {
+                        "$ref": "#/$defs/disabled_img_mods"
+                    }
+                },
+                "required": []
+            }
+        },
+        "progressive_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "progressive"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "stages": {
+                        "$ref": "#/$defs/stages"
+                    },
+                    "allow_disabled": {
+                        "description": "Automatically addes a \"off\" stage if set to true.",
+                        "anyOf": [
+                            {
+                                "type": "boolean",
+                                "default": true
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
+                    },
+                    "initial_stage_idx": {
+                        "$ref": "#/$defs/initial_stage_idx"
+                    },
+                    "loop": {
+                        "$ref": "#/$defs/loop"
+                    }
+                },
+                "required": [
+                    "stages"
+                ]
+            }
+        },
+        "progressive_toggle_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "progressive_toggle"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "stages": {
+                        "$ref": "#/$defs/stages"
+                    },
+                    "initial_stage_idx": {
+                        "$ref": "#/$defs/initial_stage_idx"
+                    },
+                    "loop": {
+                        "$ref": "#/$defs/loop"
+                    }
+                },
+                "required": [
+                    "stages"
+                ]
+            }
+        },
+        "toggle_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "toggle"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "img": {
+                        "$ref": "#/$defs/img"
+                    },
+                    "img_mods": {
+                        "$ref": "#/$defs/img_mods"
+                    },
+                    "disabled_img": {
+                        "$ref": "#/$defs/disabled_img"
+                    },
+                    "disabled_img_mods": {
+                        "$ref": "#/$defs/disabled_img_mods"
+                    }
+                },
+                "required": []
+            }
+        },
+        "composite_toggle_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "composite_toggle"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "oneOf": [
+                    {
+                        "properties": {
+                            "left_item": {
+                                "description": "Code identifier of the left item.",
+                                "type": "string"
+                            },
+                            "right_item": {
+                                "description": "Code identifier of the right item.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "left_item",
+                            "right_item"
+                        ]
+                    },
+                    {
+                        "properties": {
+                            "images": {
+                                "description": "Array of images and states (up to 4, on/off for each item)",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",                                    
+                                    "required": [
+                                        "left",
+                                        "right"
+                                    ],    
+                                    "properties": {
+                                        "left": {
+                                            "description": "State of left item.",
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "true",
+                                                        "false"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "right": {
+                                            "description": "State of right item.",
+                                            "anyOf": [
+                                                {
+                                                    "type": "boolean"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "true",
+                                                        "false"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "img": {
+                                            "$ref": "#/$defs/img"
+                                        },
+                                        "img_mods": {
+                                            "$ref": "#/$defs/img_mods"
+                                        },
+                                        "disabled_img": {
+                                            "$ref": "#/$defs/disabled_img"
+                                        },
+                                        "disabled_img_mods": {
+                                            "$ref": "#/$defs/disabled_img_mods"
+                                        },
+                                        "codes": {
+                                            "$ref": "#/$defs/codes"
+                                        }
+                                    }                              
+                                }                                
+                            }
+                        },
+                        "required": [
+                            "images"
+                        ]
+                    }
+                ]            
+            }
+        },
+        "toggle_badged_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "toggle_badged"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "img": {
+                        "description": "The image to overlay over the base item.",
+                        "$ref": "#/$defs/img"
+                    },
+                    "img_mods": {
+                        "$ref": "#/$defs/img_mods"
+                    },
+                    "disabled_img": {
+                        "$ref": "#/$defs/disabled_img"
+                    },
+                    "disabled_img_mods": {
+                        "$ref": "#/$defs/disabled_img_mods"
+                    },
+                    "base_item": {
+                        "description": "Code identifier for the base item, that this item should overlay.",
+                        "type": "string"
+                    }
+                },
+                "required": []
+            }
+        },
+        "consumable_type_if_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "consumable"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "img": {
+                        "$ref": "#/$defs/img"
+                    },
+                    "img_mods": {
+                        "$ref": "#/$defs/img_mods"
+                    },
+                    "disabled_img": {
+                        "$ref": "#/$defs/disabled_img"
+                    },
+                    "disabled_img_mods": {
+                        "$ref": "#/$defs/disabled_img_mods"
+                    },
+                    "min_quantity": {
+                        "description": "Minimum quantity of the consumable. Inclusive.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*-?[0-9]*\\s*$"
+                            }
+                        ]
+                    },
+                    "max_quantity": {
+                        "description": "Maximum quantity of the consumable. Inclusive.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*-?[0-9]*\\s*$"
+                            }
+                        ]
+                    },
+                    "increment": {
+                        "description": "Amount to increase the quantity by on left-click.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*-?[0-9]*\\s*$"
+                            }
+                        ]
+                    },
+                    "decrement": {
+                        "description": "Amount to decrease the quantity by on right-click.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*-?[0-9]*\\s*$"
+                            }
+                        ]
+                    },
+                    "initial_quantity": {
+                        "description": "Initial quantity of the consumable.",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*-?[0-9]*\\s*$"
+                            }
+                        ]
+                    },
+                    "overlay_background": {
+                        "description": "Background color of the overlay text displaying the quantity.",
+                        "type": "string",
+                        "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                    }
+                },                
+                "patternProperties": {
+                    "^(overlay|badge)_font_size$": {
+                        "description": "Font size of the overlay text displaying the quantity.",
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
+                            }
+                        ]
+                    }
+                },
+                "anyOf": [
+                    {
+                        "properties": {
+                            "overlay_font_size": false,
+                            "badge_font_size": false
+                        }
+                    },
+                    {
+                        "properties": {
+                            "overlay_font_size": true,
+                            "badge_font_size": false
+                        }
+                    },
+                    {
+                        "properties": {
+                            "overlay_font_size": false,
+                            "badge_font_size": true
+                        }
+                    }
+                ],                            
+                "required": []
+            }
+        }
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/maps.json",
+    "title": "PopTracker Pack maps",
+    "description": "Maps for a PopTracker pack.",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Identifier for the map.",
+                "type": "string"
+            },
+            "location_size": {
+                "description": "Size of locations on the map in pixels relative to the map image.",
+                "anyOf": [
+                    {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    {
+                        "type": "string",
+                        "pattern": "^\\s*[0-9]*\\s*$"
+                    }
+                ]
+            },
+            "location_border_thickness": {
+                "description": "Thickness of the border around the locations.",
+                "anyOf": [
+                    {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    {
+                        "type": "string",
+                        "pattern": "^\\s*[0-9]*\\s*$"
+                    }
+                ]
+            },
+            "img": {
+                "description": "Image of the map.",
+                "type": "string"
+            }
+        }
+    }
+}

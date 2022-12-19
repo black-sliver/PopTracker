@@ -28,7 +28,7 @@
 				                {
 				                    "type": "itemgrid",
 				                    "rows": [ [ "blue7x8" ] ]
-				                },
+				                }
 				            ]
 				        },
 					    {
@@ -128,7 +128,7 @@
 				                    "type": "itemgrid",
 				                    "margin": "-2,0,0,0",
 				                    "rows": [ [ "blue7x8" ] ]
-				                },
+				                }
 				            ]
 				        },
 					    {

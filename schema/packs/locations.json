@@ -1,0 +1,275 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/locations.json",
+    "title": "PopTracker Pack locations",
+    "description": "Locations for a PopTracker pack.",
+    "type": "array",
+    "items": { "$ref": "#/$defs/location" },
+    "$defs": {
+        "section" : {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Name of the section.",
+                    "type": "string"
+                },
+                "access_rules": {
+                    "example": [
+                        "rule1,rule2",
+                        "rule3,rule4",
+                        "{checkrule1, checkrule2}"
+                    ],
+                    "type": "array",
+                    "anyOf": [
+                        {
+                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                            "items": {
+                                "description": "Rules. Comma sperated for AND.",
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                            "items": {
+                                "description": "List of rules to be AND-ed together.",
+                                "type": "array",
+                                "items": {
+                                    "description": "A rule.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "visibility_rules": {                    
+                    "example": [
+                        "rule1,rule2",
+                        "rule3,rule4",
+                        "{checkrule1, checkrule2}"
+                    ],
+                    "type": "array",
+                    "anyOf": [
+                        {
+                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                            "items": {
+                                "description": "Rules. Comma sperated for AND.",
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                            "items": {
+                                "description": "List of rules to be AND-ed together.",
+                                "type": "array",
+                                "items": {
+                                    "description": "A rule.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "chest_unopened_img": {
+                    "description": "Image for uncleared state.",
+                    "type": "string"
+                },
+                "chest_opened_img": {
+                    "description": "Image for cleared state.",
+                    "type": "string"
+                },
+                "clear_as_group": {
+                    "description": "If set to true, the section will clear all checks with one click.",
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+
+                    ]
+                },
+                "item_count": {
+                    "description": "Number of checks in this section.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "hosted_item": {
+                    "description": "Item to be hosted in the section.",
+                    "type": "string"
+                }
+            }
+        },
+        "location": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Name of the locations.",
+                    "type": "string"
+                },
+                "access_rules": {
+                    "example": [
+                        "rule1,rule2",
+                        "rule3,rule4",
+                        "{checkrule1, checkrule2}"
+                    ],
+                    "type": "array",
+                    "anyOf": [
+                        {
+                            "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. If rules in [] are matched, the location will be marked as reachable with glitches (yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                            "items": {
+                                "description": "Rules. Comma sperated for AND.",
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. If rules in [] are matched, the location will be marked as reachable with glitches (yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                            "items": {
+                                "description": "List of rules to be AND-ed together.",
+                                "type": "array",
+                                "items": {
+                                    "description": "A rule.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "visibility_rules": {                    
+                    "example": [
+                        "rule1,rule2",
+                        "rule3,rule4",
+                        "{checkrule1, checkrule2}"
+                    ],
+                    "type": "array",
+                    "anyOf": [
+                        {
+                            "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                            "items": {
+                                "description": "Rules. Comma sperated for AND.",
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                            "items": {
+                                "description": "List of rules to be AND-ed together.",
+                                "type": "array",
+                                "items": {
+                                    "description": "A rule.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "chest_unopened_img": {
+                    "description": "Image for all not cleared sections in this location. Children/sections can override this.",
+                    "type": "string"
+                },
+                "chest_opened_img": {
+                    "description": "Image for all cleared sections in this location. Children/sections can override this.",
+                    "type": "string"
+                },
+                "map_locations": {
+                    "description": "Position(s) on the map(s)",
+                    "type": "array",
+                    "items": {
+                        "description": "A position on a map",
+                        "type": "object",
+                        "properties": {
+                            "map": {
+                                "description": "The map identifier of the map for the location to be on.",
+                                "type": "string"
+                            },
+                            "x": {
+                                "description": "X (horizontal) position on the map in pixels relative to the maps image.",
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^\\s*-?[0-9]*\\s*$"
+                                    }
+                                ]
+                            },
+                            "y": {
+                                "description": "Y (vertical) position on the map in pixels relative to the maps image.",
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^\\s*-?[0-9]*\\s*$"
+                                    }
+                                ]
+                            },
+                            "size": {
+                                "description": "Overrides the location size defined on the map.",
+                                "anyOf": [
+                                    {
+                                        "type": "number",
+                                        "minimum": -1
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^\\s*-?[0-9]*\\s*$"
+                                    }
+                                ]
+                            },
+                            "border_thickness": {
+                                "description": "Overrides the location border thickness defined on the map.",
+                                "anyOf": [
+                                    {
+                                        "type": "number",
+                                        "minimum": -1
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^\\s*-?[0-9]*\\s*$"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "overlay_background": {
+                    "description": "Background color of the overlay text displaying the number of unopened chest in sections.",
+                    "type": "string",
+                    "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                },
+                "parent": {
+                    "description": "Overrides the locations parent. Needs a valid location code.",
+                    "type": "string"
+                },
+                "children": {
+                    "description": "Child locations of this location. Children will inherit all rules.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/location"
+                    }
+                },
+                "sections": {
+                    "description": "Sections of this location. Sections will inherit all rules.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/section"
+                    }
+                }
+            }
+        }
+    }
+}
