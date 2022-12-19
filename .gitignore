@@ -19,6 +19,7 @@ nbproject
 packs
 screenshots
 packlist
+pop-pack-create-versions
 
 # exclude tool chain dependant files
 win32-lib
