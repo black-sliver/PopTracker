@@ -630,14 +630,18 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             if (!node.getBackground().empty()) w->setBackground(node.getBackground());
             w->setGrow(1,1);
             w->setMinSize({200,200});
-            w->setLocationSize(map.getLocationSize());
-            w->setLocationBorder(map.getLocationBorderTickness());
             for (const auto& pair : _tracker->getMapLocations(mapname)) {
                 int state = 0; // this is done later to avoid calling into Lua
-                w->addLocation(pair.first, pair.second.getX(), pair.second.getY(), state);
+                w->addLocation(pair.first, pair.second.getX(), pair.second.getY(),
+                        pair.second.getSize(map.getLocationSize()),
+                        pair.second.getBorderThickness(map.getLocationBorderThickness()),
+                        state);
             }
+#ifndef NDEBUG
+            w->setBackground({0x00,0x00,0xff});
+#endif
             container->addChild(w);
-            
+
             w->onLocationHover += { this, [this](void* sender, std::string locid, int absX, int absY) {
                 // TODO: move this somewhere to increase readabil
                 // TODO: if tooltip is the same, just move it
