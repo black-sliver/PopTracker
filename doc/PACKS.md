@@ -132,7 +132,7 @@ a table representing an enum with the following constants: \
 * `int .MinCount`: set/get min amount for consumables (available since 0.21.0)
 * `int .MaxCount`: set/get max amount for consumables (available since 0.14.0)
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
-* `:SetOverlayBackground(string)`: set background: "#000000" is RGB, "" is transparent, only available in PopTracker, since 0.17.0
+* `:SetOverlayBackground(string)`: set background: "#000000" is (A)RGB, "" is transparent, only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Increment`: sets or gets the increment (left-click) value of consumables
@@ -207,7 +207,7 @@ a table representing an enum with the following constants: \
   + adds `"increment": 1` can be used if an item pickup is always a certain count, since 0.18.3
   + adds `"decrement": 1` can be used if using an item always uses up multiple, since 0.18.3
   + adds optional `"initial_quantity": 0`
-  + adds optional `"overlay_background": ""` set text background color with "#000000" notation
+  + adds optional `"overlay_background": ""` set text background color with "#000000" (A)RGB notation
   + adds optional `"overlay_font_size": 0` set font size of overlay text
   + adds alias `badge_font_size` for `overlay_font_size`
   
@@ -288,7 +288,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
             ],
             "chest_unopened_img": "path/to/chest.png", // default if children do not override
             "chest_opened_img": "path/to/chest.png",
-            "overlay_background": "#000000", // set background for number of unopened chests
+            "overlay_background": "#000000", // set background for number of unopened chests #(AA)RRGGBB
             "parent": "parent's name", // read below
             "children": [
                 {
@@ -405,7 +405,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 
     {
         "type":        "{container,dock,array,tabbed,group,item,itemgrid,map,layout,recentpins}",
-        "background":  "#xxxxxx", // background color
+        "background":  "#000000", // background color #(AA)RRGGBB
         "h_alignment": "{left,right,center,strech}",
         "v_alignment": "{top,bottom,center,strech}",
         "dock":        "{top,bottom,left,right}", // if inside a dock, where to dock

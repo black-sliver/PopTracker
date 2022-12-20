@@ -50,6 +50,18 @@ public:
                 b = hex(s[p+2],s[p+2]);
                 a = 0xff;
             }
+            else if (s.length()-p == 8) { // AARRGGBB
+                a = hex(s[p+0],s[p+1]);
+                r = hex(s[p+2],s[p+3]);
+                g = hex(s[p+4],s[p+5]);
+                b = hex(s[p+6],s[p+7]);
+            }
+            else if (s.length()-p == 4) { // ARGB -> AARRGGBB
+                a = hex(s[p+0],s[p+0]);
+                r = hex(s[p+1],s[p+1]);
+                g = hex(s[p+2],s[p+2]);
+                b = hex(s[p+3],s[p+3]);
+            }
             else {
                 r = 0; g = 0; b = 0; a = 0;
             }
