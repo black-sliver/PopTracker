@@ -15,6 +15,8 @@ public:
     struct Point {
         int x=0;
         int y=0;
+        int size=0;
+        int borderThickness=0;
     };
     
     struct Location {
@@ -23,10 +25,8 @@ public:
     };
     
     // TODO: enum location state
-    void addLocation(const std::string& name, int x, int y, int state=1);
+    void addLocation(const std::string& name, int x, int y, int size, int borderThickness, int state=1);
     void setLocationState(const std::string& name, int state);
-    void setLocationSize(int sz) { _locationSize = sz; }
-    void setLocationBorder(int sz) { _locationBorder = sz; }
     
     // FIXME: this does not work if name is not unique
     Signal<const std::string&,int,int> onLocationHover; // FIXME: we should provide absolute AND relative mouse position through the Event stack
@@ -37,8 +37,6 @@ public:
 protected:
     int _absX=0;
     int _absY=0;
-    int _locationSize = 8;
-    int _locationBorder = 1;
     std::map<std::string, Location> _locations;
     std::string _locationHover; // TODO; store iterator instead of string?
 private:

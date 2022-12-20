@@ -73,13 +73,17 @@ public:
         static MapLocation FromJSON(nlohmann::json& j);
     protected:
         std::string _mapName;
-        int _x=0; // TODO: point ?
-        int _y=0;
+        int _x = 0; // TODO: point ?
+        int _y = 0;
+        int _size = -1;
+        int _borderThickness = -1;
     public:
         // getters
         const std::string& getMap() const { return _mapName; }
         int getX() const { return _x; }
         int getY() const { return _y; }
+        int getSize(int parent) const { return _size < 1 ? parent : _size; }
+        int getBorderThickness(int parent) const { return _borderThickness < 0 ? parent : _borderThickness; }
     };
 
     static std::list<Location> FromJSON(nlohmann::json& j,

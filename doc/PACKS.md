@@ -303,7 +303,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                         {
                             "map": "map_name",
                             "x": 123,
-                            "y": 234
+                            "y": 234,
+                            "size": 24, // override map default, since 0.21.1
+                            "border_thickness": 2 // override map default, since 0.21.1
                         },
                         ... // having multiple locations seems to have problems?
                     ],

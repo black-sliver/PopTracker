@@ -17,7 +17,7 @@ protected:
 
 public:
     int getLocationSize() const { return _locationSize; }
-    int getLocationBorderTickness() const { return _locationBorderThickness; }
+    int getLocationBorderThickness() const { return _locationBorderThickness; }
     const std::string& getImage() const { return _img; } 
 };
 

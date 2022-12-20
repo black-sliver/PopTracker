@@ -93,12 +93,12 @@ void MapWidget::connectSignals()
         int y1 = y-dsty;
         x1 = (x1*srcw + dstw/2) / dstw;
         y1 = (y1*srch + dsth/2) / dsth;
-        int locsize = _locationSize + 2 * _locationBorder; // or without border?
         bool match = false;
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
             if (loc.state == -1) continue; // hidden
             for (const auto& pos: loc.pos) {
+                int locsize = pos.size + 2 * pos.borderThickness; // or without border?
                 int locleft = pos.x - locsize/2;
                 int loctop = pos.y - locsize/2;
                 if (locleft < 0) locleft = 0;
@@ -138,19 +138,19 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
     
     int srcw, srch, dstx, dsty, dstw, dsth;
     calculateSizes(offX+_pos.left, offY+_pos.top, srcw, srch, dstx, dsty, dstw, dsth);
-    // location icon size in screen space
-    int locScreenInnerW  = (_locationSize*dstw+srcw/2)/srcw;
-    int locScreenInnerH  = (_locationSize*dsth+srch/2)/srch;
-    if (locScreenInnerW<1) locScreenInnerW=1;
-    if (locScreenInnerH<1) locScreenInnerH=1;
-    int borderScreenSize = (_locationBorder*dstw+srcw/2)/srcw;
-    if (borderScreenSize<1 && _locationBorder>0) borderScreenSize=1;
-    int locScreenOuterW  = locScreenInnerW+2*borderScreenSize;
-    int locScreenOuterH  = locScreenInnerH+2*borderScreenSize;
     
     for (const auto& pair : _locations) {
         const auto& loc = pair.second;
         for (const auto& pos : loc.pos) {
+            // location icon size in screen space
+            int locScreenInnerW  = (pos.size*dstw+srcw/2)/srcw;
+            int locScreenInnerH  = (pos.size*dsth+srch/2)/srch;
+            if (locScreenInnerW<1) locScreenInnerW=1;
+            if (locScreenInnerH<1) locScreenInnerH=1;
+            int borderScreenSize = (pos.borderThickness*dstw+srcw/2)/srcw;
+            if (borderScreenSize<1 && pos.borderThickness>0) borderScreenSize=1;
+            int locScreenOuterW  = locScreenInnerW+2*borderScreenSize;
+            int locScreenOuterH  = locScreenInnerH+2*borderScreenSize;
             // calculate top left corner of squares
             int innerx = (pos.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
             int innery = (pos.y*dsth+srch/2)/srch - locScreenInnerH/2;
@@ -186,13 +186,13 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
     }
 }
 
-void MapWidget::addLocation(const std::string& id, int x, int y, int state)
+void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, int state)
 {
     auto it = _locations.find(id);
     if (it != _locations.end()) {
-        it->second.pos.push_back( {x,y} );
+        it->second.pos.push_back( {x, y, size, borderThickness} );
     } else {
-        _locations[id] = { { {x,y} },state};
+        _locations[id] = { { {x, y, size, borderThickness} }, state};
     }
 }
 void MapWidget::setLocationState(const std::string& id, int state)
