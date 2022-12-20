@@ -17,6 +17,7 @@ extern "C" {
 #include "core/log.h"
 #include "http/http.h"
 #include "ap/archipelago.h"
+#include "luaglue/luaenum.h"
 #include "luasandbox/require.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -875,6 +876,16 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     Lua(_L).Push(VERSION_STRING);
     lua_setglobal(_L, "PopVersion");
     
+    // enums
+    LuaEnum<AccessibilityLevel>({
+        {"None", AccessibilityLevel::NONE},
+        {"Partial", AccessibilityLevel::PARTIAL},
+        {"Inspect", AccessibilityLevel::INSPECT},
+        {"SequenceBreak", AccessibilityLevel::SEQUENCE_BREAK},
+        {"Normal", AccessibilityLevel::NORMAL},
+        {"Cleared", AccessibilityLevel::CLEARED},
+    }).Lua_SetGlobal(_L, "AccessibilityLevel");
+
     printf("Updating UI\n");
     _win->setTracker(_tracker);
     if (auto at = _scriptHost->getAutoTracker()) {

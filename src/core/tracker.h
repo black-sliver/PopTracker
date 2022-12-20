@@ -74,9 +74,10 @@ public:
     nlohmann::json saveState() const;
     bool loadState(nlohmann::json& state);
 
-    int isReachable(const Location& location, const LocationSection& section);
+    AccessibilityLevel isReachable(const Location& location, const LocationSection& section);
     bool isVisible(const Location& location, const LocationSection& section);
-    int isReachable(const Location& location);
+    AccessibilityLevel isReachable(const Location& location);
+    AccessibilityLevel isReachable(const LocationSection& location);
     bool isVisible(const Location& location);
 
     const Pack* getPack() const;
@@ -94,16 +95,18 @@ protected:
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
     std::map<std::string, Map> _maps;
-    std::map<std::string, int> _reachableCache;
+    std::map<std::string, AccessibilityLevel> _reachableCache;
     std::map<std::string, int> _providerCountCache;
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
 
-    int isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents);
+    std::list<std::string>* _parents = nullptr;
+
+    AccessibilityLevel isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents);
     bool isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents);
-    int isReachable(const Location& location, std::list<std::string>& parents);
+    AccessibilityLevel isReachable(const Location& location, std::list<std::string>& parents);
     bool isVisible(const Location& location, std::list<std::string>& parents);
-    int isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents);
+    AccessibilityLevel isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents);
 
 
 protected: // Lua interface implementation

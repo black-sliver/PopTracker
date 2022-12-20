@@ -7,11 +7,22 @@
 #include "../luaglue/luainterface.h"
 #include "../core/signal.h"
 
-    
+
+enum class AccessibilityLevel : int {
+    NONE = 0,
+    PARTIAL = 1,
+    INSPECT = 3,
+    SEQUENCE_BREAK = 5,
+    NORMAL = 6,
+    CLEARED = 7,
+};
+
+
 class LocationSection final : public LuaInterface<LocationSection> {
     friend class LuaInterface;
 public:
     static LocationSection FromJSON(nlohmann::json& j,
+            const std::string parentId,
             const std::list< std::list<std::string> >& parentAccessRules={},
             const std::list< std::list<std::string> >& parentVisibilityRules={},
             const std::string& closedImg="", const std::string& openedImg="",
@@ -19,6 +30,7 @@ public:
     Signal<> onChange;
 protected:
     std::string _name;
+    std::string _parentId;
     bool _clearAsGroup=true;
     std::string _closedImg;
     std::string _openedImg;
@@ -42,6 +54,7 @@ public:
     const std::string& getOpenedImage() const { return _openedImg; }
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
     const std::string& getOverlayBackground() const { return _overlayBackground; }
+    const std::string& getParentID() const { return _parentId; }
 
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);

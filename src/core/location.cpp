@@ -1,23 +1,49 @@
 #include "location.h"
 #include "jsonutil.h"
 #include "util.h"
+#include "tracker.h"
+
 using nlohmann::json;
 
 const LuaInterface<LocationSection>::MethodMap LocationSection::Lua_Methods = {};
+
 int LocationSection::Lua_Index(lua_State *L, const char *key)
 {
-    if (strcmp(key,"Owner")==0) {
+    if (strcmp(key, "Owner") == 0) {
         lua_newtable(L); // dummy
         return 1;
-    } else if (strcmp(key,"AvailableChestCount")==0) {
+    } else if (strcmp(key, "AvailableChestCount") == 0) {
         lua_pushinteger(L, _itemCount - _itemCleared);
         return 1;
-    } else if (strcmp(key,"ChestCount")==0) {
+    } else if (strcmp(key, "ChestCount")==0) {
         lua_pushinteger(L, _itemCount);
+        return 1;
+    } else if (strcmp(key, "AccessibilityLevel") == 0) {
+        lua_getglobal(L, "Tracker");
+        Tracker* tracker = Tracker::luaL_testthis(L, -1);
+        if (!tracker) return 0;
+        if (_itemCleared >= _itemCount) {
+            // if items are cleared, check if hosted items are collected
+            bool done = true;
+            for (auto& hosted: _hostedItems) {
+                if (tracker->ProviderCountForCode(hosted) < 1) {
+                    done = false;
+                    break;
+                }
+            }
+            if (done) {
+                // if yes, cleared
+                lua_pushinteger(L, (int)AccessibilityLevel::CLEARED);
+                return 1;
+            }
+        }
+        int res = (int)tracker->isReachable(*this);
+        lua_pushinteger(L, res);
         return 1;
     }
     return 0;
 }
+
 bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
 {
     if (strcmp(key,"AvailableChestCount")==0) {
@@ -198,7 +224,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
                     fprintf(stderr, "Location: bad section\n");
                     continue;
                 }
-                loc._sections.push_back(LocationSection::FromJSON(v, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
+                loc._sections.push_back(LocationSection::FromJSON(v, loc._id, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
             }
         } else if (!j["sections"].is_null()) {
             fprintf(stderr, "Location: invalid sections\n");
@@ -236,14 +262,17 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
     maploc._mapName = to_string(j["map"],"");
     maploc._x = to_int(j["x"],0);
     maploc._y = to_int(j["y"],0);    
+    maploc._size = to_int(j["size"],-1);
+    maploc._borderThickness = to_int(j["border_thickness"],-1);
     return maploc;
 }
 
 
-LocationSection LocationSection::FromJSON(json& j, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
+LocationSection LocationSection::FromJSON(json& j, const std::string parentId, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
 {
     // TODO: pass inherited values as parent instead
     LocationSection sec;
+    sec._parentId = parentId;
     sec._name = to_string(j["name"],sec._name);
     sec._clearAsGroup = to_bool(j["clear_as_group"],sec._clearAsGroup);
     sec._closedImg = to_string(j["chest_unopened_img"], closedImg);

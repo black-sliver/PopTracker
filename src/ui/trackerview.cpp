@@ -864,15 +864,15 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
 
         Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
 
-        int reachable = _tracker->isReachable(loc, sec);
+        auto reachable = _tracker->isReachable(loc, sec);
         bool cleared = false; // not implemented
 
         if (!sec.getName().empty()) {
             Label* lbl = new Label(0,0,0,0, _smallFont, sec.getName());
             if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
-            else if (reachable==0) lbl->setTextColor({255,32,32}); // unreachable: red
-            else if (reachable==2) lbl->setTextColor({255,255,32}); // glitches required: yellow
-            else if (reachable==3) lbl->setTextColor({48,64,255}); // checkable: blue
+            else if (reachable == AccessibilityLevel::NONE) lbl->setTextColor({255,32,32}); // unreachable: red
+            else if (reachable == AccessibilityLevel::SEQUENCE_BREAK) lbl->setTextColor({255,255,32}); // glitches required: yellow
+            else if (reachable == AccessibilityLevel::INSPECT) lbl->setTextColor({48,64,255}); // checkable: blue
             lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
             lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
             lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
@@ -941,12 +941,12 @@ int TrackerView::calculateLocationState(const std::string& locid)
             if (!match) continue;
         }
 
-        int reachable = _tracker->isReachable(loc, sec);
-        if (reachable==1) {
+        auto reachable = _tracker->isReachable(loc, sec);
+        if (reachable == AccessibilityLevel::NORMAL) {
             hasReachable = true;
-        } else if (reachable==0) {
+        } else if (reachable == AccessibilityLevel::NONE) {
             hasUnreachable = true;
-        } else if (reachable==3) {
+        } else if (reachable == AccessibilityLevel::INSPECT) {
             hasCheckable = true;
         } else {
             hasGlitchedReachable = true;

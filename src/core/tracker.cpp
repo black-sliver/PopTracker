@@ -503,10 +503,14 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
     return false; // nothing changed
 }
 
-int Tracker::isReachable(const Location& location, const LocationSection& section)
+AccessibilityLevel Tracker::isReachable(const Location& location, const LocationSection& section)
 {
-    std::list<std::string> parents;
-    return isReachable(location, section, parents);
+    if (_parents) {
+        return isReachable(location, section, *_parents);
+    } else {
+        std::list<std::string> parents;
+        return isReachable(location, section, parents);
+    }
 }
 
 bool Tracker::isVisible(const Location& location, const LocationSection& section)
@@ -515,10 +519,24 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
     return isVisible(location, section, parents);
 }
 
-int Tracker::isReachable(const Location& location)
+AccessibilityLevel Tracker::isReachable(const Location& location)
 {
-    std::list<std::string> parents;
-    return isReachable(location, parents);
+    if (_parents) {
+        return isReachable(location, *_parents);
+    } else {
+        std::list<std::string> parents;
+        return isReachable(location, parents);
+    }
+}
+
+AccessibilityLevel Tracker::isReachable(const LocationSection& section)
+{
+    for (const auto& loc: _locations) {
+        if (loc.getID() == section.getParentID()) {
+            return isReachable(loc, section);
+        }
+    }
+    return AccessibilityLevel::NONE;
 }
 
 bool Tracker::isVisible(const Location& location)
@@ -527,17 +545,17 @@ bool Tracker::isVisible(const Location& location)
     return isVisible(location, parents);
 }
 
-int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
+AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
 {
     // TODO: return enum instead of int
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
 
     bool glitchedReachable = false;
     bool checkOnlyReachable = false;
-    if (rules.empty()) return 1;
+    if (rules.empty()) return AccessibilityLevel::NORMAL;
     for (const auto& ruleset : rules) { //<-- these are all to be ORed
-        if (ruleset.empty()) return 1; // any empty rule set means true
-        int reachable = 1;
+        if (ruleset.empty()) return AccessibilityLevel::NORMAL; // any empty rule set means true
+        AccessibilityLevel reachable = AccessibilityLevel::NORMAL;
         bool checkOnly = false;
         for (const auto& rule: ruleset) { //<-- these are all to be ANDed
             if (rule.empty()) continue; // empty/missing code is true
@@ -569,21 +587,24 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
             }
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
+#if 0
                 if (s[0] != '@') { // value is count
                     if (it->second >= count) continue;
                     if (optional) {
-                        reachable = 2;
+                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
                     } else {
-                        reachable = 0;
+                        reachable = AccessibilityLevel::NONE;
                         break;
                     }
-                } else { // value is glitched/not glitched
-                    int sub = it->second;
-                    if (!checkOnly && sub==3) sub=0; // or set checkable = true?
-                    else if (optional && sub==0) sub=2;
-                    else if (sub==0) reachable = 0;
-                    if (sub==2 && reachable) reachable = 2;
-                    if (!reachable) break;
+                } else
+#endif
+                { // value is glitched/not glitched
+                    auto sub = it->second;
+                    if (!checkOnly && sub == AccessibilityLevel::INSPECT) sub = AccessibilityLevel::NONE; // or set checkable = true?
+                    else if (optional && sub == AccessibilityLevel::NONE) sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE) reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE) reachable = AccessibilityLevel::SEQUENCE_BREAK;
+                    if (reachable == AccessibilityLevel::NONE) break;
                 }
             }
             // '@' references other locations
@@ -593,14 +614,15 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                 std::string locid = s.substr(1);
                 auto& loc = getLocation(locid, true);
                 bool match = false;
-                int sub = 0;
+                AccessibilityLevel sub = AccessibilityLevel::NONE;
                 if (!t && loc.getID().empty()) {
                     printf("Invalid location %s for access rule!\n",
                             sanitize_print(s).c_str());
                     continue; // invalid location
                 } else if (!loc.getID().empty()) {
                     // @-Rule for location, not a section
-                    sub = visibilityRules ? isVisible(loc, parents) : isReachable(loc, parents); // check location visibility for isVisible
+                    if (visibilityRules) sub = isVisible(loc, parents) ? AccessibilityLevel::NORMAL : AccessibilityLevel::NONE;
+                    else sub = isReachable(loc, parents);
                     match = true;
                 } else {
                     // @-Rule for a section (also run for missing location)
@@ -609,54 +631,62 @@ int Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool 
                     auto& subloc = getLocation(sublocid, true);
                     for (auto& subsec: subloc.getSections()) {
                         if (subsec.getName() != subsecname) continue;
-                        sub = visibilityRules ? isVisible(subloc, subsec, parents) : isReachable(subloc, subsec, parents); // check subsection visibility for isVisible
+                        if (visibilityRules) sub = isVisible(subloc, subsec, parents) ? AccessibilityLevel::NONE : AccessibilityLevel::NONE;
+                        else sub = isReachable(subloc, subsec, parents);
                         match = true;
                         break;
                     }
                 }
                 if (match) {
                     if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
-                    if (!checkOnly && sub==3) sub=0; // or set checkable = true?
-                    else if (optional && sub==0) sub=2;
-                    else if (sub==0) reachable = 0;
-                    if (sub==2 && reachable) reachable = 2;
+                    // combine current state with sub-result
+                    if (!checkOnly && sub == AccessibilityLevel::INSPECT) sub = AccessibilityLevel::NONE; // or set checkable = true?
+                    else if (optional && sub == AccessibilityLevel::NONE) sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE) reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE) reachable = AccessibilityLevel::SEQUENCE_BREAK;
                 } else {
                     printf("Could not find location %s for access rule!\n",
                             sanitize_print(s).c_str());
                 }
-                if (!reachable) break;
+                if (reachable == AccessibilityLevel::NONE) break;
             }
             // '$' calls into Lua, now also supported by ProviderCountForCode
             // other: references codes (with or without count)
             else {
+                _parents = &parents;
                 int n = ProviderCountForCode(s);
-                _reachableCache[s] = n;
+                _parents = nullptr;
+#if 0
+                _reachableCache[s] = n; // FIXME: test if commenting this out has an impact
+#endif
                 if (n >= count) continue;
                 if (optional) {
-                    reachable = 2;
+                    reachable = AccessibilityLevel::SEQUENCE_BREAK;
                 } else {
-                    reachable = 0;
+                    reachable = AccessibilityLevel::NONE;
                     break;
                 }
             }
         }
-        if (reachable==1 && !checkOnly) return 1;
-        else if (reachable /*== 1*/ && checkOnly) checkOnlyReachable = true;
-        if (reachable==2) glitchedReachable = true; 
+        if (reachable == AccessibilityLevel::NORMAL && !checkOnly) return AccessibilityLevel::NORMAL;
+        else if (reachable != AccessibilityLevel::NONE /*== 1*/ && checkOnly) checkOnlyReachable = true;
+        if (reachable == AccessibilityLevel::SEQUENCE_BREAK) glitchedReachable = true;
     }
-    return glitchedReachable ? 2 : checkOnlyReachable ? 3 : 0;
+    return glitchedReachable ? AccessibilityLevel::SEQUENCE_BREAK :
+           checkOnlyReachable ? AccessibilityLevel::INSPECT :
+               AccessibilityLevel::NONE;
 }
 
-int Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents)
+AccessibilityLevel Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
     std::string id = location.getID() + "/" + section.getName();
     if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
         printf("access_rule recursion detected: %s!\n", id.c_str());
         // returning 0 here should mean this path is unreachable, other paths that are logical "or" should be resolved
-        return 0;
+        return AccessibilityLevel::NONE;
     }
     parents.push_back(id);
-    int res = isReachable(section.getAccessRules(), false, parents);
+    auto res = isReachable(section.getAccessRules(), false, parents);
     parents.pop_back();
     return res;
 }
@@ -669,19 +699,19 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
         return 0;
     }
     parents.push_back(id);
-    int res = isReachable(section.getVisibilityRules(), true, parents);
+    auto res = isReachable(section.getVisibilityRules(), true, parents);
     parents.pop_back();
-    return res;
+    return (res != AccessibilityLevel::NONE);
 }
 
-int Tracker::isReachable(const Location& location, std::list<std::string>& parents)
+AccessibilityLevel Tracker::isReachable(const Location& location, std::list<std::string>& parents)
 {
     if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
         printf("access_rule recursion detected: %s!\n", location.getID().c_str());
-        return 0;
+        return AccessibilityLevel::NONE;
     }
     parents.push_back(location.getID());
-    int res = isReachable(location.getAccessRules(), false, parents);
+    auto res = isReachable(location.getAccessRules(), false, parents);
     parents.pop_back();
     return res;
 }
@@ -693,9 +723,9 @@ bool Tracker::isVisible(const Location& location, std::list<std::string>& parent
         return 0;
     }
     parents.push_back(location.getID());
-    int res = isReachable(location.getVisibilityRules(), true, parents);
+    auto res = isReachable(location.getVisibilityRules(), true, parents);
     parents.pop_back();
-    return res;
+    return (res != AccessibilityLevel::NONE);
 }
 
 LuaItem * Tracker::CreateLuaItem()

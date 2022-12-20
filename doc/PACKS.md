@@ -92,6 +92,12 @@ The following interfaces are provided:
 a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 
 
+### global AccessibilityLevel (enum)
+
+a table representing an enum with the following constants: \
+`None`, `Partial`, `Inspeect`, `SequenceBreak`, `Normal`, `Cleared`
+
+
 ### type LuaItem
 
 `use ImageRef = string`
@@ -139,6 +145,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 * `.Owner`: returns empty table at the moment, see [Locations](#locations)
 * `.ChestCount`: how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
+* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
 
 
 ## JSON

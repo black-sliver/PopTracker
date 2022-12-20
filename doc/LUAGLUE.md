@@ -22,6 +22,11 @@ struct LuaRef helper to distinguish between integers and references
     bool ::valid() true if ref is set
 ```
 ```
+class LuaEnum<T> helper to define a table that maps names -> values of type T
+    ::Lua_Push(L) pushes the table to the lua stack
+    ::Lua_SetGlobal(L, name) assigns the table to a global variable
+```
+```
 class Lua provides a wrapper around lua state, for now we mix it with regular lua_* calls
     ::Lua(L) create wrapper for existing lua state L
     ::Push(...) push value onto lua stack, based on type
