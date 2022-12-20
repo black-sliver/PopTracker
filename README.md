@@ -61,6 +61,7 @@ repositories, follow updates and get support.
 | Orange | Some (but not all) checks at this location are accessible. |
 | Green  | All checks at this location are logically accessible. |
 | Blue   | The check at this location is visible, but you cannot currently access the check. |
+| Other  | Locations with mixed accessibility checks will have the corresponding colors mixed. |
 
 
 ## Auto-tracking
