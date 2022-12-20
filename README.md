@@ -52,6 +52,25 @@ See [BUILD.md](BUILD.md).
 Join the [Community Discord](https://discord.com/invite/gwThqMCPgK) to find pack
 repositories, follow updates and get support.
 
+## Location Color Key
+
+### Red
+This check is not currently accessible.
+
+### Yellow
+This check is not logically accessible, but the location can be reached through
+alternate methods (eg. glitches, breaking key logic)
+
+### Orange
+Some (but not all) checks at this location are accessible.
+
+### Green
+All checks at this location are logically accessible.
+
+### Blue
+The check at this location is visible, but you cannot currently access the check.
+
+
 ## Auto-tracking
 ### SNES Games
 Requires [SNI](https://github.com/alttpo/sni)
