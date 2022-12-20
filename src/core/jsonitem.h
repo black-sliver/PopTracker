@@ -31,6 +31,7 @@ public:
         std::list<std::string> _imgMods;
         std::list<std::string> _disabledImgMods;
         bool _inheritCodes = true;
+        std::string _name;
 
     public:
         static Stage FromJSON(nlohmann::json& j);
@@ -51,6 +52,7 @@ public:
             return std::find(_secondaryCodes.begin(), _secondaryCodes.end(), code) != _secondaryCodes.end();
         }
         const bool getInheritCodes() const { return _inheritCodes; }
+        const std::string& getName() const { return _name; }
     };
     
 protected:
@@ -87,6 +89,12 @@ public:
         return _disabledImgMods;
     }
     
+    virtual const std::string& getCurrentName() const override {
+        if ((int)_stages.size() > _stage2 && !_stages[_stage2].getName().empty())
+            return _stages[_stage2].getName();
+        return _name;
+    }
+
     virtual bool canProvideCode(const std::string& code) const override {
 #ifdef JSONITEM_CI_QUIRK
         auto cmp = [&code](const std::string& s) {

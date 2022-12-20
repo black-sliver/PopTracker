@@ -65,7 +65,7 @@ public:
     const LayoutNode& getLayout(const std::string& name) const;
     bool hasLayout(const std::string& name) const;
     const BaseItem& getItemByCode(const std::string& code) const;
-    const BaseItem& getItemById(const std::string& id) const;
+    BaseItem& getItemById(const std::string& id);
     const Map& getMap(const std::string& name) const;
     std::list<std::string> getMapNames() const;
     std::list< std::pair<std::string, Location::MapLocation> > getMapLocations(const std::string& mapname) const;

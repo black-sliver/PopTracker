@@ -147,12 +147,21 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
             if (_btnPackSettings) _btnPackSettings->setVisible(tracker->hasLayout("settings_popup"));
             setTracker(tracker); // reevaluate preferred and fall-back layout
         }};
-        _view->onItemHover += {this, [this,tracker](void *s, const std::string& itemid) {
+        _view->onItemHover += {this, [this, tracker](void *s, const std::string& itemid) {
+            if (!_lastHoverItem.empty()) {
+                auto& item = tracker->getItemById(itemid);
+                item.onChange -= this;
+            }
             if (itemid.empty()) _lblTooltip->setText("");
             else {
-                const auto& item = tracker->getItemById(itemid);
-                _lblTooltip->setText(item.getName()); 
+                auto& item = tracker->getItemById(itemid);
+                _lblTooltip->setText(item.getCurrentName());
+                item.onChange += {this, [this, tracker, itemid](void* sender) {
+                    const auto& item = tracker->getItemById(itemid);
+                    _lblTooltip->setText(item.getCurrentName());
+                }};
             }
+            _lastHoverItem = itemid;
         }};
         if (_btnReload) _btnReload->setVisible(true);
         if (_btnImport) _btnImport->setVisible(true);

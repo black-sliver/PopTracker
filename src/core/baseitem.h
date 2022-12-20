@@ -90,6 +90,7 @@ public:
     virtual ~BaseItem() {}
     
     const std::string& getName() const { return _name; }
+    virtual const std::string& getCurrentName() const { return _name; }
     const std::string& getID() const { return _id; }
     const std::string& getBaseItem() const { return _baseItem; }
     const Type getType() const { return _type; }

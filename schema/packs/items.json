@@ -147,6 +147,10 @@
                     },
                     "disabled_img_mods": {
                         "$ref": "#/$defs/disabled_img_mods"
+                    },
+                    "name": {
+                        "description": "Readable name of the stage for tooltip.",
+                        "type": "string"
                     }
                 }
             }

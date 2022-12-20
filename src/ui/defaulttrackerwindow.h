@@ -47,6 +47,7 @@ protected:
     std::vector<std::string> _autoTrackerNames;
     std::vector<std::string> _autoTrackerSubNames;
     float _aspectRatio = 1;
+    std::string _lastHoverItem;
 
     virtual void setTracker(Tracker *tracker, const std::string& layout) override;
 };

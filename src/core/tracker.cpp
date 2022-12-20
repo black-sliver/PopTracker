@@ -418,12 +418,12 @@ const BaseItem& Tracker::getItemByCode(const std::string& code) const
     
     return blankItem;
 }
-const BaseItem& Tracker::getItemById(const std::string& id) const
+BaseItem& Tracker::getItemById(const std::string& id)
 {
-    for (const auto& item: _jsonItems) {
+    for (auto& item: _jsonItems) {
         if (item.getID() == id) return item;
     }
-    for (const auto& item: _luaItems) {
+    for (auto& item: _luaItems) {
         if (item.getID() == id) return item;
     }
     return blankItem;

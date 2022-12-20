@@ -176,7 +176,8 @@ a table representing an enum with the following constants: \
                 "secondary_codes": "state_identifier", // unused at the moment
                 "inherit_codes": false,
                 "img_mods": "@disabled",
-                "disabled_img_mods": "..."
+                "disabled_img_mods": "...",
+                "name": "optional name override" // since 0.21.1
             },
             ...
         ]

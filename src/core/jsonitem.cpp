@@ -127,6 +127,7 @@ JsonItem::Stage JsonItem::Stage::FromJSON(json& j)
     stage._img          = to_string(j["img"], "");
     stage._disabledImg  = to_string(j["disabled_img"], stage._img);
     stage._inheritCodes = to_bool(j["inherit_codes"], true);
+    stage._name         = to_string(j["name"], "");
     
     commasplit(to_string(j["codes"], ""), stage._codes);
     commasplit(to_string(j["secondary_codes"], ""), stage._secondaryCodes);
