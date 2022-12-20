@@ -54,20 +54,20 @@ repositories, follow updates and get support.
 
 ## Location Color Key
 
-### Red
+#### Red
 This check is not currently accessible.
 
-### Yellow
+#### Yellow
 This check is not logically accessible, but the location can be reached through
 alternate methods (eg. glitches, breaking key logic)
 
-### Orange
+#### Orange
 Some (but not all) checks at this location are accessible.
 
-### Green
+#### Green
 All checks at this location are logically accessible.
 
-### Blue
+#### Blue
 The check at this location is visible, but you cannot currently access the check.
 
 
