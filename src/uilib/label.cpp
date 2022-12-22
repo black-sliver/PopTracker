@@ -11,7 +11,7 @@ Label::Label(int x, int y, int w, int h, FONT font, const std::string& text)
     int autoW=0, autoH=0;
     if (_font && !_text.empty()) SizeText(_font, _text.c_str(), &autoW, &autoH);
     _autoSize = { autoW, autoH };
-    _minSize = _autoSize; // until we support streching or elipsis
+    _minSize = _autoSize; // until we support stretching or ellipsis
 }
 Label::~Label()
 {
@@ -93,7 +93,7 @@ void Label::setText(const std::string& text)
     int autoW=0, autoH=0;
     if (_font && !_text.empty()) SizeText(_font, _text.c_str(), &autoW, &autoH);
     _autoSize = { autoW, autoH };
-    _minSize = _autoSize; // until we support streching or elipsis
+    _minSize = _autoSize; // until we support stretching or ellipsis
     if (_tex) SDL_DestroyTexture(_tex);
     _tex = nullptr;
 }

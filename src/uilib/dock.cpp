@@ -162,7 +162,7 @@ void Dock::relayout()
             (*childIt)->setHeight(bottom-top);
             // keep width as-is unless it's used vbox-like
 #if 1 // make last child fill available space
-            // TODO: only if hAlignment=strech
+            // TODO: only if hAlignment=stretch
             if (!nUndefined && *childIt == _children.back()) {
                 (*childIt)->setWidth(right-left);
             }
@@ -185,7 +185,7 @@ void Dock::relayout()
             (*childIt)->setWidth(right-left);
             // keep height as-is
 #if 1 // make last child fill available space
-            // TODO: only if vAlignment=strech
+            // TODO: only if vAlignment=stretch
             if (!nUndefined && *childIt == _children.back()) {
                 (*childIt)->setHeight(bottom-top);
             }

@@ -49,8 +49,8 @@ This needs a lot of work still.
   - autom. `maxSize`: future (required to transfer manual maxSize to parents)
   - `autoSize`: always, what size (or aspect ratio) the actual content has
   - `preferredSize`: future (lets child tell the size it wants)
-  - `hGrow`: future; original has `"h_alignment": "strech"` though
-  - `vGrow`: future; original has `"v_alignment": "strech"` though
+  - `hGrow`: future; original has `"h_alignment": "stretch"` though
+  - `vGrow`: future; original has `"v_alignment": "stretch"` though
   - `hGravity`: future; original has `"h_alignment"` though
   - `vGravity`: future; original has `"v_alignment"` though
 
