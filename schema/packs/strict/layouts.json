@@ -788,12 +788,12 @@
                         {
                             "description": "Margin values for the layout in the format of left,top,right,bottom.",
                             "type": "string",
-                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){3}[0-9]+\\s*$"
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){3}-?[0-9]+\\s*$"
                         },
                         {
                             "description": "Margin values for the layout in the format of x,y.",
                             "type": "string",
-                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
                         },
                         {
                             "description": "Margin value for the layout.",
@@ -806,7 +806,7 @@
                         {
                             "description": "Margin value for the child/item(s) in the format of x,y.",
                             "type": "string",
-                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
                         },
                         {
                             "description": "Margin value for the child/item(s).",
