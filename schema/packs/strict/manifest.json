@@ -2,7 +2,7 @@
     "$id": "https://poptracker.github.io/schema/packs/strict/mainfest.json",
     "allOf": [
         {
-            "$ref": "/schema/packs/manifest.json"
+            "$ref": "../manifest.json"
         },
         {
             "properties": {
