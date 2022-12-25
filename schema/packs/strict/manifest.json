@@ -2,11 +2,17 @@
     "$id": "https://poptracker.github.io/schema/packs/strict/mainfest.json",
     "allOf": [
         {
-            "$ref": "/schema/packs/manifest.json",
-            "additionalProperties": false
+            "$ref": "../manifest.json"
         },
         {
             "properties": {
+                "name": true,
+                "package_uid": true,
+                "package_version": true,
+                "platform": true,
+                "versions_url": true,
+                "game_name": true,
+                "author": true,
                 "variants": {
                     "$comment": "Enforce known flags",
                     "description": "Variants for the pack. Property keys are the pack variant uids.",
@@ -15,7 +21,6 @@
                         "^$": {
                             "description": "A pack variant.",
                             "type": "object",
-                            
                             "properties": {
                                 "display_name": {
                                     "description": "Display name of the pack variant.",
@@ -35,6 +40,7 @@
                                     }
                                 }
                             },
+                            "additionalProperties": false,
                             "required": [
                                 "display_name"
                             ]
@@ -60,11 +66,13 @@
                                         ]
                                     }
                                 }
-                            }
+                            },
+                            "additionalProperties": false
                         }
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         }
     ]
 }
