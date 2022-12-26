@@ -1,0 +1,20 @@
+[
+	{
+		"name": "Red",
+		"type": "toggle",
+		"img": "images/red.png",
+		"codes": "r"
+    },
+    {
+		"name": "Green",
+		"type": "toggle",
+		"img": "images/green.png",
+		"codes": "g"
+    },
+    {
+		"name": "Blue",
+		"type": "toggle",
+		"img": "images/blue.png",
+		"codes": "b"
+    }
+]

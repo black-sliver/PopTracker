@@ -37,6 +37,13 @@ jobs:
           pack: examples/hosted_item
           strict: true
 
+      - name: Check luminosity-test
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/luminosity-test
+          strict: true
+
       - name: Check margin-test
         uses: PopTracker/pack-checker-action@v1
         with:
