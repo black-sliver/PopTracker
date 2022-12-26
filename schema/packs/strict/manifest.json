@@ -35,7 +35,8 @@
                                         "enum": [
                                             "ap",
                                             "hirom",
-                                            "lorom"
+                                            "lorom",
+                                            "uat"
                                         ]
                                     }
                                 }
@@ -62,7 +63,8 @@
                                         "enum": [
                                             "ap",
                                             "hirom",
-                                            "lorom"
+                                            "lorom",
+                                            "uat"
                                         ]
                                     }
                                 }
