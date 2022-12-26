@@ -3,10 +3,12 @@ name: Check examples
 on:
   push:
     paths:
+      - '.github/workflows/check-examples.yaml'
       - 'schema/packs/**'
       - 'examples/**'
   pull_request:
     paths:
+      - '.github/workflows/check-examples.yaml'
       - 'schema/packs/**'
       - 'examples/**'
   workflow_dispatch:
@@ -26,27 +28,32 @@ jobs:
         with:
           schema: schema/packs/
           pack: examples/ap-storage-example
+          strict: true
 
       - name: Check hosted_item
         uses: PopTracker/pack-checker-action@v1
         with:
           schema: schema/packs/
           pack: examples/hosted_item
+          strict: true
 
       - name: Check margin-test
         uses: PopTracker/pack-checker-action@v1
         with:
           schema: schema/packs/
           pack: examples/margin-test
+          strict: true
 
       - name: Check template_pack
         uses: PopTracker/pack-checker-action@v1
         with:
           schema: schema/packs/
           pack: examples/template_pack
+          strict: true
 
       - name: Check uat-example
         uses: PopTracker/pack-checker-action@v1
         with:
           schema: schema/packs/
           pack: examples/uat-example
+          strict: true
