@@ -1,0 +1,52 @@
+name: Check examples
+
+on:
+  push:
+    paths:
+      - 'schema/packs/**'
+      - 'examples/**'
+  pull_request:
+    paths:
+      - 'schema/packs/**'
+      - 'examples/**'
+  workflow_dispatch:
+
+jobs:
+
+  check-examples:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Check ap-storage-example
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/ap-storage-example
+
+      - name: Check hosted_item
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/hosted_item
+
+      - name: Check margin-test
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/margin-test
+
+      - name: Check template_pack
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/template_pack
+
+      - name: Check uat-example
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/uat-example
