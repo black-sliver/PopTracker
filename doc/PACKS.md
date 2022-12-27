@@ -433,6 +433,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 * `"layout"`: pastes a different named object here (`"key": "name_of_layout"`)
 * `"recentpins"`: pinned items, uses `{"style":"{wrapped,?}","compact":bool}`
 * `"text"`: has property `"text": "string"` to display a string
+* `"canvas"`: has width, height and content - children have width, height, canvas_top and canvas_left; since 0.21.1
 
 **Margin:**
 

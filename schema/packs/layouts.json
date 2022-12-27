@@ -104,7 +104,7 @@
             "then": {
                 "properties": {
                     "width": {
-                        "description": "Width of the canvas. Not implemented yet.",
+                        "description": "Width of the canvas.",
                         "anyOf": [
                             {
                                 "type": "number",
@@ -117,7 +117,7 @@
                         ]
                     },
                     "height": {
-                        "description": "Height of the canvas. Not implemented yet.",
+                        "description": "Height of the canvas.",
                         "anyOf": [
                             {
                                 "type": "number",
@@ -130,7 +130,7 @@
                         ]
                     },
                     "content": {
-                        "description": "Content of the canvas. Not implemented yet.",
+                        "description": "Content of the canvas.",
                         "type": "array",
                         "items": {
                             "allOf": [
@@ -152,7 +152,7 @@
                                             ]
                                         },
                                         "canvas_top": {
-                                            "description": "Distance to top egde of canvas of the item. Not implemented yet.",
+                                            "description": "Distance to top egde of canvas of the item.",
                                             "anyOf": [
                                                 {
                                                     "type": "number"
@@ -164,7 +164,7 @@
                                             ]
                                         },
                                         "canvas_left": {
-                                            "description": "Distance to left egde of canvas of the item. Not implemented yet.",
+                                            "description": "Distance to left egde of canvas of the item.",
                                             "anyOf": [
                                                 {
                                                     "type": "number"
@@ -176,7 +176,7 @@
                                             ]
                                         },
                                         "width": {
-                                            "description": "Width of item in canvas. Not implemented yet.",
+                                            "description": "Width of item in canvas.",
                                             "anyOf": [
                                                 {
                                                     "type": "number",
@@ -189,7 +189,7 @@
                                             ]
                                         },
                                         "height": {
-                                            "description": "Height of item in canvas. Not implemented yet.",
+                                            "description": "Height of item in canvas.",
                                             "anyOf": [
                                                 {
                                                     "type": "number",
@@ -638,7 +638,8 @@
                         "map",
                         "layout",
                         "recentpins",
-                        "text"
+                        "text",
+                        "canvas"
                     ]
                 },
                 "background": {
@@ -802,6 +803,9 @@
                 },
                 {
                     "$ref": "#/$defs/text_type_if_block"
+                },
+                {
+                    "$ref": "#/$defs/canvas_type_if_block"
                 }
             ]
         }
