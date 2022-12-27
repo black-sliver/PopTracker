@@ -121,6 +121,7 @@ protected:
     SDL_Cursor *_cursor = nullptr;
     static SDL_Cursor *_defaultCursor;
     Spacing _margin = {0,0,0,0};
+    bool _dropShadow = false;
     
 public:
     virtual ~Widget()
@@ -188,6 +189,9 @@ public:
     
     void setVisible(bool visible) { _visible = visible; }
     bool getVisible() const { return _visible; }
+
+    void setDropShaodw(bool dropShadow) { _dropShadow = dropShadow; }
+    bool getDropShadow() const { return _dropShadow; }
 
     virtual bool isHover(Widget* w) const { return (w == this); }
 

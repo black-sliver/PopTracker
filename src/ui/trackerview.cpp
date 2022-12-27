@@ -454,6 +454,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     
     if (node.getType() == "container" || node.getType() == "tab") {
         Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight());
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
@@ -468,6 +469,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (sz.y>0) height = sz.y;
         
         Dock *w = new Dock(0,0,width,height);
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         if (maxSz.x > 0) w->setMaxSize( {maxSz.x, w->getMaxWidth()} );
         if (maxSz.y > 0) w->setMaxSize( {w->getMaxHeight(), maxSz.y} );
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
@@ -492,6 +494,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             vbox->setSpacing(0);
             w = vbox;
         }
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         auto dfltMargin = (dynamic_cast<HBox*>(container) || dynamic_cast<VBox*>(container))
                 ? LayoutNode::Spacing{0,0,0,0} : LayoutNode::Spacing{5,5,5,5};
         auto m = node.getMargin(dfltMargin);
@@ -505,6 +508,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         //       1 child per tab + 1 title per tab
         //       + a private hbox for tab buttons
         Tabs *w = new Tabs(0,0,container->getWidth(),container->getHeight(),_font);
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         for (const auto& childnode: children) {
@@ -528,7 +532,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     }
     else if (node.getType() == "group") {
         Container *w = new Group(0,0,0,0,_font,node.getHeader());
-        if (!node.getBackground().empty()) w->setBackground(node.getBackground());
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
+        if (!node.getBackground().empty())
+            w->setBackground(node.getBackground());
+        else if (w->getDropShadow())
+            w->setBackground({"#7f000000"});
+        else
+            w->setBackground({"#4a000000"});
         addLayoutNodes(w, children, depth+1);
         container->addChild(w);
     }
@@ -538,6 +548,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (maxSz.x>0 && sz.x<1) sz.x = maxSz.x;
         if (maxSz.y>0 && sz.y<1) sz.y = maxSz.y;
         Item *w = makeItem(0,0,sz.x,sz.y, _tracker->getItemByCode(node.getItem()));
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setImageAlignment(str2itemHalign(node.getItemHAlignment()), str2itemValign(node.getItemVAlignment()));
         if (maxSz.x > 0) w->setMaxSize( {maxSz.x, w->getMaxWidth()} );
         if (maxSz.y > 0) w->setMaxSize( {w->getMaxHeight(), maxSz.y} );
@@ -564,6 +575,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             if (row.size()>colCount) colCount = row.size();
         }
         Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight()); // TODO: itemgrid
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         auto m = node.getMargin();
         w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
@@ -625,6 +637,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             std::string s;
             _tracker->getPack()->ReadFile(f, s);
             MapWidget *w = new MapWidget(0,0,0,0, s.c_str(),s.length());
+            w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
             _maps[mapname].push_back(w);
             w->setQuality(2);
             if (!node.getBackground().empty()) w->setBackground(node.getBackground());
@@ -789,6 +802,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     }
     else if (node.getType() == "text") {
         Label *w = new Label(0,0,0,0, _font, node.getText());
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         Label::HAlign halign = Label::HAlign::LEFT;
         Label::VAlign valign = Label::VAlign::TOP;
         if (node.getHAlignment() == "center")
