@@ -24,10 +24,22 @@ Group::Group(int x, int y, int w, int h, FONT font, const std::string& title)
 
 void Group::render(Renderer renderer, int offX, int offY)
 {
+    if (_backgroundColor.a > 0) {
+        const auto& c = _backgroundColor;
+        SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+        SDL_Rect r = { offX+_pos.left-_margin.left,
+                       offY+_pos.top-_margin.top,
+                       _size.width+_margin.left+_margin.right,
+                       _size.height+_margin.top+_margin.bottom
+        };
+        SDL_RenderFillRect(renderer, &r);
+    }
     SDL_SetRenderDrawColor(renderer, TITLE_BG.r, TITLE_BG.g, TITLE_BG.b, TITLE_BG.a);
     SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, TITLE_HEIGHT };
     SDL_RenderFillRect(renderer, &r);
-    VBox::render(renderer, offX, offY);
+    for (auto& child: _children)
+        if (child->getVisible())
+            child->render(renderer, offX+_pos.left, offY+_pos.top);
 }
 
 } // namespace

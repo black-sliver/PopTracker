@@ -96,6 +96,9 @@ public:
     Size getItemMargin() const { return _itemMargin; }
     const std::string& getItemHAlignment() const { return _itemHAlign; }
     const std::string& getItemVAlignment() const { return _itemVAlign; }
+    OptionalBool getDropShadow() const { return _dropShadow; }
+    bool getDropShadow(bool dflt) const { return _dropShadow == OptionalBool::True ? true :
+                                                 _dropShadow == OptionalBool::False ? false : dflt; }
 };
 
 constexpr const LayoutNode::Spacing LayoutNode::Spacing::UNDEFINED = {INT_MIN, INT_MIN, INT_MIN, INT_MIN};
