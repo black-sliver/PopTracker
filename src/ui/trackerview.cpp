@@ -5,6 +5,7 @@
 #include "../uilib/vbox.h"
 #include "../uilib/dock.h"
 #include "../uilib/tabs.h"
+#include "../uilib/canvas.h"
 #include "../core/fileutil.h"
 #include "../core/assets.h"
 #include "item.h"
@@ -460,6 +461,21 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         addLayoutNodes(w, children, depth+1);
         container->addChild(w);
     }
+    else if (node.getType() == "canvas") {
+        Container *w = new Canvas(0, 0, node.getSize().x, node.getSize().y);
+        w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
+        if (!node.getBackground().empty()) w->setBackground(node.getBackground());
+        addLayoutNodes(w, children, depth+1);
+        auto dfltMargin = LayoutNode::Spacing{5,5,5,5};
+        auto m = node.getMargin(dfltMargin);
+        printf("margin: %d %d %d %d\n", m.left, m.top, m.right, m.bottom);
+        w->setMargin({m.left, m.top, m.right, m.bottom});
+        Ui::Size size = {node.getSize().x, node.getSize().y};
+        w->setSize(size);
+        w->setMinSize(size);
+        w->setMaxSize(size);
+        container->addChild(w);
+    }
     else if (node.getType() == "dock") {
         int width=container->getWidth()/2;   // NOTE: this is not ideal, but a
         int height=container->getHeight()/2; // preset is required at the moment
@@ -547,7 +563,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         auto maxSz = node.getMaxSize();
         if (maxSz.x>0 && sz.x<1) sz.x = maxSz.x;
         if (maxSz.y>0 && sz.y<1) sz.y = maxSz.y;
-        Item *w = makeItem(0,0,sz.x,sz.y, _tracker->getItemByCode(node.getItem()));
+        auto layoutSz = node.getSize();
+        if (layoutSz.x > 0 && layoutSz.y > 0) {
+            sz.x = layoutSz.x;
+            sz.y = layoutSz.y;
+        }
+        Item *w = makeItem(node.getPosition().x, node.getPosition().y,
+                sz.x, sz.y, _tracker->getItemByCode(node.getItem()));
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setImageAlignment(str2itemHalign(node.getItemHAlignment()), str2itemValign(node.getItemVAlignment()));
         if (maxSz.x > 0) w->setMaxSize( {maxSz.x, w->getMaxWidth()} );

@@ -74,6 +74,8 @@ protected:
     std::list< std::list< std::string > > _rows;
     std::list<std::string> _maps;
     std::list<LayoutNode> _content;
+    Size _position;
+
 public:
     // TODO: more getters
     const std::string& getType() const { return _type; }
@@ -96,6 +98,7 @@ public:
     Size getItemMargin() const { return _itemMargin; }
     const std::string& getItemHAlignment() const { return _itemHAlign; }
     const std::string& getItemVAlignment() const { return _itemVAlign; }
+    const Size& getPosition() const { return _position; }
     OptionalBool getDropShadow() const { return _dropShadow; }
     bool getDropShadow(bool dflt) const { return _dropShadow == OptionalBool::True ? true :
                                                  _dropShadow == OptionalBool::False ? false : dflt; }

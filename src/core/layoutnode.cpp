@@ -103,7 +103,9 @@ LayoutNode LayoutNode::FromJSON(json& j)
     node._header     = to_string(j["header"],to_string(j["title"],"")); // we use the same variable for groups and tabs
     node._key        = to_string(j["key"],"");
     node._text       = to_string(j["text"],"");
-    
+    node._position.x = to_int(j["canvas_left"], to_int(j["left"], 0));
+    node._position.y = to_int(j["canvas_top"], to_int(j["top"], 0));
+
     if (j["rows"].type() == json::value_t::array) {
         for (auto& r: j["rows"]) {
             if (r.type() == json::value_t::array) {
