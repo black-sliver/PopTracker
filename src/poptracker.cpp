@@ -27,7 +27,9 @@ using Ui::Dlg;
 
 
 enum HotkeyID {
-    HOTKEY_TOGGLE_VISIBILITY = 1
+    HOTKEY_TOGGLE_VISIBILITY = 1,
+    HOTKEY_RELOAD,
+    HOTKEY_FORCE_RELOAD,
 };
 
 
@@ -254,10 +256,19 @@ bool PopTracker::start()
                 if (_broadcast) _broadcast->unsetHideUnreachableLocations();
             }
         }
+        else if (hotkey.id == HOTKEY_RELOAD) {
+            reloadTracker();
+        }
+        else if (hotkey.id == HOTKEY_FORCE_RELOAD) {
+            reloadTracker(true);
+        }
     }};
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_RCTRL});
+    _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_F5, KMOD_LCTRL});
+    _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_F5, KMOD_RCTRL});
+    _ui->addHotkey({HOTKEY_RELOAD, SDLK_F5, KMOD_NONE});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
@@ -360,11 +371,7 @@ bool PopTracker::start()
         }
         if (item == Ui::TrackerWindow::MENU_RELOAD)
         {
-            if (!_tracker) return;
-            if (_pack && _pack->hasFilesChanged())
-                scheduleLoadTracker(_pack->getPath(), _pack->getVariant(), false);
-            else
-                StateManager::loadState(_tracker, _scriptHost, false, "reset");
+            reloadTracker();
         }
         if (item == Ui::TrackerWindow::MENU_TOGGLE_AUTOTRACKER)
         {
@@ -988,6 +995,15 @@ bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string&
     _newVariant = variant;
     _newTrackerLoadAutosave = loadAutosave;
     return true;
+}
+
+void PopTracker::reloadTracker(bool force)
+{
+    if (!_tracker) return;
+    if (_pack && (force || _pack->hasFilesChanged()))
+        scheduleLoadTracker(_pack->getPath(), _pack->getVariant(), false);
+    else
+        StateManager::loadState(_tracker, _scriptHost, false, "reset");
 }
 
 void PopTracker::loadState(const std::string& filename)
