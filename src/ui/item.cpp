@@ -78,6 +78,7 @@ void Item::addStage(int stage1, int stage2, const char *path, std::list<ImageFil
 {
     freeStage(stage1, stage2);
     if (!path || !*path) return;
+    // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     auto surf = IMG_Load(path);
     if (surf) {
         addStage(stage1, stage2, surf, filters);
@@ -90,6 +91,7 @@ void Item::addStage(int stage1, int stage2, const void *data, size_t len, std::l
 {
     freeStage(stage1, stage2);
     if (!data || !len) return;
+    // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     auto surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
     if (surf) {
         addStage(stage1, stage2, surf, filters);

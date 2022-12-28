@@ -61,6 +61,38 @@ void Dock::setDock(int index, Direction dir)
         }
     }
 }
+
+Direction Dock::getDock(int index)
+{
+    if (index<0) {
+        for (auto it = _docks.rbegin(); it != _docks.rend(); it++) {
+            index++;
+            if (index==0) {
+                return *it;
+            }
+        }
+    } else {
+        for (auto it = _docks.begin(); it != _docks.end(); it++) {
+            if (index==0) {
+                return *it;
+            }
+            index--;
+        }
+    }
+    return Direction::UNDEFINED;
+}
+
+Direction Dock::getDock(Widget* w)
+{
+    if (!w) return Direction::UNDEFINED;
+    int n = 0;
+    for (auto it = _children.begin(); it != _children.end(); it++) {
+        if (*it == w) return getDock(n);
+        n++;
+    }
+    return Direction::UNDEFINED;
+}
+
 void Dock::relayout()
 {
     // NOTE: this does two things:
@@ -69,7 +101,7 @@ void Dock::relayout()
     // TODO: implement this better
     bool isHorizontal = false;
     bool isVertical = false;
-    int nUndefined = 0;
+    int nUndefined = 0; // number of floaters
     auto dockIt = _docks.begin();
     auto childIt = _children.begin();
     int horizontalMinWidth = 0;
@@ -144,8 +176,8 @@ void Dock::relayout()
         _hGrow = 0;
         _vGrow = 0;
     }
-    
-    // actyually layout children
+
+    // TODO: if floaters are fixed size, we need a second pass to resize the docked children that can grow
     // actually layout docked children
     int top=0, left=0, bottom=_size.height, right=_size.width;
     dockIt = _docks.begin();

@@ -219,6 +219,23 @@ bool Ui::render()
                 case SDL_WINDOWEVENT: {
                     if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                         EVENT_LOCK(this);
+#if 0
+                        // NOTE: SDL should merge resizes, we may still detect and warn if multiple are in the queue
+                        SDL_Event next[4+4+1];
+                        int n = SDL_PeepEvents(next, sizeof(next)/sizeof(*next),
+                                SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+                        int more = 0;
+                        for (int i=0; i<n; i++) {
+                            if (next[i].type == ev.type &&
+                                    next[i].window.event == ev.window.event &&
+                                    next[i].window.windowID == ev.window.windowID) {
+                                more++;
+                            }
+                        }
+                        if (more) {
+                            fprintf(stderr, "WARNING: %d extra resizes for the same window scheduled!\n", more);
+                        }
+#endif
                         int x = ev.window.data1;
                         int y = ev.window.data2;
                         auto winit = _windows.find(ev.window.windowID);
