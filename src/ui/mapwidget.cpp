@@ -97,6 +97,8 @@ void MapWidget::connectSignals()
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
             if (loc.state == -1) continue; // hidden
+            if (loc.state == 0 && _hideClearedLocations) continue;
+            if (loc.state == 2 && _hideUnreachableLocations) continue;
             for (const auto& pos: loc.pos) {
                 int locsize = pos.size + 2 * pos.borderThickness; // or without border?
                 int locleft = pos.x - locsize/2;
@@ -175,6 +177,9 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
 
             int state = (int)loc.state;
             if (state == -1) continue; // hidden
+            if (state == 0 && _hideClearedLocations) continue;
+            if (state == 2 && _hideUnreachableLocations) continue;
+
             const Widget::Color& c = (state<0 || state>=countOf(STATE_COLOR)) ?
                     STATE_COLOR[countOf(STATE_COLOR)-1] : STATE_COLOR[state];
 

@@ -105,6 +105,16 @@ void Ui::destroyWindow(Window *win)
     }
 }
 
+void Ui::addHotkey(const Ui::Hotkey& hotkey)
+{
+    _hotkeys.push_back(hotkey);
+}
+
+void Ui::addHotkey(Ui::Hotkey&& hotkey)
+{
+    _hotkeys.push_back(hotkey);
+}
+
 int Ui::eventFilter(void* userdata, SDL_Event *ev)
 {
     Ui* ui = (Ui*)userdata;
@@ -212,6 +222,21 @@ bool Ui::render()
                     auto winIt = _windows.find(ev.motion.windowID);
                     if (winIt != _windows.end()) {
                         winIt->second->onScroll.emit(winIt->second, x, y, mod);
+                    }
+                    EVENT_UNLOCK(this);
+                    break;
+                }
+                case SDL_KEYDOWN: {
+                    EVENT_LOCK(this);
+                    if (!ev.key.repeat) {
+                        int key = (int)ev.key.keysym.sym;
+                        int mod = (int)(ev.key.keysym.mod & ~(KMOD_NUM | KMOD_CAPS));
+                        for (const auto& hotkey: _hotkeys) {
+                            if (key == hotkey.key && mod == hotkey.mod) {
+                                onHotkey.emit(this, hotkey);
+                                break;
+                            }
+                        }
                     }
                     EVENT_UNLOCK(this);
                     break;

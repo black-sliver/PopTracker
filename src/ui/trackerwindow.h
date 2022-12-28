@@ -25,7 +25,14 @@ public:
     virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname);
     
     std::list< std::pair<std::string,std::string> > getHints() const;
-    
+
+    virtual void setCenterPosition(const Position& pos) { _centerPos = pos; }
+
+    void setHideClearedLocations(bool hide);
+    void unsetHideClearedLocations();
+    void setHideUnreachableLocations(bool hide);
+    void unsetHideUnreachableLocations();
+
     Signal<const std::string&, int> onMenuPressed;
     
     static const std::string MENU_LOAD;
@@ -36,9 +43,7 @@ public:
     static const std::string MENU_PACK_SETTINGS;
     static const std::string MENU_TOGGLE_AUTOTRACKER;
     static const std::string MENU_CYCLE_AUTOTRACKER;
-    
-    virtual void setCenterPosition(const Position& pos) { _centerPos = pos; }
-    
+
 protected:
     Container *_menu;
     TrackerView *_view;
@@ -47,7 +52,11 @@ protected:
     bool _rendered = false;
     std::string _baseTitle;
     Position _centerPos = {-1,-1};
-    
+    bool _overrideUnreachableVisibility = false;
+    bool _hideUnreachableLocations = false;
+    bool _overrideClearedVisibility = false;
+    bool _hideClearedLocations = false;
+
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setTracker(Tracker* tracker, const std::string& layout);
 };

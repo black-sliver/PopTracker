@@ -34,11 +34,19 @@ public:
     virtual void render(Renderer renderer, int offX, int offY);
     int getAbsLeft() const { return _absX; } // FIXME: this is not really a good solution
     int getAbsTop() const { return _absY; }
+
+    void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; printf("hideCleared: %s\n", hide?"true":"false"); }
+    void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; printf("hideUnreachable: %s\n", hide?"true":"false"); }
+
 protected:
     int _absX=0;
     int _absY=0;
     std::map<std::string, Location> _locations;
     std::string _locationHover; // TODO; store iterator instead of string?
+
+    bool _hideClearedLocations = false;
+    bool _hideUnreachableLocations = false;
+
 private:
     void connectSignals();
     void calculateSizes(int left, int top, int& srcw, int& srch, int& dstx, int& dsty, int& dstw, int& dsth);

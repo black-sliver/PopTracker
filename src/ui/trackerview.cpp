@@ -325,6 +325,26 @@ Tracker* TrackerView::getTracker()
     return _tracker;
 }
 
+void TrackerView::setHideClearedLocations(bool hide)
+{
+    _hideClearedLocations = hide;
+    for (auto& pair: _maps) {
+        for (auto& map: pair.second) {
+            map->setHideClearedLocations(hide);
+        }
+    }
+}
+
+void TrackerView::setHideUnreachableLocations(bool hide)
+{
+    _hideUnreachableLocations = hide;
+    for (auto& pair: _maps) {
+        for (auto& map: pair.second) {
+            map->setHideUnreachableLocations(hide);
+        }
+    }
+}
+
 void TrackerView::updateLayout(const std::string& layout)
 {    
     if (layout != "" && layout != _layoutRoot && std::find(_layoutRefs.begin(),_layoutRefs.end(),layout) == _layoutRefs.end()) return;
@@ -443,7 +463,7 @@ size_t TrackerView::addLayoutNodes(Container* container, const std::list<LayoutN
     return n;
 }
 bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, size_t depth)
-{    
+{
     // This returns true if a child was added, false otherwise
     
     if (depth>63) {
@@ -670,6 +690,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             _tracker->getPack()->ReadFile(f, s);
             MapWidget *w = new MapWidget(0,0,0,0, s.c_str(),s.length());
             w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
+            w->setHideClearedLocations(_hideClearedLocations);
+            w->setHideUnreachableLocations(_hideUnreachableLocations);
             _maps[mapname].push_back(w);
             w->setQuality(2);
             if (!node.getBackground().empty()) w->setBackground(node.getBackground());
