@@ -55,11 +55,13 @@ Tabs::Tabs(int x, int y, int w, int h, FONT font)
 #endif
     }};
 }
+
 Tabs::~Tabs()
 {
     delete _buttonbox;
     _buttonbox = nullptr;
 }
+
 void Tabs::addChild(Widget* w)
 {
     w->setVisible(false);
@@ -97,6 +99,7 @@ void Tabs::addChild(Widget* w)
     }
     // TODO: fire minsize changed signal?
 }
+
 void Tabs::removeChild(Widget *w)
 {
     // remove tab and button
@@ -132,6 +135,7 @@ void Tabs::removeChild(Widget *w)
         if (_tab) _tab->setVisible(true);
     }
 }
+
 void Tabs::setTabName(int index, const std::string& name)
 {
     auto btn = getFromList(_buttons, index);
@@ -141,6 +145,17 @@ void Tabs::setTabName(int index, const std::string& name)
         relayout();
     }
 }
+
+void Tabs::setTabIcon(int index, const void *data, size_t len)
+{
+    auto btn = getFromList(_buttons, index);
+    if (btn) {
+        btn->setIcon(data, len);
+        btn->setSize(btn->getMinSize());
+        relayout();
+    }
+}
+
 bool Tabs::setActiveTab(const std::string& name)
 {
     for (auto btn: _buttons) {
@@ -151,6 +166,7 @@ bool Tabs::setActiveTab(const std::string& name)
     }
     return false;
 }
+
 bool Tabs::setActiveTab(int index)
 {
     auto btn = getFromList(_buttons, index);
@@ -160,12 +176,14 @@ bool Tabs::setActiveTab(int index)
     }
     return false;
 }
+
 static const std::string noTabName = "";
 const std::string& Tabs::getActiveTabName() const
 {
     if (_tabButton) return _tabButton->getText();
     return noTabName;
 }
+
 void Tabs::relayout()
 {
     _buttonbox->setWidth(getWidth()); // minHeight depends on width -> set first
@@ -194,6 +212,7 @@ void Tabs::relayout()
     }
     _buttonbox->setWidth(_size.width); // NOTE: this change requires halign for buttonbox
 }
+
 void Tabs::render(Renderer renderer, int offX, int offY)
 {
     offX += _pos.left;

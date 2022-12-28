@@ -23,6 +23,7 @@ public:
     virtual void render(Renderer renderer, int offX, int offY) override;
     virtual void setSize(Size size) override;
     virtual void setTabName(int index, const std::string& name);
+    virtual void setTabIcon(int index, const void *data, size_t len);
     virtual bool setActiveTab(const std::string& name);
     virtual bool setActiveTab(int index);
     virtual const std::string& getActiveTabName() const;

@@ -91,6 +91,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             // stupid work-around: if base item is staged and has allow_disabled
             // we need to insert an additional stage for disabled state
             size_t m = stagedWithDisabled ? (n+1) : n;
+            if (item->getType() == ::BaseItem::Type::TOGGLE) m = 1;
             w->addStage(0,m, s.c_str(), s.length(), filters);
             std::list<std::string> badgeMods = item->getImageMods(n);
             badgeMods.push_back("overlay|" + origItem.getImage(0));
@@ -168,6 +169,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     
     if (stage1>=0 && stage2>=0)
         w->setStage(stage1,stage2);
+    else if (origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED && item->getType() == ::BaseItem::Type::TOGGLE)
+        w->setStage(origItem.getState(), item->getState());
     else if (stagedWithDisabled && origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED)
         w->setStage(origItem.getState(), item->getState() ? (item->getActiveStage()+1) : 0);
     else
@@ -387,7 +390,7 @@ void TrackerView::updateState(const std::string& itemid)
             w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), filters);
             printf("Image updated!\n");
         } else if (item.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
-            // stage is controller by base item, state by badge
+            // stage is controlled by base item, state by badge
             // stupid hack: if the base item is staged and it has
             // allow_disabled, we need to add a "disabled" stage
             int stage = item.getActiveStage();
@@ -396,6 +399,8 @@ void TrackerView::updateState(const std::string& itemid)
                 stage = o.jsonItem->getActiveStage();
                 if (o.jsonItem->getStageCount() && o.jsonItem->getAllowDisabled())
                     stage = o.jsonItem->getState() ? stage+1 : 0;
+                else if (o.jsonItem->getType() == BaseItem::Type::TOGGLE)
+                    stage = o.jsonItem->getState();
             } else if (o.type == Tracker::Object::RT::LuaItem) {
                 stage = o.luaItem->getActiveStage();
                 if (o.luaItem->getStageCount()>1 && o.luaItem->getAllowDisabled())
@@ -529,8 +534,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
-                auto& name = childnode.getHeader();
+                const auto& name = childnode.getHeader();
                 w->setTabName(-1, name);
+                const auto& icon = childnode.getIcon();
+                std::string s;
+                if (!icon.empty() && _tracker->getPack()->ReadFile(icon, s)) {
+                    w->setTabIcon(-1, s.c_str(), s.length());
+                }
                 if (std::find(_activeTabs.begin(), _activeTabs.end(), name) != _activeTabs.end()) {
                     w->setActiveTab(name);
                 }

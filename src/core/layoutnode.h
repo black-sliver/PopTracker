@@ -81,6 +81,7 @@ public:
     const std::string& getType() const { return _type; }
     const std::string& getKey() const { return _key; }
     const std::string& getItem() const { return _item; }
+    const std::string& getIcon() const { return _item; /* reuse item for icon since they are exclusive */ }
     const std::string& getHeader() const { return _header; }
     const std::string& getText() const { return _text; }
     const std::list<LayoutNode>& getChildren() const { return _content; }
