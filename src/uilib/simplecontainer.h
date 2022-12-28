@@ -11,7 +11,7 @@ public:
     SimpleContainer(int x, int y, int w, int h)
         : Container(x,y,w,h)
     {}
-    // TODO: overwrite setSize, addChild
+
     virtual void setSize(Size size) override
     {
         if (size == _size) return;
@@ -21,7 +21,7 @@ public:
             if (child->getHGrow()) childSize.width = _size.width-child->getLeft();
             if (child->getVGrow()) childSize.height = _size.height-child->getTop();
             child->setSize(childSize);
-            break; // only the first child for now; TODO: only conatainer-sized widgets?
+            break; // only the first child for now; TODO: only container-sized widgets?
         }
     }
     virtual void addChild(Widget* child) override

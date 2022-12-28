@@ -220,6 +220,7 @@ void Tabs::render(Renderer renderer, int offX, int offY)
     _buttonbox->render(renderer, offX, offY);
     _tab->render(renderer, offX, offY);
 }
+
 void Tabs::setSize(Size size)
 {
     if (size == _size) return;

@@ -14,6 +14,8 @@ public:
     virtual void addChild(Widget* w, Direction dir);
     virtual void removeChild(Widget* w) override;
     virtual void setDock(int index, Direction dir);
+    virtual Direction getDock(int index);
+    virtual Direction getDock(Widget* w);
     virtual void setSize(Size size) override;
 protected:
     void relayout();

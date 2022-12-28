@@ -3,6 +3,7 @@
 #include <SDL2/SDL_image.h>
 #include "colorhelper.h"
 
+
 namespace Ui {
 
 Image::Image(int x, int y, int w, int h, const char* path)
@@ -12,6 +13,8 @@ Image::Image(int x, int y, int w, int h, const char* path)
         _surf = nullptr;
         return;
     }
+    // NOTE: if the app hangs or crashes in IMG_Load, you are probably mixing incompatible DLLs
+    // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     _surf = IMG_Load(_path.c_str());
     if (_surf) {
         _autoSize = {_surf->w, _surf->h};
@@ -35,6 +38,8 @@ Image::Image(int x, int y, int w, int h, const void* data, size_t len)
         _surf = nullptr;
         return;
     }
+    // NOTE: if the app hangs or crashes in IMG_Load_RW, you are probably mixing incompatible DLLs
+    // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     _surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
     if (_surf) {
         _autoSize = {_surf->w, _surf->h};
