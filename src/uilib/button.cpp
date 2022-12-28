@@ -58,18 +58,18 @@ void Button::render(Renderer renderer, int offX, int offY)
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
         _iconTex = SDL_CreateTextureFromSurface(renderer, _iconSurf);
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
-        if (_iconTex) {
+        if (_iconTex && _iconSurf->w > 0 && _iconSurf->h > 0) {
 #if SDL_HAS_SCALE_MODE
             SDL_SetTextureScaleMode(_iconTex, SDL_ScaleModeBest);
 #endif
             if (_iconSurf->w > _iconSurf->h) {
                 _iconSize = {
                     ICON_SIZE,
-                    ICON_SIZE * _iconSurf->h / _iconSurf->w
+                    (ICON_SIZE * _iconSurf->h + _iconSurf->w/2) / _iconSurf->w
                 };
             } else {
                 _iconSize = {
-                    ICON_SIZE * _iconSurf->w / _iconSurf->h,
+                    (ICON_SIZE * _iconSurf->w + _iconSurf->h/2) / _iconSurf->h,
                     ICON_SIZE
                 };
             }
