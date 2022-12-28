@@ -32,8 +32,8 @@ WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 SSL_LIBS = -lssl -lcrypto
 NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
-WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -lcrypt32 -lssp
-WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
+WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
+WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -luuid -lrpcrt4 -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
 # detect OS and compiler
 ifeq ($(OS),Windows_NT)
@@ -219,7 +219,7 @@ $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
-	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+	$(WIN32CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN32STRIP) $@
 endif
