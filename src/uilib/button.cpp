@@ -2,6 +2,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#define SDL_HAS_SCALE_MODE SDL_VERSION_ATLEAST(2, 0, 12)
+
 
 namespace Ui {
 
@@ -53,9 +55,13 @@ void Button::setIcon(const void* data, size_t len)
 void Button::render(Renderer renderer, int offX, int offY)
 {
     if (_iconSurf && !_iconTex) {
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
         _iconTex = SDL_CreateTextureFromSurface(renderer, _iconSurf);
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
         if (_iconTex) {
+#if SDL_HAS_SCALE_MODE
             SDL_SetTextureScaleMode(_iconTex, SDL_ScaleModeBest);
+#endif
             if (_iconSurf->w > _iconSurf->h) {
                 _iconSize = {
                     ICON_SIZE,
