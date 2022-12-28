@@ -48,6 +48,10 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
         //int w=_size.width-left, h=_size.height-top;
         int w=300, h=200; // the current layout hacks work better when growing than shrinking
         _view = new TrackerView(left, top, w, h, tracker, layout, _fontStore);
+        if (_overrideClearedVisibility)
+            _view->setHideClearedLocations(_hideClearedLocations);
+        if (_overrideUnreachableVisibility)
+            _view->setHideUnreachableLocations(_hideUnreachableLocations);
         _rendered = false;
         addChild(_view);
         
@@ -92,6 +96,32 @@ void TrackerWindow::setSize(Size size)
     // don't resize multiple times per frame -> schedule resize instead
     _resizeSize = size;
     _resizeScheduled = true;
+}
+
+void TrackerWindow::setHideClearedLocations(bool hide)
+{
+    _hideClearedLocations = true;
+    _overrideClearedVisibility = true;
+    if (_view) _view->setHideClearedLocations(_hideClearedLocations);
+}
+
+void TrackerWindow::unsetHideClearedLocations()
+{
+    _overrideClearedVisibility = false;
+    if (_view) _view->setHideClearedLocations(false); // TODO: default from pack
+}
+
+void TrackerWindow::setHideUnreachableLocations(bool hide)
+{
+    _hideUnreachableLocations = true;
+    _overrideUnreachableVisibility = true;
+    if (_view) _view->setHideUnreachableLocations(_hideUnreachableLocations);
+}
+
+void TrackerWindow::unsetHideUnreachableLocations()
+{
+    _overrideUnreachableVisibility = false;
+    if (_view) _view->setHideUnreachableLocations(false); // TODO: default from pack
 }
 
 void TrackerWindow::render(Renderer renderer, int offX, int offY)

@@ -26,6 +26,11 @@ using nlohmann::json;
 using Ui::Dlg;
 
 
+enum HotkeyID {
+    HOTKEY_TOGGLE_VISIBILITY = 1
+};
+
+
 PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
     _args = args;
@@ -229,6 +234,30 @@ bool PopTracker::start()
             _win = nullptr;
         }
     }};
+    _ui->onHotkey += {this, [this](void*, const Ui::Ui::Hotkey& hotkey) {
+        if (hotkey.id == HOTKEY_TOGGLE_VISIBILITY) {
+            // until packs provide a default, we just toggle between "unset" and "hidden"
+            auto it = _config.find("hide_cleared_locations");
+            if (it == _config.end() || !it.value().is_boolean() || it.value() == false) {
+                _config["hide_cleared_locations"] = true;
+                _config["hide_unreachable_locations"] = true;
+                if (_win) _win->setHideClearedLocations(true);
+                if (_win) _win->setHideUnreachableLocations(true);
+                if (_broadcast) _broadcast->setHideClearedLocations(true);
+                if (_broadcast) _broadcast->setHideUnreachableLocations(true);
+            } else {
+                _config["hide_cleared_locations"] = json::value_t::null;
+                _config["hide_unreachable_locations"] = json::value_t::null;
+                if (_win) _win->unsetHideClearedLocations();
+                if (_win) _win->unsetHideUnreachableLocations();
+                if (_broadcast) _broadcast->unsetHideClearedLocations();
+                if (_broadcast) _broadcast->unsetHideUnreachableLocations();
+            }
+        }
+    }};
+    _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
+    _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
+    _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_RCTRL});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
@@ -266,20 +295,42 @@ bool PopTracker::start()
         }
     }
     
+    // create main window
     auto icon = IMG_Load(asset("icon.png").c_str());
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
     SDL_FreeSurface(icon);
-    
+
+    // set user preferences for visibility of uncleared and unreachable locations
+    auto itHideCleared = _config.find("hide_cleared_locations");
+    auto itHideUnreachable = _config.find("hide_unreachable_locations");
+    if (itHideCleared != _config.end() && itHideCleared.value().is_boolean())
+        _win->setHideClearedLocations(itHideCleared.value().get<bool>());
+    if (itHideUnreachable != _config.end() && itHideUnreachable.value().is_boolean())
+        _win->setHideUnreachableLocations(itHideUnreachable.value().get<bool>());
+
+    // initialize to null == "don't care" if it does not exist, so it shows up in the config
+    if (itHideCleared == _config.end()) _config["hide_cleared_locations"] = json::value_t::null;
+    if (itHideUnreachable == _config.end()) _config["hide_unreachable_locations"] = json::value_t::null;
+
     _win->onMenuPressed += { this, [this](void*, const std::string& item, int index) {
         if (item == Ui::TrackerWindow::MENU_BROADCAST) {
             if (!_tracker) return;
             if (_broadcast) {
                 _broadcast->Raise();
             } else {
+                // create window
                 auto icon = IMG_Load(asset("icon.png").c_str());
                 Ui::Position pos = _win->getPosition() + Ui::Size{0,32};
                 _broadcast = _ui->createWindow<Ui::BroadcastWindow>("Broadcast", icon, pos);
                 SDL_FreeSurface(icon);
+                // set user preferences for visibility of uncleared and unreachable locations
+                auto itHideCleared = _config.find("hide_cleared_locations");
+                auto itHideUnreachable = _config.find("hide_unreachable_locations");
+                if (itHideCleared != _config.end() && itHideCleared.value().is_boolean())
+                    _broadcast->setHideClearedLocations(itHideCleared.value().get<bool>());
+                if (itHideUnreachable != _config.end() && itHideUnreachable.value().is_boolean())
+                    _broadcast->setHideUnreachableLocations(itHideUnreachable.value().get<bool>());
+                // set up window
                 _broadcast->setTracker(_tracker);
                 pos += Ui::Size{_win->getWidth()/2, _win->getHeight()/2 - 32};
                 _broadcast->setCenterPosition(pos); // this will reposition the window after rendering

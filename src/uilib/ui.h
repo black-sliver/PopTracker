@@ -5,12 +5,20 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include <list>
 
 #define DEFAULT_FPS_LIMIT 120
 
 namespace Ui {
 
 class Ui {
+public:
+    struct Hotkey {
+        int id;
+        int key;
+        int mod;
+    };
+
 protected:
     std::map<Window::ID,Window*> _windows;
     std::string _name;
@@ -22,6 +30,9 @@ protected:
 
     std::mutex _eventMutex;
     static int eventFilter(void *userdata, SDL_Event *event);
+
+    std::list<Hotkey> _hotkeys;
+
 public:
     Ui(const char *name, bool fallbackRenderer);
     virtual ~Ui();
@@ -37,7 +48,11 @@ public:
 
     void setFPSLimit(unsigned fps) { _fpsLimit = fps; }
 
+    void addHotkey(const Hotkey&);
+    void addHotkey(Hotkey&&);
+
     Signal<Window*> onWindowDestroyed;
+    Signal<const Hotkey&> onHotkey;
 };
 
 } // namespace Ui
