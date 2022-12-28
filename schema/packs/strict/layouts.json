@@ -315,7 +315,7 @@
                                     "type": "string"
                                 },
                                 "icon": {
-                                    "description": "Icon to display next to the title. Not implemented yet.",
+                                    "description": "Icon to display next to the title.",
                                     "type": "string"
                                 },
                                 "content": {

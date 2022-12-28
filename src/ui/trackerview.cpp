@@ -534,8 +534,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
-                auto& name = childnode.getHeader();
+                const auto& name = childnode.getHeader();
                 w->setTabName(-1, name);
+                const auto& icon = childnode.getIcon();
+                std::string s;
+                if (!icon.empty() && _tracker->getPack()->ReadFile(icon, s)) {
+                    w->setTabIcon(-1, s.c_str(), s.length());
+                }
                 if (std::find(_activeTabs.begin(), _activeTabs.end(), name) != _activeTabs.end()) {
                     w->setActiveTab(name);
                 }

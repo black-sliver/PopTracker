@@ -99,8 +99,8 @@ LayoutNode LayoutNode::FromJSON(json& j)
         
     node._compact    = to_bool(j["compact"], false);
     node._dropShadow = to_OptionalBool(j["dropshadow"]);
-    node._item       = to_string(j["item"],"");
-    node._header     = to_string(j["header"],to_string(j["title"],"")); // we use the same variable for groups and tabs
+    node._item       = to_string(j["item"], to_string(j["icon"], "")); // we use the same variable for items and tabs
+    node._header     = to_string(j["header"], to_string(j["title"],"")); // we use the same variable for groups and tabs
     node._key        = to_string(j["key"],"");
     node._text       = to_string(j["text"],"");
     node._position.x = to_int(j["canvas_left"], to_int(j["left"], 0));
