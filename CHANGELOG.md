@@ -1,9 +1,22 @@
 # PopTracker Changelog
 
-## next
+## v0.22.0
 
+* App Features
+  * Show stage name instead of item name when possible
+  * F11 and ctrl+H to toggle location visibility
+  * F5 to reload pack
+  * Ctrl+F5 to force-reload pack
+  * Update included libraries
 * Pack Features
   * Add support for Archipelago data storage api
+  * Add read access of AccessibilityLevel from Lua
+  * Allow overriding specific map location size and border
+  * Add support for alpha when specifying colors
+  * Implement canvas
+  * Implement tab icons
+* Fixes
+  * Correctly draw background for groups, add default
 
 ## v0.21.0
 
@@ -94,7 +107,7 @@
 
 * Fixes
   * Fix modifying watches from watch callbacks
-  * Fix vertical strech of some widgets
+  * Fix vertical stretch of some widgets
   * Fix/ignore composite toggles with bad left/right
   * Fix what codes composite toggles provide
   * Fix setting progressive with allow_disabled from Lua
