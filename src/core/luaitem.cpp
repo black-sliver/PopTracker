@@ -84,7 +84,11 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     // TODO: lua_unref old references when assigning for callbacks
     _L = L;
     if (strcmp(key,"Name")==0) {
-        _name = luaL_checkstring(L, -1);
+        std::string s = luaL_checkstring(L, -1);
+        if (_name != s) {
+            _name = s;
+            onChange.emit(this);
+        }
         return true;
     } else if (strcmp(key,"ItemState")==0) {
         if (_itemState.valid()) luaL_unref(L, LUA_REGISTRYINDEX, _itemState.ref);
