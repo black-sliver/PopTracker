@@ -11,9 +11,10 @@ class StateManager {
 public:
     static bool saveState(Tracker* tracker, ScriptHost* scripthost,
             std::list< std::pair<std::string,std::string> > uiHints={},
+            const json& extra = json::value_t::null,
             bool file=false, const std::string& name="autosave",
             bool external=false);
-    static bool loadState(Tracker* tracker, ScriptHost* scripthost,
+    static bool loadState(Tracker* tracker, ScriptHost* scripthost, json& extra_out,
             bool file=false, const std::string& name="autosave",
             bool external=false);
     static void setDir(const std::string& dir);

@@ -455,8 +455,8 @@ bool PopTracker::start()
 
             std::string filename;
             if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
-            if (StateManager::saveState(_tracker, _scriptHost,
-                    _win->getHints(), true, filename, true))
+            json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+            if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename, true))
             {
                 _exportFile = filename;
                 _exportUID = _pack->getUID();
@@ -708,7 +708,8 @@ bool PopTracker::frame()
     if (res && _tracker && AUTOSAVE_INTERVAL>0 &&
             std::chrono::duration_cast<std::chrono::seconds>(now - _autosaveTimer).count() >= AUTOSAVE_INTERVAL)
     {
-        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), true);
+        json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true);
         _autosaveTimer = std::chrono::steady_clock::now();
     }
 
@@ -802,7 +803,8 @@ const std::string& PopTracker::getPackInstallDir() const
 void PopTracker::unloadTracker()
 {
     if (_tracker) {
-        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), true);
+            json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+        StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true);
     }
 
     // remove references before deleting _tracker
@@ -992,10 +994,16 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     printf("Running scripts/init.lua\n");
     bool res = _scriptHost->LoadScript("scripts/init.lua");
     // save reset-state
-    StateManager::saveState(_tracker, _scriptHost, _win->getHints(), false, "reset");
+    StateManager::saveState(_tracker, _scriptHost, _win->getHints(), json::value_t::null, false, "reset");
     if (loadAutosave) {
         // restore previous state
-        StateManager::loadState(_tracker, _scriptHost, true);
+        json extra;
+        if (StateManager::loadState(_tracker, _scriptHost, extra, true) && extra.is_object()) {
+            if (extra["at_uri"].is_string())
+                _atUri = extra["at_uri"];
+            if (extra["at_slot"].is_string())
+                _atSlot = extra["at_slot"];
+        }
     }
 
     _autosaveTimer = std::chrono::steady_clock::now();
@@ -1023,8 +1031,11 @@ void PopTracker::reloadTracker(bool force)
     if (!_tracker) return;
     if (_pack && (force || _pack->hasFilesChanged()))
         scheduleLoadTracker(_pack->getPath(), _pack->getVariant(), false);
-    else
-        StateManager::loadState(_tracker, _scriptHost, false, "reset");
+    else {
+        json extra;
+        StateManager::loadState(_tracker, _scriptHost, extra, false, "reset");
+        // NOTE: we ignore at_uri and at_slot for "reset"
+    }
 }
 
 void PopTracker::loadState(const std::string& filename)
@@ -1087,9 +1098,16 @@ void PopTracker::loadState(const std::string& filename)
 #endif
         }
     }
-    if (!StateManager::loadState(_tracker, _scriptHost, true, filename, true)) {
+    json extra;
+    if (!StateManager::loadState(_tracker, _scriptHost, extra, true, filename, true)) {
         Dlg::MsgBox("PopTracker", "Error loading state!",
                 Dlg::Buttons::OK, Dlg::Icon::Error);
+    }
+    else if (extra.is_object()) {
+        if (extra["at_uri"].is_string())
+            _atUri = extra["at_uri"];
+        if (extra["at_slot"].is_string())
+            _atSlot = extra["at_slot"];
     }
     if (_pack) _exportUID = _pack->getUID();
 }

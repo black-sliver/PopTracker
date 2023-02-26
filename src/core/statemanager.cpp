@@ -36,7 +36,7 @@ static void replayHints(Tracker* tracker, json& state)
 }
 
 bool StateManager::saveState(Tracker* tracker, ScriptHost*,
-        std::list< std::pair<std::string,std::string> > uiHints,
+        std::list< std::pair<std::string,std::string> > uiHints, const json& extra,
         bool tofile, const std::string& name, bool external)
 {
     if (!tracker) return false;
@@ -56,6 +56,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         { "variant", pack->getVariant() },
         { "version", pack->getVersion() },
     };
+    state["extra"] = extra;
 
     if (!tofile) {
         printf("Saving state \"%s\" to RAM...\n", name.c_str());
@@ -83,7 +84,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         return true;
     }    
 }
-bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
+bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, json& extra_out,
         bool fromfile, const std::string& name, bool external)
 {
     if (!tracker) return false;
@@ -101,6 +102,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
         printf("\n");
         res = tracker->loadState(it->second);
         replayHints(tracker, it->second);
+        extra_out = it->second["extra"];
     } else {
         std::string s;
         std::string filename = external ? name : os_pathcat(_dir,
@@ -117,6 +119,7 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost,
         auto j = parse_jsonc(s);
         res = tracker->loadState(j);
         replayHints(tracker, j);
+        extra_out = j["extra"];
     }
     if (scripthost) scripthost->resetWatches();
     printf("%s\n", res ? "ok" : "error");
