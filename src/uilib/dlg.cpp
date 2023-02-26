@@ -13,8 +13,10 @@
 
 
 namespace Ui {
-    
-    
+
+std::mutex Dlg::mutex;
+
+
 #ifdef __WIN32__
 #define  ID_INPUT     200
 #define  ID_INFOTEXT  201
@@ -268,6 +270,7 @@ bool Dlg::InputBox(const std::string& title, const std::string& message, const s
     result = buf;
     return true;
 #else
+    std::lock_guard<std::mutex> lock(mutex);
     const char* res = tinyfd_inputBox(title.c_str(), message.c_str(), password ? nullptr : dflt.c_str());
     if (res) result = res;
     return !!res;
@@ -385,6 +388,7 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
     free(lpwFilter);
     return res;
 #else
+    std::lock_guard<std::mutex> lock(mutex);
     const char* filename;
     if (types.empty()) {
         filename = tinyfd_openFileDialog(title.c_str(), dflt.c_str(), 0,
@@ -456,6 +460,7 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     free(lpwFilter);
     return res;
 #else
+    std::lock_guard<std::mutex> lock(mutex);
     const char* filename;
     if (types.empty()) {
         filename = tinyfd_saveFileDialog(title.c_str(), dflt.c_str(), 0,

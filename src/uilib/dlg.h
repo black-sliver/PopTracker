@@ -4,6 +4,7 @@
 
 #include <string>
 #include <list>
+#include <mutex>
 
 
 namespace Ui {
@@ -40,6 +41,9 @@ public:
     static Result MsgBox(const std::string& title, const std::string& message, Buttons btns=Buttons::OK, Icon icon=Icon::Info, Result dflt=Result::OK);
     static bool OpenFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out, bool multi=false);
     static bool SaveFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out);
+
+private:
+    static std::mutex mutex; // not all of tinyfd is thread safe
 };
     
 } // namespace
