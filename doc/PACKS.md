@@ -165,6 +165,7 @@ a table representing an enum with the following constants: \
 * `"progressive"`:
   + has any number of states (`"stages"`)
   + adds automatic "off" stage if `"allow_disabled": true` (default true)
+  + adds optional `"loop": false` to determine if the states should loop (last → first) when clicking
   + adds optional `"initial_stage_idx": 0`
   + adds array of states (`"stages"`)
   
