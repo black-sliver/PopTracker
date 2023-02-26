@@ -310,6 +310,8 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
         lua_pushinteger(L, _count);
         return 1;
     } else if (strcmp(key, "Active")==0) {
+        if (_type == Type::PROGRESSIVE && !_allowDisabled)
+            lua_pushboolean(L, 1);  // always Active
         lua_pushboolean(L, _stage1);
         return 1;
     } else if (strcmp(key, "CurrentStage")==0) {
@@ -354,6 +356,8 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         bool val = lua_isinteger(L, -1) ? (lua_tointeger(L, -1)>0) : (bool)lua_toboolean(L, -1);
         if (_type == Type::PROGRESSIVE && _allowDisabled && !val)
             _stage2 = 0;
+        else if (_type == Type::PROGRESSIVE && !_allowDisabled)
+            val = true;  // always Active
         if (_stage1 != val) {
             _stage1 = val;
             onChange.emit(this);
