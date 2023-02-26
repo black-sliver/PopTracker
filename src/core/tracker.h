@@ -70,6 +70,7 @@ public:
     std::list<std::string> getMapNames() const;
     std::list< std::pair<std::string, Location::MapLocation> > getMapLocations(const std::string& mapname) const;
     Location& getLocation(const std::string& name, bool partialMatch=false);
+    LocationSection& getLocationSection(const std::string& id);
 
     nlohmann::json saveState() const;
     bool loadState(nlohmann::json& state);

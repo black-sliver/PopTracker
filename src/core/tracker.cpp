@@ -20,6 +20,7 @@ static LayoutNode blankLayoutNode = LayoutNode::FromJSON(json({}));
 static JsonItem blankItem = JsonItem::FromJSON(json({}));
 static Map blankMap = Map::FromJSON(json({}));
 static Location blankLocation;// = Location::FromJSON(json({}));
+static LocationSection blankLocationSection;// = LocationSection::FromJSON(json({}));
 
 Tracker::Tracker(Pack* pack, lua_State *L)
     : _pack(pack), _L(L)
@@ -440,6 +441,7 @@ std::list< std::pair<std::string, Location::MapLocation> > Tracker::getMapLocati
     }
     return res;
 }
+
 Location& Tracker::getLocation(const std::string& id, bool partialMatch)
 {
     for (auto& loc : _locations) {
@@ -462,6 +464,24 @@ Location& Tracker::getLocation(const std::string& id, bool partialMatch)
         }
     }
     return blankLocation;
+}
+
+LocationSection& Tracker::getLocationSection(const std::string& id)
+{
+    const char *start = id.c_str();
+    const char *t = strrchr(start, '/');
+    if (t) { // valid section identifier
+        std::string locid = std::string(start, t-start);
+        std::string secname = t+1;
+        // match by ID (includes all parents)
+        auto& loc = getLocation(locid, true);
+        for (auto& sec: loc.getSections()) {
+            if (sec.getName() != secname) continue;
+            return sec;
+        }
+
+    }
+    return blankLocationSection;
 }
 
 const Pack* Tracker::getPack() const
@@ -679,27 +699,29 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
 
 AccessibilityLevel Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
-    std::string id = location.getID() + "/" + section.getName();
+    const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
+    std::string id = realSection.getParentID() + "/" + realSection.getName();
     if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
         printf("access_rule recursion detected: %s!\n", id.c_str());
         // returning 0 here should mean this path is unreachable, other paths that are logical "or" should be resolved
         return AccessibilityLevel::NONE;
     }
     parents.push_back(id);
-    auto res = isReachable(section.getAccessRules(), false, parents);
+    auto res = isReachable(realSection.getAccessRules(), false, parents);
     parents.pop_back();
     return res;
 }
 
 bool Tracker::isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
-    std::string id = location.getID() + "/" + section.getName();
+    const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
+    std::string id = realSection.getParentID() + "/" + realSection.getName();
     if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
         printf("visibility_rule recursion detected: %s!\n", id.c_str());
         return 0;
     }
     parents.push_back(id);
-    auto res = isReachable(section.getVisibilityRules(), true, parents);
+    auto res = isReachable(realSection.getVisibilityRules(), true, parents);
     parents.pop_back();
     return (res != AccessibilityLevel::NONE);
 }

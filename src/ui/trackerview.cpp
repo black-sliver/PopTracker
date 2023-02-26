@@ -931,7 +931,8 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
         sectionContainer = tooltip;
     }
     
-    for (const auto& sec : loc.getSections()) {
+    for (const auto& ogSec : loc.getSections()) {
+        const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
         if (!_tracker->isVisible(loc, sec)) continue;
 
         Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
@@ -956,7 +957,7 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
             int looted = sec.getItemCleared();
             for (int i=0; i<itemcount; i++) {
                 bool opened = compact ? looted>=itemcount : i<=looted;
-                Item *w = makeLocationIcon(0,0,32,32, locid, sec, opened, compact);
+                Item *w = makeLocationIcon(0,0,32,32, sec.getParentID(), sec, opened, compact);
                 hbox->addChild(w);
                 if (compact) break;
             }
@@ -993,7 +994,9 @@ int TrackerView::calculateLocationState(const std::string& locid)
     bool hasCheckable = false;
     bool hasVisible = false;
 
-    for (const auto& sec: loc.getSections()) {
+    for (const auto& ogSec: loc.getSections()) {
+        const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
+
         if (_tracker->isVisible(loc, sec)) {
             hasVisible = true;
         } else {

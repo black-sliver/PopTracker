@@ -280,10 +280,14 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
     sec._overlayBackground = to_string(j["overlay_background"], overlayBackground);
     auto tmp = to_string(j["hosted_item"], "");
     commasplit(tmp, sec._hostedItems);
-    sec._itemCount = sec._hostedItems.empty() ? 1 : 0;
+    sec._ref = to_string(j, "ref", "");
+    sec._itemCount = sec._hostedItems.empty() && sec._ref.empty() ? 1 : 0;
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
+    bool nonEmpty = sec._itemCount > 0 || !sec._hostedItems.empty();
+
     if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
         // TODO: merge code with Location's access rules
+        nonEmpty = true;
         for (const auto& v : j["access_rules"]) {
             std::list<std::string> newRule;
             if (v.is_string()) {
@@ -325,6 +329,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
     }
     if (j["visibility_rules"].is_array() && !j["visibility_rules"].empty()) {
         // TODO: merge code with Location's access rules
+        nonEmpty = true;
         for (const auto& v : j["visibility_rules"]) {
             std::list<std::string> newRule;
             if (v.is_string()) {
@@ -364,6 +369,12 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
                     sanitize_print(sec._name).c_str());
         }
     }
+
+    if (!sec._ref.empty() && nonEmpty) {
+        fprintf(stderr, "Location: Section: extra data in section \"%s\" with \"ref\"\n",
+                sanitize_print(sec._name).c_str());
+    }
+
     return sec;
 }
 

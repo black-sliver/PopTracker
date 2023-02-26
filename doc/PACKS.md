@@ -328,6 +328,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                                 ...
                             ]
                         },
+                        {
+                            "ref": "Path/to/another/section" // links and displays a section from another location here
+                        },
                         ...
                     ]
                 }
@@ -373,6 +376,8 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 `hosted_item` is a comma separated list of item codes that are always in this section.
 
 `item_count` is the number of checks (chests, ...) and defaults to 1 unless `hosted_item` is used, in which case it defaults to 0.
+
+`ref` make this section a reference to another section, ignoring all other properties defined here. This can be used to have the same section in detailed and overworld maps.
 
 **Tracker Lua Interface:**
 

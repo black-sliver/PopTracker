@@ -40,6 +40,7 @@ protected:
     std::list< std::list<std::string> > _accessRules;
     std::list< std::list<std::string> > _visibilityRules;
     std::string _overlayBackground;
+    std::string _ref; // path to actual section if it's just a reference
 public:
     // getters
     const std::string& getName() const { return _name; }
@@ -55,6 +56,7 @@ public:
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
     const std::string& getOverlayBackground() const { return _overlayBackground; }
     const std::string& getParentID() const { return _parentId; }
+    const std::string& getRef() const { return _ref; }
 
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
