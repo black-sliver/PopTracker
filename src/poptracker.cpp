@@ -383,9 +383,30 @@ bool PopTracker::start()
                 if (backend == "AP") {
                     // TODO: replace inputbox by GUI overlay
                     std::string uri, slot, password;
-                    if (!Dlg::InputBox("PopTracker", "Enter archipelago server:port", _atUri.empty()?"localhost":_atUri, uri)) return;
-                    if (!Dlg::InputBox("PopTracker", "Enter slot", (_atUri==uri)?_atSlot.c_str():"Player", slot)) return;
-                    if (!Dlg::InputBox("PopTracker", "Enter password", "", password, true)) return;
+                    if (!Dlg::InputBox("PopTracker", "Enter Archipelago host and port",
+                            _atUri.empty() ? "localhost:38281" : _atUri, uri))
+                        return;
+                    bool badUri = *(uri.c_str()) == '/' || *(uri.c_str()) == '\'';
+                    if (!badUri) {
+                        // check if URI is all digits, which is not fine
+                        badUri = true;
+                        for (char c : uri) {
+                            if (!isdigit(c)) {
+                                badUri = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (badUri) {
+                        Dlg::MsgBox("PopTracker", "Please enter server as host:port!",
+                                Dlg::Buttons::OK, Dlg::Icon::Error);
+                        return;
+                    }
+                    if (!Dlg::InputBox("PopTracker", "Enter slot",
+                            (_atUri==uri) ? _atSlot.c_str() : "Player", slot))
+                        return;
+                    if (!Dlg::InputBox("PopTracker", "Enter password", "", password, true))
+                        return;
                     _atUri = uri;
                     _atSlot = slot;
                     _atPassword = password;
