@@ -1000,17 +1000,16 @@ int TrackerView::calculateLocationState(const std::string& locid)
             continue;
         }
 
-        int itemCount = sec.getItemCount();
-        if (itemCount>0 && sec.getItemCleared()>=itemCount) continue;
-        else if (itemCount<1) { // check hosted items
-            bool match = false;
+        if (sec.getItemCleared() >= sec.getItemCount()) {
+            // check hosted items
+            bool missing = false;
             for (const auto& code: sec.getHostedItems()) {
                 if (!_tracker->ProviderCountForCode(code)) {
-                    match = true;
+                    missing = true;
                     break;
                 }
             }
-            if (!match) continue;
+            if (!missing) continue;
         }
 
         auto reachable = _tracker->isReachable(loc, sec);
