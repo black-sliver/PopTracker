@@ -8,7 +8,8 @@ connected = set()
 variables = [
     { "cmd": "Var", "name": "a", "value": False },
     { "cmd": "Var", "name": "b", "value": 0 },
-    { "cmd": "Var", "name": "c", "value": [False,0] }
+    { "cmd": "Var", "name": "c", "value": [False,0] },
+    { "cmd": "Var", "name": "Example Location 1/Example Section 1", "value": 0 },
 ]
 
 async def handler(websocket, path):
@@ -47,11 +48,13 @@ async def main():
             if variables[2]["value"][1] == 2:
                 variables[2]["value"][0] = not variables[2]["value"][0]
                 variables[2]["value"][1] = 0
+        elif n == 3:
+            variables[3]["value"] = int(not variables[3]["value"])
         for client in connected:
             data = json.dumps([variables[n]])
             print(f"> {data}")
             await client.send(data)
-        n = (n+1)%3
+        n = (n+1)%4
 
 start_server = websockets.serve(handler, "localhost", 65399)
 loop = asyncio.get_event_loop()

@@ -2,9 +2,19 @@
     "tracker_default": {
         "type": "container",
         "content": {
-            "type": "itemgrid",
-            "rows": [
-                [ "a", "b", "c" ]
+            "type": "dock",
+            "content": [
+                {
+                    "dock": "bottom",
+                    "type": "itemgrid",
+                    "rows": [
+                        [ "a", "b", "c" ]
+                    ]
+                },
+                {
+                    "type": "map",
+                    "maps": [ "map" ]
+                }
             ]
         }
     }

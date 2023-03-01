@@ -2,7 +2,7 @@
     "name": "UAT Example",
 	"game_name": "Demo",
 	"platform": "pc",
-	"package_version": "1.0.0",
+	"package_version": "1.0.1",
 	"package_uid": "uat-example",
 	"author": "black_sliver",
 	"variants": {

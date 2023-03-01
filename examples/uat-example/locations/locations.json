@@ -1,0 +1,19 @@
+[
+    {
+        "name": "Example Location 1",
+        "access_rules": [],
+        "sections": [
+            {
+                "name": "Example Section 1",
+                "item_count": 1
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "map",
+                "x": 583,
+                "y": 233
+            }
+        ]
+    }
+]
