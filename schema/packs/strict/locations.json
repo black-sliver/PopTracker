@@ -3,94 +3,116 @@
     "title": "PopTracker Pack locations",
     "description": "Locations for a PopTracker pack.",
     "type": "array",
-    "items": { "$ref": "#/$defs/location" },
+    "items": {
+        "$ref": "#/$defs/location"
+    },
     "$defs": {
-        "section" : {
+        "section": {
             "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Name of the section.",
-                    "type": "string"
-                },
-                "access_rules": {
-                    "example": [
-                        "rule1,rule2",
-                        "rule3,rule4",
-                        "{checkrule1, checkrule2}"
-                    ],
-                    "type": "array",
-                    "anyOf": [
-                        {
-                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                            "items": {
-                                "description": "Rules. Comma sperated for AND.",
-                                "type": "string"
-                            }
+            "anyOf": [
+                {
+                    "properties": {
+                        "name": {
+                            "description": "Name of the section.",
+                            "type": "string"
                         },
-                        {
-                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                            "items": {
-                                "description": "List of rules to be AND-ed together.",
-                                "type": "array",
-                                "items": {
-                                    "description": "A rule.",
-                                    "type": "string"
+                        "access_rules": {
+                            "example": [
+                                "rule1,rule2",
+                                "rule3,rule4",
+                                "{checkrule1, checkrule2}"
+                            ],
+                            "type": "array",
+                            "anyOf": [
+                                {
+                                    "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                    "items": {
+                                        "description": "Rules. Comma sperated for AND.",
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                    "items": {
+                                        "description": "List of rules to be AND-ed together.",
+                                        "type": "array",
+                                        "items": {
+                                            "description": "A rule.",
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    ]
-                },
-                "visibility_rules": {                    
-                    "example": [
-                        "rule1,rule2",
-                        "rule3,rule4",
-                        "{checkrule1, checkrule2}"
-                    ],
-                    "type": "array",
-                    "anyOf": [
-                        {
-                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                            "items": {
-                                "description": "Rules. Comma sperated for AND.",
-                                "type": "string"
-                            }
+                            ]
                         },
-                        {
-                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                            "items": {
-                                "description": "List of rules to be AND-ed together.",
-                                "type": "array",
-                                "items": {
-                                    "description": "A rule.",
-                                    "type": "string"
+                        "visibility_rules": {
+                            "example": [
+                                "rule1,rule2",
+                                "rule3,rule4",
+                                "{checkrule1, checkrule2}"
+                            ],
+                            "type": "array",
+                            "anyOf": [
+                                {
+                                    "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                    "items": {
+                                        "description": "Rules. Comma sperated for AND.",
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                    "items": {
+                                        "description": "List of rules to be AND-ed together.",
+                                        "type": "array",
+                                        "items": {
+                                            "description": "A rule.",
+                                            "type": "string"
+                                        }
+                                    }
                                 }
-                            }
+                            ]
+                        },
+                        "chest_unopened_img": {
+                            "description": "Image for uncleared state.",
+                            "type": "string"
+                        },
+                        "chest_opened_img": {
+                            "description": "Image for cleared state.",
+                            "type": "string"
+                        },
+                        "clear_as_group": {
+                            "description": "If set to true, the section will clear all checks with one click.",
+                            "type": "boolean"
+                        },
+                        "item_count": {
+                            "description": "Number of checks in this section.",
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "hosted_item": {
+                            "description": "Item to be hosted in the section.",
+                            "type": "string"
                         }
-                    ]
+                    },
+                    "additionalProperties": false
                 },
-                "chest_unopened_img": {
-                    "description": "Image for uncleared state.",
-                    "type": "string"
-                },
-                "chest_opened_img": {
-                    "description": "Image for cleared state.",
-                    "type": "string"
-                },
-                "clear_as_group": {
-                    "description": "If set to true, the section will clear all checks with one click.",
-                    "type": "boolean"
-                },
-                "item_count": {
-                    "description": "Number of checks in this section.",
-                    "type": "number",
-                    "minimum": 0
-                },
-                "hosted_item": {
-                    "description": "Item to be hosted in the section.",
-                    "type": "string"
+                {
+                    "properties": {
+                        "name": {
+                            "description": "If provided, overrides the original sections name (for display only).",
+                            "type": "string"
+                        },
+                        "ref": {
+                            "description": "Reference to another section to be placed here.",
+                            "type": "string",
+                            "example": [
+                                "location A/section A"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
                 }
-            },
-            "additionalProperties": false
+            ]
         },
         "location": {
             "type": "object",
@@ -127,7 +149,7 @@
                         }
                     ]
                 },
-                "visibility_rules": {                    
+                "visibility_rules": {
                     "example": [
                         "rule1,rule2",
                         "rule3,rule4",
