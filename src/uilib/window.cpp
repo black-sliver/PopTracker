@@ -184,4 +184,13 @@ void Window::grabFocus()
     SDL_SetWindowInputFocus(_win);
 }
 
+bool Window::isAccelerated()
+{
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(_ren, &info) == 0) {
+        return info.flags & SDL_RENDERER_ACCELERATED;
+    }
+    return false;
+}
+
 } // namsepace

@@ -50,6 +50,8 @@ public:
     Position getPositionOnDisplay() const;
     void grabFocus();
 
+    bool isAccelerated();
+
     Signal<int, int, DropType, std::string> onDrop; // x, y, type, data
 };
 

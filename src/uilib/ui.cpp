@@ -142,6 +142,21 @@ bool Ui::render()
     // if not using vsync redraw ASAP for destructive events
     // browser context/emscripten: similar to vsync, but waiting is bad
     
+    if (_fpsLimit < 1) {
+        for (const auto& pair : _windows) {
+            if (!pair.second->isAccelerated()) {
+                _fpsLimit = _softwareFpsLimit;
+                break;
+            }
+        }
+        if (_fpsLimit < 1) {
+            _fpsLimit = _hardwareFpsLimit;
+        }
+        if (_fpsLimit < 1) {
+            _fpsLimit = DEFAULT_FPS_LIMIT;
+        }
+    }
+
     #define FRAME_TIME (1000/_fpsLimit) // TODO: microseconds
     
     uint32_t t0 = SDL_GetTicks(); // TODO: microseconds

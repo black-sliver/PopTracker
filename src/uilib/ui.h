@@ -8,6 +8,7 @@
 #include <list>
 
 #define DEFAULT_FPS_LIMIT 120
+#define DEFAULT_SOFTWARE_FPS_LIMIT 60
 
 namespace Ui {
 
@@ -26,7 +27,9 @@ protected:
     uint64_t _lastFrameMicroTimestamp = 0;
     unsigned _globalMouseButton = 0;
     bool _fallbackRenderer = false;
-    unsigned _fpsLimit = DEFAULT_FPS_LIMIT;
+    unsigned _fpsLimit = 0;
+    unsigned _hardwareFpsLimit = DEFAULT_FPS_LIMIT;
+    unsigned _softwareFpsLimit = DEFAULT_SOFTWARE_FPS_LIMIT;
 
     std::mutex _eventMutex;
     static int eventFilter(void *userdata, SDL_Event *event);
@@ -46,7 +49,11 @@ public:
     void destroyWindow(Window *win);
     bool render();
 
-    void setFPSLimit(unsigned fps) { _fpsLimit = fps; }
+    void setFPSLimit(unsigned hw_fps, unsigned sw_fps)
+    {
+        _hardwareFpsLimit = hw_fps;
+        _softwareFpsLimit = sw_fps;
+    }
 
     void addHotkey(const Hotkey&);
     void addHotkey(Hotkey&&);

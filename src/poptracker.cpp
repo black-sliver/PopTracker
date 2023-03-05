@@ -103,6 +103,9 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (!_config["fps_limit"].is_number())
         _config["fps_limit"] = DEFAULT_FPS_LIMIT;
 
+    if (!_config["software_fps_limit"].is_number())
+        _config["software_fps_limit"] = DEFAULT_SOFTWARE_FPS_LIMIT;
+
     if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
         _exportFile = _config["export_file"];
         _exportUID = _config["export_uid"];
@@ -224,7 +227,7 @@ bool PopTracker::start()
 #endif
 
     _ui = new Ui::Ui(APPNAME, _config["software_renderer"] ? true : false);
-    _ui->setFPSLimit(_config["fps_limit"].get<unsigned>());
+    _ui->setFPSLimit(_config["fps_limit"].get<unsigned>(), _config["software_fps_limit"].get<unsigned>());
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
             _broadcast = nullptr;
