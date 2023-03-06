@@ -1,1 +1,40 @@
+#include "version.h"
+#include <winver.h>
+
+#ifdef NDEBUG
+#define APP_FILE_FLAGS 0
+#else
+#define APP_FILE_FLAGS VS_FF_DEBUG
+#endif
+
 id ICON "../assets/icon.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     APP_VERSION_TUPLE
+PRODUCTVERSION  APP_VERSION_TUPLE
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       APP_FILE_FLAGS
+FILEOS          VOS_NT
+FILETYPE        VFT_APP
+FILESUBTYPE     0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904b0"
+        {
+		VALUE "Comments",         ""
+		VALUE "CompanyName",      ""
+		VALUE "FileDescription",  "PopTracker"
+		VALUE "FileVersion",      APP_VERSION_STRING
+		VALUE "InternalName",     ""
+		VALUE "LegalCopyright",   ""
+		VALUE "OriginalFilename", "poptracker.exe"
+		VALUE "ProductName",      "PopTracker"
+		VALUE "ProductVersion",	  APP_VERSION_STRING
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x409, 1200
+    }
+}
