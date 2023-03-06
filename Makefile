@@ -35,6 +35,14 @@ NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
 WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
 WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -luuid -lrpcrt4 -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
+# extract version
+VERSION_MAJOR := $(shell grep '#define APP_VERSION_MAJOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION_MINOR := $(shell grep '#define APP_VERSION_MINOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION_REVISION := $(shell grep '#define APP_VERSION_REVISION' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
+VS := $(subst .,-,$(VERSION))
+$(info Version $(VERSION))
+
 # detect OS and compiler
 ifeq ($(OS),Windows_NT)
   IS_WIN = yes
@@ -71,10 +79,9 @@ WIN32_EXE = $(WIN32_BUILD_DIR)/$(EXE_NAME).exe
 WIN64_EXE = $(WIN64_BUILD_DIR)/$(EXE_NAME).exe
 NIX_EXE = $(NIX_BUILD_DIR)/$(EXE_NAME)
 HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
+
 # dist/zip
 ifeq ($(CONF), DIST)
-VERSION := $(shell grep VERSION_STRING $(SRC_DIR)/poptracker.h | cut -d'"' -f 2 )
-VS := $(subst .,-,$(VERSION))
 ifdef IS_OSX
   OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
   OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
@@ -85,6 +92,7 @@ endif
 WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
 WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 endif
+
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
 NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)))

@@ -1,6 +1,7 @@
 #ifndef _POPTRACKER_H
 #define _POPTRACKER_H
 
+#include "version.h"
 #include "app.h"
 #include "uilib/ui.h"
 #include "ui/defaulttrackerwindow.h"
@@ -79,7 +80,7 @@ public:
     bool InstallPack(const std::string& uid, PackManager::confirmation_callback confirm = nullptr);
 
     static constexpr const char APPNAME[] = "PopTracker";
-    static constexpr const char VERSION_STRING[] = "0.22.0";
+    static constexpr const char VERSION_STRING[] = APP_VERSION_STRING;
     static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
 
 protected:
