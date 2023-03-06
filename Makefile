@@ -100,10 +100,12 @@ WIN32_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC))
 WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)))
 WIN64_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC))
 WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)))
+
 # tools
 CC = gcc # TODO: use ?=
 CPP = g++ # TODO: use ?=
 AR = ar # TODO: use ?=
+
 # cross tools
 EMCC ?= emcc
 EMPP ?= em++
@@ -125,19 +127,19 @@ C_FLAGS = -Wall -std=c99 -D_REENTRANT
 ifeq ($(CONF), DEBUG) # DEBUG
 C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
 ifdef IS_LLVM # DEBUG with LLVM
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
 LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
 else # DEBUG with GCC
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
 LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
 endif
 else
 C_FLAGS += -O2 -fno-stack-protector -fno-common
 ifdef IS_LLVM # RELEASE or DIST with LLVM
-CPP_FLAGS = -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
+CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
 LD_FLAGS = -Wl,-dead_strip -O2 -flto
 else # RELEASE or DIST with GCC
-CPP_FLAGS = -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
+CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
 LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
 endif
 endif
