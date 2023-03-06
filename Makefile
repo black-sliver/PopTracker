@@ -36,9 +36,9 @@ WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lSDL2_image -lSDL2_ttf $(SSL
 WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
 # extract version
-VERSION_MAJOR := $(shell grep '#define APP_VERSION_MAJOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
-VERSION_MINOR := $(shell grep '#define APP_VERSION_MINOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
-VERSION_REVISION := $(shell grep '#define APP_VERSION_REVISION' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION_MAJOR := $(shell grep '.define APP_VERSION_MAJOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION_MINOR := $(shell grep '.define APP_VERSION_MINOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
+VERSION_REVISION := $(shell grep '.define APP_VERSION_REVISION' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
 VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
 VS := $(subst .,-,$(VERSION))
 $(info Version $(VERSION))
