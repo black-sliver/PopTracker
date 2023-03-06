@@ -32,8 +32,8 @@ WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 SSL_LIBS = -lssl -lcrypto
 NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
-WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -lSDL2_image -lz $(SSL_LIBS) -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -lSDL2_ttf -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
-WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lwsock32 -lws2_32 -lfreetype -lpng -lz -lbz2 -lssp -luuid -lrpcrt4 -lcrypt32 -static-libgcc -Wl,--high-entropy-va
+WIN32_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
+WIN64_LIBS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
 # extract version
 VERSION_MAJOR := $(shell grep '#define APP_VERSION_MAJOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
