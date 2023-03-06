@@ -33,11 +33,13 @@ JsonItem JsonItem::FromJSONString(const std::string& j)
 {
     return FromJSON(json::parse(j, nullptr, true, true));
 }
+
 JsonItem JsonItem::FromJSON(nlohmann::json&& j)
 {
     auto tmp = j;
     return FromJSON(tmp);
 }
+
 JsonItem JsonItem::FromJSON(json& j)
 {
     JsonItem item;
@@ -115,11 +117,13 @@ JsonItem::Stage JsonItem::Stage::FromJSONString(const std::string& j)
 {
     return FromJSON(json::parse(j, nullptr, true, true));
 }
+
 JsonItem::Stage JsonItem::Stage::FromJSON(nlohmann::json&& j)
 {
     auto tmp = j;
     return FromJSON(tmp);
 }
+
 JsonItem::Stage JsonItem::Stage::FromJSON(json& j)
 {
     Stage stage;
@@ -338,10 +342,14 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "Decrement")==0) {
         lua_pushinteger(L, _decrement);
         return 1;
+    } else if (strcmp(key, "Type") == 0) {
+        lua_pushstring(L, Type2Str(_type).c_str());
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
 }
+
 bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     if (strcmp(key, "AcquiredCount")==0) {
         int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
@@ -445,6 +453,7 @@ json JsonItem::save() const
         data["decrement"] = _decrement;
     return data;
 }
+
 bool JsonItem::load(json& j)
 {
     if (j.type() == json::value_t::object) {

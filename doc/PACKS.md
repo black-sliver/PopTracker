@@ -120,6 +120,7 @@ a table representing an enum with the following constants: \
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
+* `.Type`: gets the type of the item as string (always "custom"), since 0.23.0
 
 *Probably more to come.*
 
@@ -137,6 +138,7 @@ a table representing an enum with the following constants: \
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Increment`: sets or gets the increment (left-click) value of consumables
 * `.Decrement`: sets or gets the decrement (right-click) value of consumables
+* `.Type`: gets the type of the item as string ("toggle", ...), since 0.23.0
 
 *Probably more to come.*
 

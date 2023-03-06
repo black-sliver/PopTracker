@@ -75,6 +75,9 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"Owner")==0) {
         lua_newtable(L); // dummy
         return 1;
+    } else if (strcmp(key, "Type") == 0) {
+        lua_pushstring(L, Type2Str(_type).c_str());
+        return 1;
     }
     
     return 0;
@@ -164,6 +167,7 @@ bool LuaItem::canProvideCode(const std::string& code) const
     lua_pop(_L,1);
     return res;
 }
+
 int LuaItem::providesCode(const std::string code) const
 {
     if (!_providesCodeFunc.valid()) return false;
@@ -180,6 +184,7 @@ int LuaItem::providesCode(const std::string code) const
     lua_pop(_L,1);
     return res;
 }
+
 bool LuaItem::changeState(Action action)
 {
     // for now we'll just have Left=Next send left-click, Right=Prev send right-click
@@ -230,6 +235,7 @@ LuaVariant LuaItem::Get(const char* s)
         return it->second;
     }
 }
+
 void LuaItem::Set(const char* s, LuaVariant v)
 {
     DEBUG_printf("LuaItem(\"%s\"):Set(\"%s\",%s)\n  ", _name.c_str(), s, v.toString().c_str());
@@ -274,6 +280,7 @@ json LuaItem::save() const
     lua_pop(_L,1);
     return j;
 }
+
 bool LuaItem::load(json& j)
 {
     if (j.type() == json::value_t::null) return true;
