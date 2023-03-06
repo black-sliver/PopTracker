@@ -41,7 +41,6 @@ Ui::Ui(const char *name, bool fallbackRenderer)
 {
     _name = name;
     _fallbackRenderer = fallbackRenderer;
-    if (_fallbackRenderer) SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
     
     SDL_version v;
     SDL_GetVersion(&v);
@@ -55,6 +54,10 @@ Ui::Ui(const char *name, bool fallbackRenderer)
     }
     if (TTF_Init() != 0) {
         fprintf(stderr, "Error initializing SDL_TTF: %s\n", TTF_GetError());
+    }
+
+    if (_fallbackRenderer) {
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
     }
 
 #ifdef SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR /* available beginning SDL 2.0.8 */
@@ -76,6 +79,18 @@ Ui::Ui(const char *name, bool fallbackRenderer)
     // TODO: AddEventWatch?
     SDL_SetEventFilter(Ui::eventFilter, this);
 #endif
+
+    printf("Ui: Available renderers: ");
+    int count = 0;
+    for (int i=0; i<SDL_GetNumRenderDrivers(); i++) {
+        SDL_RendererInfo info;
+        if (SDL_GetRenderDriverInfo(i, &info) == 0) {
+            printf("%s%s%s", count ? "," : "", info.name,
+                               (info.flags & SDL_RENDERER_ACCELERATED) ? " (hw)" : "");
+            count++;
+        }
+    }
+    printf(count ? "\n" : "None\n");
 }
 
 Ui::~Ui()
