@@ -90,27 +90,28 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         if (origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
             // stupid work-around: if base item is staged and has allow_disabled
             // we need to insert an additional stage for disabled state
-            size_t m = stagedWithDisabled ? (n+1) : n;
-            if (item->getType() == ::BaseItem::Type::TOGGLE) m = 1;
-            w->addStage(0,m, s.c_str(), s.length(), filters);
+            size_t m = stagedWithDisabled ? (n + 1) : n;
+            if (item->getType() == ::BaseItem::Type::TOGGLE)
+                m = 1;
+            w->addStage(0, m, s.c_str(), s.length(), f, filters);
             std::list<std::string> badgeMods = item->getImageMods(n);
             badgeMods.push_back("overlay|" + origItem.getImage(0));
             auto badgeFilters = imageModsToFilters(_tracker, badgeMods);
-            w->addStage(1,m, s.c_str(), s.length(), badgeFilters);
+            w->addStage(1, m, s.c_str(), s.length(), f, badgeFilters);
             if (n == 0 && m != 0) {
                 f = item->getDisabledImage(0);
                 _tracker->getPack()->ReadFile(f, s);
                 const auto& mods = item->getDisabledImageMods(0);
                 filters = imageModsToFilters(_tracker, mods);
-                w->addStage(0,0, s.c_str(), s.length(), filters);
+                w->addStage(0, 0, s.c_str(), s.length(), f, filters);
                 badgeMods = mods;
                 badgeMods.push_back("overlay|" + origItem.getImage(0));
                 badgeFilters = imageModsToFilters(_tracker, badgeMods);
-                w->addStage(1,0, s.c_str(), s.length(), badgeFilters);
+                w->addStage(1, 0, s.c_str(), s.length(), f, badgeFilters);
             }
         }
         else if (disabled) {
-            w->addStage(1,n, s.c_str(), s.length(), filters);
+            w->addStage(1, n, s.c_str(), s.length(), f, filters);
             auto disF = item->getDisabledImage(n);
             if (f != disF) {
                 f = disF;
@@ -118,12 +119,10 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             }
             auto disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
-            //if (!disMods.empty()) filters = imageModsToFilters(_tracker, disMods);
-            //if (disMods.empty() || disMods.front() != "none") filters.push_back({"grey"});
-            w->addStage(0,n, s.c_str(), s.length(), filters);
+            w->addStage(0, n, s.c_str(), s.length(), f, filters);
         }
         else {
-            w->addStage(1,n, s.c_str(), s.length(), filters);
+            w->addStage(1, n, s.c_str(), s.length(), f, filters);
         }
     }
     if (item->getCount()) {
@@ -180,24 +179,24 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
 Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const std::string& locid, const LocationSection& sec, bool opened, bool compact)
 {
+    std::string fClosed, fOpened;
     std::string sClosed, sOpened;
-    {
-        std::string f = sec.getClosedImage();
-        _tracker->getPack()->ReadFile(f, sClosed);
-        if (sClosed.empty()) {
-            readFile(asset("closed.png"), sClosed); // fallback/default icon
-        }
+
+    fClosed = sec.getClosedImage();
+    _tracker->getPack()->ReadFile(fClosed, sClosed);
+    if (sClosed.empty()) {
+        readFile(asset("closed.png"), sClosed); // fallback/default icon
     }
-    {
-        std::string f = sec.getOpenedImage();
-        _tracker->getPack()->ReadFile(f, sOpened);
-        if (sOpened.empty()) {
-            readFile(asset("open.png"), sOpened); // fallback/default icon
-        }
+
+    fOpened = sec.getOpenedImage();
+    _tracker->getPack()->ReadFile(fOpened, sOpened);
+    if (sOpened.empty()) {
+        readFile(asset("open.png"), sOpened); // fallback/default icon
     }
+
     Item *w = new Item(x,y,width,height,_font);
-    w->addStage(0,0, sClosed.c_str(), sClosed.length()); // TODO: +img_mods
-    w->addStage(1,0, sOpened.c_str(), sOpened.length()); // TODO: +img_mods
+    w->addStage(0,0, sClosed.c_str(), sClosed.length(), fClosed); // TODO: +img_mods
+    w->addStage(1,0, sOpened.c_str(), sOpened.length(), fOpened); // TODO: +img_mods
     w->setStage(opened?1:0,0);
     w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
     w->setOverlayBackgroundColor(sec.getOverlayBackground());
@@ -405,10 +404,13 @@ void TrackerView::updateState(const std::string& itemid)
             int st = item.getActiveStage();
             auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
             auto f = item.getImage(st);
-            std::string s;
-            _tracker->getPack()->ReadFile(f, s);
-            w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), filters);
-            printf("Image updated!\n");
+            // TODO: cache image instead always reloading it
+            if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
+                std::string s;
+                _tracker->getPack()->ReadFile(f, s);
+                w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), f, filters);
+                printf("Image updated!\n");
+            }
         } else if (item.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
             // stage is controlled by base item, state by badge
             // stupid hack: if the base item is staged and it has

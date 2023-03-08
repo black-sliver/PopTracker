@@ -27,16 +27,23 @@ void Item::setStage(int stage1, int stage2)
 
 void Item::freeStage(int stage1, int stage2)
 {
-    if ((int)_surfs.size()>stage1 && (int)_surfs[stage1].size()>stage2) {
+    if ((int)_surfs.size() > stage1 && (int)_surfs[stage1].size() > stage2) {
         SDL_FreeSurface(_surfs[stage1][stage2]);
         _surfs[stage1][stage2] = nullptr;
     }
-    if ((int)_texs.size()>stage1 && (int)_texs[stage1].size()>stage2) {
+    if ((int)_texs.size() > stage1 && (int)_texs[stage1].size() > stage2) {
         SDL_DestroyTexture(_texs[stage1][stage2]);
         _texs[stage1][stage2] = nullptr;
     }
+    if ((int)_names.size() > stage1 && (int)_names[stage1].size() > stage2) {
+        _names[stage1][stage2].clear();
+    }
+    if ((int)_filters.size() > stage1 && (int)_filters[stage1].size() > stage2) {
+        _filters[stage1][stage2].clear();
+    }
 }
-void Item::addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters)
+
+void Item::addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name, std::list<ImageFilter> filters)
 {
     if (!surf) return;
     // if any corner pixel is #ff00ff, make that color transparent
@@ -66,14 +73,25 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFi
     } else if (_size.height<1) {
         _size.height = (_autoSize.height * _size.width + _autoSize.width/2) / _autoSize.width;
     }
-    while ((int)_surfs.size() <= stage1) _surfs.push_back({});
-    while ((int)_surfs[stage1].size() <= stage2) _surfs[stage1].push_back(nullptr);
+    while ((int)_surfs.size() <= stage1) {
+        _surfs.push_back({});
+        _names.push_back({});
+        _filters.push_back({});
+    }
+    while ((int)_surfs[stage1].size() <= stage2) {
+        _surfs[stage1].push_back(nullptr);
+        _names[stage1].push_back("");
+        _filters[stage1].push_back({});
+    }
     // apply filters
     for (auto filter: filters)
         surf = filter.apply(surf);
     // store final surface
     _surfs[stage1][stage2] = surf;
+    _names[stage1][stage2] = name;
+    _filters[stage1][stage2] = filters;
 }
+
 void Item::addStage(int stage1, int stage2, const char *path, std::list<ImageFilter> filters)
 {
     freeStage(stage1, stage2);
@@ -81,24 +99,34 @@ void Item::addStage(int stage1, int stage2, const char *path, std::list<ImageFil
     // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     auto surf = IMG_Load(path);
     if (surf) {
-        addStage(stage1, stage2, surf, filters);
+        addStage(stage1, stage2, surf, path, filters);
     }
     else {
         fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
     }
 }
-void Item::addStage(int stage1, int stage2, const void *data, size_t len, std::list<ImageFilter> filters)
+
+void Item::addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
+                    std::list<ImageFilter> filters)
 {
     freeStage(stage1, stage2);
     if (!data || !len) return;
     // FIXME: loading images takes a majority of the time to build the UI. Cache it!
     auto surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
     if (surf) {
-        addStage(stage1, stage2, surf, filters);
+        addStage(stage1, stage2, surf, name, filters);
     }
     else {
         fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
     }
+}
+
+bool Item::isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters)
+{
+    if (name.empty() || (int)_names.size() <= stage1 || (int)_filters.size() <= stage1 ||
+            (int)_names[stage1].size() <= stage2 || (int)_filters[stage1].size() <= stage2)
+        return false;
+    return _names[stage1][stage2] == name && _filters[stage1][stage2] == filters;
 }
 
 void Item::render(Renderer renderer, int offX, int offY)

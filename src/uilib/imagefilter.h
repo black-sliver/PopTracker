@@ -17,6 +17,11 @@ struct ImageFilter {
     std::string arg;
     
     SDL_Surface* apply(SDL_Surface *surf);
+
+    bool operator==(const ImageFilter& rhs) const
+    {
+        return name == rhs.name && arg == rhs.arg;
+    }
 };
 
 } // namespace Ui

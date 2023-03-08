@@ -28,7 +28,9 @@ public:
     virtual int getStage2() const { return _stage2; }
      // FIXME: it would probably make sense to move the image (+modifiers) out of the widget and just apply the final image
     virtual void addStage(int stage1, int stage2, const char *path, std::list<ImageFilter> filters={});
-    virtual void addStage(int stage1, int stage2, const void *data, size_t len, std::list<ImageFilter> filters={});
+    virtual void addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
+                          std::list<ImageFilter> filters={});
+    virtual bool isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters);
     virtual void setOverlay(const std::string& s);
     virtual void setOverlayColor(Widget::Color color);
     virtual void setOverlayBackgroundColor(Widget::Color color);
@@ -44,8 +46,10 @@ public:
     }
 
 protected:
-    std::vector< std::vector<SDL_Surface*> > _surfs;
+    std::vector< std::vector<SDL_Surface*> > _surfs; // TODO: put surf, name and filters in a struct
     std::vector< std::vector<SDL_Texture*> > _texs; // TODO: use texture store to avoid storing duplicates
+    std::vector< std::vector<std::string> > _names;
+    std::vector< std::vector<std::list<ImageFilter>> > _filters;
     bool _fixedAspect=true;
     int _quality=-1;
     int _stage1=0;
@@ -60,7 +64,8 @@ protected:
     Label::HAlign _halign = Label::HAlign::LEFT;
     Label::VAlign _valign = Label::VAlign::TOP;
 
-    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, std::list<ImageFilter> filters={});
+    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name,
+                          std::list<ImageFilter> filters={});
     void freeStage(int stage1, int stage2);
 };
 
