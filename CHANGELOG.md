@@ -1,5 +1,23 @@
 # PopTracker Changelog
 
+## v0.23.0
+
+* App Features
+  * Remember Archipelago auto-tracking host and slot in saved states
+  * Clarify Archipelago host input, detect *some* errors
+  * Different FPS limit for software renderer (default 60) and hardware renderer (default 120)
+  * Include version info in Windows build (.exe -> right click -> Properties -> Details)
+  * Updated `SDL2`, `SDL2_Image`, `SDL2_TTF`, `OpenSSL`, `apclientpp`
+* Pack Features
+  * Lua: Allow the use of .Active for progressive that can't be disabled (always true)
+  * Lua: JSONItem.Type and LuaItem.Type is the type of the item as string
+  * Sections can be placed into multiple locations by using `{"ref": "path/to/original", "name": "New name"}`
+* Fixes
+  * Fixed always ending up with software renderer on Windows (high CPU load, since 0.22.0)
+  * Fix that sections with both items and hosted items could show up in the wrong color on maps
+  * Update tooltip when a LuaItem changes its .Name, don't reload image if it's unchanged
+  * Make some dialogs thread-safe
+
 ## v0.22.0
 
 * App Features
