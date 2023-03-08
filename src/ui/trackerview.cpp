@@ -940,8 +940,9 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
         auto reachable = _tracker->isReachable(loc, sec);
         bool cleared = false; // not implemented
 
-        if (!sec.getName().empty()) {
-            Label* lbl = new Label(0,0,0,0, _smallFont, sec.getName());
+        const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
+        if (!name.empty()) {
+            Label* lbl = new Label(0,0,0,0, _smallFont, name);
             if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
             else if (reachable == AccessibilityLevel::NONE) lbl->setTextColor({255,32,32}); // unreachable: red
             else if (reachable == AccessibilityLevel::SEQUENCE_BREAK) lbl->setTextColor({255,255,32}); // glitches required: yellow
