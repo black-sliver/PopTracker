@@ -6,7 +6,7 @@ Send PRs for `community-packs.json` on github to add your packs.
 
 ## packs.json
 
-The list of uid -> pack info.
+The list of uid -> pack info. Links should point directly to the file/download.
 
 See [examples/packs.json](examples/packs.json)
 and [schema/packs.schema.json](schema/packs.schema.json) for examples and details.
