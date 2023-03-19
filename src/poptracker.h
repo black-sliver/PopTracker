@@ -28,6 +28,7 @@ private:
     nlohmann::json _args;
     nlohmann::json _config;
     nlohmann::json _oldConfig;
+    nlohmann::json _colors;
     bool _isPortable;
     
     lua_State* _L = nullptr;

@@ -30,6 +30,7 @@ enum HotkeyID {
     HOTKEY_TOGGLE_VISIBILITY = 1,
     HOTKEY_RELOAD,
     HOTKEY_FORCE_RELOAD,
+    HOTKEY_TOGGLE_SPLIT_COLORS,
 };
 
 
@@ -47,6 +48,31 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (readFile(configFilename, config)) {
         _config = parse_jsonc(config);
         _oldConfig = _config;
+    }
+
+    std::string colorsData;
+    std::string colorsFilename = getConfigPath(APPNAME, "colors.json", _isPortable);
+    if (readFile(colorsFilename, colorsData)) {
+        _colors = parse_jsonc(colorsData);
+        if (_colors.is_object()) {
+            auto& stateColors = _colors["MapWidget.StateColors"];
+            if (stateColors.is_array()) {
+                size_t i = 0;
+                for (auto& v: stateColors) {
+                    if (!v.is_string()) {
+                        fprintf(stderr, "Error: value not a string in colors.json\n");
+                        break;
+                    }
+                    if (i >= countOf(Ui::MapWidget::StateColors)) break;
+                    Ui::MapWidget::StateColors[i] = v.get<std::string>();
+                    i++;
+                }
+            } else if (!stateColors.is_null()) {
+                fprintf(stderr, "Warning: invalid 'MapWidget.StateColors' in colors.json\n");
+            }
+        } else {
+            fprintf(stderr, "Error: expected object at top level of colors.json\n");
+        }
     }
 
     if (_config["log"].type() != json::value_t::boolean)
@@ -117,16 +143,21 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         _exportFile = _config["export_file"];
         _exportUID = _config["export_uid"];
     }
+
     if (_config["export_dir"].is_string())
         _exportDir = _config["export_dir"];
 
     if (_config["at_uri"].is_string())
         _atUri = _config["at_uri"];
+
     if (_config["at_slot"].is_string())
         _atSlot = _config["at_slot"];
 
     if (_config["usb2snes"].is_null())
         _config["usb2snes"] = "";
+
+    if (_config["split_map_locations"].is_boolean())
+        Ui::MapWidget::SplitRects = _config["split_map_locations"];
 
     saveConfig();
 
@@ -272,6 +303,10 @@ bool PopTracker::start()
         else if (hotkey.id == HOTKEY_FORCE_RELOAD) {
             reloadTracker(true);
         }
+        else if (hotkey.id == HOTKEY_TOGGLE_SPLIT_COLORS) {
+            Ui::MapWidget::SplitRects = !Ui::MapWidget::SplitRects;
+            _config["split_map_locations"] = Ui::MapWidget::SplitRects;
+        }
     }};
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
@@ -283,6 +318,8 @@ bool PopTracker::start()
     _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_r, KMOD_RCTRL|KMOD_RSHIFT});
     _ui->addHotkey({HOTKEY_RELOAD, SDLK_r, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_RELOAD, SDLK_r, KMOD_RCTRL});
+    _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_LCTRL});
+    _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_RCTRL});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
