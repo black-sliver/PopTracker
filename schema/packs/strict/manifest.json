@@ -13,6 +13,7 @@
                 "versions_url": true,
                 "game_name": true,
                 "author": true,
+                "min_poptracker_version": true,
                 "variants": {
                     "$comment": "Enforce known flags",
                     "description": "Variants for the pack. Property keys are the pack variant uids.",
