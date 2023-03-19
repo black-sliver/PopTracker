@@ -272,6 +272,10 @@ bool PopTracker::start()
     _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_F5, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_F5, KMOD_RCTRL});
     _ui->addHotkey({HOTKEY_RELOAD, SDLK_F5, KMOD_NONE});
+    _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_r, KMOD_LCTRL|KMOD_LSHIFT});
+    _ui->addHotkey({HOTKEY_FORCE_RELOAD, SDLK_r, KMOD_RCTRL|KMOD_RSHIFT});
+    _ui->addHotkey({HOTKEY_RELOAD, SDLK_r, KMOD_LCTRL});
+    _ui->addHotkey({HOTKEY_RELOAD, SDLK_r, KMOD_RCTRL});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
