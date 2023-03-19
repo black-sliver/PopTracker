@@ -34,6 +34,7 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
         _name = to_string(_manifest,"name", _uid);
         _gameName = to_string(_manifest,"game_name", _name);
         _versionsURL = to_string(_manifest,"versions_url", "");
+        _minPopTrackerVersion = to_string(_manifest, "min_poptracker_version", "");
     }
 }
 
@@ -68,6 +69,7 @@ Pack::Info Pack::getInfo() const
         to_string(_manifest, "platform",""),
         _gameName,
         _name,
+        _minPopTrackerVersion,
         variants
     };
     return info;

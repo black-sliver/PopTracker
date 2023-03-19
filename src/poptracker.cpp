@@ -847,6 +847,15 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     _pack = new Pack(pack);
     printf("Selecting Variant...\n");
     _pack->setVariant(variant);
+
+    if (_pack->getMinPopTrackerVersion() > Version(VERSION_STRING)) {
+        Dlg::MsgBox("Error", "Pack requires PopTracker " + _pack->getMinPopTrackerVersion().to_string() + " or newer. "
+                    "You have " + VERSION_STRING + ".");
+        fprintf(stderr, "Pack requires a newer version of PopTracker!\n");
+        delete _pack;
+        _pack = nullptr;
+        return false;
+    }
     
     printf("Creating Lua State...\n");
     _L = luaL_newstate();

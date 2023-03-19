@@ -16,6 +16,11 @@ Version::Version(const std::string& s)
     Extra = (next && *next) ? next : "";
 }
 
+Version::Version()
+    : Major(0), Minor(0), Revision(0), Extra("")
+{
+}
+
 Version::~Version()
 {
 }
@@ -34,4 +39,11 @@ bool Version::operator <(const Version& other) const
 bool Version::operator >(const Version& other) const
 {
     return other < *this;
+}
+
+std::string Version::to_string() const
+{
+    if (Extra.empty())
+        return std::to_string(Major) + "." + std::to_string(Minor) + "." + std::to_string(Revision);
+    return std::to_string(Major) + "." + std::to_string(Minor) + "." + std::to_string(Revision) + "-" + Extra;
 }

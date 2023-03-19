@@ -7,6 +7,8 @@
 #include <chrono>
 #include <nlohmann/json.hpp>
 #include "zip.h"
+#include "version.h"
+
 
 class Pack {
 public:
@@ -21,6 +23,7 @@ public:
         std::string platform;
         std::string gameName;
         std::string packName;
+        Version minPoptrackerVersion;
         std::vector<VariantInfo> variants;
     };
     
@@ -41,7 +44,8 @@ public:
     const std::string& getVariantName() const { return _variantName; }
     const std::string& getVersionsURL() const { return _versionsURL; }
     std::string getVariantTitle() const { return _variantName.empty() ? _gameName : (_gameName + "-" + _variantName); }
-    
+    const Version& getMinPopTrackerVersion() const { return _minPopTrackerVersion; }
+
     Info getInfo() const;
     
     bool hasFile(const std::string& file) const;
@@ -67,6 +71,7 @@ protected:
     std::string _gameName;
     std::string _variantName;
     std::string _versionsURL;
+    Version _minPopTrackerVersion;
     nlohmann::json _manifest;
 
     std::chrono::system_clock::time_point _loaded;

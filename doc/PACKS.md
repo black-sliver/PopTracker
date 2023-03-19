@@ -6,6 +6,7 @@
 * Images (that are referenced in JSON) are PNGs, GIFs or JPEGs inside the pack.
 * Most strings/identifiers are case sensitive.
 
+
 ### Manifest
 
 The only things of consequence right now are:
@@ -23,7 +24,8 @@ The only things of consequence right now are:
                 ]
             }
         },
-        "versions_url": "https://example.com/versions.json"
+        "versions_url": "https://example.com/versions.json",
+        "min_poptracker_version": "0.23.1"
     }
 
 Other fields:
@@ -47,6 +49,9 @@ Currently supported flags:
 
 `versions_url` can be used for automatic updates. Information from global `packs.json` takes precedence.
 See https://github.com/black-sliver/PopTracker/tree/packlist for more information.
+
+`min_poptracker_version` will check if the version is compatible when loading the pack.
+It can be written as `x`, `x.y` or `x.y.z`.
 
 
 ## Lua Interface
