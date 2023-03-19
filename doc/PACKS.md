@@ -37,7 +37,13 @@ Each pack can have multiple variants (e.g. map or compact).
 
 If platform is "snes", the snes autotracker is to be enabled.
 
-Flags are ignored at the moment.
+Currently supported flags:
+* `"ap"`: pack supports Archipelago autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
+* `"uat"`: pack supports UAT autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
+* `"lorom"`: (SNES) game has LoROM mapping - if not listed in gameinfo.cpp
+* `"hirom"`: (SNES) game has HiROM mapping
+* `"exlorom"`: (SNES) game has ExLoROM mapping
+* `"exhirom"`: (SNES) game has ExHiROM mapping
 
 `versions_url` can be used for automatic updates. Information from global `packs.json` takes precedence.
 See https://github.com/black-sliver/PopTracker/tree/packlist for more information.
