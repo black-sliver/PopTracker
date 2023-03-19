@@ -10,7 +10,7 @@
 #endif
 
 
-std::string SHA256_File(const std::string& file)
+static std::string SHA256_File(const std::string& file)
 {
     std::string res = "";
     EVP_MD_CTX* context = nullptr;
