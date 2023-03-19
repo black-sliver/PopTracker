@@ -36,8 +36,14 @@ enum HotkeyID {
 PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
     _args = args;
+
+    std::string appPath = getAppPath();
+    if (!appPath.empty() && fileExists(os_pathcat(appPath, "portable.txt"))) {
+        _isPortable = true;
+    }
+
     std::string config;
-    std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json");
+    std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json", _isPortable);
     if (readFile(configFilename, config)) {
         _config = parse_jsonc(config);
         _oldConfig = _config;
@@ -48,7 +54,7 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (_config["software_renderer"].type() != json::value_t::boolean)
         _config["software_renderer"] = false;
 
-    std::string logFilename = getConfigPath(APPNAME, "log.txt");
+    std::string logFilename = getConfigPath(APPNAME, "log.txt", _isPortable);
     if (!_config["log"]) {
         // disable logging, leave note
 #if 0
@@ -97,6 +103,7 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     } else {
         _config["do_not_track"] = nullptr;
     }
+
     if (dnt > 0) // only support 1 and null for now
         _httpDefaultHeaders.push_back("DNT: 1");
 
@@ -130,14 +137,14 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     std::string cwdPath = getCwd();
     std::string documentsPath = getDocumentsPath();
     std::string homePath = getHomePath();
-    std::string appPath = getAppPath();
 
     _homePackDir = os_pathcat(homePath, "PopTracker", "packs");
     _appPackDir = os_pathcat(appPath, "packs");
 
     if (!homePath.empty() && homePath != "." && homePath != cwdPath) {
         Pack::addSearchPath(_homePackDir); // default user packs
-        Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
+        if (!_isPortable)
+            Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
     }
     if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
         Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
@@ -153,12 +160,12 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
 
-    _packManager = new PackManager(_asio, getConfigPath(APPNAME), _httpDefaultHeaders);
+    _packManager = new PackManager(_asio, getConfigPath(APPNAME, "", _isPortable), _httpDefaultHeaders);
     // TODO: move repositories to config?
     _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
     // NOTE: signals are connected later to allow gui and non-gui interaction
 
-    StateManager::setDir(getConfigPath(APPNAME, "saves"));
+    StateManager::setDir(getConfigPath(APPNAME, "saves", _isPortable));
 }
 
 PopTracker::~PopTracker()
@@ -804,7 +811,7 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
 
 const std::string& PopTracker::getPackInstallDir() const
 {
-    return dirExists(_homePackDir) || !isWritable(_appPackDir) ? _homePackDir : _appPackDir;
+    return (!_isPortable && dirExists(_homePackDir)) || !isWritable(_appPackDir) ? _homePackDir : _appPackDir;
 }
 
 void PopTracker::unloadTracker()
@@ -1131,7 +1138,7 @@ void PopTracker::loadState(const std::string& filename)
 void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)
 {
     std::string ignoreData;
-    std::string ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json");
+    std::string ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json", _isPortable);
     json ignore;
     if (readFile(ignoreFilename, ignoreData)) {
         ignore = parse_jsonc(ignoreData);
@@ -1193,7 +1200,7 @@ bool PopTracker::saveConfig()
 {
     bool res = true;
     if (_oldConfig != _config) {
-        std::string configDir = getConfigPath(APPNAME);
+        std::string configDir = getConfigPath(APPNAME, "", _isPortable);
         mkdir_recursive(configDir.c_str());
         res = writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), _config.dump(4)+"\n");
         if (res) _oldConfig = _config;

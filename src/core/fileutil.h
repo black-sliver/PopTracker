@@ -168,6 +168,8 @@ static std::string getCwd()
 #ifdef WIN32
 #include <libloaderapi.h> // GetModileFileNameA
 #include <libgen.h> // dirname
+#include <shlobj.h>
+
 static std::string getAppPath()
 {
     char result[_MAX_PATH+1];
@@ -181,7 +183,7 @@ static std::string getAppPath()
     *slash = 0;
     return result;
 }
-#include <shlobj.h>
+
 static std::string getHomePath()
 {
     char result[_MAX_PATH+1];
@@ -192,6 +194,7 @@ static std::string getHomePath()
     result[_MAX_PATH] = 0;
     return result;
 }
+
 static std::string getDocumentsPath()
 {
     char result[_MAX_PATH+1];
@@ -202,18 +205,23 @@ static std::string getDocumentsPath()
     result[_MAX_PATH] = 0;
     return result;
 }
-static std::string getConfigPath(const std::string& appname="", const std::string& filename="")
+
+static std::string getConfigPath(const std::string& appname="", const std::string& filename="", bool isPortable=false)
 {
     std::string res;
-    char result[_MAX_PATH+1];
-    if (SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, result) != 0) {
-        fprintf(stderr, "Warning: could not get AppData path!\n");
-        res = getHomePath();
+    if (isPortable) {
+        res = os_pathcat(getAppPath(), "portable-config");
     } else {
-        result[_MAX_PATH] = 0;
-        res = result;
+        char result[_MAX_PATH+1];
+        if (SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, result) != 0) {
+            fprintf(stderr, "Warning: could not get AppData path!\n");
+            res = getHomePath();
+        } else {
+            result[_MAX_PATH] = 0;
+            res = result;
+        }
     }
-    
+
     if (!appname.empty() && !filename.empty())
         return os_pathcat(res, appname, filename);
     else if (!appname.empty())
@@ -272,6 +280,7 @@ static std::string getHomePath()
         return ppwd->pw_dir;
     }
 }
+
 static std::string getDocumentsPath()
 {
     // this returns XDG_DOCUMENTS_DIR if defined, HOME otherwise
@@ -279,17 +288,22 @@ static std::string getDocumentsPath()
     if (res && *res) return res;
     return getHomePath();
 }
-static std::string getConfigPath(const std::string& appname="", const std::string& filename="")
+
+static std::string getConfigPath(const std::string& appname="", const std::string& filename="", bool isPortable=false)
 {
     // this returns XDG_CONFIG_DIR[/appname] if defined, HOME/.config[/appname] otherwise
     std::string res;
-    const char* tmp = getenv("XDG_CONFIG_DIR");
-    if (tmp && *tmp) {
-        res = tmp;
+    if (isPortable) {
+        res = os_pathcat(getAppPath(), ".portable-config");
     } else {
-        res = os_pathcat(getHomePath(), ".config");
+        const char* tmp = getenv("XDG_CONFIG_DIR");
+        if (tmp && *tmp) {
+            res = tmp;
+        } else {
+            res = os_pathcat(getHomePath(), ".config");
+        }
     }
-    
+
     if (!appname.empty() && !filename.empty())
         return os_pathcat(res, appname, filename);
     else if (!appname.empty())
