@@ -85,7 +85,7 @@ Ui::Ui(const char *name, bool fallbackRenderer)
     for (int i=0; i<SDL_GetNumRenderDrivers(); i++) {
         SDL_RendererInfo info;
         if (SDL_GetRenderDriverInfo(i, &info) == 0) {
-            printf("%s%s%s", count ? "," : "", info.name,
+            printf("%s%s%s", count ? ", " : "", info.name,
                                (info.flags & SDL_RENDERER_ACCELERATED) ? " (hw)" : "");
             count++;
         }
