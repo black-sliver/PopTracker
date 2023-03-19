@@ -145,7 +145,9 @@ public:
             ctx.set_options(asio::ssl::context::default_workarounds
                             | asio::ssl::context::no_sslv2
                             | asio::ssl::context::no_sslv3
-                            | asio::ssl::context::tlsv12_client);
+                            | asio::ssl::context::no_tlsv1
+                            | asio::ssl::context::no_tlsv1_1
+                            | asio::ssl::context::single_dh_use);
 
             bool load_system_certs = true;
             if (!certfile.empty()) {
@@ -157,6 +159,8 @@ public:
                               << certfile << ": "
                               << ec.message() << "\n";
                 } else {
+                    std::cout << "HTTP: loaded certs from "
+                              << certfile << "\n";
                     load_system_certs = false;
                 }
             }
