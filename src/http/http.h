@@ -159,8 +159,8 @@ public:
                               << certfile << ": "
                               << ec.message() << "\n";
                 } else {
-                    std::cout << "HTTP: loaded certs from "
-                              << certfile << "\n";
+                    debug << "HTTP: loaded certs from "
+                          << certfile << "\n";
                     load_system_certs = false;
                 }
             }
@@ -177,7 +177,7 @@ public:
             ctx.set_verify_mode(asio::ssl::verify_peer
                                 | asio::ssl::verify_fail_if_no_peer_cert
                                 | asio::ssl::verify_client_once);
-            ctx.set_verify_callback(asio::ssl::rfc2818_verification(host));
+            ctx.set_verify_callback(asio::ssl::rfc2818_verification(host)); // overwritten later on socket level
             c = new ssl_client(io_context, ctx, endpoints, request, host);
         }
         else if (strcasecmp(proto.c_str(), "http") == 0) {
@@ -556,7 +556,28 @@ private:
         fail_callback fail_handler;
         progress_callback progress_handler;
     };
-    
+
+    template <typename V>
+    class verbose_verification
+    {
+    public:
+        verbose_verification(V verifier)
+          : verifier_(verifier)
+        {}
+
+        bool operator()(bool preverified, asio::ssl::verify_context& ctx)
+        {
+            char subject_name[256];
+            X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
+            X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
+            bool verified = verifier_(preverified, ctx);
+            std::cout << "HTTP: Verifying: " << subject_name << " ... " << verified << "\n";
+            return verified;
+        }
+    private:
+        V verifier_;
+    };
+
     class tcp_client : public base_client
     {
     public:
@@ -608,7 +629,19 @@ private:
                 const std::string& request, const std::string& host)
                 : base_client(request), socket_(io_context, context)
         {
+#ifdef HTTP_DEBUG
+            socket_.set_verify_callback(verbose_verification(asio::ssl::rfc2818_verification(host)));
+#else
             socket_.set_verify_callback(asio::ssl::rfc2818_verification(host));
+#endif
+
+#ifndef HTTP_NO_SNI
+            if (!SSL_set_tlsext_host_name(socket_.native_handle(), host.c_str()))
+            {
+                asio::error_code ec{static_cast<int>(::ERR_get_error()), asio::error::get_ssl_category()};
+                asio::detail::throw_error(ec, "set_tlsext_host_name");
+            }
+#endif
             connect(endpoints);
         }
 
