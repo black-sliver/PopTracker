@@ -1,5 +1,19 @@
 # PopTracker Changelog
 
+## v0.24.0
+
+* App Features
+  * Split-color map locations - press Ctrl+P to toggle
+  * Load customizable map location colors from `%appdata%\PopTracker\colors.json` or ~/.config/PopTracker/colors.json`
+  * Color Picker: https://poptracker.github.io/color-picker.html
+  * Additional Hotkeys: ctrl+R to reload, ctrl+shift+R to force-reload
+  * Portable mode: create `portable.txt` next to the EXE to skip using user's `%appdata%` or `~/.config`
+  * Update Archipelago client lib (better support for APWorlds through data package checksum)
+  * Enable Server Name Identification (SNI) on HTTPS - required to get updates from github in some regions
+  * Disable tls1.1 and older for HTTPS
+* Pack Features
+  * Allow `min_poptracker_version` in manifest.json to disable loading of incompatible packs.
+
 ## v0.23.0
 
 * App Features

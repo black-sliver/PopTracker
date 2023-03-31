@@ -63,6 +63,10 @@ repositories, follow updates and get support.
 | Blue   | The check at this location is visible, but you cannot currently access the check. |
 | Other  | Locations with mixed accessibility checks will have the corresponding colors mixed. |
 
+Colors can be customized by following instructions on
+[the Color Picker page](https://poptracker.github.io/color-picker.html).
+
+Press Ctrl+P to switch between "mixed" and "split" map location colors.
 
 ## Auto-tracking
 ### SNES Games
