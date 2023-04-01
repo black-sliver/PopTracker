@@ -41,6 +41,8 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     std::string appPath = getAppPath();
     if (!appPath.empty() && fileExists(os_pathcat(appPath, "portable.txt"))) {
         _isPortable = true;
+    } else {
+        _isPortable = false;  // make sure
     }
 
     std::string config;

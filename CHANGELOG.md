@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.24.1
+
+* Fixes
+  * Fix PopTracker sometimes selecting potable mode when it shouldn't
+
 ## v0.24.0
 
 * App Features

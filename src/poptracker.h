@@ -29,7 +29,7 @@ private:
     nlohmann::json _config;
     nlohmann::json _oldConfig;
     nlohmann::json _colors;
-    bool _isPortable;
+    bool _isPortable = false;
     
     lua_State* _L = nullptr;
     LuaPackIO *_luaio = nullptr;
