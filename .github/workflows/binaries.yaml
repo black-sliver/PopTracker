@@ -6,7 +6,7 @@ jobs:
 
   build-ubuntu:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     
     steps:
     - name: Install dependencies
@@ -29,7 +29,7 @@ jobs:
     - name: Store DIST
       uses: actions/upload-artifact@v2
       with:
-        name: ubuntu-18-04-dist
+        name: ubuntu-20-04-dist
         path: dist
 
   build-macos:
