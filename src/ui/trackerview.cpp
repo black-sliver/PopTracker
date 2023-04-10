@@ -937,24 +937,32 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
         const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
         if (!_tracker->isVisible(loc, sec)) continue;
 
-        Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
-
         auto reachable = _tracker->isReachable(loc, sec);
         bool cleared = false; // not implemented
 
-        const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
-        if (!name.empty()) {
-            Label* lbl = new Label(0,0,0,0, _smallFont, name);
-            if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
-            else if (reachable == AccessibilityLevel::NONE) lbl->setTextColor({255,32,32}); // unreachable: red
-            else if (reachable == AccessibilityLevel::SEQUENCE_BREAK) lbl->setTextColor({255,255,32}); // glitches required: yellow
-            else if (reachable == AccessibilityLevel::INSPECT) lbl->setTextColor({48,64,255}); // checkable: blue
-            lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
-            lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
-            lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
-            c->addChild(lbl);
+        std::list<std::string> hostedItems;
+        for (const auto& hostedItem: sec.getHostedItems()) {
+            // skip missing/undefined ones
+            if (_tracker->getItemByCode(hostedItem).getType() != BaseItem::Type::NONE)
+                hostedItems.push_back(hostedItem);
         }
-        if (sec.getItemCount() > 0 || sec.getHostedItems().size()>0) {
+
+        if (sec.getItemCount() > 0 || hostedItems.size()>0) {
+            Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
+
+            const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
+            if (!name.empty()) {
+                Label* lbl = new Label(0,0,0,0, _smallFont, name);
+                if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
+                else if (reachable == AccessibilityLevel::NONE) lbl->setTextColor({255,32,32}); // unreachable: red
+                else if (reachable == AccessibilityLevel::SEQUENCE_BREAK) lbl->setTextColor({255,255,32}); // glitches required: yellow
+                else if (reachable == AccessibilityLevel::INSPECT) lbl->setTextColor({48,64,255}); // checkable: blue
+                lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
+                lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
+                lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
+                c->addChild(lbl);
+            }
+
             HBox* hbox = new HBox(0,0,0,0);
             int itemcount = sec.getItemCount();
             int looted = sec.getItemCleared();
@@ -964,16 +972,16 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
                 hbox->addChild(w);
                 if (compact) break;
             }
-            for (const auto& item: sec.getHostedItems()) {
+            for (const auto& item: hostedItems) {
                 Item *w = makeItem(0,0,32,32, _tracker->getItemByCode(item));
                 w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
                 hbox->addChild(w);
             }
             hbox->relayout(); // FIXME: this should not be neccessary
             c->addChild(hbox); 
+            if (c != sectionContainer)
+                sectionContainer->addChild(c);
         }
-        if (c != sectionContainer)
-            sectionContainer->addChild(c);
     }
     if (sectionContainer != tooltip)
         tooltip->addChild(sectionContainer);
@@ -1000,16 +1008,27 @@ int TrackerView::calculateLocationState(const std::string& locid)
     for (const auto& ogSec: loc.getSections()) {
         const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
 
-        if (_tracker->isVisible(loc, sec)) {
-            hasVisible = true;
-        } else {
+        if (!_tracker->isVisible(loc, sec))
             continue;
+
+        std::list<std::string> hostedItems;
+        if (sec.getItemCleared() >= sec.getItemCount()) {
+            // be lazy about filling hostedItems
+            for (const auto& code : sec.getHostedItems()) {
+                if (_tracker->getItemByCode(code).getType() != BaseItem::Type::NONE)
+                    hostedItems.push_back(code);
+            }
+            // ignore section if empty
+            if (sec.getItemCount() < 1 && hostedItems.size() < 1)
+                continue;
         }
+
+        hasVisible = true;
 
         if (sec.getItemCleared() >= sec.getItemCount()) {
             // check hosted items
             bool missing = false;
-            for (const auto& code: sec.getHostedItems()) {
+            for (const auto& code: hostedItems) {
                 if (!_tracker->ProviderCountForCode(code)) {
                     missing = true;
                     break;
