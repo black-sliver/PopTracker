@@ -59,6 +59,8 @@ protected:
     bool _hideClearedLocations = false;
     bool _hideUnreachableLocations = false;
 
+    int _defaultQuality = -1;
+
     void updateLayout(const std::string& layout);
     void updateState(const std::string& check);
     void updateLocations();

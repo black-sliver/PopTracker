@@ -9,6 +9,8 @@
 
 ### Manifest
 
+`manifest.json` in the root of the pack.
+
 The only things of consequence right now are:
     
     {
@@ -52,6 +54,19 @@ See https://github.com/black-sliver/PopTracker/tree/packlist for more informatio
 
 `min_poptracker_version` will check if the version is compatible when loading the pack.
 It can be written as `x`, `x.y` or `x.y.z`.
+
+
+### Settings
+
+Optional, `settings.json` in the root of the pack.
+
+Configures behavior of the pack.
+
+    {
+        "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
+    }
+
+Currently **not** user overridable.
 
 
 ## Lua Interface

@@ -168,16 +168,29 @@ void Pack::setVariant(const std::string& variant)
         _variantName = _variant;
     }
     _variantName = to_string(variants[_variant]["display_name"], _variantName);
+
+    std::string s;
+    if (ReadFile("settings.json", s)) {
+        // TODO: allow extending from pack overrides
+        _settings = parse_jsonc(s);
+        if (_settings.type() != json::value_t::object)
+            fprintf(stderr, "WARNING: invalid settings.json\n");
+    }
+
+    if (_settings.type() != json::value_t::object)
+        _settings = json::object();
 }
 
 std::string Pack::getPlatform() const
 {
     return to_string(_manifest,"platform","");
 }
+
 std::string Pack::getVersion() const
 {
     return to_string(_manifest,"package_version","");
 }
+
 bool Pack::variantHasFlag(const std::string& flag) const
 {
     // jump through hoops to stay const
@@ -198,6 +211,7 @@ bool Pack::variantHasFlag(const std::string& flag) const
     printf("Pack: %s:%s has NO flag %s\n", _uid.c_str(), _variant.c_str(), flag.c_str());
     return false;
 }
+
 std::set<std::string> Pack::getVariantFlags() const
 {
     std::set<std::string> set;

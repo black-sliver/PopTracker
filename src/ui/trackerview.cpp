@@ -79,6 +79,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
     Item *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
             FontStore::sizeFromData(DEFAULT_FONT_SIZE, item->getOverlayFontSize())));
+    w->setQuality(_defaultQuality);
     size_t stages = item->getStageCount();
     bool disabled = item->getAllowDisabled();
     bool stagedWithDisabled = item->getStageCount() && disabled;
@@ -196,6 +197,7 @@ Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const s
     }
 
     Item *w = new Item(x,y,width,height,_font);
+    w->setQuality(_defaultQuality);
     w->addStage(0,0, sClosed.c_str(), sClosed.length(), fClosed); // TODO: +img_mods
     w->addStage(1,0, sOpened.c_str(), sOpened.length(), fOpened); // TODO: +img_mods
     w->setStage(opened?1:0,0);
@@ -245,6 +247,13 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
     _font = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
     _smallFont = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE - 2);
     if (_font && !_smallFont) _smallFont = _font;
+    const Pack* pack = _tracker->getPack();
+    if (pack) {
+        const auto& settings = pack->getSettings();
+        auto itScaling = settings.find("smooth_scaling");
+        if (itScaling != settings.end() && itScaling.value().is_boolean())
+            _defaultQuality = itScaling.value() ? 2 : 0;
+    }
     _tracker->onLayoutChanged += {this, [this](void *s, const std::string& layout) {
         updateLayout(layout);
     }};
@@ -391,7 +400,7 @@ void TrackerView::updateLocations()
     }
     // dirty work-around: just run the hove signal to recreate tooltip
     // FIXME: we probably want to have a custom widget for that
-    
+
     if (_mapTooltip && _mapTooltipOwner) {
         _mapTooltipOwner->onLocationHover.emit(_mapTooltipOwner, _mapTooltipName, _mapTooltipPos.left, _mapTooltipPos.top);
     }
