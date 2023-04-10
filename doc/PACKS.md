@@ -426,7 +426,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
     {
         "type":        "{container,dock,array,tabbed,group,item,itemgrid,map,layout,recentpins}",
         "background":  "#000000", // background color #(AA)RRGGBB
-        "h_alignment": "{left,right,center,stretch}",
+        "h_alignment": "{left,right,center,stretch}", // defaults to center for item grid
         "v_alignment": "{top,bottom,center,stretch}",
         "dock":        "{top,bottom,left,right}", // if inside a dock, where to dock
         "orientation": "{horizontal,vertical}", // how to orient children
