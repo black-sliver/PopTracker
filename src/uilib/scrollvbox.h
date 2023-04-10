@@ -106,6 +106,7 @@ public:
         }
 
         _minSize.height = 2*_padding;
+        _autoSize = {_minSize.width, _size.height - _scrollMaxY};
     }
 
     virtual void setPadding(int padding) { _padding = padding; } // TODO: relayout?
@@ -113,6 +114,7 @@ public:
 
     virtual void scrollBy(int x, int y)
     {
+        (void)x; // unused
         if (y==0) return;
         int oldScrollY = _scrollY;
         _scrollY += y;
@@ -120,6 +122,26 @@ public:
         else if (_children.empty()) _scrollY = 0;
         else if (_scrollY < _scrollMaxY) _scrollY = _scrollMaxY;
         if (_scrollY != oldScrollY) relayout();
+    }
+
+    virtual void scrollTo(int x, int y)
+    {
+        (void)x; // unused
+        if (y > 0 || _children.empty()) y = 0;
+        else if (y < _scrollMaxY) y = _scrollMaxY;
+        if (y == _scrollY) return;
+        _scrollY = y;
+        relayout();
+    }
+
+    int getScrollY() const
+    {
+        return _scrollY;
+    }
+
+    int getScrollX() const
+    {
+        return 0;
     }
 
     virtual void render(Renderer renderer, int offX, int offY) override

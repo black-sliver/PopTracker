@@ -5,6 +5,7 @@
 #include "../uilib/vbox.h"
 #include "../uilib/dock.h"
 #include "../uilib/tabs.h"
+#include "../uilib/scrollvbox.h"
 #include "../uilib/canvas.h"
 #include "../core/fileutil.h"
 #include "../core/assets.h"
@@ -712,10 +713,11 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             container->addChild(w);
 
             w->onLocationHover += { this, [this](void* sender, std::string locid, int absX, int absY) {
-                // TODO: move this somewhere to increase readabil
+                // TODO: move this somewhere to increase readability
                 // TODO: if tooltip is the same, just move it
                 MapWidget *map = static_cast<MapWidget*>(sender);
                 if (_mapTooltip) {
+                    _mapTooltipScrollOffsets[_mapTooltipName] = _mapTooltip->getScrollY();
                     // remove references to old tooltip
                     _mapTooltipOwner = nullptr;
                     if (_hoverChild == _mapTooltip) _hoverChild = nullptr;
@@ -731,7 +733,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         delete tmp;
                     }
                 }
-                
+
                 // create tooltip
                 _mapTooltipOwner = map;
                 _mapTooltipName = locid;
@@ -752,7 +754,11 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                             _mapTooltip->setLeft(mapLeft);
                     }
                 }
-                if (_mapTooltip->getTop() + _mapTooltip->getHeight() > mapTop + map->getHeight()) {
+                if (_mapTooltip->getHeight() > _size.height) {
+                    _mapTooltip->setHeight(_size.height);
+                    _mapTooltip->setTop(0);
+                }
+                else if (_mapTooltip->getTop() + _mapTooltip->getHeight() > mapTop + map->getHeight()) {
                     if ((_mapTooltip->getTop() + _mapTooltip->getHeight()) - (mapTop + map->getHeight()) <= TOOL_MAX_DISPLACEMENT)
                         // displace so it fits
                         _mapTooltip->setTop(mapTop + map->getHeight() - _mapTooltip->getHeight());
@@ -763,6 +769,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                             _mapTooltip->setTop(mapTop);
                     }
                 }
+                // restore scroll position
+                _mapTooltip->scrollTo(0, _mapTooltipScrollOffsets[locid]);
                 // add tooltip to widgets
                 addChild(_mapTooltip);
                 // since we do not update mouse enter/leave in addChild (yet), do it by hand
@@ -771,6 +779,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 
                 _mapTooltip->onMouseLeave += { this, [this](void* sender) {
                     if (_mapTooltip) {
+                        _mapTooltipScrollOffsets[_mapTooltipName] = _mapTooltip->getScrollY();
                         _mapTooltipOwner = nullptr;
                         // removing a child may fire a signal, so we need to make sure not to double-free
                         removeChild(_mapTooltip);
@@ -897,18 +906,15 @@ void TrackerView::addChild(Widget* child)
     SimpleContainer::addChild(child);
 }
 
-Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
+ScrollVBox* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
 {
     // TODO: move MapTooltip to mapwidget?
     bool compact = true;
-    
-    Container* tooltip;
-    {
-        auto tmp = new VBox(x, y, 100, 100);
-        tmp->setPadding(2*TOOL_OFF);
-        tmp->setSpacing(TOOL_OFF);
-        tooltip = tmp;
-    }
+
+    ScrollVBox* tooltip = new ScrollVBox(x, y, 100, 100);
+    tooltip->setPadding(2*TOOL_OFF);
+    tooltip->setSpacing(TOOL_OFF);
+
     auto& loc = _tracker->getLocation(locid);
     const auto& name = loc.getName();
     if (!name.empty()) {
@@ -948,7 +954,7 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
         }
 
         if (sec.getItemCount() > 0 || hostedItems.size()>0) {
-            Container* c = horizontalSections ? new VBox(0,0,0,0) : tooltip;
+            Container* c = horizontalSections ? (Container*)new VBox(0,0,0,0) : (Container*)tooltip;
 
             const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
             if (!name.empty()) {
@@ -989,7 +995,7 @@ Container* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
     
     tooltip->setMinSize(tooltip->getMinSize() || TOOL_MIN_SIZE);
     tooltip->setBackground({0x00,0x00,0x00,0xbf});
-    tooltip->setSize(tooltip->getMinSize());
+    tooltip->setSize(tooltip->getAutoSize());
     tooltip->setGrow(0,0);
     
     return tooltip;

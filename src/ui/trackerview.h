@@ -5,6 +5,7 @@
 #include "../uilib/group.h"
 #include "../uilib/tabs.h"
 #include "../uilib/fontstore.h"
+#include "../uilib/scrollvbox.h"
 #include "mapwidget.h"
 #include "item.h"
 #include "../core/tracker.h"
@@ -41,10 +42,11 @@ protected:
     FontStore *_fontStore = nullptr;
     FONT _font = nullptr;
     FONT _smallFont = nullptr;
-    Container *_mapTooltip = nullptr;
+    ScrollVBox *_mapTooltip = nullptr;
     Position _mapTooltipPos;
     MapWidget *_mapTooltipOwner = nullptr;
     std::string _mapTooltipName;
+    std::map<std::string, int> _mapTooltipScrollOffsets;
 
     int _absX=0;
     int _absY=0;
@@ -67,7 +69,7 @@ protected:
     Item* makeItem(int x, int y, int w, int h, const ::BaseItem& item, int stage1=-1, int stage2=0);
     Item* makeLocationIcon(int x, int y, int w, int h, const std::string& locid, const LocationSection& sec, bool opened, bool compact);
 
-    Container* makeMapTooltip(const std::string& location, int x, int y);
+    ScrollVBox* makeMapTooltip(const std::string& location, int x, int y);
 
     int calculateLocationState(const std::string& location);
 };
