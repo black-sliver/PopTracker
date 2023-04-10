@@ -269,7 +269,7 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
                 SDL_RenderFillRect(renderer, &outer);
             }
 
-            if (!hasAlpha || values[0] == values[1] && values[1] == values[2] && values[2] == values[3]) {
+            if (!hasAlpha || (values[0] == values[1] && values[1] == values[2] && values[2] == values[3])) {
                 SDL_SetRenderDrawColor(renderer, botC.r, botC.g, botC.b, botC.a);
                 SDL_RenderFillRect(renderer, &inner);
             } else if (values[2] == values[3]) {

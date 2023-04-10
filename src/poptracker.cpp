@@ -59,7 +59,7 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         if (_colors.is_object()) {
             auto& stateColors = _colors["MapWidget.StateColors"];
             if (stateColors.is_array()) {
-                size_t i = 0;
+                ssize_t i = 0;
                 for (auto& v: stateColors) {
                     if (!v.is_string()) {
                         fprintf(stderr, "Error: value not a string in colors.json\n");
