@@ -4,7 +4,8 @@ We only use `make` at the moment. Feel free to create your own project/build set
 
 `make native` builds a native binary\
 `make cross` cross-compiles a windows binary on *nix\
-`make wasm` builds a wasm blob, this may be broken and does not fully work yet
+`make wasm` builds a wasm blob, this may be broken and does not fully work yet\
+`make CONF=DIST ...` builds a zip/tar.xz in `dist/` that includes all files required to run it
 
 Unless we decide to include source to build all dependencies, they'll have to be
 installed system-wide or copied to win32-lib/lib. Static libs depend on your
@@ -31,6 +32,7 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 ### Native
 - `pacman -S base-devel sdl2 sdl2_image sdl2_ttf openssl # install dependencies`
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
+- run with working directory set to the source directory, or copy assets + binary into a single folder
 
 ### Cross Compile
 - `pacman -S mingw-w64-gcc # install cross compile toolchain`
@@ -48,7 +50,10 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 
 ### Native
 - `sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libssl-dev # install dependencies`
+- if you use debian older than bookworm or Ubuntu older than 22.04,
+  you will have to install libsdl 2.0.18 or newer from source
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
+- run with working directory set to the source directory, or copy assets + binary into a single folder
 
 
 ## Windows
