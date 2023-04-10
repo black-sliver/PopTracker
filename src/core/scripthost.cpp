@@ -165,7 +165,14 @@ bool ScriptHost::LoadScript(const std::string& file)
         return false;
     }
     
-    if (luaL_loadbufferx(_L, script.c_str(), script.length(), file.c_str(), "t") == LUA_OK) {
+    const char* buf = script.c_str();
+    size_t len = script.length();
+    if (len>=3 && memcmp(buf, "\xEF\xBB\xBF", 3) == 0) {
+        fprintf(stderr, "WARNING: skipping BOM of %s\n", sanitize_print(file).c_str());
+        buf += 3;
+        len -= 3;
+    }
+    if (luaL_loadbufferx(_L, buf, len, file.c_str(), "t") == LUA_OK) {
         if (lua_pcall(_L, 0, 1, 0) == LUA_OK) {
             // if it was executed successfully, pop everything from stack
             lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ? 
