@@ -82,6 +82,10 @@ APP_BUNDLE_RESOURCES_DIR="$APP_BUNDLE_CONTENTS_DIR/Resources"
 
 DST_EXE=$APP_BUNDLE_MACOS_DIR/$APP_NAME
 
+ICON_NAME="AppIcon"
+ICON="$SRC_DIR/$ICON_NAME.icns"
+DST_ICON="$APP_BUNDLE_RESOURCES_DIR/$ICON_NAME.icns"
+
 # Create app folder structure
 rm -fr $APP_BUNDLE_DIR
 
@@ -111,9 +115,14 @@ cat <<EOT >> $APP_BUNDLE_INFO_PLIST
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>CFBundleIconFile</key>
+  <string>$ICON_NAME</string>
 </dict>
 </plist>
 EOT
+
+# Copy icon into app bundle
+cp $ICON $DST_ICON
 
 # Copy binary into app bundle
 cp $EXE $DST_EXE
