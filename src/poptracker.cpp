@@ -337,6 +337,11 @@ bool PopTracker::start()
                 size.width = std::max(96, std::min(8192, to_int(jSize[0],size.width)));
                 size.height = std::max(96, std::min(4096, to_int(jSize[1],size.height)));
             }
+            // fix invalid positioning
+            if (pos.left <= -1 * size.width)
+                pos.left = 0;
+            if (pos.top <= -1 * size.height)
+                pos.top = 0;
         }
         auto jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
@@ -719,20 +724,33 @@ bool PopTracker::frame()
         auto pos = _win->getPlacementPosition();
         auto size = _win->getSize();
         auto disppos = _win->getPositionOnDisplay();
+        // fix invalid positioning
+        if (pos.left <= -1 * size.width) {
+            disppos.left -= pos.left;
+            pos.left = 0;
+        }
+        if (pos.top <= -1 * size.height) {
+            disppos.top -= pos.top;
+            pos.top = 0;
+        }
+
+        // save to config
         _config["format_version"] = 1;
-        if (_pack) _config["pack"] = { 
-            {"path",_pack->getPath()},
-            {"variant",_pack->getVariant()},
-            {"uid",_pack->getUID()},
-            {"version",_pack->getVersion()}
-        };
-        _config["window"] = { 
-            {"pos", {pos.left,pos.top}},
-            {"size",{size.width,size.height}},
-            {"display", _win->getDisplay()},
-            {"display_name", _win->getDisplayName()},
-            {"display_pos", {disppos.left,disppos.top}}
-        };
+        if (_pack)
+            _config["pack"] = {
+                {"path",_pack->getPath()},
+                {"variant",_pack->getVariant()},
+                {"uid",_pack->getUID()},
+                {"version",_pack->getVersion()}
+            };
+        if (size.width > 0 && size.height > 0)
+            _config["window"] = {
+                {"pos", {pos.left,pos.top}},
+                {"size",{size.width,size.height}},
+                {"display", _win->getDisplay()},
+                {"display_name", _win->getDisplayName()},
+                {"display_pos", {disppos.left,disppos.top}}
+            };
         _config["export_file"] = _exportFile;
         _config["export_uid"] = _exportUID;
         _config["export_dir"] = _exportDir;
