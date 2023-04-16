@@ -1,9 +1,28 @@
 # PopTracker Changelog
 
+## v0.25.0
+
+* App Features
+  * Hide empty sections in cases where a hosted item does not exist
+  * Hide map location if it has no sections
+  * Make map tooltips scroll vertically on overflow
+  * Automatically ping Archipelago host to keep the connection alive
+* Pack Features
+  * settings.json: `{ "smooth_scaling": true }` enables high quality / smooth scaling for the pack
+* Fixes
+  * Default itemgrid horizontal alignment to center
+  * Lua: skip/ignore [BOM](https://en.wikipedia.org/wiki/Byte_Order_Mark)
+    and print warning if found in a .lua file.
+
 ## v0.24.1
 
 * Fixes
   * Fix PopTracker sometimes selecting potable mode when it shouldn't
+
+### Hotfix 1
+
+* Fixes
+  * Fixed Archipelago SSL support - this was a build issue and only affects the Windows release build.
 
 ## v0.24.0
 
@@ -13,7 +32,7 @@
   * Color Picker: https://poptracker.github.io/color-picker.html
   * Additional Hotkeys: ctrl+R to reload, ctrl+shift+R to force-reload
   * Portable mode: create `portable.txt` next to the EXE to skip using user's `%appdata%` or `~/.config`
-  * Update Archipelago client lib (better support for APWorlds through data package checksum)
+  * Update Archipelago client lib (better support for APWorlds through data package checksum, wss/SSL support)
   * Enable Server Name Identification (SNI) on HTTPS - required to get updates from github in some regions
   * Disable tls1.1 and older for HTTPS
 * Pack Features
