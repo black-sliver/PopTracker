@@ -100,7 +100,7 @@ void TrackerWindow::setSize(Size size)
 
 void TrackerWindow::setHideClearedLocations(bool hide)
 {
-    _hideClearedLocations = true;
+    _hideClearedLocations = hide;
     _overrideClearedVisibility = true;
     if (_view) _view->setHideClearedLocations(_hideClearedLocations);
 }
@@ -113,7 +113,7 @@ void TrackerWindow::unsetHideClearedLocations()
 
 void TrackerWindow::setHideUnreachableLocations(bool hide)
 {
-    _hideUnreachableLocations = true;
+    _hideUnreachableLocations = hide;
     _overrideUnreachableVisibility = true;
     if (_view) _view->setHideUnreachableLocations(_hideUnreachableLocations);
 }
