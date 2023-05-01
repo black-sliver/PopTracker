@@ -37,6 +37,9 @@ This header-only library provides
         json lua_to_json(lua_State*) creates json from lua stack
         json_to_lua(lua_State*, json&) pushes json to lua stack
 
+* `lua_*` functions in `luacompat.h` are used to be able to target lua5.1 and lua5.2
+
+
 ## Usage
 
 See core/luaitem.*, et al for now.

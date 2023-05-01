@@ -2,6 +2,7 @@
 #define _LUAGLUE_LUAVARIANT_H
 
 #include "luatype.h"
+#include "luacompat.h"
 extern "C" {
 #include <lua.h>
 #include <lualib.h>
