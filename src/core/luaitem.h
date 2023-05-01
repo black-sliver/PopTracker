@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #include "baseitem.h"
-#include "../luaglue/luainterface.h"
-#include "../luaglue/luavariant.h"
+#include <luaglue/luainterface.h>
+#include <luaglue/luavariant.h>
 
 class LuaItem final : public LuaInterface<LuaItem>, public BaseItem {
     friend class LuaInterface;

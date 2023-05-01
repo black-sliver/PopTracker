@@ -1,7 +1,7 @@
 #ifndef _LUASANDBOX_LUAPACKIO_H
 #define _LUASANDBOX_LUAPACKIO_H
 
-#include "../luaglue/luainterface.h"
+#include <luaglue/luainterface.h>
 #include "../core/pack.h"
 
 class LuaPackIO  final : public LuaInterface<LuaPackIO> {

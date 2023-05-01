@@ -2,7 +2,7 @@
 #define _CORE_JSONITEM_H
 
 #include "baseitem.h"
-#include "../luaglue/luainterface.h"
+#include <luaglue/luainterface.h>
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #ifdef _MSC_VER

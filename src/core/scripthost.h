@@ -1,8 +1,8 @@
 #ifndef _CORE_SCRIPTHOST_H
 #define _CORE_SCRIPTHOST_H
 
-#include "../luaglue/luainterface.h"
-#include "../luaglue/lua_json.h"
+#include <luaglue/luainterface.h>
+#include <luaglue/lua_json.h>
 #include "pack.h"
 #include "autotracker.h"
 #include "tracker.h"

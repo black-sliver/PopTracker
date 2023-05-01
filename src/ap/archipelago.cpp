@@ -1,7 +1,7 @@
 #include "archipelago.h"
-#include "../luaglue/luamethod.h"
-#include "../luaglue/lua.h"
-#include "../luaglue/lua_json.h"
+#include <luaglue/luamethod.h>
+#include <luaglue/luapp.h>
+#include <luaglue/lua_json.h>
 
 
 const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
@@ -50,10 +50,10 @@ bool Archipelago::AddItemHandler(const std::string& name, LuaRef callback)
     int ref = callback.ref;
     _ap->onItem += {this, [this, ref, name](void*, int index, int item, const std::string& item_name, int player) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        Lua(_L).Push((lua_Integer)index);
-        Lua(_L).Push((lua_Integer)item);
+        Lua(_L).Push(index);
+        Lua(_L).Push(item);
         Lua(_L).Push(item_name.c_str());
-        Lua(_L).Push((lua_Integer)player);
+        Lua(_L).Push(player);
         if (lua_pcall(_L, 4, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ItemHandler for %s: %s\n",
@@ -70,7 +70,7 @@ bool Archipelago::AddLocationHandler(const std::string& name, LuaRef callback)
     int ref = callback.ref;
     _ap->onLocationChecked += {this, [this, ref, name](void*, int location, const std::string& location_name) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        Lua(_L).Push((lua_Integer)location);
+        Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());
         if (lua_pcall(_L, 2, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
@@ -89,11 +89,11 @@ bool Archipelago::AddScoutHandler(const std::string& name, LuaRef callback)
     _ap->onScout += {this, [this, ref, name](void*, int location, const std::string& location_name,
             int item, const std::string& item_name, int player) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        Lua(_L).Push((lua_Integer)location);
+        Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());
-        Lua(_L).Push((lua_Integer)item);
+        Lua(_L).Push(item);
         Lua(_L).Push(item_name.c_str());
-        Lua(_L).Push((lua_Integer)player);
+        Lua(_L).Push(player);
         if (lua_pcall(_L, 5, 0, 0)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ScoutHandler for %s: %s\n",

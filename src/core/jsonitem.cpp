@@ -1,6 +1,6 @@
 #include "jsonitem.h"
 #include "jsonutil.h"
-#include "../luaglue/luamethod.h"
+#include <luaglue/luamethod.h>
 using nlohmann::json;
 
 const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {

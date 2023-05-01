@@ -10,3 +10,6 @@
 [submodule "examples/template_pack"]
 	path = examples/template_pack
 	url = https://github.com/Cyb3RGER/template_pack.git
+[submodule "lib/luaglue"]
+	path = lib/luaglue
+	url = https://github.com/black-sliver/luaglue.git

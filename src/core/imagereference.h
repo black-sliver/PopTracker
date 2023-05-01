@@ -1,7 +1,7 @@
 #ifndef _CORE_IMAGEREFERENCE_H
 #define _CORE_IMAGEREFERENCE_H
 
-#include "../luaglue/luainterface.h"
+#include <luaglue/luainterface.h>
 
 
 class ImageReference : public LuaInterface<ImageReference> {

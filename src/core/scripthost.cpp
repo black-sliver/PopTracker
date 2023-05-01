@@ -1,5 +1,5 @@
 #include "scripthost.h"
-#include "../luaglue/luamethod.h"
+#include <luaglue/luamethod.h>
 #include <stdio.h>
 #include "gameinfo.h"
 

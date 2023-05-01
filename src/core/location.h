@@ -4,7 +4,7 @@
 #include <list>
 #include <string>
 #include <nlohmann/json.hpp>
-#include "../luaglue/luainterface.h"
+#include <luaglue/luainterface.h>
 #include "../core/signal.h"
 
 

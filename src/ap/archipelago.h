@@ -3,8 +3,8 @@
 
 // Lua interface to AutoTracker::_ap
 
-#include "../luaglue/luainterface.h"
-#include "../luaglue/lua_json.h"
+#include <luaglue/luainterface.h>
+#include <luaglue/lua_json.h>
 #include "../core/autotracker.h"
 #include "../ap/aptracker.h"
 

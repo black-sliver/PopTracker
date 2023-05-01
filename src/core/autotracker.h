@@ -14,8 +14,8 @@
 #include <set>
 #include <chrono>
 #include <thread>
-#include "../luaglue/luainterface.h"
-#include "../luaglue/lua_json.h"
+#include <luaglue/luainterface.h>
+#include <luaglue/lua_json.h>
 #include "util.h"
 
 

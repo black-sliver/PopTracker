@@ -1,5 +1,5 @@
 #include "tracker.h"
-#include "../luaglue/luamethod.h"
+#include <luaglue/luamethod.h>
 #include <cstring>
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"

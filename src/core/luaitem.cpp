@@ -1,6 +1,6 @@
 #include "luaitem.h"
-#include "../luaglue/luamethod.h"
-#include "../luaglue/lua_json.h"
+#include <luaglue/luamethod.h>
+#include <luaglue/lua_json.h>
 #include "jsonutil.h"
 using nlohmann::json;
 

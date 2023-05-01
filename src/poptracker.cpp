@@ -17,7 +17,7 @@ extern "C" {
 #include "core/log.h"
 #include "http/http.h"
 #include "ap/archipelago.h"
-#include "luaglue/luaenum.h"
+#include <luaglue/luaenum.h>
 #include "luasandbox/require.h"
 #ifdef _WIN32
 #include <windows.h>

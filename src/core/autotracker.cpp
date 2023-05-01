@@ -1,5 +1,5 @@
 #include "autotracker.h"
-#include "../luaglue/luamethod.h"
+#include <luaglue/luamethod.h>
 
 
 const LuaInterface<AutoTracker>::MethodMap AutoTracker::Lua_Methods = {

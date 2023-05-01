@@ -1,8 +1,8 @@
 #ifndef _CORE_TRACKER_H
 #define _CORE_TRACKER_H
 
-#include "../luaglue/luatype.h"
-#include "../luaglue/luainterface.h"
+#include <luaglue/luatype.h>
+#include <luaglue/luainterface.h>
 #include "pack.h"
 #include "luaitem.h"
 #include "jsonitem.h"

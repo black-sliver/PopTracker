@@ -1,6 +1,6 @@
 #include "imagereference.h"
 
-#include "../luaglue/luamethod.h"
+#include <luaglue/luamethod.h>
 
 const LuaInterface<ImageReference>::MethodMap ImageReference::Lua_Methods = {
     LUA_METHOD(ImageReference, FromPackRelativePath, const char*),

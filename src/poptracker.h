@@ -7,7 +7,7 @@
 #include "ui/defaulttrackerwindow.h"
 #include "ui/broadcastwindow.h"
 #include "ui/settingswindow.h"
-#include "luaglue/lua.h"
+#include <luaglue/luapp.h>
 #include "core/pack.h"
 #include "core/tracker.h"
 #include "core/scripthost.h"
