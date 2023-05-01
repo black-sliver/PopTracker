@@ -399,7 +399,7 @@ Depending on the map it is also possible to have 1 location per chest, but check
 
 Name is optional and will be displayed above the section.
 
-Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_name/secion_name")`
+Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_name/section_name")`
 
 `hosted_item` is a comma separated list of item codes that are always in this section.
 
