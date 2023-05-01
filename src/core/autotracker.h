@@ -442,6 +442,14 @@ public:
         }
     }
 
+    bool sync()
+    {
+        bool res = false;
+        if (_ap)
+            res |= _ap->Sync();
+        return res;
+    }
+
 protected:
     std::map<void*, int> _backendIndex;
     int _lastBackendIndex = -1;

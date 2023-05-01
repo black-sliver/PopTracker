@@ -121,7 +121,11 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, json& ext
         replayHints(tracker, j);
         extra_out = j["extra"];
     }
-    if (scripthost) scripthost->resetWatches();
+    if (scripthost) {
+        scripthost->resetWatches();
+        if (scripthost->getAutoTracker())
+            scripthost->getAutoTracker()->sync();
+    }
     printf("%s\n", res ? "ok" : "error");
     return res;
 }

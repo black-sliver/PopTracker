@@ -111,6 +111,9 @@ public:
             onStateChanged.emit(this, _ap->get_state());
             printf("TODO: clean up state\n");
             _itemIndex = 0;
+            _slotData = slotData;
+            _checkedLocations.clear();
+            _uncheckedLocations.clear();
             onClear.emit(this, slotData);
 
             // update mtime of uuid file
@@ -139,7 +142,8 @@ public:
         });
         _ap->set_location_checked_handler([this](const std::list<int64_t>& locations) {
             auto lock = EventLock(_event);
-            for (int location: locations) {
+            for (int64_t location: locations) {
+                _checkedLocations.insert(location);
                 onLocationChecked.emit(this, location, _ap->get_location_name(location));
             }
         });
@@ -176,6 +180,10 @@ public:
         if (wasConnected)
             onStateChanged.emit(this, APClient::State::DISCONNECTED);
         _scheduleDisconnect = false;
+        _itemIndex = 0;
+        _slotData.clear();
+        _checkedLocations.clear();
+        _uncheckedLocations.clear();
     }
 
     bool poll()
@@ -210,6 +218,21 @@ public:
         return _ap ? _ap->Get(keys) : false;
     }
 
+    bool Sync()
+    {
+        if (!_ap)
+            return false;
+        if (!_ap->Sync())
+            return false;
+        _itemIndex = 0;
+        onClear.emit(this, _slotData);
+        for (int64_t location: _checkedLocations) {
+            _checkedLocations.insert(location);
+            onLocationChecked.emit(this, location, _ap->get_location_name(location));
+        }
+        return true;
+    }
+
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
@@ -231,6 +254,7 @@ private:
     std::set<int> _uncheckedLocations;
     int _event = 0;
     bool _scheduleDisconnect = false;
+    json _slotData;
 
     static const std::map<std::string, std::string> _errorMessages;
 
