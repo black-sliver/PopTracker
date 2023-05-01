@@ -48,6 +48,15 @@ struct LuaMethodHelper
             LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d %d (%d done, %d remaining)\n", n, (int)next, (int)sizeof...(Prev), (int)sizeof...(Rest));
             n++;
             return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest... > (L,o,n, prev...,next);
+        } else if constexpr(std::is_same<Next,int64_t>::value) {
+            int64_t next;
+            if (lua_isinteger(L, n))
+                next = (int64_t)lua_tointeger(L, n);
+            else
+                next = (int64_t)luaL_checknumber(L, n);
+            LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d %lld (%d done, %d remaining)\n", n, (long long)next, (int)sizeof...(Prev), (int)sizeof...(Rest));
+            n++;
+            return LuaMethodHelper<T,F,Prev...,Next>::template run < Rest... > (L,o,n, prev...,next);
         } else if constexpr(std::is_same<Next,const char*>::value) {
             const char* next = luaL_checkstring(L, n);
             LUAMETHOD_DEBUG_printf("LuaMethod fetched: #%d \"%s\" (%d done, %d remaining)\n", n, next, (int)sizeof...(Prev), (int)sizeof...(Rest));
@@ -96,11 +105,16 @@ struct LuaMethodHelper
                 LUAMETHOD_DEBUG_printf("LuaMethod return void\n");
                 return 0;
             } else if constexpr(std::is_same<decltype((o->*F)(prev...)),int>::value) {
-                // result is int, but lua_integer is not c int -> cast.
-                //lua_settop(L, 0); // doesn't seem to make a difference
-                lua_Integer res = (o->*F)(prev...);
+                // result is int64
+                int res = (o->*F)(prev...);
                 Lua(L).Push(res);
                 LUAMETHOD_DEBUG_printf("LuaMethod pushed int: %d\n", res);
+                return 1;
+            } else if constexpr(std::is_same<decltype((o->*F)(prev...)),int64_t>::value) {
+                // result is int64
+                int64_t res = (o->*F)(prev...);
+                Lua(L).Push(res);
+                LUAMETHOD_DEBUG_printf("LuaMethod pushed int: %lld\n", (long long)res);
                 return 1;
             // TODO: test if some other return types have conflicts
             // TODO: maybe allow tuples for more than 1 result value?
