@@ -701,7 +701,7 @@ AccessibilityLevel Tracker::isReachable(const Location& location, const Location
 {
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
     std::string id = realSection.getParentID() + "/" + realSection.getName();
-    if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
+    if (std::count(parents.begin(), parents.end(), id) > 1) {
         printf("access_rule recursion detected: %s!\n", id.c_str());
         // returning 0 here should mean this path is unreachable, other paths that are logical "or" should be resolved
         return AccessibilityLevel::NONE;
@@ -716,7 +716,7 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
 {
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
     std::string id = realSection.getParentID() + "/" + realSection.getName();
-    if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
+    if (std::count(parents.begin(), parents.end(), id) > 1) {
         printf("visibility_rule recursion detected: %s!\n", id.c_str());
         return 0;
     }
@@ -728,7 +728,7 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
 
 AccessibilityLevel Tracker::isReachable(const Location& location, std::list<std::string>& parents)
 {
-    if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
+    if (std::count(parents.begin(), parents.end(), location.getID()) > 1) {
         printf("access_rule recursion detected: %s!\n", location.getID().c_str());
         return AccessibilityLevel::NONE;
     }
@@ -740,7 +740,7 @@ AccessibilityLevel Tracker::isReachable(const Location& location, std::list<std:
 
 bool Tracker::isVisible(const Location& location, std::list<std::string>& parents)
 {
-    if (std::find(parents.begin(), parents.end(), location.getID()) != parents.end()) {
+    if (std::count(parents.begin(), parents.end(), location.getID()) > 1) {
         printf("visibility_rule recursion detected: %s!\n", location.getID().c_str());
         return 0;
     }
