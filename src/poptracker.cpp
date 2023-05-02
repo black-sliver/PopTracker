@@ -19,6 +19,7 @@ extern "C" {
 #include "ap/archipelago.h"
 #include <luaglue/luaenum.h>
 #include "luasandbox/require.h"
+#include "ui/maptooltip.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -67,6 +68,12 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
                     }
                     if (i >= countOf(Ui::MapWidget::StateColors)) break;
                     Ui::MapWidget::StateColors[i] = v.get<std::string>();
+                    if (i == 0 || i == 2) // not changing touch [1] reachable: white
+                        Ui::MapTooltip::StateColors[i] = Ui::MapWidget::StateColors[i];
+                    if (i == 4)
+                        Ui::MapTooltip::StateColors[3] = Ui::MapWidget::StateColors[i];
+                    if (i == 8)
+                        Ui::MapTooltip::StateColors[4] = Ui::MapWidget::StateColors[i];
                     i++;
                 }
             } else if (!stateColors.is_null()) {

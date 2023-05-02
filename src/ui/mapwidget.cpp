@@ -65,7 +65,6 @@ static const int triangleValues[16][4] = {
     {4, 2, 1, 8}, // scout + glitched + reachable + unreachable
 };
 
-const Widget::Color MapWidget::DEFAULT_STATE_COLORS[] = _DEFAULT_STATE_COLORS;
 
 Widget::Color MapWidget::StateColors[] = _DEFAULT_STATE_COLORS;
 

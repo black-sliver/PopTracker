@@ -38,7 +38,6 @@ public:
     void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; printf("hideCleared: %s\n", hide?"true":"false"); }
     void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; printf("hideUnreachable: %s\n", hide?"true":"false"); }
 
-    static const Widget::Color DEFAULT_STATE_COLORS[17];
     static Widget::Color StateColors[17];
     static bool SplitRects;
 
