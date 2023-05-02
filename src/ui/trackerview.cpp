@@ -10,15 +10,14 @@
 #include "../core/fileutil.h"
 #include "../core/assets.h"
 #include "item.h"
+#include "maptooltip.h"
 #include "mapwidget.h"
 #include "defaults.h" // DEFAULT_FONT_*
 
 namespace Ui {
 
 
-constexpr int TOOL_OFF=2;
 constexpr int TOOL_MAX_DISPLACEMENT=5; // can be off by this amount
-constexpr Size TOOL_MIN_SIZE={ 32,32 };
 
 std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std::string>& mods)
 {
@@ -61,6 +60,11 @@ static Label::VAlign str2itemValign(const std::string& s, Label::VAlign dflt=Lab
     if (s == "center" || s == "middle") return Label::VAlign::MIDDLE;
     if (s == "top") return Label::VAlign::TOP;
     return dflt;
+}
+
+Item* TrackerView::makeItem(int x, int y, int width, int height, const std::string& code)
+{
+    return makeItem(x, y, width, height, _tracker->getItemByCode(code));
 }
 
 Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseItem& origItem, int stage1, int stage2)
@@ -178,68 +182,6 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         w->setStage(origItem.getState(), item->getActiveStage());
     return w;
 }
-
-Item* TrackerView::makeLocationIcon(int x, int y, int width, int height, const std::string& locid, const LocationSection& sec, bool opened, bool compact)
-{
-    std::string fClosed, fOpened;
-    std::string sClosed, sOpened;
-
-    fClosed = sec.getClosedImage();
-    _tracker->getPack()->ReadFile(fClosed, sClosed);
-    if (sClosed.empty()) {
-        readFile(asset("closed.png"), sClosed); // fallback/default icon
-    }
-
-    fOpened = sec.getOpenedImage();
-    _tracker->getPack()->ReadFile(fOpened, sOpened);
-    if (sOpened.empty()) {
-        readFile(asset("open.png"), sOpened); // fallback/default icon
-    }
-
-    Item *w = new Item(x,y,width,height,_font);
-    w->setQuality(_defaultQuality);
-    w->addStage(0,0, sClosed.c_str(), sClosed.length(), fClosed); // TODO: +img_mods
-    w->addStage(1,0, sOpened.c_str(), sOpened.length(), fOpened); // TODO: +img_mods
-    w->setStage(opened?1:0,0);
-    w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
-    w->setOverlayBackgroundColor(sec.getOverlayBackground());
-
-    if (compact) {
-        int itemcount = sec.getItemCount();
-        int looted = sec.getItemCleared();
-        if (itemcount!=1 && itemcount>looted) { // TODO: show two numbers: looted + non-looted?
-            w->setOverlay(std::to_string(itemcount - looted));
-        } else {
-            w->setOverlay("");
-        }
-    }
-    
-    auto name = sec.getName(); // TODO: id instead of name
-    w->onClick += {this, [this,w,locid,name,compact](void*,int x, int y, int btn) {
-        if (!compact && btn == BUTTON_RIGHT && w->getStage1()<1) return;
-        if (!compact && btn != BUTTON_RIGHT && w->getStage1()>0) return;
-        auto& loc = _tracker->getLocation(locid);
-        for (auto& sec: loc.getSections()) {
-            if (sec.getName() != name) continue;
-            // check hosted items with chests if "clear_as_group" is set
-            if (sec.getClearAsGroup()) {
-                std::list<std::string> codes = sec.getHostedItems();
-                for (const auto& item: codes) {
-                    _tracker->changeItemState(_tracker->getItemByCode(item).getID(),
-                            btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary);
-                }
-            }
-            // NOTE: clear/unclear invalidates the iterator because it fires a change signal
-            if (btn == BUTTON_RIGHT)
-                sec.unclearItem();
-            else
-                sec.clearItem();
-            break;
-        }
-    }};
-    return w;
-}
-
 
 TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FontStore *fontStore)
     : SimpleContainer(x,y,w,h), _tracker(tracker), _layoutRoot(layoutRoot), _fontStore(fontStore)
@@ -388,7 +330,7 @@ void TrackerView::updateLocations()
         //const auto& map = _tracker->getMap(mappair.first);
         for (auto& w: mappair.second) {
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
-                int state = calculateLocationState(pair.first);
+                int state = CalculateLocationState(_tracker, pair.first);
                 if (_maps.size()<1) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     fprintf(stderr, "cybuuuuuu!!\n");
@@ -405,6 +347,7 @@ void TrackerView::updateLocations()
         _mapTooltipOwner->onLocationHover.emit(_mapTooltipOwner, _mapTooltipName, _mapTooltipPos.left, _mapTooltipPos.top);
     }
 }
+
 void TrackerView::updateState(const std::string& itemid)
 {
     const auto& item = _tracker->getItemById(itemid);
@@ -747,7 +690,10 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 _mapTooltipOwner = map;
                 _mapTooltipName = locid;
                 _mapTooltipPos = {absX,absY};
-                _mapTooltip = makeMapTooltip(locid, absX-_absX-TOOL_OFF, absY-_absY-TOOL_OFF);
+                auto off = MapTooltip::OFFSET;
+                _mapTooltip = new MapTooltip(absX-_absX-off, absY-_absY-off, _font, _smallFont, _defaultQuality,
+                        _tracker, locid, [this](auto ...args) { return makeItem(args...); });
+                // TODO: move mapTooltip to mapwidget?
                 // fix up position
                 int mapLeft = map->getAbsLeft()-_absX; // FIXME: this is not really a good solution
                 int mapTop = map->getAbsTop()-_absY;
@@ -758,7 +704,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         _mapTooltip->setLeft(mapLeft + map->getWidth() - _mapTooltip->getWidth());
                     else {
                         // move it to left of cursor
-                        _mapTooltip->setLeft(absX-_absX-_mapTooltip->getWidth()+TOOL_OFF);
+                        _mapTooltip->setLeft(absX-_absX-_mapTooltip->getWidth()+off);
                         if (_mapTooltip->getLeft() < mapLeft)
                             _mapTooltip->setLeft(mapLeft);
                     }
@@ -773,7 +719,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         _mapTooltip->setTop(mapTop + map->getHeight() - _mapTooltip->getHeight());
                     else {
                         // move it to top of cursor
-                        _mapTooltip->setTop(absY-_absY-_mapTooltip->getHeight()+TOOL_OFF);
+                        _mapTooltip->setTop(absY-_absY-_mapTooltip->getHeight()+off);
                         if (_mapTooltip->getTop() < mapTop)
                             _mapTooltip->setTop(mapTop);
                     }
@@ -915,105 +861,10 @@ void TrackerView::addChild(Widget* child)
     SimpleContainer::addChild(child);
 }
 
-ScrollVBox* TrackerView::makeMapTooltip(const std::string& locid, int x, int y)
+int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& locid)
 {
-    // TODO: move MapTooltip to mapwidget?
-    bool compact = true;
-
-    ScrollVBox* tooltip = new ScrollVBox(x, y, 100, 100);
-    tooltip->setPadding(2*TOOL_OFF);
-    tooltip->setSpacing(TOOL_OFF);
-
-    auto& loc = _tracker->getLocation(locid);
-    const auto& name = loc.getName();
-    if (!name.empty()) {
-        Label* lbl = new Label(0,0,0,0, _font, name);
-        unsigned state = calculateLocationState(locid);
-        if (state == 2) lbl->setTextColor({255,64,64}); // unreachable: red
-        else if (state == 4 || state == 6) lbl->setTextColor({255,255,128}); // glitches required: yellow
-        else if (state == 8 || state == 10) lbl->setTextColor({96,128,255}); // checkable: blue
-        lbl->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
-        lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
-        lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
-        tooltip->addChild(lbl);
-    }
-    
-    Container* sectionContainer;
-    bool horizontalSections = false; //= compact;
-    if (horizontalSections) {
-        auto tmp = new HBox(0,0,0,0);
-        tmp->setSpacing(2*TOOL_OFF);
-        sectionContainer = tmp;
-    } else {
-        sectionContainer = tooltip;
-    }
-    
-    for (const auto& ogSec : loc.getSections()) {
-        const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
-        if (!_tracker->isVisible(loc, sec)) continue;
-
-        auto reachable = _tracker->isReachable(loc, sec);
-        bool cleared = false; // not implemented
-
-        std::list<std::string> hostedItems;
-        for (const auto& hostedItem: sec.getHostedItems()) {
-            // skip missing/undefined ones
-            if (_tracker->getItemByCode(hostedItem).getType() != BaseItem::Type::NONE)
-                hostedItems.push_back(hostedItem);
-        }
-
-        if (sec.getItemCount() > 0 || hostedItems.size()>0) {
-            Container* c = horizontalSections ? (Container*)new VBox(0,0,0,0) : (Container*)tooltip;
-
-            const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
-            if (!name.empty()) {
-                Label* lbl = new Label(0,0,0,0, _smallFont, name);
-                if (cleared) lbl->setTextColor({128,128,128}); // cleared: grey; TODO: use array for colors?
-                else if (reachable == AccessibilityLevel::NONE) lbl->setTextColor({255,32,32}); // unreachable: red
-                else if (reachable == AccessibilityLevel::SEQUENCE_BREAK) lbl->setTextColor({255,255,32}); // glitches required: yellow
-                else if (reachable == AccessibilityLevel::INSPECT) lbl->setTextColor({48,64,255}); // checkable: blue
-                lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
-                lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
-                lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
-                c->addChild(lbl);
-            }
-
-            HBox* hbox = new HBox(0,0,0,0);
-            int itemcount = sec.getItemCount();
-            int looted = sec.getItemCleared();
-            for (int i=0; i<itemcount; i++) {
-                bool opened = compact ? looted>=itemcount : i<=looted;
-                Item *w = makeLocationIcon(0,0,32,32, sec.getParentID(), sec, opened, compact);
-                hbox->addChild(w);
-                if (compact) break;
-            }
-            for (const auto& item: hostedItems) {
-                Item *w = makeItem(0,0,32,32, _tracker->getItemByCode(item));
-                w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
-                hbox->addChild(w);
-            }
-            hbox->relayout(); // FIXME: this should not be neccessary
-            c->addChild(hbox); 
-            if (c != sectionContainer)
-                sectionContainer->addChild(c);
-        }
-    }
-    if (sectionContainer != tooltip)
-        tooltip->addChild(sectionContainer);
-    //tooltip->relayout(); // FIXME: this should not be neccessary
-    
-    tooltip->setMinSize(tooltip->getMinSize() || TOOL_MIN_SIZE);
-    tooltip->setBackground({0x00,0x00,0x00,0xbf});
-    tooltip->setSize(tooltip->getAutoSize());
-    tooltip->setGrow(0,0);
-    
-    return tooltip;
-}
-
-
-int TrackerView::calculateLocationState(const std::string& locid)
-{
-    auto& loc = _tracker->getLocation(locid);
+    // TODO: move to a common place
+    auto& loc = tracker->getLocation(locid);
     bool hasReachable = false;
     bool hasUnreachable = false;
     bool hasGlitchedReachable = false;
@@ -1021,16 +872,16 @@ int TrackerView::calculateLocationState(const std::string& locid)
     bool hasVisible = false;
 
     for (const auto& ogSec: loc.getSections()) {
-        const auto& sec = ogSec.getRef().empty() ? ogSec : _tracker->getLocationSection(ogSec.getRef());
+        const auto& sec = ogSec.getRef().empty() ? ogSec : tracker->getLocationSection(ogSec.getRef());
 
-        if (!_tracker->isVisible(loc, sec))
+        if (!tracker->isVisible(loc, sec))
             continue;
 
         std::list<std::string> hostedItems;
         if (sec.getItemCleared() >= sec.getItemCount()) {
             // be lazy about filling hostedItems
             for (const auto& code : sec.getHostedItems()) {
-                if (_tracker->getItemByCode(code).getType() != BaseItem::Type::NONE)
+                if (tracker->getItemByCode(code).getType() != BaseItem::Type::NONE)
                     hostedItems.push_back(code);
             }
             // ignore section if empty
@@ -1044,7 +895,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
             // check hosted items
             bool missing = false;
             for (const auto& code: hostedItems) {
-                if (!_tracker->ProviderCountForCode(code)) {
+                if (!tracker->ProviderCountForCode(code)) {
                     missing = true;
                     break;
                 }
@@ -1052,7 +903,7 @@ int TrackerView::calculateLocationState(const std::string& locid)
             if (!missing) continue;
         }
 
-        auto reachable = _tracker->isReachable(loc, sec);
+        auto reachable = tracker->isReachable(loc, sec);
         if (reachable == AccessibilityLevel::NORMAL) {
             hasReachable = true;
         } else if (reachable == AccessibilityLevel::NONE) {

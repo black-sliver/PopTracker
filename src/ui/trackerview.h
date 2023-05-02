@@ -34,6 +34,8 @@ public:
 
     Signal<const std::string&> onItemHover;
 
+    static int CalculateLocationState(Tracker* tracker, const std::string& location);
+
 protected:
     Tracker* _tracker;
     std::string _layoutRoot;
@@ -68,12 +70,11 @@ protected:
     size_t addLayoutNodes(Container* container, const std::list<LayoutNode>& nodes, size_t depth=0);
     bool addLayoutNode(Container* container, const LayoutNode& node, size_t depth=0);
 
+    Item* makeItem(int x, int y, int w, int h, const std::string& code);
     Item* makeItem(int x, int y, int w, int h, const ::BaseItem& item, int stage1=-1, int stage2=0);
     Item* makeLocationIcon(int x, int y, int w, int h, const std::string& locid, const LocationSection& sec, bool opened, bool compact);
 
     ScrollVBox* makeMapTooltip(const std::string& location, int x, int y);
-
-    int calculateLocationState(const std::string& location);
 };
 
 } // namespace Ui
