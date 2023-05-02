@@ -1,5 +1,15 @@
 # PopTracker Changelog
 
+## v0.25.1
+
+* App Features
+  * Reset window position when saved value is definitely invalid
+  * Use map colors from [Color Picker] (https://poptracker.github.io/color-picker.html) for map tooltips as well
+* Fixes
+  * Archipelago Autotracking: reapply autotracking when resetting/loading state while connected
+  * Correctly apply hide_cleared_locations/hide_unreachable_locations on app start
+  * Don't warn about recursion when changing item state inside Lua access rule exactly once
+
 ## v0.25.0
 
 * App Features
