@@ -56,7 +56,7 @@ LIB_PNG_URL="https://github.com/glennrp/libpng.git"
 LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
 LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
-LIB_SDL_TAG="release-2.26.4"
+LIB_SDL_TAG="release-2.26.5"
 LIB_SDL_IMAGE_TAG="release-2.6.3"
 LIB_SDL_TTF_TAG="release-2.20.2"
 LIB_PNG_TAG="v1.6.39"
