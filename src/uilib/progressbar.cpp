@@ -30,7 +30,7 @@ void ProgressBar::render(Renderer renderer, int offX, int offY)
     if (_max >= 0) {
         int64_t w = r.w;
         //fill progress
-        r.w = (int)(w * _progress / _max);
+        r.w = _max ? (int)(w * _progress / _max) : w;
         SDL_SetRenderDrawColor(renderer, 0, 128, 64, 255);
         SDL_RenderFillRect(renderer, &r);
         //fill missing
