@@ -527,7 +527,7 @@ private:
                 }
             }
             if (last_pos) data = data.substr(last_pos);
-            if (progress_handler && received_length && (received_length-last_progress_report>=2048 || received_length == content_length)) {
+            if (in_content && progress_handler && received_length && (received_length-last_progress_report>=2048 || received_length == content_length)) {
                 last_progress_report = received_length;
                 progress_handler((int)received_length, (int)content_length);
             }
