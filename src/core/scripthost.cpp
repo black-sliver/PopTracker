@@ -198,7 +198,7 @@ LuaItem* ScriptHost::CreateLuaItem()
     return _tracker->CreateLuaItem();
 }
 
-std::string ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval)
+std::string ScriptHost::AddMemoryWatch(const std::string& name, unsigned int addr, int len, LuaRef callback, int interval)
 {
     if (interval==0) interval=500; /*orig:1000*/ // default
     

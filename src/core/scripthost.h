@@ -21,7 +21,7 @@ public:
     
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
-    std::string AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
+    std::string AddMemoryWatch(const std::string& name, unsigned int addr, int len, LuaRef callback, int interval);
     bool RemoveMemoryWatch(const std::string& name);
     std::string AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
     bool RemoveWatchForCode(const std::string& name);
@@ -35,7 +35,7 @@ public:
     struct MemoryWatch
     {
         int callback;
-        int addr;
+        unsigned int addr;
         int len;
         int interval;
         std::string name;

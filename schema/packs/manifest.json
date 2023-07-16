@@ -20,6 +20,10 @@
             "description": "Platform the pack is used for. If platform is \"snes\", the snes autotracker is to be enabled.",
             "type": "string"
         },
+        "platform_poptracker": {
+            "description": "Platform the pack is used for. If specified, PopTracker will use this instead of the value indicated in the 'platform' field.",
+            "type": "string"
+        },
         "versions_url": {
             "description": "URL to versions.json of the pack. Can be used for automatic updates. Information from global packs.json takes precedence. See https://github.com/black-sliver/PopTracker/tree/packlist for more information.",
             "type": "string",

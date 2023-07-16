@@ -75,6 +75,12 @@ Pack::Info Pack::getInfo() const
         _minPopTrackerVersion,
         variants
     };
+
+    // Use the PopTracker platform override field
+    std::string platform_override = to_string(_manifest, "platform_poptracker", "");
+    if( platform_override != "" )
+      info.platform = platform_override;
+
     return info;
 }
 
@@ -186,7 +192,14 @@ void Pack::setVariant(const std::string& variant)
 
 std::string Pack::getPlatform() const
 {
-    return to_string(_manifest,"platform","");
+    std::string platform = to_string(_manifest, "platform", "");
+
+    // Use the PopTracker platform override field
+    std::string platform_override = to_string(_manifest, "platform_poptracker", "");
+    if( platform_override != "" )
+        platform = platform_override;
+
+    return platform;
 }
 
 std::string Pack::getVersion() const
