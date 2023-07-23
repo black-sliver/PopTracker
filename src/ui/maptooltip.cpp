@@ -87,7 +87,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 hostedItems.push_back(hostedItem);
         }
 
-        if (sec.getItemCount() > 0 || hostedItems.size()>0) {
+        if (sec.getItemCount() > 0 || hostedItems.size() > 0) {
             Container* container = horizontalSections ? (Container*)new VBox(0,0,0,0) : (Container*)this;
 
             const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
@@ -112,16 +112,40 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
             HBox* hbox = new HBox(0,0,0,0);
             int itemcount = sec.getItemCount();
             int looted = sec.getItemCleared();
+            // add location items
             for (int i=0; i<itemcount; i++) {
                 bool opened = compact ? looted>=itemcount : i<=looted;
                 Item *w = MakeLocationIcon(0,0,32,32, font, quality, tracker, sec.getParentID(), sec, opened, compact);
                 hbox->addChild(w);
                 if (compact) break;
             }
+            // add hosted items
             for (const auto& item: hostedItems) {
                 Item *w = makeItem(0,0,32,32, item);
                 w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
                 hbox->addChild(w);
+                if (sec.getClearAsGroup()) {
+                    // override onClock to clear everything
+                    w->onClick.clear();
+                    w->onClick += {w, [tracker, name, locid](void*, int x, int y, int btn) {
+                        auto& loc = tracker->getLocation(locid);
+                        for (auto& sec: loc.getSections()) {
+                            if (sec.getName() != name) continue;
+                            // clear all hosted items
+                            std::list<std::string> codes = sec.getHostedItems();
+                            for (const auto& item: codes) {
+                                tracker->changeItemState(tracker->getItemByCode(item).getID(),
+                                        btn == BUTTON_RIGHT ? BaseItem::Action::Secondary : BaseItem::Action::Primary);
+                            }
+                            // clear regular items
+                            if (btn == BUTTON_RIGHT)
+                                sec.unclearItem();
+                            else
+                                sec.clearItem();
+                            break;
+                        }
+                    }};
+                }
             }
             hbox->relayout(); // FIXME: this should not be neccessary
             container->addChild(hbox);
