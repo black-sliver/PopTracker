@@ -308,7 +308,7 @@ void DefaultTrackerWindow::hideOpen()
 void DefaultTrackerWindow::showProgress(const std::string& text, int progress, int max)
 {
     char percentText[5];
-    if (progress>=0 && max>0) snprintf(percentText, 5, "%3u%%", 100U*progress/max);
+    if (max>0) snprintf(percentText, 5, "%3u%%", upercent(progress, max));
     else percentText[0] = 0;
     std::string valuesText = format_bytes(progress) + "B";
     if (max) valuesText += " / " + format_bytes(max) + "B";

@@ -48,4 +48,16 @@ std::string format_bytes(T val) {
     return s;
 }
 
+template<typename T>
+unsigned upercent(T divident, T divisor)
+{
+    static_assert(sizeof(unsigned) >= 4, "Unsupported platform");
+    while (divident > 42949672) {
+        // avoid overflow during integer multiplication
+        divident = (divident + 5) / 10;
+        divisor = (divisor + 5) / 10;
+    }
+    return 100U * divident / divisor;
+}
+
 #endif // _CORE_UTIL_H
