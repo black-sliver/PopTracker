@@ -147,7 +147,10 @@ public:
     virtual void render(Renderer renderer, int offX, int offY) override
     {
         // children
+        SDL_Rect clipRect = {offX+_pos.left, offY+_pos.top, _size.width, _size.height};
+        SDL_RenderSetClipRect(renderer, &clipRect);
         Container::render(renderer, offX, offY);
+        SDL_RenderSetClipRect(renderer, nullptr);
         // scroll bar/position
         if (_scrollMaxY < 0 && _size.height > 0) {
             int x = _pos.left + _size.width - 3;
