@@ -2,6 +2,7 @@
 #include <luaglue/luamethod.h>
 #include <luaglue/lua_json.h>
 #include "jsonutil.h"
+#include "util.h"
 using nlohmann::json;
 
 
@@ -180,8 +181,21 @@ int LuaItem::providesCode(const std::string code) const
         return false;
     }
     
-    int res = lua_isinteger(_L, -1) ? (int)lua_tointeger(_L, -1) : (int)luaL_checknumber(_L, -1);
+    int res;
+
+    if (lua_isinteger(_L, -1)) {
+        res = (int)lua_tointeger(_L, -1);
+    } else if (lua_isboolean(_L, -1)) {
+        res = lua_toboolean(_L, -1) ? 1 : 0;
+    } else if (lua_isnumber(_L, -1)) {
+        res = (int)lua_tonumber(_L, -1);
+    } else {
+        res = 0;
+        printf("Item:ProvidesCode returned unexpected type %s for %s\n",
+                lua_typename(_L, lua_type(_L, -1)), sanitize_print(_name).c_str());
+    }
     lua_pop(_L,1);
+
     return res;
 }
 
