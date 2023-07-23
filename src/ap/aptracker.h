@@ -109,7 +109,6 @@ public:
         _ap->set_slot_connected_handler([this](const json& slotData) {
             auto lock = EventLock(_event);
             onStateChanged.emit(this, _ap->get_state());
-            printf("TODO: clean up state\n");
             _itemIndex = 0;
             _slotData = slotData;
             _checkedLocations.clear();
@@ -206,6 +205,11 @@ public:
     int getPlayerNumber() const
     {
         return _ap ? _ap->get_player_number() : -1;
+    }
+
+    int getTeamNumber() const
+    {
+        return _ap ? _ap->get_team_number() : -1;
     }
 
     bool SetNotify(const std::list<std::string>& keys)

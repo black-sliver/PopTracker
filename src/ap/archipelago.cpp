@@ -200,6 +200,10 @@ int Archipelago::Lua_Index(lua_State *L, const char* key) {
         lua_pushinteger(L, _ap ? _ap->getPlayerNumber() : -1);
         return 1;
     }
+    if (strcmp(key, "TeamNumber")==0) {
+        lua_pushinteger(L, _ap ? _ap->getTeamNumber() : -1);
+        return 1;
+    }
     printf("Get Archipelago.%s unknown\n", key);
     return 0;
 }

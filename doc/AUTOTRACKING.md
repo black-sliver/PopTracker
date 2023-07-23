@@ -138,7 +138,8 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * when a data storage value is polled (Get), Retrieved handlers are called
 
 ### global Archipelago
-* `.PlayerNumber` returns the slot number of the connected player or -1 if not connected
+* `.PlayerNumber` the slot number of the connected player or -1 if not connected
+* `.TeamNumber` the team number of the connected player or -1 if not connected, `nil` if unsupported (before 0.25.2)
 * `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared; args: slot_data
 * `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name\[, player_number since 0.20.2\]
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
