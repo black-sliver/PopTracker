@@ -57,9 +57,10 @@ public:
     std::string getPlatform() const;
     std::string getVersion() const;
     bool hasFilesChanged() const;
+    std::string getSHA256() const;
     
     static std::vector<Info> ListAvailable();
-    static Info Find(std::string uid, std::string version="");
+    static Info Find(const std::string& uid, const std::string& version="", const std::string& sha256="");
     static void addSearchPath(const std::string& path);
     static bool isInSearchPath(const std::string& path);
 

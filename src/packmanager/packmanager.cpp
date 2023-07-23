@@ -2,46 +2,12 @@
 #include "../core/util.h"
 #include "../core/fileutil.h"
 #include "../core/version.h"
-#include <openssl/evp.h>
+#include "../core/sha256.h"
 
 
 #ifndef O_CLOEXEC
 #define O_CLOEXEC 0
 #endif
-
-
-static std::string SHA256_File(const std::string& file)
-{
-    std::string res = "";
-    EVP_MD_CTX* context = nullptr;
-    uint8_t buf[4096];
-    size_t len = 0;
-    uint8_t hash[EVP_MAX_MD_SIZE];
-    unsigned int hashLen = 0;
-
-    FILE* f = fopen(file.c_str(), "rb");
-    if (!f) goto err_fopen;
-    context = EVP_MD_CTX_new();
-    if(context == NULL) goto err_alloc;
-    if(!EVP_DigestInit_ex(context, EVP_sha256(), NULL)) goto err_hash;
-    while ((len = fread(buf, 1, sizeof(buf), f))) {
-        if (!EVP_DigestUpdate(context, buf, len)) goto err_hash;
-    }
-    if (!feof(f)) goto err_hash;
-    if (!EVP_DigestFinal_ex(context, hash, &hashLen)) goto err_hash;
-    for (unsigned i=0; i<hashLen; i++) {
-        char hex[] = "0123456789abcdef";
-        res += hex[(hash[i]>>4)&0x0f];
-        res += hex[hash[i]&0x0f];
-    }
-
-err_hash:
-    EVP_MD_CTX_free(context);
-err_alloc:
-    fclose(f);
-err_fopen:
-    return res;
-}
 
 
 PackManager::PackManager(asio::io_service *asio, const std::string& workdir, const std::list<std::string>& httpDefaultHeaders)

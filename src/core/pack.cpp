@@ -2,6 +2,9 @@
 #include "fileutil.h"
 #include "jsonutil.h"
 #include <dirent.h>
+#include "sha256.h"
+
+
 using nlohmann::json;
 
 
@@ -270,6 +273,15 @@ bool Pack::hasFilesChanged() const
     return false;
 }
 
+std::string Pack::getSHA256() const
+{
+    // NOTE: this is only possible for ZIPs. Returns empty string otherwise.
+    if (_zip) {
+        return SHA256_File(_path);
+    }
+    return "";
+}
+
 std::vector<Pack::Info> Pack::ListAvailable()
 {
     std::vector<Pack::Info> res;
@@ -296,7 +308,8 @@ std::vector<Pack::Info> Pack::ListAvailable()
     });
     return res;
 }
-Pack::Info Pack::Find(std::string uid, std::string version)
+
+Pack::Info Pack::Find(const std::string& uid, const std::string& version, const std::string& sha256)
 {
     std::vector<Pack::Info> packs;
     for (auto& searchPath: _searchPaths) {
@@ -307,9 +320,17 @@ Pack::Info Pack::Find(std::string uid, std::string version)
         {
             Pack pack(os_pathcat(searchPath, dir->d_name));
             if (pack.isValid() && pack.getUID() == uid) {
-                if (!version.empty() && pack.getVersion() == version)
-                    return pack.getInfo(); // return exact match
-                packs.push_back(pack.getInfo());
+                if (!sha256.empty()) {
+                    // require exact match if hash is given
+                    if ((version.empty() || pack.getVersion() == version) &&
+                            strcasecmp(pack.getSHA256().c_str(), sha256.c_str()) == 0) {
+                        return pack.getInfo(); // return exact match
+                    }
+                } else if (!version.empty() && pack.getVersion() == version) {
+                    return pack.getInfo(); // return exact version match
+                } else {
+                    packs.push_back(pack.getInfo());
+                }
             }
         }
 

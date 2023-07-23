@@ -644,6 +644,10 @@ bool PopTracker::start()
             printf("Invalid update information\n");
             return;
         }
+        auto info = Pack::Find(uid, version, sha256);
+        if (!info.path.empty()) {
+            return; // update is already installed
+        }
         std::string msg = "A pack update to version " + version + " is available.\nDownload from " + url + " ?";
         if (Dlg::MsgBox("PopTracker", msg,
                 Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes) {
