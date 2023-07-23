@@ -681,7 +681,10 @@ bool PopTracker::start()
             std::string backupDir = os_pathcat(oldDir, "old");
             mkdir_recursive(backupDir.c_str());
             std::string backupPath = os_pathcat(backupDir, oldName);
-            if (rename(oldPath.c_str(), backupPath.c_str()) == 0) {
+            if (pathExists(backupPath) && unlink(backupPath.c_str()) != 0) {
+                fprintf(stderr, "Could not delete old backup %s: %s\n",
+                        backupPath.c_str(), strerror(errno));
+            } else if (rename(oldPath.c_str(), backupPath.c_str()) == 0) {
                 printf("Moved %s to %s\n", oldPath.c_str(), backupPath.c_str());
             } else {
                 fprintf(stderr, "Could not move %s to %s: %s\n",
