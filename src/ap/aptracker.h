@@ -111,8 +111,8 @@ public:
             onStateChanged.emit(this, _ap->get_state());
             _itemIndex = 0;
             _slotData = slotData;
-            _checkedLocations.clear();
-            _uncheckedLocations.clear();
+            _checkedLocations = _ap->get_checked_locations();
+            _uncheckedLocations = _ap->get_missing_locations();
             onClear.emit(this, slotData);
 
             // update mtime of uuid file
@@ -143,6 +143,7 @@ public:
             auto lock = EventLock(_event);
             for (int64_t location: locations) {
                 _checkedLocations.insert(location);
+                _uncheckedLocations.erase(location);
                 onLocationChecked.emit(this, location, _ap->get_location_name(location));
             }
         });
@@ -212,14 +213,14 @@ public:
         return _ap ? _ap->get_team_number() : -1;
     }
 
-    const std::set<int64_t> getCheckedLocations() const
+    const std::set<int64_t>& getCheckedLocations() const
     {
-        return _ap ? _ap->get_checked_locations() : std::set<int64_t>();
+        return _checkedLocations;
     }
 
-    const std::set<int64_t> getMissingLocations() const
+    const std::set<int64_t>& getMissingLocations() const
     {
-        return _ap ? _ap->get_missing_locations() : std::set<int64_t>();
+        return _uncheckedLocations;
     }
 
     bool SetNotify(const std::list<std::string>& keys)
@@ -241,7 +242,7 @@ public:
         _itemIndex = 0;
         onClear.emit(this, _slotData);
         for (int64_t location: _checkedLocations) {
-            _checkedLocations.insert(location);
+            _uncheckedLocations.erase(location);
             onLocationChecked.emit(this, location, _ap->get_location_name(location));
         }
         return true;
@@ -264,8 +265,8 @@ private:
     std::string _uuid;
     json _datapackage;
     int _itemIndex = 0;
-    std::set<int> _checkedLocations;
-    std::set<int> _uncheckedLocations;
+    std::set<int64_t> _checkedLocations;
+    std::set<int64_t> _uncheckedLocations;
     int _event = 0;
     bool _scheduleDisconnect = false;
     json _slotData;
