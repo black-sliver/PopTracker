@@ -139,7 +139,9 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 
 ### global Archipelago
 * `.PlayerNumber` the slot number of the connected player or -1 if not connected
-* `.TeamNumber` the team number of the connected player or -1 if not connected, `nil` if unsupported (before 0.25.2)
+* `.TeamNumber` the team number of the connected player, -1 if not connected or `nil` if unsupported (before 0.25.2)
+* `.CheckedLocations` array of already checked location ids or `nil` if unsupported (before 0.25.2)
+* `.MissingLocations` array of unchecked/missing location ids or `nil` if unsupported (before 0.25.2)
 * `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared; args: slot_data
 * `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name\[, player_number since 0.20.2\]
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name

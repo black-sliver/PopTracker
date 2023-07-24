@@ -1,4 +1,5 @@
 #include "archipelago.h"
+#include <limits>
 #include <luaglue/luamethod.h>
 #include <luaglue/luapp.h>
 #include <luaglue/lua_json.h>
@@ -196,12 +197,44 @@ bool Archipelago::Get(const json& jKeys)
 }
 
 int Archipelago::Lua_Index(lua_State *L, const char* key) {
-    if (strcmp(key, "PlayerNumber")==0) {
+    if (strcmp(key, "PlayerNumber") == 0) {
         lua_pushinteger(L, _ap ? _ap->getPlayerNumber() : -1);
         return 1;
     }
-    if (strcmp(key, "TeamNumber")==0) {
+    if (strcmp(key, "TeamNumber") == 0) {
         lua_pushinteger(L, _ap ? _ap->getTeamNumber() : -1);
+        return 1;
+    }
+    if (strcmp(key, "CheckedLocations") == 0) {
+        lua_newtable(L);
+        if (_ap) {
+            lua_Integer i=1;
+            for (int64_t location : _ap->getCheckedLocations()) {
+                lua_pushinteger(L, i++);
+                if (std::numeric_limits<lua_Integer>::min() > location ||
+                        std::numeric_limits<lua_Integer>::max() < location)
+                    lua_pushnumber(L, location);
+                else
+                    lua_pushinteger(L, (lua_Integer)location);
+                lua_settable(L, -3);
+            }
+        }
+        return 1;
+    }
+    if (strcmp(key, "MissingLocations") == 0) {
+        lua_newtable(L);
+        if (_ap) {
+            lua_Integer i=1;
+            for (int64_t location : _ap->getMissingLocations()) {
+                lua_pushinteger(L, i++);
+                if (std::numeric_limits<lua_Integer>::min() > location ||
+                        std::numeric_limits<lua_Integer>::max() < location)
+                    lua_pushnumber(L, location);
+                else
+                    lua_pushinteger(L, (lua_Integer)location);
+                lua_settable(L, -3);
+            }
+        }
         return 1;
     }
     printf("Get Archipelago.%s unknown\n", key);

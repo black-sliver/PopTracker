@@ -212,6 +212,16 @@ public:
         return _ap ? _ap->get_team_number() : -1;
     }
 
+    const std::set<int64_t> getCheckedLocations() const
+    {
+        return _ap ? _ap->get_checked_locations() : std::set<int64_t>();
+    }
+
+    const std::set<int64_t> getMissingLocations() const
+    {
+        return _ap ? _ap->get_missing_locations() : std::set<int64_t>();
+    }
+
     bool SetNotify(const std::list<std::string>& keys)
     {
         return _ap ? _ap->SetNotify(keys) : false;
