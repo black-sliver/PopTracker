@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## next
+
+* Fixes
+  * Fix missing question if checking for updates should be enabled on first start
+
 ## v0.25.2
 
 * Pack Features

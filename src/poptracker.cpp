@@ -89,23 +89,14 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (_config["software_renderer"].type() != json::value_t::boolean)
         _config["software_renderer"] = false;
 
-    std::string logFilename = getConfigPath(APPNAME, "log.txt", _isPortable);
-    if (!_config["log"]) {
-        // disable logging, leave note
-#if 0
-        if (Log::RedirectStdOut(logFilename)) {
-            printf("%s %s\n", APPNAME, VERSION_STRING);
-        }
-        printf("Logging disabled. Exit application, change '\"log\":false' "
-                "to '\"log\":true' in\n  '%s'\n  and restart to enable.\n",
-                configFilename.c_str());
-        Log::UnredirectStdOut();
-#endif
-    } else if (!cli) {
+    if (!cli) {
         // enable logging
-        printf("Logging to %s\n", logFilename.c_str());
-        if (Log::RedirectStdOut(logFilename)) {
-            printf("%s %s\n", APPNAME, VERSION_STRING);
+        if (_config["log"]) {
+            std::string logFilename = getConfigPath(APPNAME, "log.txt", _isPortable);
+            printf("Logging to %s\n", logFilename.c_str());
+            if (Log::RedirectStdOut(logFilename)) {
+                printf("%s %s\n", APPNAME, VERSION_STRING);
+            }
         }
 
 #ifndef WITHOUT_UPDATE_CHECK
