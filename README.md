@@ -91,3 +91,11 @@ No work has been done for other systems yet.
 * Major update (X.0.0) may break everything
 * Minor update (0.X.0) may change render output (i.e. window captures break)
 * Revisions (0.0.X) should only fix bugs and add non-breaking features
+
+## Plug-Ins
+
+Currently there is no plug-in interface.
+
+If you want to work towards implementing such a system, please check
+[PLUGIN LICENSE ADDENDUM.md](PLUGIN%20LICENSE%20ADDENDUM.md)
+for licensing considerations.
