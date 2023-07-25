@@ -1,10 +1,5 @@
 # PopTracker Changelog
 
-## next
-
-* Fixes
-  * Fix missing question if checking for updates should be enabled on first start
-
 ## v0.25.2
 
 * Pack Features
@@ -18,6 +13,11 @@
   * Pack update: don't ask to update if latest version is already installed
   * Pack update: don't fail if backups have a naming collision
   * Pack update: don't update progress until size is known and don't crash
+
+### Hotfix 1
+
+* Fixes
+  * Fix missing question if checking for updates should be enabled on first start
 
 ## v0.25.1
 
