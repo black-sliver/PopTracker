@@ -1,5 +1,19 @@
 # PopTracker Changelog
 
+## v0.25.2
+
+* Pack Features
+  * Add support for Archipelago.TeamNumber, .CheckedLocations and .MissingLocations
+* Fixes
+  * Clip scrollable map tooltips to expected size
+  * Correctly handle clicking hosted items with clear_as_group
+  * Allow boolean values for LuaItems' ProvidesCodeFunc - some packs do that
+  * Don't panic when getting an unexpected value from LuaItems' ProvidesCodeFunc
+  * Pack update: fix wrong % display for downloads > 42.9MB
+  * Pack update: don't ask to update if latest version is already installed
+  * Pack update: don't fail if backups have a naming collision
+  * Pack update: don't update progress until size is known and don't crash
+
 ## v0.25.1
 
 * App Features
