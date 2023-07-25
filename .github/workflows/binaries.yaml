@@ -13,7 +13,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Build RELEASE
@@ -27,7 +27,7 @@ jobs:
     - name: Build DIST # this builds a release ZIP, maybe .deb in the future
       run: make CONF=DIST
     - name: Store DIST
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ubuntu-22-04-dist
         path: dist
@@ -40,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 automake libtool autoconf
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Build RELEASE
@@ -61,12 +61,12 @@ jobs:
         ./poptracker --version
         ./poptracker --list-packs
     - name: Store app bundle
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.POP_NAME }}_macos
         path: build/darwin-x86_64/poptracker.app
     - name: Store ZIP/DMG
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: macos-dist
         path: dist
@@ -90,7 +90,7 @@ jobs:
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           p7zip
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Build RELEASE
@@ -108,7 +108,7 @@ jobs:
       shell: msys2 {0}
       run: make CONF=DIST
     - name: Store DIST
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: win64-msys-dist
         path: dist
@@ -119,7 +119,7 @@ jobs:
         make native CONF=DEBUG -j2
         7z a -mx=9 dist/poptracker-win64-debug.zip build/win64/poptracker.exe
     - name: Store DEBUG
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: win64-msys-debug
         path: dist/poptracker-win64-debug.zip
