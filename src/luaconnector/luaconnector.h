@@ -65,6 +65,6 @@ private:
     uint64_t _watchRefreshMilliseconds = 1500;
 };
 
-}
+} // namespace LuaConnector
 
 #endif // _LUACONNECTOR_H

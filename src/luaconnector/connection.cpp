@@ -246,6 +246,6 @@ void Connection::AddToIncomingMessageQueue()
 }
 
 #endif
-}
+} // namespace Net
 
-}
+} // namespace LuaConnector

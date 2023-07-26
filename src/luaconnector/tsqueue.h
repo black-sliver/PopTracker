@@ -89,8 +89,8 @@ protected:
     std::deque<T> deqQueue;
 };
 
-}
+} // namespace Net
 
-}
+} // namespace LuaConnector
 
 #endif

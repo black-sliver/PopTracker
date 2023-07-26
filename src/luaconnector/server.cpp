@@ -263,6 +263,6 @@ bool Server::updateBuffer(const json& response)
     return false;
 }
 
-}
+} // namespace Net
 
-}
+} // namespace LuaConnector

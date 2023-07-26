@@ -258,5 +258,5 @@ void LuaConnector::recalculate_watches()
     _combinedWatches = w;
 }
 
-}
+} // namespace LuaConnector
 

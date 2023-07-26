@@ -74,6 +74,6 @@ namespace LuaConnector
 				return sizeof(MessageHeader) + body.size();
 			}
 		};
-	}
-}
+	} // namespace Net
+} // namespace LuaConnector
 #endif

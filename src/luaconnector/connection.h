@@ -70,8 +70,8 @@ protected:
     uint32_t _bid = 0;
 };
 
-}
+} // namespace Net
 
-}
+} // namespace LuaConnector
 
 #endif
