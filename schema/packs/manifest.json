@@ -20,7 +20,7 @@
             "description": "Platform the pack is used for. If platform is \"snes\", the snes autotracker is to be enabled.",
             "type": "string"
         },
-        "platform_poptracker": {
+        "platform_override": {
             "description": "Platform the pack is used for. If specified, PopTracker will use this instead of the value indicated in the 'platform' field.",
             "type": "string"
         },
