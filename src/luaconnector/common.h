@@ -1,5 +1,4 @@
-#ifndef _LUACOMMON_H
-#define _LUACOMMON_H
+#pragma once
 
 #include <thread>
 #include <mutex>
@@ -26,4 +25,3 @@
 #include <nlohmann/json.hpp>
 
 #undef LUACONNECTOR_ASYNC
-#endif

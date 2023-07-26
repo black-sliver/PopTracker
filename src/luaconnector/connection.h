@@ -1,5 +1,4 @@
-#ifndef _CONNECTION_H
-#define _CONNECTION_H
+#pragma once
 
 #include "common.h"
 #include "tsqueue.h"
@@ -73,5 +72,3 @@ protected:
 } // namespace Net
 
 } // namespace LuaConnector
-
-#endif

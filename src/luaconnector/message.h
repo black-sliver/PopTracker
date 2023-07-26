@@ -1,5 +1,4 @@
-#ifndef _MESSAGE_H
-#define _MESSAGE_H
+#pragma once
 
 #include "common.h"
 
@@ -76,4 +75,3 @@ namespace LuaConnector
 		};
 	} // namespace Net
 } // namespace LuaConnector
-#endif

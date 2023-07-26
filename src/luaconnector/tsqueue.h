@@ -1,5 +1,4 @@
-#ifndef _TSQUEUE_H
-#define _TSQUEUE_H
+#pragma once
 
 #include "common.h"
 
@@ -92,5 +91,3 @@ protected:
 } // namespace Net
 
 } // namespace LuaConnector
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _CORE_AUTOTRACK_PROVIDER_H
-#define _CORE_AUTOTRACK_PROVIDER_H
+#pragma once
 
 #include <stdint.h>
 #include <vector>
@@ -39,6 +38,3 @@ public:
     virtual uint16_t readU16Live(uint32_t address, uint32_t offset = 0) { return 0; }
     virtual uint32_t readU32Live(uint32_t address, uint32_t offset = 0) { return 0; }
 };
-
-#endif /* _CORE_AUTOTRACK_PROVIDER_H */
-

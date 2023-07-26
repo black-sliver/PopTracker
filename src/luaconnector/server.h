@@ -1,5 +1,4 @@
-#ifndef _SERVER_H
-#define _SERVER_H
+#pragma once
 
 #include "common.h"
 #include "message.h"
@@ -129,5 +128,3 @@ private:
 }
 
 }
-
-#endif

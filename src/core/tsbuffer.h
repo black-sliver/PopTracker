@@ -1,5 +1,4 @@
-#ifndef _CORE_TSBUFFER_H
-#define _CORE_TSBUFFER_H
+#pragma once
 
 #include <map>
 #include <stdint.h>
@@ -69,5 +68,3 @@ protected:
     std::mutex _mutex;
     std::map<uint32_t, T> _data;
 };
-
-#endif /* _CORE_TSBUFFER_H */

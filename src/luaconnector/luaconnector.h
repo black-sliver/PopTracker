@@ -1,5 +1,4 @@
-#ifndef _LUACONNECTOR_H
-#define _LUACONNECTOR_H
+#pragma once
 
 #include "../core/autotrackprovider.h"
 #include <chrono>
@@ -66,5 +65,3 @@ private:
 };
 
 } // namespace LuaConnector
-
-#endif // _LUACONNECTOR_H
