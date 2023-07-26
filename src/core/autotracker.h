@@ -70,7 +70,7 @@ public:
                 _snes->setMapping(USB2SNES::Mapping::EXHIROM);
             }
         }
-        if( strcasecmp(platform.c_str(), "n64") == 0 ) {
+        if (strcasecmp(platform.c_str(), "n64") == 0) {
             _provider = new LuaConnector::LuaConnector(_name);
             _lastBackendIndex++;
             _backendIndex[_provider] = _lastBackendIndex;
@@ -132,8 +132,7 @@ public:
         if (_ap) delete _ap;
         _ap = nullptr;
 
-        if( _provider )
-        {
+        if (_provider) {
             delete _provider;
             _provider = nullptr;
         }
@@ -170,7 +169,7 @@ public:
         if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;
         if (_uat && _backendIndex[_uat] == index) return BACKEND_UAT_NAME;
         if (_snes && _backendIndex[_snes] == index) return BACKEND_SNES_NAME;
-        if( _provider && _backendIndex[_provider] == index ) return _provider->getName();
+        if (_provider && _backendIndex[_provider] == index) return _provider->getName();
         return BACKEND_NONE_NAME;
     }
 
@@ -260,29 +259,28 @@ public:
                 res = true;
         }
 
-        if( _provider && backendEnabled(_provider) )
-        {
+        if (_provider && backendEnabled(_provider)) {
             int index = _backendIndex[_provider];
             State oldState = _state[index];
             bool isReady = _provider->isReady();
             bool gameConnected = isReady ? _provider->isConnected() : false;
 
-            if( gameConnected ) {
+            if (gameConnected) {
                 _state[index] = State::ConsoleConnected;
             }
-            else if( isReady ) {
+            else if (isReady) {
                 _state[index] = State::BridgeConnected;
             }
             else {
                 _state[index] = State::Disconnected;
             }
 
-            if( _state[index] != oldState ) {
+            if (_state[index] != oldState) {
                 onStateChange.emit(this, index, _state[index]);
             }
 
-            if( _provider->update() ) {
-                if( _state[index] == State::ConsoleConnected ) {
+            if (_provider->update()) {
+                if (_state[index] == State::ConsoleConnected) {
                     onDataChange.emit(this);
                 }
 
@@ -300,8 +298,7 @@ public:
             _snes->addWatch((uint32_t)addr, len);
             return true;
         }
-        else if( _provider )
-        {
+        else if (_provider) {
             _provider->addWatch((uint32_t)addr, len);
             return true;
         }
@@ -315,7 +312,7 @@ public:
             _snes->removeWatch((uint32_t)addr, len);
             return true;
         }
-        else if( _provider ) {
+        else if (_provider) {
             _provider->removeWatch((uint32_t)addr, len);
             return true;
         }
@@ -325,7 +322,7 @@ public:
     void setInterval(unsigned ms) {
         if (_snes)
             _snes->setUpdateInterval(ms);
-        if( _provider )
+        if (_provider)
             _provider->setWatchUpdateInterval(ms);
     }
 
@@ -334,7 +331,7 @@ public:
             _snes->clearCache();
         if (_uat)
             _uat->sync(_slot);
-        if( _provider )
+        if (_provider)
             _provider->clearCache();
     }
     
@@ -348,10 +345,10 @@ public:
             for (size_t i=0; i<len; i++)
                 res.push_back(buf[i]);
         }
-        if( _provider ) {
+        if (_provider) {
             uint8_t buf[len];
             _provider->readFromCache((uint32_t)addr, len, buf);
-            for( size_t i = 0; i < len; i++ )
+            for (size_t i = 0; i < len; i++)
                 res.push_back(buf[i]);
         }
         return res;
@@ -359,53 +356,49 @@ public:
     
     int ReadU8(int segment, int offset=0)
     {
-      if( _provider )
-      {
-        // this is a live blocking call to read memory from the game
-        uint32_t address = segment;
-        uint32_t o = offset;
-        return _provider->readU8Live(address, o);
-      }
-      else
-        // NOTE: this is AutoTracker:Read8. we only have 1 segment, that is AutoTracker
-        return ReadUInt8(segment+offset);
+        if (_provider) {
+            // this is a live blocking call to read memory from the game
+            uint32_t address = segment;
+            uint32_t o = offset;
+            return _provider->readU8Live(address, o);
+        }
+        else
+            // NOTE: this is AutoTracker:Read8. we only have 1 segment, that is AutoTracker
+            return ReadUInt8(segment + offset);
     }
 
     int ReadU16(int segment, int offset=0)
     {
-      if( _provider )
-      {
-          // this is a live blocking call to read memory from the game
-          uint32_t address = segment;
-          uint32_t o = offset;
-          return _provider->readU16Live(address, o);
-      }
-      else
-          return ReadUInt16(segment+offset);
+        if (_provider) {
+            // this is a live blocking call to read memory from the game
+            uint32_t address = segment;
+            uint32_t o = offset;
+            return _provider->readU16Live(address, o);
+        }
+        else
+            return ReadUInt16(segment + offset);
     }
     int ReadU24(int segment, int offset=0)
     {
-      if( _provider )
-      {
-          // this is a live blocking call to read memory from the game
-          uint32_t address = segment;
-          uint32_t o = offset;
-          return _provider->readU32Live(address, o) & 0xffffff;
-      }
-      else
-          return ReadUInt24(segment+offset);
+        if (_provider) {
+            // this is a live blocking call to read memory from the game
+            uint32_t address = segment;
+            uint32_t o = offset;
+            return _provider->readU32Live(address, o) & 0xffffff;
+        }
+        else
+            return ReadUInt24(segment + offset);
     }
     int ReadU32(int segment, int offset=0)
     {
-      if( _provider )
-      {
-          // this is a live blocking call to read memory from the game
-          uint32_t address = segment;
-          uint32_t o = offset;
-          return _provider->readU32Live(address, o);
-      }
-      else
-          return ReadUInt32(segment+offset);
+        if (_provider) {
+            // this is a live blocking call to read memory from the game
+            uint32_t address = segment;
+            uint32_t o = offset;
+            return _provider->readU32Live(address, o);
+        }
+        else
+            return ReadUInt32(segment + offset);
     }
 
     int ReadUInt8(int addr)
@@ -418,7 +411,7 @@ public:
             //printf("$%06x = %02x\n", a, res);
             return res;
         }
-        else if( _provider ) {
+        else if (_provider) {
             auto res = _provider->readUInt8FromCache(addr);
             //if( res == 0 ) _provider->addWatch(addr, 1);
             return res;
@@ -433,7 +426,7 @@ public:
             if (res == 0) _snes->addWatch(addr,2);
             return res;
         }
-        else if( _provider ) {
+        else if (_provider) {
             auto res = _provider->readUInt16FromCache(addr);
             //if( res == 0 ) _provider->addWatch(addr, 2);
             return res;
@@ -448,7 +441,7 @@ public:
             if (res == 0) _snes->addWatch(addr,3);
             return res;
         }
-        else if( _provider ) {
+        else if (_provider) {
             auto res = _provider->readUInt32FromCache(addr) & 0xffffff;
             //if( res == 0 ) _provider->addWatch(addr, 3);
             return res;
@@ -463,7 +456,7 @@ public:
             if (res == 0) _snes->addWatch(addr,4);
             return res;
         }
-        else if( _provider ) {
+        else if (_provider) {
             auto res = _provider->readUInt32FromCache(addr);
             //if( res == 0 ) _provider->addWatch(addr, 4);
             return res;
@@ -504,7 +497,7 @@ public:
                 return true;
             }
         }
-        else if ( _provider && _backendIndex[_provider] == index) {
+        else if (_provider && _backendIndex[_provider] == index) {
             _state[index] = State::Disconnected;
             onStateChange.emit(this, index, _state[index]);
             _provider->start();
@@ -544,8 +537,7 @@ public:
             }
             if (_ap && _backendIndex[_ap] == index)
                 _ap->disconnect();
-            if( _provider && _backendIndex[_provider] == index )
-            {
+            if (_provider && _backendIndex[_provider] == index) {
                 _provider->stop();
                 _provider->clearCache();
             }
