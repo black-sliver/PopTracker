@@ -357,19 +357,7 @@ public:
     int ReadU8(int segment, int offset=0)
     {
         if (_provider) {
-            // this is Autotracker:ReadU8, which is a live blocking call in EmoTracker
-            uint32_t address = segment;
-            uint32_t o = offset;
-            uint8_t result = 0;
-            
-            // we don't want to read on the main thread, so we will read from the cache instead
-            if (!_provider->readUInt8FromCache(result, address, o))                 {
-                // packs may expect not to have to create a watch for this address,
-                // so let's do it for them
-                _provider->addWatch(address + o, 1);
-            }
-
-            return result;
+            return _provider->readU8Live(segment, offset);
         }
         else
             // NOTE: this is AutoTracker:Read8. we only have 1 segment, that is AutoTracker
@@ -379,19 +367,7 @@ public:
     int ReadU16(int segment, int offset=0)
     {
         if (_provider) {
-            // this is Autotracker:ReadU16, which is a live blocking call in EmoTracker
-            uint32_t address = segment;
-            uint32_t o = offset;
-            uint16_t result = 0;
-
-            // we don't want to read on the main thread, so we will read from the cache instead
-            if (!_provider->readUInt16FromCache(result, address, o)) {
-                // packs may expect not to have to create a watch for this address,
-                // so let's do it for them
-                _provider->addWatch(address + o, 2);
-            }
-
-            return result;
+            return _provider->readU16Live(segment, offset);
         }
         else
             return ReadUInt16(segment + offset);
@@ -399,20 +375,7 @@ public:
     int ReadU24(int segment, int offset=0)
     {
         if (_provider) {
-            // this is equivalent to Autotracker:ReadU24,
-            // which would be a live blocking call in EmoTracker
-            uint32_t address = segment;
-            uint32_t o = offset;
-            uint32_t result = 0;
-
-            // we don't want to read on the main thread, so we will read from the cache instead
-            if (!_provider->readUInt32FromCache(result, address, o)) {
-                // packs may expect not to have to create a watch for this address,
-                // so let's do it for them
-                _provider->addWatch(address + o, 4);
-            }
-            
-            return result & 0xffffff;
+            return _provider->readU24Live(segment, offset);
         }
         else
             return ReadUInt24(segment + offset);
@@ -420,20 +383,7 @@ public:
     int ReadU32(int segment, int offset=0)
     {
         if (_provider) {
-            // this is equivalent to Autotracker:ReadU32,
-            // which would be a live blocking call in EmoTracker
-            uint32_t address = segment;
-            uint32_t o = offset;
-            uint32_t result = 0;
-
-            // we don't want to read on the main thread, so we will read from the cache instead
-            if (!_provider->readUInt32FromCache(result, address, o)) {
-                // packs may expect not to have to create a watch for this address,
-                // so let's do it for them
-                _provider->addWatch(address + o, 4);
-            }
-
-            return result;
+            return _provider->readU32Live(segment, offset);
         }
         else
             return ReadUInt32(segment + offset);
