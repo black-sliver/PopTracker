@@ -76,6 +76,8 @@ bool Server::Update()
 
         json body = msg.GetJson();
 
+        //printf("LuaConnector: Receiving message: %s\n", body.dump().c_str());
+
         data_changed |= updateBuffer(body);
     }
 
@@ -89,6 +91,7 @@ bool Server::Update()
     return data_changed;
 }
 
+#ifndef LUACONNECTOR_ASYNC
 bool Server::ReadByteBuffered(uint32_t address)
 {
     json body;
@@ -112,25 +115,6 @@ bool Server::ReadBlockBuffered(uint32_t address, uint32_t length)
 
     json reply = sendJsonMessage(body);
     return updateBuffer(reply);
-}
-
-void Server::do_nothing()
-{
-    json body;
-
-    body["type"] = DO_NOTHING;
-
-    sendJsonMessage(body);
-}
-
-void Server::print_message(const std::string& messageText)
-{
-    json body;
-
-    body["type"] = PRINT_MESSAGE;
-    body["message"] = messageText;
-
-    sendJsonMessage(body);
 }
 
 uint8_t Server::ReadU8Live(uint32_t address)
@@ -169,6 +153,52 @@ uint16_t Server::ReadU16Live(uint32_t address)
     return result;
 }
 
+#else
+
+void Server::ReadByteBufferedAsync(uint32_t address)
+{
+    json body;
+
+    body["type"] = READ_BYTE;
+    body["address"] = address;
+    body["domain"] = "RDRAM";
+
+    sendJsonMessageAsync(body);
+}
+
+void Server::ReadBlockBufferedAsync(uint32_t address, uint32_t length)
+{
+    json body;
+
+    body["type"] = READ_BLOCK;
+    body["address"] = address;
+    body["value"] = length;
+    body["domain"] = "RDRAM";
+
+    sendJsonMessageAsync(body);
+}
+
+#endif
+
+void Server::do_nothing()
+{
+    json body;
+
+    body["type"] = DO_NOTHING;
+
+    sendJsonMessageAsync(body);
+}
+
+void Server::print_message(const std::string& messageText)
+{
+    json body;
+
+    body["type"] = PRINT_MESSAGE;
+    body["message"] = messageText;
+
+    sendJsonMessageAsync(body);
+}
+
 // async
 void Server::waitForClientConnectionAsync()
 {
@@ -187,7 +217,7 @@ void Server::waitForClientConnectionAsync()
                             _connection.reset();
                         }
 
-                        _connection = std::make_unique<Connection>(_context, std::move(socket));
+                        _connection = std::make_unique<Connection>(_context, std::move(socket), _qMessagesIn);
 
                         _connection->ConnectToClient(_idCounter++);
 
@@ -210,6 +240,8 @@ void Server::waitForClientConnectionAsync()
         }
     );
 }
+
+#ifndef LUACONNECTOR_ASYNC
 
 json Server::sendJsonMessage(const json& j)
 {
@@ -236,6 +268,31 @@ Message Server::messageClient(const Message& msg)
     }
 }
 
+#else
+
+void Server::sendJsonMessageAsync(const json& j)
+{
+    Message m(j);
+
+    //printf_s("LuaConnector: Sending message: %s\n", j.dump().c_str());
+
+    messageClientAsync(m);
+}
+
+void Server::messageClientAsync(const Message& msg)
+{
+    if (_connection && _connection->IsConnected()) {
+        _connection->SendAsync(msg);
+    }
+    else {
+        // disconnect the client
+        onClientDisconnect();
+        _connection.reset();
+    }
+}
+
+#endif
+
 void Server::onClientConnect()
 {
     //print_message("Connected to PopTracker"); // say hello
@@ -256,6 +313,8 @@ bool Server::updateBuffer(const json& response)
         size_t length = response["value"];
         std::string encoded = response["block"];
         std::string buffer = websocketpp::base64_decode(encoded);
+
+        //printf("LuaConnector: Update cache at %x: %s\n", address, buffer.c_str());
 
         return _data.write(address, length, buffer.c_str());
     }

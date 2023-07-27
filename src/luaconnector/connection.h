@@ -29,6 +29,8 @@ public:
     uint32_t GetID() const;
 
 #ifndef LUACONNECTOR_ASYNC
+
+public:
     // Send a message to the client, and return its response.
     // This function will block until the full response is received.
     // Do not use with async alternative in the same application.
@@ -40,7 +42,12 @@ protected:
     void WriteHeader(const Message&);
     void WriteBody(const Message&);
 
+    asio::io_context& _context;
+    asio::ip::tcp::socket _socket;
+
 #else
+
+public:
     // Queue a message to be sent to the client.
     // This function is non-blocking.
     // Do not use with blocking alternative in the same application.
@@ -54,15 +61,15 @@ protected:
 
     void AddToIncomingMessageQueue();
 
+    asio::io_context& _context;
+    asio::ip::tcp::socket _socket;
+
     tsqueue<Message> _qMessagesOut;
     tsqueue<Message>& _qMessagesIn;
 
 #endif
 
 protected:
-    asio::io_context& _context;
-    asio::ip::tcp::socket _socket;
-
     Message _msgTemporaryIn;
 
     uint32_t _uid = 0;

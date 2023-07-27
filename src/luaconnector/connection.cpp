@@ -60,6 +60,7 @@ uint32_t Connection::GetID() const
 }
 
 #ifndef LUACONNECTOR_ASYNC
+
 Message Connection::Send(const Message& msg)
 {
     if (_socket.is_open()) {
@@ -112,6 +113,7 @@ void Connection::WriteBody(const Message& msg)
 }
 
 #else
+
 void Connection::SendAsync(const Message& msg)
 {
     //printf("LuaConnector: [%u] Sending Header: %u Body size: %u\n", _uid, ntohl(msg.header.size), msg.body.size());

@@ -24,4 +24,4 @@
 
 #include <nlohmann/json.hpp>
 
-#undef LUACONNECTOR_ASYNC
+#define LUACONNECTOR_ASYNC

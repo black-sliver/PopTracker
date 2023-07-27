@@ -347,7 +347,7 @@ public:
         }
         if (_provider) {
             uint8_t buf[len];
-            _provider->readFromCache((uint32_t)addr, len, buf);
+            _provider->readFromCache(buf, (uint32_t)addr, len);
             for (size_t i = 0; i < len; i++)
                 res.push_back(buf[i]);
         }
@@ -357,10 +357,19 @@ public:
     int ReadU8(int segment, int offset=0)
     {
         if (_provider) {
-            // this is a live blocking call to read memory from the game
+            // this is Autotracker:ReadU8, which is a live blocking call in EmoTracker
             uint32_t address = segment;
             uint32_t o = offset;
-            return _provider->readU8Live(address, o);
+            uint8_t result = 0;
+            
+            // we don't want to read on the main thread, so we will read from the cache instead
+            if (!_provider->readUInt8FromCache(result, address, o))                 {
+                // packs may expect not to have to create a watch for this address,
+                // so let's do it for them
+                _provider->addWatch(address + o, 1);
+            }
+
+            return result;
         }
         else
             // NOTE: this is AutoTracker:Read8. we only have 1 segment, that is AutoTracker
@@ -370,10 +379,19 @@ public:
     int ReadU16(int segment, int offset=0)
     {
         if (_provider) {
-            // this is a live blocking call to read memory from the game
+            // this is Autotracker:ReadU16, which is a live blocking call in EmoTracker
             uint32_t address = segment;
             uint32_t o = offset;
-            return _provider->readU16Live(address, o);
+            uint16_t result = 0;
+
+            // we don't want to read on the main thread, so we will read from the cache instead
+            if (!_provider->readUInt16FromCache(result, address, o)) {
+                // packs may expect not to have to create a watch for this address,
+                // so let's do it for them
+                _provider->addWatch(address + o, 2);
+            }
+
+            return result;
         }
         else
             return ReadUInt16(segment + offset);
@@ -381,10 +399,20 @@ public:
     int ReadU24(int segment, int offset=0)
     {
         if (_provider) {
-            // this is a live blocking call to read memory from the game
+            // this is equivalent to Autotracker:ReadU24,
+            // which would be a live blocking call in EmoTracker
             uint32_t address = segment;
             uint32_t o = offset;
-            return _provider->readU32Live(address, o) & 0xffffff;
+            uint32_t result = 0;
+
+            // we don't want to read on the main thread, so we will read from the cache instead
+            if (!_provider->readUInt32FromCache(result, address, o)) {
+                // packs may expect not to have to create a watch for this address,
+                // so let's do it for them
+                _provider->addWatch(address + o, 4);
+            }
+            
+            return result & 0xffffff;
         }
         else
             return ReadUInt24(segment + offset);
@@ -392,10 +420,20 @@ public:
     int ReadU32(int segment, int offset=0)
     {
         if (_provider) {
-            // this is a live blocking call to read memory from the game
+            // this is equivalent to Autotracker:ReadU32,
+            // which would be a live blocking call in EmoTracker
             uint32_t address = segment;
             uint32_t o = offset;
-            return _provider->readU32Live(address, o);
+            uint32_t result = 0;
+
+            // we don't want to read on the main thread, so we will read from the cache instead
+            if (!_provider->readUInt32FromCache(result, address, o)) {
+                // packs may expect not to have to create a watch for this address,
+                // so let's do it for them
+                _provider->addWatch(address + o, 4);
+            }
+
+            return result;
         }
         else
             return ReadUInt32(segment + offset);
@@ -412,8 +450,8 @@ public:
             return res;
         }
         else if (_provider) {
-            auto res = _provider->readUInt8FromCache(addr);
-            //if( res == 0 ) _provider->addWatch(addr, 1);
+            uint8_t res = 0;
+            _provider->readUInt8FromCache(res, addr);
             return res;
         }
         return 0;
@@ -427,8 +465,8 @@ public:
             return res;
         }
         else if (_provider) {
-            auto res = _provider->readUInt16FromCache(addr);
-            //if( res == 0 ) _provider->addWatch(addr, 2);
+            uint16_t res = 0;
+            _provider->readUInt16FromCache(res, addr);
             return res;
         }
         return 0;
@@ -442,9 +480,9 @@ public:
             return res;
         }
         else if (_provider) {
-            auto res = _provider->readUInt32FromCache(addr) & 0xffffff;
-            //if( res == 0 ) _provider->addWatch(addr, 3);
-            return res;
+            uint32_t res = 0;
+            _provider->readUInt32FromCache(res, addr);
+            return res & 0xffffff;
         }
         return 0;
     }
@@ -457,8 +495,8 @@ public:
             return res;
         }
         else if (_provider) {
-            auto res = _provider->readUInt32FromCache(addr);
-            //if( res == 0 ) _provider->addWatch(addr, 4);
+            uint32_t res = 0;
+            _provider->readUInt32FromCache(res, addr);
             return res;
         }
         return 0;

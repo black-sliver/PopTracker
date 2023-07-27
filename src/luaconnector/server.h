@@ -55,8 +55,16 @@ public:
     bool Update();
 
     // Client commands
-    //
 
+     // Do nothing, useful for keepalive
+    void do_nothing();
+
+    // Print a message to the screen.
+    void print_message(const std::string&);
+
+#ifndef LUACONNECTOR_ASYNC
+
+public:
     // Read data into the buffer.
     // Returns true if buffer was changed.
     bool ReadByteBuffered(uint32_t address);
@@ -73,18 +81,7 @@ public:
     // Returns the requested bytes.
     uint16_t ReadU16Live(uint32_t address);
 
-    // Do nothing, useful for keepalive
-    void do_nothing();
-
-    // Print a message to the screen.
-    void print_message(const std::string&);
-
-private:
-
-    // Starts an async accept task.
-    // It's safe to use blocking calls with this, I think.
-    void waitForClientConnectionAsync();
-
+protected:
     // Send a json payload to the client.
     // This method blocks until the operation completes.
     // Returns the json response.
@@ -94,6 +91,29 @@ private:
     // This method blocks until the operation completes.
     // Returns the client's response.
     Message messageClient(const Message&);
+
+#else
+
+public:
+    // Read data into the buffer.
+    void ReadByteBufferedAsync(uint32_t address);
+
+    // Read data into the buffer.
+    void ReadBlockBufferedAsync(uint32_t address, uint32_t length);
+
+protected:
+    // Send a json payload to the client.
+    void sendJsonMessageAsync(const json&);
+
+    // Send a message to the client.
+    void messageClientAsync(const Message&);
+
+#endif
+
+protected:
+    // Starts an async accept task.
+    // It's safe to use blocking calls with this, I think.
+    void waitForClientConnectionAsync();
 
     // Anything server should prepare on client connect
     void onClientConnect();
@@ -109,8 +129,10 @@ private:
 
     tsbuffer<uint8_t>& _data;
 
+#ifdef LUACONNECTOR_ASYNC
     // Async message queue
-    //tsqueue<Message> _qMessagesIn;
+    tsqueue<Message> _qMessagesIn;
+#endif
 
     // order of declaration is important - it is also the order of initialization
     asio::io_context _context;

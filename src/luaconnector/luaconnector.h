@@ -37,16 +37,17 @@ public:
     void setMapping(const std::set<std::string>& flags) override;
     uint32_t mapAddress(uint32_t address) override;
 
-    bool readFromCache(uint32_t address, unsigned int length, void* out) override;
-    uint8_t readUInt8FromCache(uint32_t address, uint32_t offset = 0) override;
-    uint16_t readUInt16FromCache(uint32_t address, uint32_t offset = 0) override;
-    uint32_t readUInt32FromCache(uint32_t address, uint32_t offset = 0) override;
+    bool readFromCache(void* out, uint32_t address, unsigned int length) override;
+    bool readUInt8FromCache(uint8_t& out, uint32_t address, uint32_t offset = 0) override;
+    bool readUInt16FromCache(uint16_t& out, uint32_t address, uint32_t offset = 0) override;
+    bool readUInt32FromCache(uint32_t& out, uint32_t address, uint32_t offset = 0) override;
 
-    uint8_t readU8Live(uint32_t address, uint32_t offset = 0) override;
-    uint16_t readU16Live(uint32_t address, uint32_t offset = 0) override;
+    //uint8_t readU8Live(uint32_t address, uint32_t offset = 0) override;
+    //uint16_t readU16Live(uint32_t address, uint32_t offset = 0) override;
 
 private:
 
+    std::vector<Watch> combine_watches(std::vector<Watch> src, bool& bChanged);
     void recalculate_watches();
 
     Net::Server* _server = nullptr;

@@ -29,12 +29,12 @@ public:
     virtual void setMapping(const std::set<std::string>& flags) = 0;
     virtual uint32_t mapAddress(uint32_t address) = 0;
 
-    virtual bool readFromCache(uint32_t address, unsigned int length, void* out) = 0;
-    virtual uint8_t readUInt8FromCache(uint32_t address, uint32_t offset = 0) { return 0; }
-    virtual uint16_t readUInt16FromCache(uint32_t address, uint32_t offset = 0) { return 0; }
-    virtual uint32_t readUInt32FromCache(uint32_t address, uint32_t offset = 0) { return 0; }
+    virtual bool readFromCache(void* out, uint32_t address, unsigned int length) = 0;
+    virtual bool readUInt8FromCache(uint8_t& out, uint32_t address, uint32_t offset = 0) = 0;
+    virtual bool readUInt16FromCache(uint16_t& out, uint32_t address, uint32_t offset = 0) = 0;
+    virtual bool readUInt32FromCache(uint32_t& out, uint32_t address, uint32_t offset = 0) = 0;
 
-    virtual uint8_t readU8Live(uint32_t address, uint32_t offset = 0) { return 0; }
-    virtual uint16_t readU16Live(uint32_t address, uint32_t offset = 0) { return 0; }
-    virtual uint32_t readU32Live(uint32_t address, uint32_t offset = 0) { return 0; }
+    //virtual uint8_t readU8Live(uint32_t address, uint32_t offset = 0) = 0;
+    //virtual uint16_t readU16Live(uint32_t address, uint32_t offset = 0) = 0;
+    //virtual uint32_t readU32Live(uint32_t address, uint32_t offset = 0) = 0;
 };
