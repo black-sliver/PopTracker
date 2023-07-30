@@ -5,6 +5,7 @@
 * Memory
   * [USB2SNES websocket protocol](https://github.com/Skarsnik/QUsb2snes/blob/master/docs/Procotol.md)
     as provided by QUsb2Snes, Usb2Snes and SNI
+  * [Lua connector](https://crowd-control-sdk.s3.amazonaws.com/SDK.7z) provided by the CrowdControl SDK
 * Variables
   * [UAT Protocol](https://github.com/black-sliver/UAT)
 * Archipelago Multiworld
