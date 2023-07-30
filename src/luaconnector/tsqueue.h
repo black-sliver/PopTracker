@@ -1,6 +1,7 @@
 #pragma once
 
-#include "common.h"
+#include <mutex>
+#include <deque>
 
 namespace LuaConnector {
 

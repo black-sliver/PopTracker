@@ -1,18 +1,20 @@
 #pragma once
 
-#include "common.h"
-#include "tsqueue.h"
+#include <nlohmann/json.hpp>
+#include <asio.hpp>
+#include <stdint.h>
 #include "message.h"
-
-using json = nlohmann::json;
+#include "tsqueue.h"
 
 namespace LuaConnector {
 
 namespace Net {
 
 class Connection {
+    using json = nlohmann::json;
+
 public:
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
     Connection(asio::io_context&, asio::ip::tcp::socket);
 #else
     Connection(asio::io_context&, asio::ip::tcp::socket, tsqueue<Message>& qIn);
@@ -28,7 +30,7 @@ public:
 
     uint32_t GetID() const;
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 
 public:
     // Send a message to the client, and return its response.

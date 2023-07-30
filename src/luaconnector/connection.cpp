@@ -1,10 +1,17 @@
 #include "connection.h"
+#include <nlohmann/json.hpp>
+#include <asio.hpp>
+#include <stdint.h>
+#include "message.h"
+#include "tsqueue.h"
+
+#include <stdio.h>
 
 namespace LuaConnector {
 
 namespace Net {
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 Connection::Connection(asio::io_context& context, asio::ip::tcp::socket socket)
     : _context(context), _socket(std::move(socket))
 {
@@ -29,7 +36,7 @@ void Connection::ConnectToClient(uint32_t uid)
 
             printf("LuaConnector: [%u] Connection established\n", _uid);
 
-#ifdef LUACONNECTOR_ASYNC
+#ifndef LUACONNECTOR_NOASYNC
             // kick off async task
             ReadHeaderAsync();
 #endif
@@ -59,7 +66,7 @@ uint32_t Connection::GetID() const
     return _uid;
 }
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 
 Message Connection::Send(const Message& msg)
 {

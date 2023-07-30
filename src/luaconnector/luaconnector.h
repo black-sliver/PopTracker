@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../core/autotrackprovider.h"
-#include <chrono>
+#include <stdint.h>
+#include <string>
 #include "../core/tsbuffer.h"
+#include <chrono>
 
 namespace LuaConnector {
 

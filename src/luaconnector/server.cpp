@@ -1,10 +1,20 @@
 #include "server.h"
-#include "../core/util.h"
+#include "../core/tsbuffer.h"
+#include <string>
+#include <stdint.h>
+#include <nlohmann/json.hpp>
+#include <asio.hpp>
+#include <thread>
+#include <memory>
+#include <chrono>
+#include "message.h"
 #include "connection.h"
-#include <bitset>
+
 #include <websocketpp/base64/base64.hpp>
+#include <stdio.h>
 
 using asio::ip::tcp;
+using json = nlohmann::json;
 
 namespace LuaConnector {
 
@@ -69,7 +79,7 @@ bool Server::Update()
 {
     bool data_changed = false;
 
-#ifdef LUACONNECTOR_ASYNC
+#ifndef LUACONNECTOR_NOASYNC
     // loop inbound messages
     while (!_qMessagesIn.empty()) {
         auto msg = _qMessagesIn.pop_front();
@@ -91,7 +101,7 @@ bool Server::Update()
     return data_changed;
 }
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 bool Server::ReadByteBuffered(uint32_t address)
 {
     json body;
@@ -241,7 +251,7 @@ void Server::waitForClientConnectionAsync()
     );
 }
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 
 json Server::sendJsonMessage(const json& j)
 {

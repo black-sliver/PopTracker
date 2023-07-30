@@ -1,11 +1,15 @@
 #pragma once
 
-#include "common.h"
+#include "../core/tsbuffer.h"
+#include <string>
+#include <stdint.h>
+#include <nlohmann/json.hpp>
+#include <asio.hpp>
+#include <thread>
+#include <memory>
+#include <chrono>
 #include "message.h"
 #include "connection.h"
-#include "../core/tsbuffer.h"
-
-using json = nlohmann::json;
 
 namespace LuaConnector {
 
@@ -40,6 +44,8 @@ enum MESSAGE_TYPES {
 /// asio server based on olc c++ networking tutorial
 /// </summary>
 class Server {
+    using json = nlohmann::json;
+
 public:
     Server(tsbuffer<uint8_t>&);
     ~Server();
@@ -62,7 +68,7 @@ public:
     // Print a message to the screen.
     void print_message(const std::string&);
 
-#ifndef LUACONNECTOR_ASYNC
+#ifdef LUACONNECTOR_NOASYNC
 
 public:
     // Read data into the buffer.
@@ -129,7 +135,7 @@ protected:
 
     tsbuffer<uint8_t>& _data;
 
-#ifdef LUACONNECTOR_ASYNC
+#ifndef LUACONNECTOR_NOASYNC
     // Async message queue
     tsqueue<Message> _qMessagesIn;
 #endif

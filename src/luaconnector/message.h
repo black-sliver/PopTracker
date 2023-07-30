@@ -1,77 +1,78 @@
 #pragma once
 
-#include "common.h"
+#include <nlohmann/json.hpp>
+#include <stdint.h>
+#include <vector>
+#include <string>
+#include <stdio.h>
 
-using json = nlohmann::json;
+namespace LuaConnector {
+namespace Net {
 
-namespace LuaConnector
-{
-	namespace Net
-	{
-		struct MessageHeader
-		{
-			uint32_t size = 0;
-		};
+struct MessageHeader {
+    uint32_t size = 0;
+};
 
-		struct Message
-		{
-			MessageHeader header{};
-			std::vector<uint8_t> body;
+struct Message {
+    using json = nlohmann::json;
 
-			Message() {}
+    MessageHeader header{};
+    std::vector<uint8_t> body;
 
-			Message(const json& j)
-			{
-				// dump json to string
-				std::string s = j.dump();
+    Message() {}
 
-				//printf("New message contents: %s\n", s.c_str());
+    Message(const json& j)
+    {
+        // dump json to string
+        std::string s = j.dump();
 
-				// get size of string
-				std::size_t size = s.size();
+        //printf("New message contents: %s\n", s.c_str());
 
-				// resize body
-				body.resize(size);
+        // get size of string
+        std::size_t size = s.size();
 
-				// copy string into message body
-				std::memcpy(body.data(), s.c_str(), size);
+        // resize body
+        body.resize(size);
 
-				// recalculate header
-				header.size = body.size();
+        // copy string into message body
+        std::memcpy(body.data(), s.c_str(), size);
 
-				// use network byte order
-				header.size = htonl(header.size);
-			}
+        // recalculate header
+        header.size = body.size();
 
-			json GetJson() const
-			{
-				// initialize string
-				std::string s;
+        // use network byte order
+        header.size = htonl(header.size);
+    }
 
-				// resize string to fit body
-				s.resize(body.size() + 1, '\0');
+    json GetJson() const
+    {
+        // initialize string
+        std::string s;
 
-				// copy message body into string
-				std::memcpy(&s[0], body.data(), body.size());
+        // resize string to fit body
+        s.resize(body.size() + 1, '\0');
 
-				json j;
+        // copy message body into string
+        std::memcpy(&s[0], body.data(), body.size());
 
-				try
-				{
-					j = json::parse(s);
-				}
-				catch( const json::parse_error& e )
-				{
-					printf("Failed to parse json: %s\n", e.what());
-				}
+        json j;
 
-				return j;
-			}
+        try {
+            j = json::parse(s);
+        }
+        catch (const json::parse_error& e) {
+            printf("Failed to parse json: %s\n", e.what());
+        }
 
-			std::size_t size() const
-			{
-				return sizeof(MessageHeader) + body.size();
-			}
-		};
-	} // namespace Net
+        return j;
+    }
+
+    std::size_t size() const
+    {
+        return sizeof(MessageHeader) + body.size();
+    }
+};
+
+} // namespace Net
+
 } // namespace LuaConnector
