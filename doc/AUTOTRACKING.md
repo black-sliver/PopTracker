@@ -21,7 +21,7 @@ Read block or u16, u24, u32, etc. from cache is atomic.
 If you find a non-working case, please report.
 
 
-## Memory Interface (USB2SNES)
+## Memory Interface (USB2SNES, Lua)
 
 For snes, the inferface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
