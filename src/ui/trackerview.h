@@ -2,6 +2,7 @@
 #define _UI_TRACKERVIEW_H
 
 #include "../uilib/simplecontainer.h"
+#include "../uilib/timer.h"
 #include "../uilib/group.h"
 #include "../uilib/tabs.h"
 #include "../uilib/fontstore.h"
@@ -33,6 +34,7 @@ public:
     void setHideUnreachableLocations(bool hide);
 
     Signal<const std::string&> onItemHover;
+    Signal<const std::string&> onItemTooltip;
 
     static int CalculateLocationState(Tracker* tracker, const std::string& location);
 
@@ -49,6 +51,9 @@ protected:
     MapWidget *_mapTooltipOwner = nullptr;
     std::string _mapTooltipName;
     std::map<std::string, int> _mapTooltipScrollOffsets;
+    std::string _tooltipItem;
+    tick_t _tooltipTimer = 0;
+    bool _tooltipTriggered = false;
 
     int _absX=0;
     int _absY=0;

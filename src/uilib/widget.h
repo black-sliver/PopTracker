@@ -122,7 +122,8 @@ protected:
     static SDL_Cursor *_defaultCursor;
     Spacing _margin = {0,0,0,0};
     bool _dropShadow = false;
-    
+    bool _mouseInteraction = true;
+
 public:
     virtual ~Widget()
     {
@@ -169,7 +170,7 @@ public:
 
     virtual bool isHit(int x, int y) const
     {
-        return x>=getMinX() && x<=getMaxX() && y>=getMinY() && y<=getMaxY();
+        return _mouseInteraction && x>=getMinX() && x<=getMaxX() && y>=getMinY() && y<=getMaxY();
     }
 
     virtual const Widget* getHit(int x, int y) const
@@ -189,6 +190,7 @@ public:
     
     void setVisible(bool visible) { _visible = visible; }
     bool getVisible() const { return _visible; }
+    bool hasMouseInteraction() const { return _mouseInteraction; }
 
     void setDropShaodw(bool dropShadow) { _dropShadow = dropShadow; }
     bool getDropShadow() const { return _dropShadow; }

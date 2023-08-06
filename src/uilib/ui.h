@@ -1,14 +1,18 @@
 #ifndef _UILIB_UI_H
 #define _UILIB_UI_H
 
+
 #include "window.h"
 #include <map>
 #include <string>
 #include <mutex>
 #include <list>
+#include <stdint.h>
+
 
 #define DEFAULT_FPS_LIMIT 120
 #define DEFAULT_SOFTWARE_FPS_LIMIT 60
+
 
 namespace Ui {
 
