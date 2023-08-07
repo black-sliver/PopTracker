@@ -39,7 +39,7 @@ static bool sanitizePath(const std::string& userfile, std::string& file)
     return true;
 }
 
-static std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+static std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
@@ -48,13 +48,13 @@ static std::string ReplaceAll(std::string str, const std::string& from, const st
     return str;
 }
 
-static std::string CleanUpPath(const std::string& path)
+static std::string cleanUpPath(const std::string& path)
 {
 #ifdef WIN32
     char buf[_MAX_PATH];
     char* p = _fullpath(buf, path.c_str(), sizeof(buf));
     std::string s = p ? (std::string)p : path;
-    s = ReplaceAll(ReplaceAll(s, "//", "/"), "\\\\", "\\");
+    s = replaceAll(replaceAll(s, "//", "/"), "\\\\", "\\");
     if (s[s.length()-1] == '/' || s[s.length()-1] == '\\')
         s.pop_back();
 #else
@@ -63,11 +63,41 @@ static std::string CleanUpPath(const std::string& path)
     if (p)
         free(p);
     p = nullptr;
-    s = ReplaceAll(s, "//", "/");
+    s = replaceAll(s, "//", "/");
     if (s[s.length()-1] == '/')
         s.pop_back();
 #endif
     return s;
+}
+
+static bool fileNewerThan(const struct stat* st, const std::chrono::system_clock::time_point& than)
+{
+    auto duration = std::chrono::seconds(st->st_mtime);
+    return (std::chrono::system_clock::time_point(duration) > than);
+}
+
+static bool fileNewerThan(const std::string& path, const std::chrono::system_clock::time_point& than)
+{
+    std::chrono::system_clock::time_point tp;
+    return (!getFileMTime(path, tp) || tp > than); // assume changed on error
+}
+
+static bool dirNewerThan(const char* path, const std::chrono::system_clock::time_point& than)
+{
+    DIR *d = opendir(path);
+    if (!d) return true; // error -> assume changed
+    struct dirent *dir;
+    while ((dir = readdir(d)) != NULL)
+    {
+        if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
+        auto f = os_pathcat(path, dir->d_name);
+        struct stat st;
+        if (stat(f.c_str(), &st) != 0) return true;
+        if (S_ISDIR(st.st_mode) && dirNewerThan(f.c_str(), than)) return true;
+        else if (!S_ISDIR(st.st_mode) && fileNewerThan(&st, than)) return true;
+    }
+    closedir(d);
+    return false;
 }
 
 
@@ -107,14 +137,16 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
 
 Pack::~Pack()
 {
-    if (_zip) delete _zip;
+    if (_zip)
+        delete _zip;
     _zip = nullptr;
 }
 
 Pack::Info Pack::getInfo() const
 {
-    if (!isValid()) return {};
-    
+    if (!isValid())
+        return {};
+
     std::vector<Pack::VariantInfo> variants;
     auto vIt = _manifest.find("variants");
     if (vIt != _manifest.end()) {
@@ -122,13 +154,15 @@ Pack::Info Pack::getInfo() const
         if (v.type() == json::value_t::object) {
             for (auto it = v.begin(); it != v.end(); ++it) {
                 auto displayName = to_string(it.value(),"display_name",it.key());
-                if (displayName.empty()) continue;
+                if (displayName.empty())
+                    continue;
                 variants.push_back({it.key(), displayName});
             }
         }
     }
-    if (variants.empty()) variants.push_back({"","Standard"});
-    
+    if (variants.empty())
+        variants.push_back({"","Standard"});
+
     Pack::Info info = {
         _path,
         _uid,
@@ -145,7 +179,8 @@ Pack::Info Pack::getInfo() const
 bool Pack::hasFile(const std::string& userfile) const
 {
     std::string file;
-    if (!sanitizePath(userfile, file)) return false;
+    if (!sanitizePath(userfile, file))
+        return false;
 
     if (_zip) {
         if (!_variant.empty() && _zip->hasFile(_variant+"/"+file))
@@ -204,7 +239,8 @@ void Pack::setVariant(const std::string& variant)
     // set variant and cache some common values
     _variant = variant;
     _variantName = variant; // fall-back
-    if (_manifest.type() != json::value_t::object) return;
+    if (_manifest.type() != json::value_t::object)
+        return;
     auto& variants = _manifest["variants"];
     if (variants.is_object() && variants.find(variant) == variants.end() && variants.begin() != variants.end()) {
         _variant = variants.begin().key();
@@ -238,11 +274,14 @@ bool Pack::variantHasFlag(const std::string& flag) const
 {
     // jump through hoops to stay const
     auto variantsIt = _manifest.find("variants");
-    if (variantsIt == _manifest.end()) return false;
+    if (variantsIt == _manifest.end())
+        return false;
     auto variantIt = variantsIt->find(_variant);
-    if (variantIt == variantsIt->end()) return false;
+    if (variantIt == variantsIt->end())
+        return false;
     auto flagsIt = variantIt->find("flags");
-    if (flagsIt == variantIt->end()) return false;
+    if (flagsIt == variantIt->end())
+        return false;
     // actually find flag
     const auto& flags = *flagsIt;
     for (const auto& f: flags) {
@@ -268,57 +307,25 @@ std::set<std::string> Pack::getVariantFlags() const
     // actually iterate over flags
     const auto& flags = *flagsIt;
     for (const auto& f: flags) {
-        if (f.is_string()) set.insert(f.get<std::string>());
+        if (f.is_string())
+            set.insert(f.get<std::string>());
     }
     return set;
 }
 
-static bool fileNewerThan(const struct stat* st, const std::chrono::system_clock::time_point& than)
-{
-    auto duration = std::chrono::seconds(st->st_mtime);
-    return (std::chrono::system_clock::time_point(duration) > than);
-}
-
-static bool fileNewerThan(const std::string& path, const std::chrono::system_clock::time_point& than)
-{
-    std::chrono::system_clock::time_point tp;
-    return (!getFileMTime(path, tp) || tp > than); // assume changed on error
-}
-
-static bool dirNewerThan(const char* path, const std::chrono::system_clock::time_point& than)
-{
-    DIR *d = opendir(path);
-    if (!d) return true; // error -> assume changed
-    struct dirent *dir;
-    while ((dir = readdir(d)) != NULL)
-    {
-        if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
-        auto f = os_pathcat(path, dir->d_name);
-        struct stat st;
-        if (stat(f.c_str(), &st) != 0) return true;
-        if (S_ISDIR(st.st_mode) && dirNewerThan(f.c_str(), than)) return true;
-        else if (!S_ISDIR(st.st_mode) && fileNewerThan(&st, than)) return true;
-    }
-    closedir(d);
-    return false;
-}
-
 bool Pack::hasFilesChanged() const
 {
-    if (_zip) {
-        if (fileNewerThan(_path, _loaded)) return true;
-    } else {
-        if (dirNewerThan(_path.c_str(), _loaded)) return true;
-    }
-    return false;
+    if (_zip)
+        return fileNewerThan(_path, _loaded);
+    else
+        return dirNewerThan(_path.c_str(), _loaded);
 }
 
 std::string Pack::getSHA256() const
 {
     // NOTE: this is only possible for ZIPs. Returns empty string otherwise.
-    if (_zip) {
+    if (_zip)
         return SHA256_File(_path);
-    }
     return "";
 }
 
@@ -327,25 +334,31 @@ std::vector<Pack::Info> Pack::ListAvailable()
     std::vector<Pack::Info> res;
     for (auto& searchPath: _searchPaths) {
         DIR *d = opendir(searchPath.c_str());
-        if (!d) continue;
+        if (!d)
+            continue;
         struct dirent *dir;
         while ((dir = readdir(d)) != NULL)
         {
             Pack pack(os_pathcat(searchPath, dir->d_name));
-            if (!pack.isValid()) continue;
+            if (!pack.isValid())
+                continue;
             res.push_back(pack.getInfo());
         }
-
         closedir(d);
     }
+
     std::sort(res.begin(), res.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
         int n = strcasecmp(lhs.packName.c_str(), rhs.packName.c_str());
-        if (n<0) return true;
-        if (n>0) return false;
+        if (n<0)
+            return true;
+        if (n>0)
+            return false;
         int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
-        if (m<0) return true;
+        if (m<0)
+            return true;
         return false;
     });
+
     return res;
 }
 
@@ -356,8 +369,7 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
         DIR *d = opendir(searchPath.c_str());
         if (!d) continue;
         struct dirent *dir;
-        while ((dir = readdir(d)) != NULL)
-        {
+        while ((dir = readdir(d)) != NULL) {
             Pack pack(os_pathcat(searchPath, dir->d_name));
             if (pack.isValid() && pack.getUID() == uid) {
                 if (!sha256.empty()) {
@@ -373,9 +385,9 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
                 }
             }
         }
-
         closedir(d);
     }
+
     if (!packs.empty()) {
         // fall back to latest version since an upgrade may have removed it
         std::sort(packs.begin(), packs.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
@@ -384,20 +396,22 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
         });
         return packs.back();
     }
+
     return {};
 }
 
 void Pack::addSearchPath(const std::string& path)
 {
-    if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end()) return;
+    if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end())
+        return;
     _searchPaths.push_back(path);
 }
 
 bool Pack::isInSearchPath(const std::string& uncleanPath)
 {
-    std::string path = CleanUpPath(uncleanPath);
+    std::string path = cleanUpPath(uncleanPath);
     for (const auto& uncleanSearchPath: _searchPaths) {
-        std::string searchPath = CleanUpPath(uncleanSearchPath) + OS_DIR_SEP;
+        std::string searchPath = cleanUpPath(uncleanSearchPath) + OS_DIR_SEP;
         if (strncmp(path.c_str(), searchPath.c_str(), searchPath.length()) == 0)
             return true;
     }
