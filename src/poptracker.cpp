@@ -27,6 +27,9 @@ using nlohmann::json;
 using Ui::Dlg;
 
 
+const Version PopTracker::VERSION = Version(APP_VERSION_TUPLE);
+
+
 enum HotkeyID {
     HOTKEY_TOGGLE_VISIBILITY = 1,
     HOTKEY_RELOAD,
@@ -918,10 +921,17 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     
     printf("Loading Pack...\n");
     _pack = new Pack(pack);
+
+    bool targetLatest = !(_pack->getTargetPopTrackerVersion() > Version{});
+    const Version& targetVersion = targetLatest ? VERSION : _pack->getTargetPopTrackerVersion();
+    printf("Target PopTracker version: %s%s\n",
+            targetVersion.to_string().c_str(),
+            targetLatest ? " (undefined/latest)" : "");
+
     printf("Selecting Variant...\n");
     _pack->setVariant(variant);
 
-    if (_pack->getMinPopTrackerVersion() > Version(VERSION_STRING)) {
+    if (_pack->getMinPopTrackerVersion() > VERSION) {
         Dlg::MsgBox("Error", "Pack requires PopTracker " + _pack->getMinPopTrackerVersion().to_string() + " or newer. "
                     "You have " + VERSION_STRING + ".");
         fprintf(stderr, "Pack requires a newer version of PopTracker!\n");
@@ -1076,7 +1086,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         _tracker->AddLocations("locations.json");
 
     // run pack's init script
-    printf("Running scripts/init.lua\n");
+    printf("Running init...\n");
     bool res = _scriptHost->LoadScript("scripts/init.lua");
     // save reset-state
     StateManager::saveState(_tracker, _scriptHost, _win->getHints(), json::value_t::null, false, "reset");
@@ -1255,7 +1265,7 @@ void PopTracker::updateAvailable(const std::string& version, const std::string& 
 bool PopTracker::isNewer(const Version& v)
 {
     // returns true if v is newer than current PopTracker
-    return v>Version(VERSION_STRING);
+    return v > VERSION;
 }
 
 bool PopTracker::saveConfig()

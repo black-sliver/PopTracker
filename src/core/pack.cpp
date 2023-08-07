@@ -8,6 +8,69 @@
 using nlohmann::json;
 
 
+static bool sanitizePath(const std::string& userfile, std::string& file)
+{
+    if (userfile.empty())
+        return false;
+    // don't allow reference to parent directory
+    auto p = userfile.find("../");
+    if (p != userfile.npos) {
+        if (p == 0 || (userfile[p-1] == '/' || userfile[p-1] == '\\'))
+            return false;
+    }
+    p = userfile.find("..\\");
+    if (p != userfile.npos) {
+        if (p == 0 || (userfile[p-1] == '/' || userfile[p-1] == '\\'))
+            return false;
+    }
+    // don't allow absolute paths on windows
+    if (userfile.length()>1) {
+        if (userfile[1]==':')
+            return false;
+        if (userfile[0]=='\\' && userfile[1]=='\\')
+            return false;
+    }
+    // remove leading slashes
+    file = userfile;
+    while (file.length()>=2 && file[0]=='.' && (file[1]=='/' || file[1]=='\\'))
+        file = file.substr(2);
+    while (file[0]=='/' || file[0]=='\\')
+        file = file.substr(1);
+    return true;
+}
+
+static std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
+static std::string CleanUpPath(const std::string& path)
+{
+#ifdef WIN32
+    char buf[_MAX_PATH];
+    char* p = _fullpath(buf, path.c_str(), sizeof(buf));
+    std::string s = p ? (std::string)p : path;
+    s = ReplaceAll(ReplaceAll(s, "//", "/"), "\\\\", "\\");
+    if (s[s.length()-1] == '/' || s[s.length()-1] == '\\')
+        s.pop_back();
+#else
+    char* p = realpath(path.c_str(), nullptr);
+    std::string s = p ? (std::string)p : path;
+    if (p)
+        free(p);
+    p = nullptr;
+    s = ReplaceAll(s, "//", "/");
+    if (s[s.length()-1] == '/')
+        s.pop_back();
+#endif
+    return s;
+}
+
+
 std::vector<std::string> Pack::_searchPaths;
 
 
@@ -38,6 +101,7 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
         _gameName = to_string(_manifest,"game_name", _name);
         _versionsURL = to_string(_manifest,"versions_url", "");
         _minPopTrackerVersion = to_string(_manifest, "min_poptracker_version", "");
+        _targetPopTrackerVersion = to_string(_manifest, "target_poptracker_version", "");
     }
 }
 
@@ -76,30 +140,6 @@ Pack::Info Pack::getInfo() const
         variants
     };
     return info;
-}
-
-bool sanitizePath(const std::string& userfile, std::string& file)
-{
-    if (userfile.empty()) return false;
-    // don't allow reference to parent directory
-    auto p = userfile.find("../");
-    if (p != userfile.npos) {
-        if (p == 0 || (userfile[p-1] == '/' || userfile[p-1] == '\\')) return false;
-    }
-    p = userfile.find("..\\");
-    if (p != userfile.npos) {
-        if (p == 0 || (userfile[p-1] == '/' || userfile[p-1] == '\\')) return false;
-    }
-    // don't allow absolute paths on windows
-    if (userfile.length()>1) {
-        if (userfile[1]==':') return false;
-        if (userfile[0]=='\\' && userfile[1]=='\\') return false;
-    }
-    // remove leading slashes
-    file = userfile;   
-    while (file.length()>=2 && file[0]=='.' && (file[1]=='/' || file[1]=='\\')) file = file.substr(2);
-    while (file[0]=='/' || file[0]=='\\') file = file.substr(1); 
-    return true;
 }
 
 bool Pack::hasFile(const std::string& userfile) const
@@ -351,36 +391,6 @@ void Pack::addSearchPath(const std::string& path)
 {
     if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end()) return;
     _searchPaths.push_back(path);
-}
-
-static std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-    }
-    return str;
-}
-
-static std::string CleanUpPath(const std::string& path)
-{
-#ifdef WIN32
-    char buf[_MAX_PATH];
-    char* p = _fullpath(buf, path.c_str(), sizeof(buf));
-    std::string s = p ? (std::string)p : path;
-    s = ReplaceAll(ReplaceAll(s, "//", "/"), "\\\\", "\\");
-    if (s[s.length()-1] == '/' || s[s.length()-1] == '\\')
-        s.pop_back();
-#else
-    char* p = realpath(path.c_str(), nullptr);
-    std::string s = p ? (std::string)p : path;
-    if (p) free(p);
-    p = nullptr;
-    s = ReplaceAll(s, "//", "/");
-    if (s[s.length()-1] == '/')
-        s.pop_back();
-#endif
-    return s;
 }
 
 bool Pack::isInSearchPath(const std::string& uncleanPath)

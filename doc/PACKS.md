@@ -27,7 +27,8 @@ The only things of consequence right now are:
             }
         },
         "versions_url": "https://example.com/versions.json",
-        "min_poptracker_version": "0.23.1"
+        "min_poptracker_version": "0.23.1",
+        "target_poptracker_version": "0.23.1"
     }
 
 Other fields:
@@ -54,6 +55,10 @@ See https://github.com/black-sliver/PopTracker/tree/packlist for more informatio
 
 `min_poptracker_version` will check if the version is compatible when loading the pack.
 It can be written as `x`, `x.y` or `x.y.z`.
+
+`target_poptracker_version` may influence behavior to not break a pack for breaking API or behavioral changes.
+There is no guarantee that everything will have a compatibility layer, but it's best practice to put the latest known
+working version number there.
 
 
 ### Settings

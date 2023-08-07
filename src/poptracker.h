@@ -83,6 +83,7 @@ public:
 
     static constexpr const char APPNAME[] = "PopTracker";
     static constexpr const char VERSION_STRING[] = APP_VERSION_STRING;
+    static const Version VERSION;
     static constexpr int AUTOSAVE_INTERVAL = 60; // 1 minute
 
 protected:

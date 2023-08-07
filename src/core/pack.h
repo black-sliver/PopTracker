@@ -10,7 +10,7 @@
 #include "version.h"
 
 
-class Pack {
+class Pack final {
 public:
     struct VariantInfo {
         std::string variant;
@@ -30,8 +30,9 @@ public:
     Pack(const std::string& path);
     virtual ~Pack();
 
-    bool isValid() const {
-        return (!_uid.empty());
+    bool isValid() const
+    {
+        return !_uid.empty();
         // TODO: also check if init.lua exists?
     }
 
@@ -45,6 +46,7 @@ public:
     const std::string& getVersionsURL() const { return _versionsURL; }
     std::string getVariantTitle() const { return _variantName.empty() ? _gameName : (_gameName + "-" + _variantName); }
     const Version& getMinPopTrackerVersion() const { return _minPopTrackerVersion; }
+    const Version& getTargetPopTrackerVersion() const { return _targetPopTrackerVersion; }
     const nlohmann::json& getSettings() const { return _settings; }
 
     Info getInfo() const;
@@ -64,7 +66,7 @@ public:
     static void addSearchPath(const std::string& path);
     static bool isInSearchPath(const std::string& path);
 
-protected:
+private:
     Zip* _zip;
     std::string _path;
     std::string _variant;
@@ -74,6 +76,7 @@ protected:
     std::string _variantName;
     std::string _versionsURL;
     Version _minPopTrackerVersion;
+    Version _targetPopTrackerVersion;
     nlohmann::json _manifest;
     nlohmann::json _settings;
 

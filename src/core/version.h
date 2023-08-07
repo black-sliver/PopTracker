@@ -6,6 +6,7 @@
 class Version final {
 public:
     Version(int major, int minor, int revision, const std::string& extra="");
+    Version(int major, int minor, int revision, int extra);
     Version(const std::string& s);
     Version();
     virtual ~Version();
