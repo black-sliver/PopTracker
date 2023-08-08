@@ -334,10 +334,10 @@ std::vector<Pack::Info> Pack::ListAvailable()
     std::vector<Pack::Info> res;
     for (auto& searchPath: _searchPaths) {
         DIR *d = opendir(searchPath.c_str());
-        if (!d && errno != ENOENT) {
+        if (!d && errno != ENOENT)
             fprintf(stderr, "Packs: could not open %s: %s\n", searchPath.c_str(), strerror(errno));
+        if (!d)
             continue;
-        }
         struct dirent *dir;
         while ((dir = readdir(d)) != NULL)
         {
