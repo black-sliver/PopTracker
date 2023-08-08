@@ -50,7 +50,7 @@ static std::string replaceAll(std::string str, const std::string& from, const st
 
 static std::string cleanUpPath(const std::string& path)
 {
-#ifdef WIN32
+#if defined WIN32 || defined _WIN32
     char buf[_MAX_PATH];
     char* p = _fullpath(buf, path.c_str(), sizeof(buf));
     std::string s = p ? (std::string)p : path;
@@ -404,6 +404,7 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
 
 void Pack::addSearchPath(const std::string& path)
 {
+#if defined WIN32 || defined _WIN32
     char* tmp = realpath(path.c_str(), NULL);
     if (tmp) {
         std::string real = tmp;
@@ -411,7 +412,9 @@ void Pack::addSearchPath(const std::string& path)
         if (std::find(_searchPaths.begin(), _searchPaths.end(), real) != _searchPaths.end())
             return;
         _searchPaths.push_back(real);
-    } else {
+    } else
+#endif
+    {
         if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end())
             return;
         _searchPaths.push_back(path);
