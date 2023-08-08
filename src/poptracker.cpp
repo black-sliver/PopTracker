@@ -179,15 +179,15 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     _homePackDir = os_pathcat(homePath, "PopTracker", "packs");
     _appPackDir = os_pathcat(appPath, "packs");
 
-    if (!homePath.empty() && homePath != "." && homePath != cwdPath) {
+    if (!homePath.empty()) {
         Pack::addSearchPath(_homePackDir); // default user packs
         if (!_isPortable)
-            Assets::addSearchPath(os_pathcat(homePath,"PopTracker","assets")); // default user overrides
+            Assets::addSearchPath(os_pathcat(homePath, "PopTracker", "assets")); // default user overrides
     }
-    if (!documentsPath.empty() && documentsPath != "." && documentsPath != cwdPath) {
-        Pack::addSearchPath(os_pathcat(documentsPath,"PopTracker","packs")); // alternative user packs
+    if (!documentsPath.empty() && documentsPath != ".") {
+        Pack::addSearchPath(os_pathcat(documentsPath, "PopTracker", "packs")); // alternative user packs
         if (_config.value<bool>("add_emo_packs", false)) {
-            Pack::addSearchPath(os_pathcat(documentsPath,"EmoTracker","packs")); // "old" packs
+            Pack::addSearchPath(os_pathcat(documentsPath, "EmoTracker", "packs")); // "old" packs
         }
     }
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
