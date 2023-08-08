@@ -334,8 +334,8 @@ std::vector<Pack::Info> Pack::ListAvailable()
     std::vector<Pack::Info> res;
     for (auto& searchPath: _searchPaths) {
         DIR *d = opendir(searchPath.c_str());
-        if (!d) {
-            printf("Packs: could not open %s: %s\n", searchPath.c_str(), strerror(errno));
+        if (!d && errno != ENOENT) {
+            fprintf(stderr, "Packs: could not open %s: %s\n", searchPath.c_str(), strerror(errno));
             continue;
         }
         struct dirent *dir;
