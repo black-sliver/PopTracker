@@ -491,6 +491,7 @@ static int tryRun(const char* cmd)
     return pclose(p);
 }
 
+/// Returns true if running a dialog won't read from stdin
 bool Dlg::hasGUI()
 {
     if (_hasGUISet)
@@ -503,7 +504,9 @@ bool Dlg::hasGUI()
             tryRun("which kdialog &>/dev/null") == 0 ||
             tryRun("which matedialog &>/dev/null") == 0 ||
             tryRun("which qarma &>/dev/null") == 0 ||
-            tryRun("which xdialog &>/dev/null") == 0;
+            tryRun("which xdialog &>/dev/null") == 0 ||
+            (tryRun("which python3 &>/dev/null") == 0 && tryRun("python3 -c \"import tkinter\" &>/dev/null") == 0) ||
+            (tryRun("which python2 &>/dev/null") == 0 && tryRun("python2 -c \"import Tkinter\" &>/dev/null") == 0);
 #endif
     _hasGUISet = true;
     return _hasGUI;
