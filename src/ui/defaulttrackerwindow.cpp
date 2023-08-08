@@ -1,4 +1,5 @@
 #include "defaulttrackerwindow.h"
+#include "../uilib/dlg.h"
 #include "../uilib/hbox.h"
 #include "../core/assets.h"
 
@@ -69,7 +70,18 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _lblTooltip->setGrow(1,1);
     _lblTooltip->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
     hbox->addChild(_lblTooltip);
-    
+
+    _lblMessage = new Label(0,36,_size.width,0, _font, "");
+    _lblMessage->setVisible(false);
+    _lblMessage->setTextAlignment(Label::HAlign::CENTER, Label::VAlign::TOP);
+    addChild(_lblMessage);
+
+    if (!Dlg::hasGUI()) {
+        showMessage("WARNING: Dialog helper not available. Certain things will be broken!\n"
+                "Please install which and zenity, kdialog, matedialog, qarma, xdialog or python + tkinter.",
+                true);
+    }
+
     _loadPackWidget = new LoadPackWidget(0,0,0,0,_fontStore);
     _loadPackWidget->setPosition({0,0});
     _loadPackWidget->setSize(_size);
@@ -137,10 +149,12 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker)
 
 void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
 {
-    if (_view && _view->getTracker() == tracker && _view->getLayoutRoot() == layout) return;
+    if (_view && _view->getTracker() == tracker && _view->getLayoutRoot() == layout)
+        return;
 
     TrackerWindow::setTracker(tracker, layout);
     if (tracker) {
+        hideMessage();
         tracker->onLayoutChanged -= this;
         tracker->onLayoutChanged += {this, [this,tracker](void *s, const std::string& layout) {
             if (_btnBroadcast) _btnBroadcast->setVisible(tracker->hasLayout("tracker_broadcast"));
@@ -174,6 +188,22 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
         if (_btnExport) _btnExport->setVisible(false);
     }
     raiseChild(_loadPackWidget);
+}
+
+void DefaultTrackerWindow::showMessage(const std::string& message, bool error)
+{
+    _lblMessage->setText(message);
+    _lblMessage->setHeight(_lblMessage->getAutoHeight());
+    if (error)
+        _lblMessage->setTextColor({0xff, 0x7f, 0x7f, 0xff});
+    else
+        _lblMessage->setTextColor({0xff, 0xff, 0xff, 0xff});
+    _lblMessage->setVisible(true);
+}
+
+void DefaultTrackerWindow::hideMessage()
+{
+    _lblMessage->setVisible(false);
 }
 
 void DefaultTrackerWindow::render(Renderer renderer, int offX, int offY)
@@ -286,6 +316,7 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
 void DefaultTrackerWindow::setSize(Size size)
 {
     TrackerWindow::setSize(size);
+    _lblMessage->setWidth(size.width);
     _loadPackWidget->setSize(size);
     if (_vboxProgress) {
         _vboxProgress->setPosition({

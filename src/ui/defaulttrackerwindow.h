@@ -36,6 +36,7 @@ protected:
     HBox *_hboxAutoTrackers = nullptr;
     std::vector<Label*> _lblsAutoTrackers;
     Label *_lblTooltip = nullptr;
+    Label *_lblMessage = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;
     VBox *_vboxProgress = nullptr;
     HBox *_hboxProgressTexts = nullptr;
@@ -50,6 +51,10 @@ protected:
     std::string _lastHoverItem;
 
     virtual void setTracker(Tracker *tracker, const std::string& layout) override;
+
+private:
+    void showMessage(const std::string& message, bool error=false);
+    void hideMessage();
 };
 
 } // namspace Ui
