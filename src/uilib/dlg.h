@@ -42,8 +42,12 @@ public:
     static bool OpenFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out, bool multi=false);
     static bool SaveFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out);
 
+    static bool hasGUI();
+
 private:
-    static std::mutex mutex; // not all of tinyfd is thread safe
+    static std::mutex _mutex; // not all of tinyfd is thread safe
+    static bool _hasGUI;
+    static bool _hasGUISet;
 };
     
 } // namespace

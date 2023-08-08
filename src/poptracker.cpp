@@ -103,7 +103,11 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         }
 
 #ifndef WITHOUT_UPDATE_CHECK
-        if (_config.find("check_for_updates") == _config.end()) {
+        if (!Dlg::hasGUI()) {
+            printf("Dialog helper not available! "
+                    "Please install which and zenity, kdialog, matedialog, qarma or xdialog.\n");
+        }
+        else if (_config.find("check_for_updates") == _config.end()) {
             auto res = Dlg::MsgBox("PopTracker",
                     "Check for PopTracker updates on start?",
                     Dlg::Buttons::YesNo, Dlg::Icon::Question);
