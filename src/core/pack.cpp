@@ -402,9 +402,18 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
 
 void Pack::addSearchPath(const std::string& path)
 {
-    if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end())
-        return;
-    _searchPaths.push_back(path);
+    char* tmp = realpath(path.c_str(), NULL);
+    if (tmp) {
+        std::string real = tmp;
+        free(tmp);
+        if (std::find(_searchPaths.begin(), _searchPaths.end(), real) != _searchPaths.end())
+            return;
+        _searchPaths.push_back(real);
+    } else {
+        if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end())
+            return;
+        _searchPaths.push_back(path);
+    }
 }
 
 bool Pack::isInSearchPath(const std::string& uncleanPath)
