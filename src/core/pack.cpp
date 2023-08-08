@@ -334,8 +334,10 @@ std::vector<Pack::Info> Pack::ListAvailable()
     std::vector<Pack::Info> res;
     for (auto& searchPath: _searchPaths) {
         DIR *d = opendir(searchPath.c_str());
-        if (!d)
+        if (!d) {
+            printf("Packs: could not open %s: %s\n", searchPath.c_str(), strerror(errno));
             continue;
+        }
         struct dirent *dir;
         while ((dir = readdir(d)) != NULL)
         {
@@ -425,4 +427,9 @@ bool Pack::isInSearchPath(const std::string& uncleanPath)
             return true;
     }
     return false;
+}
+
+const std::vector<std::string>& Pack::getSearchPaths()
+{
+    return _searchPaths;
 }

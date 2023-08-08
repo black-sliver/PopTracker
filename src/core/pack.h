@@ -65,6 +65,7 @@ public:
     static Info Find(const std::string& uid, const std::string& version="", const std::string& sha256="");
     static void addSearchPath(const std::string& path);
     static bool isInSearchPath(const std::string& path);
+    static const std::vector<std::string>& getSearchPaths();
 
 private:
     Zip* _zip;

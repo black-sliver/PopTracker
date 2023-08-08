@@ -818,6 +818,12 @@ bool PopTracker::ListPacks(PackManager::confirmation_callback confirm, bool inst
         printf("\n");
     }
 
+    printf("Search paths:\n");
+    for (const auto& path: Pack::getSearchPaths()) {
+        printf("%s\n", path.c_str());
+    }
+    printf("\n");
+
     printf("Installed packs:\n");
     auto installed = Pack::ListAvailable();
     if (installed.empty()) {
