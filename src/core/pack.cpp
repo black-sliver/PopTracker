@@ -404,7 +404,7 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
 
 void Pack::addSearchPath(const std::string& path)
 {
-#if defined WIN32 || defined _WIN32
+#if !defined WIN32 && !defined _WIN32
     char* tmp = realpath(path.c_str(), NULL);
     if (tmp) {
         std::string real = tmp;
