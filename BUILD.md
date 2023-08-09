@@ -29,6 +29,8 @@ See [Build on macOS](#build-on-macos) for details.
 On Linux, builds are dynamically linked by default and all linked libraries are required.
 In addition, a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma` or `xdialog`) and `which` are required.
 
+Assets will have to be in one of the search paths. Read below.
+
 ## Getting the source
 
 Run `git clone --recurse-submodules https://github.com/black-sliver/PopTracker.git`
@@ -39,7 +41,8 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 ### Native
 - `pacman -S base-devel sdl2 sdl2_image sdl2_ttf openssl # install dependencies`
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
-- run with working directory set to the source directory, or copy assets + binary into a single folder
+- run binary with working directory set to the source directory, copy assets + binary into a single folder
+  or copy assets to `~/PopTracker/assets`
 
 ### Cross Compile
 - `pacman -S mingw-w64-gcc # install cross compile toolchain`
@@ -59,7 +62,8 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 - if you use debian older than bookworm or Ubuntu older than 22.04,
   you will have to install libsdl 2.0.18 or newer from source
 - run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
-- run with working directory set to the source directory, or copy assets + binary into a single folder
+- run binary with working directory set to the source directory, copy assets + binary into a single folder
+  or copy assets to `~/PopTracker/assets`
 
 ## Build on Windows
 
@@ -75,6 +79,8 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 
   or see [GitHub workflow](https://github.com/black-sliver/PopTracker/blob/master/.github/workflows/binaries.yaml)
 - run `make CONF=RELEASE`
+- run exe with working directory set to the source directory, copy assets + exe into a single folder
+  or copy assets to `C:\Users\<user>\PopTracker\assets`
 
 If the Windows build is failing, MSYS probably changed libraries. Let us know on Discord or create an issue on GitHub.
 
