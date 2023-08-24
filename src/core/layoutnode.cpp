@@ -166,6 +166,11 @@ LayoutNode LayoutNode::FromJSON(json& j)
     } else if (node._type == "tabbed") {
         fprintf(stderr, "WARN: tabs is not an array\n");
     }
+
+    if (node._type != "layout" && !node._key.empty()) {
+        fprintf(stderr, "WARN: %s node has \"key\"! Did you mean \"type\": \"layout\"?\n",
+                sanitize_print(node._type).c_str());
+    }
     
     return node;
 }
