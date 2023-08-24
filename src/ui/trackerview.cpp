@@ -520,7 +520,10 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         Tabs *w = new Tabs(0,0,container->getWidth(),container->getHeight(),_font);
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
-        if (!node.getBackground().empty()) w->setBackground(node.getBackground());
+        if (!node.getBackground().empty())
+            w->setBackground(node.getBackground());
+        if (children.empty())
+            fprintf(stderr, "WARNING: tabbed widget with 0 tabs\n");
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
                 const auto& name = childnode.getHeader();

@@ -69,10 +69,13 @@ void Tabs::addChild(Widget* w)
     Button* btn = new Button(0,0,0,0,_font,"Tab");
     btn->setSize(btn->getMinSize());
     btn->onClick += {this, [this](void* sender,int x, int y, int btn) {
-        if ((void*)_tabButton == sender) return; // already selected
+        if ((void*)_tabButton == sender)
+            return; // already selected
         int n=0;
-        if (_tabButton) _tabButton->setState(Button::State::AUTO);
-        if (_tab) _tab->setVisible(false);
+        if (_tabButton)
+            _tabButton->setState(Button::State::AUTO);
+        if (_tab)
+            _tab->setVisible(false);
         auto childIt = _children.begin();
         for (auto btn: _buttons) {
             if ((void*)btn == sender) {
@@ -132,7 +135,8 @@ void Tabs::removeChild(Widget *w)
             _tabIndex--;
              if (!_children.empty()) _tab = _children.back();
         }
-        if (_tab) _tab->setVisible(true);
+        if (_tab)
+            _tab->setVisible(true);
     }
 }
 
@@ -160,7 +164,8 @@ bool Tabs::setActiveTab(const std::string& name)
 {
     for (auto btn: _buttons) {
         if (btn->getText() == name) {
-            if (btn != _tabButton) btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+            if (btn != _tabButton)
+                btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
             return true;
         }
     }
@@ -171,7 +176,8 @@ bool Tabs::setActiveTab(int index)
 {
     auto btn = getFromList(_buttons, index);
     if (btn) {
-        if (btn != _tabButton) btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+        if (btn != _tabButton)
+            btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
         return true;
     }
     return false;
@@ -218,7 +224,8 @@ void Tabs::render(Renderer renderer, int offX, int offY)
     offX += _pos.left;
     offY += _pos.top;
     _buttonbox->render(renderer, offX, offY);
-    _tab->render(renderer, offX, offY);
+    if (_tab)
+        _tab->render(renderer, offX, offY);
 }
 
 void Tabs::setSize(Size size)
