@@ -32,7 +32,7 @@ provided, either through auto-detection (not implemented), variant's flags
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])` returns a reference (name) to the watch
 * `:RemoveMemoryWatch(name)` removes named memory watch
 * callback signature:
-`function(Segment)` (see [type Segment](#type-segment))
+`bool function(Segment)` (see example below and [type Segment](#type-segment))
 
 
 ### global AutoTracker
@@ -65,6 +65,7 @@ function updateAlchemy(mem)
     local b = mem:ReadUint8(0x7E2258)
     Tracker:FindObjectForCode("acid_rain").Active = (b & 0x01)>0 -- Acid Rain
     -- etc.
+    return true -- (optional) returning false will call the callback again if anything else changes
 end
 
 
