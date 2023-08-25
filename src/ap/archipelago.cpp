@@ -49,7 +49,7 @@ bool Archipelago::AddItemHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onItem += {this, [this, ref, name](void*, int index, int item, const std::string& item_name, int player) {
+    _ap->onItem += {this, [this, ref, name](void*, int index, int64_t item, const std::string& item_name, int player) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(index);
         Lua(_L).Push(item);
@@ -69,7 +69,7 @@ bool Archipelago::AddLocationHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onLocationChecked += {this, [this, ref, name](void*, int location, const std::string& location_name) {
+    _ap->onLocationChecked += {this, [this, ref, name](void*, int64_t location, const std::string& location_name) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());
@@ -87,8 +87,8 @@ bool Archipelago::AddScoutHandler(const std::string& name, LuaRef callback)
 {
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
-    _ap->onScout += {this, [this, ref, name](void*, int location, const std::string& location_name,
-            int item, const std::string& item_name, int player) {
+    _ap->onScout += {this, [this, ref, name](void*, int64_t location, const std::string& location_name,
+            int64_t item, const std::string& item_name, int player) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());

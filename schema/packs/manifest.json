@@ -42,6 +42,11 @@
             "type": "string",
             "pattern": "^(0|[1-9]+[0-9]*)(\\.(0|[1-9]+[0-9]*)(\\.(0|[1-9]+[0-9]*))?)?$"
         },
+        "target_poptracker_version": {
+            "description": "Which API version to target, latest if undefined. May enable backwards compatibility of APIs or behavior. This is useful to quickly fix a pack if an update breaks it or to not have it break in the first place.",
+            "type": "string",
+            "pattern": "^(0|[1-9]+[0-9]*)(\\.(0|[1-9]+[0-9]*)(\\.(0|[1-9]+[0-9]*))?)?$"
+        },
         "variants": {
             "description": "Variants for the pack. Property keys are the pack variant uids.",
             "type": "object",

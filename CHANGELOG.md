@@ -1,5 +1,19 @@
 # PopTracker Changelog
 
+## v0.25.3
+
+* App Features
+  * Long hover shows tooltips in settings window
+* Pack Features
+  * Add `target_poptracker_version` to manifest (currently unused)
+* Fixes
+  * Archipelago: properly support item and location IDs > 2147483647 everywhere
+  * Fix HOME/PopTracker/packs and HOME/PopTracker/assets not always being added
+    to search paths on Linux and macOS
+  * Properly detect if the same pack folder is listed twice in the search path
+  * Linux: detect and warn if dialogs will fail due to missing dependencies
+  * Linux: skip check-for-updates question if dialog might fail
+
 ## v0.25.2
 
 * Pack Features

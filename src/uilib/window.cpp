@@ -1,8 +1,11 @@
 #include "window.h"
 #include "../core/assets.h"
 #include "../ui/defaults.h" // DEFAULT_FONT_*
+#include "tooltip.h"
 #include <SDL2/SDL_syswm.h>
 #include <algorithm>
+#include <string>
+
 
 namespace Ui {
 
@@ -49,6 +52,10 @@ Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const 
     printf("Loading font ...\n");
     _fontStore = new FontStore();
     _font = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
+
+    onMouseMove += {this, [this](void*, int x, int y, unsigned) {
+        _lastMousePos = {x, y};
+    }};
 }
 
 Window::~Window()
@@ -90,6 +97,45 @@ void Window::render()
     clear();
     render(_ren, 0, 0);
     present();
+}
+
+void Window::showTooltip(Tooltip* tooltip, Position pos)
+{
+    if (tooltip) {
+        if (pos != Position::UNDEFINED)
+            tooltip->setPosition(pos);
+        else {
+            auto autoPos = _lastMousePos + Size(Tooltip::OFFSET, Tooltip::OFFSET);
+            auto endPos = autoPos + tooltip->getSize();
+            if (endPos.left > _size.width)
+                autoPos.left -= endPos.left - _size.width + Tooltip::OFFSET;
+            if (autoPos.left < 0)
+                autoPos.left = 0;
+            if (endPos.top > _size.height)
+                autoPos.top -= endPos.top - _size.height + Tooltip::OFFSET;
+            if (autoPos.top < 0)
+                autoPos.top = 0;
+            tooltip->setPosition(autoPos);
+        }
+    }
+
+    if (tooltip == _tooltip)
+        return;
+
+    if (_tooltip) {
+        removeChild(_tooltip);
+        delete _tooltip;
+    }
+
+    _tooltip = tooltip;
+    if (_tooltip)
+        addChild(_tooltip);
+}
+
+void Window::showTooltip(const std::string& text, Position pos)
+{
+    Tooltip* tooltip = new Tooltip(_font, text);
+    showTooltip(tooltip, pos);
 }
 
 Window::ID Window::getID()

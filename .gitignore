@@ -2,6 +2,12 @@
 build/
 dist/
 
+# exclude AppImage build files
+/appimage-build
+/AppDir
+*.AppImage
+*.AppImage.zsync
+
 # exclude cache files
 *~
 .DS_Store

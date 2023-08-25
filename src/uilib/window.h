@@ -7,8 +7,11 @@
 #include "container.h"
 #include "fontstore.h"
 #include "droptype.h"
+#include "tooltip.h"
 
-#define WINDOW_DEFAULT_POSITION {SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED}
+
+#define WINDOW_DEFAULT_POSITION {SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED}
+
 
 namespace Ui {
 
@@ -21,11 +24,19 @@ protected:
     SDL_Renderer *_ren = nullptr;
     FontStore *_fontStore = nullptr; // TODO; pass as argument to window constructor?
     FONT _font = nullptr;
-    
+
+private:
+    Position _lastMousePos;
+    Widget* _tooltip = nullptr;
+
+protected:
     void clear();
     void present();
     virtual void render(Renderer renderer, int offX, int offY) override;
-    
+
+    void showTooltip(Tooltip* tooltip, Position pos = Position::UNDEFINED);
+    void showTooltip(const std::string& text, Position pos = Position::UNDEFINED);
+
 public:
     using ID = uint32_t;
     Window(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});

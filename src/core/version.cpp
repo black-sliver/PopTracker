@@ -5,6 +5,13 @@ Version::Version(int ma, int mi, int r, const std::string& e)
 {
 }
 
+Version::Version(int ma, int mi, int r, int e)
+        : Major(ma), Minor(mi), Revision(r)
+{
+    if (e)
+        Extra = "." + std::to_string(e);
+}
+
 Version::Version(const std::string& s)
 {
     char* next = nullptr;

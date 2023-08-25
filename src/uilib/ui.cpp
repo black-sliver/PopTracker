@@ -2,10 +2,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <unistd.h>
-#include <time.h> 
 #include <stdint.h>
 #include "../core/fileutil.h"
 #include "droptype.h"
+#include "timer.h"
 
 
 #if defined __LINUX__ || defined __FREEBSD__ || defined __OPENBSD__ || defined __NETBSD__
@@ -23,16 +23,6 @@
 #   define EVENT_LOCK(self)
 #   define EVENT_UNLOCK(self)
 #endif
-
-
-static uint64_t getMicroTicks()
-{
-    timespec tp;
-    if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) return 0;
-    uint64_t micros = tp.tv_sec; micros *= 1000000;
-    micros += tp.tv_nsec/1000;
-    return micros;
-}
 
 
 namespace Ui {

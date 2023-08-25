@@ -8,9 +8,9 @@ This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
 
-Copy or unpack tracker packs to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs`.
-On Windows it will also find packs installed in EmoTracker.
-On macOS EXEDIR is *inside* the app bundle.
+Copy or unpack tracker packs to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs`.\
+On Windows, it will also find packs installed in EmoTracker.\
+On macOS, EXEDIR is *inside* the app bundle, meaning `HOME/PopTracker/packs` is preferred.
 
 Use the Load button in the top left corner to load a pack.
 
@@ -27,7 +27,7 @@ Check
 [doc/TODO.md](doc/TODO.md)
 if you want to join in on the development journey.
 
-Check [doc/PACKS.md](doc/PACKS.md) if you want to write a gamepack for this tracker.
+Check [doc/PACKS.md](doc/PACKS.md) if you want to write a game pack for this tracker.
 
 Upstream URL is https://github.com/black-sliver/PopTracker/
 
@@ -36,7 +36,11 @@ Upstream URL is https://github.com/black-sliver/PopTracker/
 
 ## Download prebuilt exe or app
 Head over to [releases](https://github.com/black-sliver/PopTracker/releases)
-and unfold "Assets" of the latest release or pre-release.
+and unfold "Assets" of the latest release or pre-release to get a Windows exe or macOS app.
+
+We have AppImage builds on the [Community Discord](https://discord.com/invite/gwThqMCPgK) for Linux.
+You still need to install `which` and a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma` or `xdialog`)
+to run them.
 
 ## Building from source
 See [BUILD.md](BUILD.md).
@@ -57,7 +61,7 @@ repositories, follow updates and get support.
 | Color  | Meaning |
 |--------|---------|
 | Red    | This check is not currently accessible. |
-| Yellow | This check is not logically accessible, but the location can be reached through alternate methods (eg. glitches, breaking key logic) |
+| Yellow | This check is not logically accessible, but the location can be reached through alternate methods (e.g. glitches, breaking key logic) |
 | Orange | Some (but not all) checks at this location are accessible. |
 | Green  | All checks at this location are logically accessible. |
 | Blue   | The check at this location is visible, but you cannot currently access the check. |
@@ -77,7 +81,7 @@ See their respective documentation.
 
 ### PC Games
 We do not allow direct access to process memory or sockets from Lua. Instead
-[UAT](https://github.com/black-sliver/UAT) can be used to recieve "variables".
+[UAT](https://github.com/black-sliver/UAT) can be used to receive "variables".
 
 ### Archipelago Multiworld
 [Archipelago](https://archipelago.gg) allows connecting to a Multiworld as a

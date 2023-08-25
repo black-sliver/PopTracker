@@ -251,7 +251,7 @@ public:
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
-    Signal<int, int, const std::string&, int> onItem; // index, item, item_name, player
+    Signal<int, int64_t, const std::string&, int> onItem; // index, item, item_name, player
     Signal<int64_t, const std::string&, int64_t, const std::string&, int> onScout; // location, location_name, item, item_name, target player
     Signal<int64_t, const std::string&> onLocationChecked; // location, location_name
     Signal<const json&> onBounced; // packet

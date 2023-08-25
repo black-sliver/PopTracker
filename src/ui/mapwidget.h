@@ -35,8 +35,8 @@ public:
     int getAbsLeft() const { return _absX; } // FIXME: this is not really a good solution
     int getAbsTop() const { return _absY; }
 
-    void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; printf("hideCleared: %s\n", hide?"true":"false"); }
-    void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; printf("hideUnreachable: %s\n", hide?"true":"false"); }
+    void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; }
+    void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; }
 
     static Widget::Color StateColors[17];
     static bool SplitRects;

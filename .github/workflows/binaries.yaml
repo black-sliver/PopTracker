@@ -5,9 +5,8 @@ on: workflow_dispatch
 jobs:
 
   build-ubuntu:
-
     runs-on: ubuntu-22.04
-    
+
     steps:
     - name: Install dependencies
       run: |
@@ -32,8 +31,34 @@ jobs:
         name: ubuntu-22-04-dist
         path: dist
 
-  build-macos:
+  build-appimage:
+    runs-on: ubuntu-22.04
 
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Get appimage-builder
+      run: |
+        wget -q -O appimage-builder https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+        chmod +x appimage-builder
+        ./appimage-builder --appimage-extract
+        echo -e '#/bin/sh\n./squashfs-root/AppRun "$@"' > appimage-builder
+    - name: Build AppImage
+      run: |
+        ./appimage-builder --recipe linux/AppImageBuilder.yml
+    - name: Store AppImage
+      uses: actions/upload-artifact@v3
+      with:
+        name: AppImage
+        path: "*.AppImage"
+        if-no-files-found: error
+
+  build-macos:
     runs-on: macos-latest
     
     steps:
@@ -72,7 +97,6 @@ jobs:
         path: dist
 
   build-msys:
-
     runs-on: windows-latest
     
     steps:

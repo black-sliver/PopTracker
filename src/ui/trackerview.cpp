@@ -7,6 +7,8 @@
 #include "../uilib/tabs.h"
 #include "../uilib/scrollvbox.h"
 #include "../uilib/canvas.h"
+#include "../uilib/timer.h"
+#include "../uilib/tooltip.h"
 #include "../core/fileutil.h"
 #include "../core/assets.h"
 #include "item.h"
@@ -162,9 +164,17 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     if (!id.empty() && !origItem.getName().empty()) { // skip hover for non-item items
         w->onMouseEnter += {this, [this,id] (void *s, int x, int y, unsigned btns) {
             onItemHover.emit(this, id);
+            _tooltipItem = id;
+            _tooltipTimer = getTicks();
+            _tooltipTriggered = false;
         }};
         w->onMouseLeave += {this, [this] (void *s) {
             onItemHover.emit(this, "");
+            _tooltipItem = "";
+            if (_tooltipTriggered) {
+                _tooltipTriggered = false;
+                onItemTooltip.emit(this, "");
+            }
         }};
     }
     w->onDestroy += {this, [this,id] (void *s) {
@@ -239,6 +249,10 @@ void TrackerView::relayout()
 
 void TrackerView::render(Renderer renderer, int offX, int offY)
 {
+    if (!_tooltipTriggered && !_tooltipItem.empty() && elapsed(_tooltipTimer, Tooltip::delay)) {
+        _tooltipTriggered = true;
+        onItemTooltip.emit(this, _tooltipItem);
+    }
     if (_relayoutRequired) {
         auto oldSize = _size;
         setSize({300,200}); // FIXME: we should really fix relayout() at some point
@@ -506,7 +520,10 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         Tabs *w = new Tabs(0,0,container->getWidth(),container->getHeight(),_font);
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
-        if (!node.getBackground().empty()) w->setBackground(node.getBackground());
+        if (!node.getBackground().empty())
+            w->setBackground(node.getBackground());
+        if (children.empty())
+            fprintf(stderr, "WARNING: tabbed widget with 0 tabs\n");
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
                 const auto& name = childnode.getHeader();

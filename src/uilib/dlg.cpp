@@ -6,6 +6,7 @@
 #else
 #include <tinyfiledialogs.h>
 #include <tinyfiledialogs.cpp>
+#include <stdio.h>
 #endif
 
 
@@ -14,7 +15,9 @@
 
 namespace Ui {
 
-std::mutex Dlg::mutex;
+std::mutex Dlg::_mutex;
+bool Dlg::_hasGUI = false;
+bool Dlg::_hasGUISet = false;
 
 
 #ifdef __WIN32__
@@ -270,7 +273,7 @@ bool Dlg::InputBox(const std::string& title, const std::string& message, const s
     result = buf;
     return true;
 #else
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     const char* res = tinyfd_inputBox(title.c_str(), message.c_str(), password ? nullptr : dflt.c_str());
     if (res) result = res;
     return !!res;
@@ -388,7 +391,7 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
     free(lpwFilter);
     return res;
 #else
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     const char* filename;
     if (types.empty()) {
         filename = tinyfd_openFileDialog(title.c_str(), dflt.c_str(), 0,
@@ -460,7 +463,7 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     free(lpwFilter);
     return res;
 #else
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     const char* filename;
     if (types.empty()) {
         filename = tinyfd_saveFileDialog(title.c_str(), dflt.c_str(), 0,
@@ -480,4 +483,33 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
 #endif
 }
 
+static int tryRun(const char* cmd)
+{
+    FILE *p = popen(cmd, "r");
+    if (!p)
+        return -1;
+    return pclose(p);
 }
+
+/// Returns true if running a dialog won't read from stdin
+bool Dlg::hasGUI()
+{
+    if (_hasGUISet)
+        return _hasGUI;
+#if defined __WIN32__ || defined __APPLE__
+    // assume yes for windows an mac
+    _hasGUI = true;
+#else
+    _hasGUI = tryRun("which zenity &>/dev/null") == 0 ||
+            tryRun("which kdialog &>/dev/null") == 0 ||
+            tryRun("which matedialog &>/dev/null") == 0 ||
+            tryRun("which qarma &>/dev/null") == 0 ||
+            tryRun("which xdialog &>/dev/null") == 0 ||
+            (tryRun("which python3 &>/dev/null") == 0 && tryRun("python3 -c \"import tkinter\" &>/dev/null") == 0) ||
+            (tryRun("which python2 &>/dev/null") == 0 && tryRun("python2 -c \"import Tkinter\" &>/dev/null") == 0);
+#endif
+    _hasGUISet = true;
+    return _hasGUI;
+}
+
+} // namespace Ui

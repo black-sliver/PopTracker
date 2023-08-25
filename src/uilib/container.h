@@ -26,8 +26,8 @@ public:
     virtual void removeChild(Widget* child) {
         if (!child) return;
         if (child == _hoverChild) {
-            child->onMouseLeave.emit(child);
             _hoverChild = nullptr;
+            child->onMouseLeave.emit(child);
         }
         _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
         if ((_hGrow>0 && child->getHGrow()>=_hGrow) || (_vGrow>0 && child->getVGrow()>=_vGrow)) {
@@ -40,6 +40,12 @@ public:
             }
         }
     }
+
+    virtual bool hasChild(Widget* child)
+    {
+        return std::find(_children.begin(), _children.end(), child) != _children.end();
+    }
+
     virtual void clearChildren() {
         if (_hoverChild) {
             _hoverChild->onMouseLeave.emit(_hoverChild);
@@ -83,11 +89,15 @@ public:
     }
 
     virtual bool isHit(int x, int y) const override {
-        if (_backgroundColor.a && Widget::isHit(x, y)) return true;
+        if (!_mouseInteraction)
+            return false;
+        if (_backgroundColor.a && Widget::isHit(x, y))
+            return true;
         x -= _pos.left;
         y -= _pos.top;
         for (const auto& w: _children) {
-            if (w->isHit(x, y)) return true;
+            if (w->isHit(x, y))
+                return true;
         }
         return false;
     }
@@ -134,30 +144,43 @@ protected:
         }};
         onMouseMove += { this, [this](void* s, int x, int y, unsigned buttons) {
             auto oldHoverChild = _hoverChild;
-            _hoverChild = nullptr;
+            bool match = false;
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
-                auto& child = *childIt;
+                Widget* child = *childIt;
                 if (child->getVisible() && child->isHit(x, y)) {
-                    _hoverChild = child;
-                    if (_hoverChild != oldHoverChild) {
-                        if (oldHoverChild) oldHoverChild->onMouseLeave.emit(oldHoverChild);
-                        _hoverChild->onMouseEnter.emit(_hoverChild, x-child->getLeft(), y-child->getTop(), buttons);
+                    if (child != oldHoverChild) {
+                        if (oldHoverChild) {
+                            _hoverChild = nullptr;
+                            oldHoverChild->onMouseLeave.emit(oldHoverChild);
+                        }
+                        if (!hasChild(child)) // the above event could modify the container
+                            child = nullptr;
+                        _hoverChild = child;
+                        if (child)
+                            child->onMouseEnter.emit(_hoverChild, x-child->getLeft(), y-child->getTop(), buttons);
                     }
-                    child->onMouseMove.emit(child, x-child->getLeft(), y-child->getTop(), buttons);
-                    break;
+                    if (child) {
+                        child->onMouseMove.emit(child, x-child->getLeft(), y-child->getTop(), buttons);
+                        match = true;
+                        break;
+                    }
                 }
             }
-            if (oldHoverChild && !_hoverChild) oldHoverChild->onMouseLeave.emit(oldHoverChild);
+            if (!match)
+                _hoverChild = nullptr;
+            if (oldHoverChild && !_hoverChild)
+                oldHoverChild->onMouseLeave.emit(oldHoverChild);
         }};
         onMouseLeave += { this, [this](void* s) {
             auto oldHoverChild = _hoverChild;
-            _hoverChild = nullptr;
             if (oldHoverChild) {
+                _hoverChild = nullptr;
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
             }
         }};
         onScroll += { this, [this](void* s, int x, int y, unsigned mod) {
-            if (_hoverChild) _hoverChild->onScroll.emit(_hoverChild, x, y, mod);
+            if (_hoverChild)
+                _hoverChild->onScroll.emit(_hoverChild, x, y, mod);
         }};
     }
 };
