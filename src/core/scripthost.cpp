@@ -383,28 +383,33 @@ void ScriptHost::runMemoryWatchCallbacks()
     for (size_t i = 0; i < _memoryWatches.size(); i++) {
         // NOTE: since watches can change in a callback, we use vector
         auto& w = _memoryWatches[i];
-        auto name = w.name;
-        auto data = w.data;
 
         // skip this watch if it's not dirty
         if (!w.dirty)
             continue;
 
+        auto name = w.name;
+
         // run memory watch callback
         lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
         _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
-        if (lua_pcall(_L, 1, 0, 0)) {
+        bool res;
+        if (lua_pcall(_L, 1, 1, 0)) {
+            res = true; // "complete" on error
             printf("Error calling Memory Watch Callback for %s: %s\n",
-                w.name.c_str(), lua_tostring(_L, -1));
+                name.c_str(), lua_tostring(_L, -1));
+            lua_pop(_L, 1);
+        } else {
+            assert(lua_gettop(_L) == 1);
+            res = lua_isboolean(_L, -1) ? lua_toboolean(_L, -1) : true;
             lua_pop(_L, 1);
         }
 
-        // TODO - clear dirty flag
-        // if (lua function did not return false)
-        //     w.dirty = false;
-
-        if (_memoryWatches.size() <= i) break;
-        if (_memoryWatches[i].name != name) // current item not unchanged
-            i--;
+        if (_memoryWatches.size() <= i)
+            break; // watch does not exist anymore
+        if (_memoryWatches[i].name != name)
+            i--; // watch at i changed (was removed)
+        else if (res != false)
+            w.dirty = false; // watch returned non-false
     }
 }
