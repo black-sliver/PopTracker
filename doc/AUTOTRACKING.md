@@ -5,6 +5,7 @@
 * Memory
   * [USB2SNES websocket protocol](https://github.com/Skarsnik/QUsb2snes/blob/master/docs/Procotol.md)
     as provided by QUsb2Snes, Usb2Snes and SNI
+  * Lua connector provided by the [CrowdControl SDK](https://developer.crowdcontrol.live/sdk/)
 * Variables
   * [UAT Protocol](https://github.com/black-sliver/UAT)
 * Archipelago Multiworld
@@ -20,7 +21,7 @@ Read block or u16, u24, u32, etc. from cache is atomic.
 If you find a non-working case, please report.
 
 
-## Memory Interface (USB2SNES)
+## Memory Interface (USB2SNES, Lua)
 
 For snes, the inferface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
@@ -31,7 +32,7 @@ provided, either through auto-detection (not implemented), variant's flags
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])` returns a reference (name) to the watch
 * `:RemoveMemoryWatch(name)` removes named memory watch
 * callback signature:
-`function(Segment)` (see [type Segment](#type-segment))
+`bool function(Segment)` (see example below and [type Segment](#type-segment))
 
 
 ### global AutoTracker
@@ -64,6 +65,7 @@ function updateAlchemy(mem)
     local b = mem:ReadUint8(0x7E2258)
     Tracker:FindObjectForCode("acid_rain").Active = (b & 0x01)>0 -- Acid Rain
     -- etc.
+    return true -- (optional) returning false will call the callback again if anything else changes
 end
 
 

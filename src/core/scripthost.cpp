@@ -78,13 +78,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                 }
 #endif
                 w.data = newData;
-                lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
-                _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
-                if (lua_pcall(_L, 1, 0, 0)) {
-                    printf("Error calling Memory Watch Callback for %s: %s\n",
-                            w.name.c_str(), lua_tostring(_L, -1));
-                    lua_pop(_L, 1);
-                }
+                w.dirty = true;
             }
             if (_memoryWatches.size() <= i) break;
             if (_memoryWatches[i].name != name) // current item not unchanged
@@ -198,7 +192,7 @@ LuaItem* ScriptHost::CreateLuaItem()
     return _tracker->CreateLuaItem();
 }
 
-std::string ScriptHost::AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval)
+std::string ScriptHost::AddMemoryWatch(const std::string& name, unsigned int addr, int len, LuaRef callback, int interval)
 {
     if (interval==0) interval=500; /*orig:1000*/ // default
     
@@ -217,6 +211,7 @@ std::string ScriptHost::AddMemoryWatch(const std::string& name, int addr, int le
     w.len = len;
     w.interval = interval;
     w.name = name;
+    w.dirty = false;
     
     if (_autoTracker->addWatch((unsigned)w.addr, (unsigned)w.len)) {
         printf("Added watch %s for <0x%06x,0x%02x>\n",
@@ -368,8 +363,53 @@ void ScriptHost::resetWatches()
 
 bool ScriptHost::autoTrack()
 {
-    // This is called every frame to run auto-tracking
-    // returns true if auto-tracking changed stuff, false otherwise
-    if (_autoTracker) return _autoTracker->doStuff();
+    if (_autoTracker && _autoTracker->doStuff()) {
+        // autotracker changed the cache
+
+        // run callbacks
+        runMemoryWatchCallbacks();
+
+        return true;
+    }
+
+    // autotracker didn't change anything
     return false;
+}
+
+void ScriptHost::runMemoryWatchCallbacks()
+{
+    // we need to run callbacks because the autotracker changed some cache
+    // but really we only need to run the ones that are marked dirty
+    for (size_t i = 0; i < _memoryWatches.size(); i++) {
+        // NOTE: since watches can change in a callback, we use vector
+        auto& w = _memoryWatches[i];
+
+        // skip this watch if it's not dirty
+        if (!w.dirty)
+            continue;
+
+        auto name = w.name;
+
+        // run memory watch callback
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
+        _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
+        bool res;
+        if (lua_pcall(_L, 1, 1, 0)) {
+            res = true; // "complete" on error
+            printf("Error calling Memory Watch Callback for %s: %s\n",
+                name.c_str(), lua_tostring(_L, -1));
+            lua_pop(_L, 1);
+        } else {
+            assert(lua_gettop(_L) == 1);
+            res = lua_isboolean(_L, -1) ? lua_toboolean(_L, -1) : true;
+            lua_pop(_L, 1);
+        }
+
+        if (_memoryWatches.size() <= i)
+            break; // watch does not exist anymore
+        if (_memoryWatches[i].name != name)
+            i--; // watch at i changed (was removed)
+        else if (res != false)
+            w.dirty = false; // watch returned non-false
+    }
 }

@@ -18,6 +18,7 @@ The only things of consequence right now are:
         "package_uid": "<unique string for saves>",
         "package_version": "<unique string for open and saves>",
         "platform": "<platform>",
+        "platform_override": "<optional actual platform>",
         "variants": {
             "<some_variant_uid>": {
                 "display_name": "<Readable Name>",
@@ -40,7 +41,9 @@ Other fields:
 
 Each pack can have multiple variants (e.g. map or compact).
 
+`platform_override` can be used to set the platform without changing the `platform` value for compatibility reasons.
 If platform is "snes", the snes autotracker is to be enabled.
+If platform is "n64", the LuaConnector autotracker is to be enabled.
 
 Currently supported flags:
 * `"ap"`: pack supports Archipelago autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).

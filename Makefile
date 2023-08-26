@@ -12,6 +12,7 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
+      $(wildcard $(SRC_DIR)/luaconnector/*.cpp) \
       $(wildcard $(SRC_DIR)/http/*.cpp) \
       $(wildcard $(SRC_DIR)/packmanager/*.cpp)
       #lib/gifdec/gifdec.c
@@ -23,6 +24,7 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h) \
       $(wildcard $(SRC_DIR)/ap/*.h) \
+      $(wildcard $(SRC_DIR)/luaconnector/*.h) \
       $(wildcard $(SRC_DIR)/http/*.h) \
       $(wildcard $(SRC_DIR)/packmanager/*.h)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec

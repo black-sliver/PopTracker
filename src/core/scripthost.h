@@ -21,7 +21,7 @@ public:
     
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
-    std::string AddMemoryWatch(const std::string& name, int addr, int len, LuaRef callback, int interval);
+    std::string AddMemoryWatch(const std::string& name, unsigned int addr, int len, LuaRef callback, int interval);
     bool RemoveMemoryWatch(const std::string& name);
     std::string AddWatchForCode(const std::string& name, const std::string& code, LuaRef callback);
     bool RemoveWatchForCode(const std::string& name);
@@ -29,17 +29,22 @@ public:
     bool RemoveVariableWatch(const std::string& name);
     void resetWatches();
     
+    // This is called every frame to run auto-tracking
     bool autoTrack();
+
+    void runMemoryWatchCallbacks();
+
     AutoTracker* getAutoTracker() { return _autoTracker; }
     
     struct MemoryWatch
     {
         int callback;
-        int addr;
+        unsigned int addr;
         int len;
         int interval;
         std::string name;
         std::vector<uint8_t> data;
+        bool dirty; // flag is set when data under watch is changed. flag is only cleared when the callback does not return false
     };
     struct CodeWatch
     {

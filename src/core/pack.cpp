@@ -167,12 +167,13 @@ Pack::Info Pack::getInfo() const
         _path,
         _uid,
         to_string(_manifest, "package_version",""),
-        to_string(_manifest, "platform",""),
+        getPlatform(),
         _gameName,
         _name,
         _minPopTrackerVersion,
         variants
     };
+
     return info;
 }
 
@@ -262,7 +263,12 @@ void Pack::setVariant(const std::string& variant)
 
 std::string Pack::getPlatform() const
 {
-    return to_string(_manifest,"platform","");
+    // For backwards compatibility; check the override field first
+    std::string platform_override = to_string(_manifest, "platform_override", "");
+    if( platform_override != "" )
+        return platform_override;
+
+    return to_string(_manifest, "platform", "");
 }
 
 std::string Pack::getVersion() const
