@@ -44,11 +44,11 @@ public:
     virtual bool setState(int state, int stage=-1) override {
         return false; // TODO: implement this?
     }
-    
+
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
     
-protected:
+private:
     lua_State *_L = nullptr; // FIXME: fix this
     
     LuaRef _itemState;
@@ -62,7 +62,12 @@ protected:
     LuaRef _propertyChangedFunc;
     LuaRef _potentialIcon;
     std::map<std::string, LuaVariant> _properties; // accessed through Set and Get, only used if _itemState is none
-    
+
+    std::string _fullImg; // including pre-applied mods
+    std::list<std::string> _extraImgMods; // set via .IconMods, applied on top of .Icon
+
+    void parseFullImg(); // convert fullImg + _extraImageMods into _img + _imgMods
+
 protected: // Lua interface implementation
     
     static constexpr const char Lua_Name[] = "LuaItem";

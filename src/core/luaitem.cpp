@@ -99,17 +99,29 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
         _itemState.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
         return true;
     } else if (strcmp(key,"Icon")==0) {
+        // NOTE: this is a fake ImageReference, not just a path, so this can include ":mods" to preapply mods
+        if (lua_type(L, -1) == LUA_TNIL) {
+            if (!_fullImg.empty()) {
+                _fullImg.clear();
+                _img.clear();
+                onChange.emit(this);
+            }
+            return true;
+        }
         std::string s = luaL_checkstring(L,-1);
-        if (_img != s) {
-            _img = s;
+        if (_fullImg != s) {
+            _fullImg = s;
+            parseFullImg(); // turn fake ImageReference into _img and _mods
             onChange.emit(this);
         }
         return true;
     } else if (strcmp(key,"IconMods")==0) {
+        // NOTE: these are applied on top of .Icon ImageReference
         std::string s = luaL_checkstring(L,-1);
         auto mods = commasplit(s);
-        if (_imgMods != mods) {
-            _imgMods = mods;
+        if (_extraImgMods != mods) {
+            _extraImgMods = mods;
+            parseFullImg();
             onChange.emit(this);
         }
         return true;
@@ -148,7 +160,7 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key,"MaskInput")==0) {
         return true; // FIXME: not implemented
     }
-    
+
     return false;
 }
 
@@ -161,7 +173,7 @@ bool LuaItem::canProvideCode(const std::string& code) const
     lua_pushstring(_L, code.c_str()); // arg2: code
     if (lua_pcall(_L, 2, 1, 0)) {
         printf("Error calling Item:CanProvideCode: %s\n", lua_tostring(_L, -1));
-        // TODO: clean up lua stack
+        lua_pop(_L, 1);
         return false;
     }
     bool res = lua_toboolean(_L, -1);
@@ -177,10 +189,10 @@ int LuaItem::providesCode(const std::string code) const
     lua_pushstring(_L, code.c_str()); // arg2: code
     if (lua_pcall(_L, 2, 1, 0)) {
         printf("Error calling Item:ProvidesCode: %s\n", lua_tostring(_L, -1));
-        // TODO: clean up lua stack
+        lua_pop(_L, 1);
         return false;
     }
-    
+
     int res;
 
     if (lua_isinteger(_L, -1)) {
@@ -209,7 +221,7 @@ bool LuaItem::changeState(Action action)
         Lua_Push(_L); // arg1: this
         if (lua_pcall(_L, 1, 0, 0)) {
             printf("Error calling Item:onRightClick: %s\n", lua_tostring(_L, -1));
-            // TODO: clean up lua stack
+            lua_pop(_L, 1);
             return false;
         }
     }
@@ -220,11 +232,11 @@ bool LuaItem::changeState(Action action)
         Lua_Push(_L); // arg1: this
         if (lua_pcall(_L, 1, 0, 0)) {
             printf("Error calling Item:onLeftClick: %s\n", lua_tostring(_L, -1));
-            // TODO: clean up lua stack
+            lua_pop(_L, 1);
             return false;
         }
     }
-    // TODO: clean up lua stack
+
     return true;
 }
 
@@ -253,7 +265,7 @@ LuaVariant LuaItem::Get(const char* s)
 void LuaItem::Set(const char* s, LuaVariant v)
 {
     DEBUG_printf("LuaItem(\"%s\"):Set(\"%s\",%s)\n  ", _name.c_str(), s, v.toString().c_str());
-    
+
     if (Get(s) == v) return;
     if (_itemState.valid()) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _itemState.ref);
@@ -271,7 +283,7 @@ void LuaItem::Set(const char* s, LuaVariant v)
     v.Lua_Push(_L);        // arg3: value
     if (lua_pcall(_L, 3, 0, 0)) {
         printf("Error calling Item:propertyChanged: %s\n", lua_tostring(_L, -1));
-        // TODO: clean up lua stack
+        lua_pop(_L, 1);
         return;
     }
     // TODO: clean up lua stack
@@ -287,7 +299,7 @@ json LuaItem::save() const
     Lua_Push(_L); // arg1: this
     if (lua_pcall(_L, 1, 1, 0)) {
         printf("Error calling Item:save: %s\n", lua_tostring(_L, -1));
-        // TODO: clean up lua stack
+        lua_pop(_L, 1);
         return j;
     }
     j = lua_to_json(_L);
@@ -309,4 +321,17 @@ bool LuaItem::load(json& j)
         return false;
     }
     return true;
+}
+
+void LuaItem::parseFullImg()
+{
+    auto pos = _fullImg.find(':');
+    if (pos == _fullImg.npos) {
+        _img = _fullImg;
+        _imgMods = _extraImgMods;
+    } else {
+        _img = _fullImg.substr(0, pos);
+        _imgMods = commasplit(_fullImg.substr(pos + 1));
+        _imgMods.insert(_imgMods.end(), _extraImgMods.begin(), _extraImgMods.end());
+    }
 }
