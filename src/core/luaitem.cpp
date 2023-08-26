@@ -27,11 +27,11 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _itemState.ref);
         return 1;
     } else if (strcmp(key,"Icon")==0) {
-        lua_pushstring(L, _img.c_str());
+        lua_pushstring(L, _fullImg.c_str());
         return 1;
     } else if (strcmp(key,"IconMods")==0) {
         std::string imgMods;
-        for (auto& mod: _imgMods) {
+        for (auto& mod: _extraImgMods) {
             if (!imgMods.empty()) imgMods += ", ";
             imgMods += mod;
         }
