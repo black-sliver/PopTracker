@@ -211,7 +211,7 @@ std::string ScriptHost::AddMemoryWatch(const std::string& name, unsigned int add
     w.len = len;
     w.interval = interval;
     w.name = name;
-    w.dirty = true;
+    w.dirty = false;
     
     if (_autoTracker->addWatch((unsigned)w.addr, (unsigned)w.len)) {
         printf("Added watch %s for <0x%06x,0x%02x>\n",
