@@ -301,8 +301,8 @@
                     "name": true,
                     "type": true,
                     "capturable": true,
-                    "left_item": true,
-                    "right_item": true,
+                    "item_left": true,
+                    "item_right": true,
                     "images": true
                 },
                 "additionalProperties": false,
@@ -312,19 +312,19 @@
                 "oneOf": [
                     {
                         "properties": {
-                            "left_item": {
+                            "item_left": {
                                 "description": "Code identifier of the left item.",
                                 "type": "string"
                             },
-                            "right_item": {
+                            "item_right": {
                                 "description": "Code identifier of the right item.",
                                 "type": "string"
                             },
                             "images": false
                         },
                         "required": [
-                            "left_item",
-                            "right_item"
+                            "item_left",
+                            "item_right"
                         ]
                     },
                     {
