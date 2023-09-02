@@ -284,6 +284,11 @@
                     "type": "string",
                     "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
                 },
+                "color": {
+                    "descriptuion": "Color accent or tint of the location tooltip. Inherits if undefined. Currently unused.",
+                    "type": "string",
+                    "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                },
                 "parent": {
                     "description": "Overrides the locations parent. Needs a valid location code.",
                     "type": "string"
