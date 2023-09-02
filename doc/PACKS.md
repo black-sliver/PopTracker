@@ -315,6 +315,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
     [
         {
             "name": "Area name",
+            "short_name": "Area", // shorter version of name. currently unused
             "access_rules": [
                 "<rule1>,<rule2>",
                 "<rule3>,<rule4>",

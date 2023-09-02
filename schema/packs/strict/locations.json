@@ -16,6 +16,10 @@
                             "description": "Name of the section.",
                             "type": "string"
                         },
+                        "short_name": {
+                            "description": "Short version of name. Currently unused.",
+                            "type": "string"
+                        },
                         "access_rules": {
                             "example": [
                                 "rule1,rule2",
@@ -102,6 +106,10 @@
                             "description": "If provided, overrides the original sections name (for display only).",
                             "type": "string"
                         },
+                        "short_name": {
+                            "description": "If provided, overrides the original section's short name.",
+                            "type": "string"
+                        },
                         "ref": {
                             "description": "Reference to another section to be placed here.",
                             "type": "string",
@@ -119,6 +127,10 @@
             "properties": {
                 "name": {
                     "description": "Name of the locations.",
+                    "type": "string"
+                },
+                "short_name": {
+                    "description": "Short version of name. Currently unused.",
                     "type": "string"
                 },
                 "access_rules": {
