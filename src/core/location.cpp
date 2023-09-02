@@ -264,6 +264,32 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
     maploc._y = to_int(j["y"],0);    
     maploc._size = to_int(j["size"],-1);
     maploc._borderThickness = to_int(j["border_thickness"],-1);
+
+    for (const auto& v : j["restrict_visibility_rules"]) {
+        // outer array is logical Or, inner array (or string) is logical And
+        std::list<std::string> newRule;
+        if (v.is_string()) {
+            // string with individual codes separated by comma
+            commasplit(v, newRule);
+        }
+        else if (v.is_array()) {
+            // we also allow rules to be arrays of strings instead
+            for (const auto& part: v) {
+                if (!part.is_string()) {
+                    fprintf(stderr, "MapLocation: bad visibility rule in \"%s\"\n",
+                        sanitize_print(maploc._mapName).c_str());
+                    continue;
+                }
+                newRule.push_back(part);
+            }
+        }
+        else {
+            fprintf(stderr, "MapLocation: bad visibility rule in \"%s\"\n",
+                sanitize_print(maploc._mapName).c_str());
+            continue;
+        }
+        maploc._visibilityRules.push_back(newRule);
+    }
     return maploc;
 }
 

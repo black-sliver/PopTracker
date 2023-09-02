@@ -80,6 +80,7 @@ public:
     AccessibilityLevel isReachable(const Location& location);
     AccessibilityLevel isReachable(const LocationSection& location);
     bool isVisible(const Location& location);
+    bool isVisible(const Location::MapLocation& mapLoc);
 
     const Pack* getPack() const;
 

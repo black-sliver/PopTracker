@@ -79,6 +79,7 @@ public:
         int _y = 0;
         int _size = -1;
         int _borderThickness = -1;
+        std::list<std::list<std::string> > _visibilityRules;
     public:
         // getters
         const std::string& getMap() const { return _mapName; }
@@ -86,6 +87,7 @@ public:
         int getY() const { return _y; }
         int getSize(int parent) const { return _size < 1 ? parent : _size; }
         int getBorderThickness(int parent) const { return _borderThickness < 0 ? parent : _borderThickness; }
+        const std::list<std::list<std::string>>& getVisibilityRules() const { return _visibilityRules; }
     };
 
     static std::list<Location> FromJSON(nlohmann::json& j,

@@ -565,6 +565,13 @@ bool Tracker::isVisible(const Location& location)
     return isVisible(location, parents);
 }
 
+bool Tracker::isVisible(const Location::MapLocation& mapLoc)
+{
+    std::list<std::string> parents;
+    auto res = isReachable(mapLoc.getVisibilityRules(), true, parents);
+    return (res != AccessibilityLevel::NONE);
+}
+
 AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
 {
     // TODO: return enum instead of int

@@ -37,6 +37,8 @@ public:
     Signal<const std::string&> onItemTooltip;
 
     static int CalculateLocationState(Tracker* tracker, const std::string& location);
+    static int CalculateLocationState(Tracker* tracker, const std::string& location,
+            const Location::MapLocation& mapLoc);
 
 protected:
     Tracker* _tracker;

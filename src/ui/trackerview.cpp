@@ -344,7 +344,7 @@ void TrackerView::updateLocations()
         //const auto& map = _tracker->getMap(mappair.first);
         for (auto& w: mappair.second) {
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
-                int state = CalculateLocationState(_tracker, pair.first);
+                int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.size()<1) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     fprintf(stderr, "cybuuuuuu!!\n");
@@ -938,6 +938,13 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
                   (hasUnreachable?(1<<1):0) |
                   (hasReachable?(1<<0):0);
     return res;
+}
+int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& locid, const Location::MapLocation& mapLoc)
+{
+    // TODO: move to a common place
+    if (!tracker->isVisible(mapLoc))
+        return -1;
+    return CalculateLocationState(tracker, locid);
 }
 
 

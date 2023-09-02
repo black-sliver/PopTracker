@@ -225,6 +225,33 @@
                                 "description": "Overrides the location border thickness defined on the map.",
                                 "type": "number",
                                 "minimum": -1
+                            },
+                            "restrict_visibility_rules": {
+                                "example": [
+                                    "rule1,rule2",
+                                    "rule3,rule4"
+                                ],
+                                "type": "array",
+                                "anyOf": [
+                                    {
+                                        "description": "Additional visibility rules for individual map location.",
+                                        "items": {
+                                            "description": "Rules. Comma sperated for AND.",
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "description": "Additional visibility rules for individual map location.",
+                                        "items": {
+                                            "description": "List of rules to be AND-ed together.",
+                                            "type": "array",
+                                            "items": {
+                                                "description": "A rule.",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         },
                         "additionalProperties": false
