@@ -63,6 +63,7 @@ protected:
     bool _overlayFontSizeChanged = false;
     bool _incrementChanged = false;
     bool _decrementChanged = false;
+    bool _imgChanged = false;
 
 public:    
     virtual size_t getStageCount() const override { return _stages.size(); }
@@ -109,7 +110,7 @@ public:
                 return true;
         return false;
     }
-    
+
     virtual int providesCode(const std::string code) const override {
         // TODO: split at ':' for consumables to be able to check for a specific amount?
         if (_type == Type::COMPOSITE_TOGGLE) {

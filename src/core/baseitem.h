@@ -58,6 +58,7 @@ public:
     }
     
     Signal<> onChange;
+    Signal<> onDisplayChange; // like change but only display change, no logic implications
     
 protected:
     std::string _id;

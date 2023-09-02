@@ -362,6 +362,27 @@ void TrackerView::updateLocations()
     }
 }
 
+void TrackerView::updateDisplay(const std::string& itemid)
+{
+    const auto& item = _tracker->getItemById(itemid);
+    printf("update display of %s: \"%s\"\n", itemid.c_str(), item.getName().c_str());
+    for (auto w: _items[itemid]) {
+        if (item.getType() == ::BaseItem::Type::TOGGLE
+                || item.getType() == ::BaseItem::Type::STATIC) {
+            int st = item.getActiveStage();
+            auto f = item.getImage(st);
+            auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
+            std::string s;
+            _tracker->getPack()->ReadFile(f, s);
+            w->addStage(1,1, s.c_str(), s.length(), f, filters);
+            f = item.getDisabledImage(st);
+            filters = imageModsToFilters(_tracker, item.getDisabledImageMods(st));
+            _tracker->getPack()->ReadFile(f, s);
+            w->addStage(0,1, s.c_str(), s.length(), f, filters);
+        }
+    }
+}
+
 void TrackerView::updateState(const std::string& itemid)
 {
     const auto& item = _tracker->getItemById(itemid);

@@ -345,6 +345,9 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "Type") == 0) {
         lua_pushstring(L, Type2Str(_type).c_str());
         return 1;
+    } else if (strcmp(key, "Icon") == 0) {
+        lua_pushstring(L, _img.c_str());
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
@@ -426,7 +429,30 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         if (_decrement == val) return true;
         _decrement = val;
         _decrementChanged = true;
-        return 1;
+        return true;
+    } else if (strcmp(key, "Icon") == 0) {
+        // NOTE: this is a fake ImageRef, but only path is implemented yet
+        if (lua_type(L, -1) == LUA_TNIL) {
+            if (!_img.empty()) {
+                if (_disabledImg == _img) {
+                    _disabledImg.clear();
+                }
+                _img.clear();
+                _imgChanged = true;
+            }
+            onDisplayChange.emit(this);
+            return true;
+        }
+        std::string s = luaL_checkstring(L,-1);
+        if (_img != s) {
+            if (_disabledImg == _img) {
+                _disabledImg = s;
+            }
+            _img = s;
+            _imgChanged = true;
+        }
+        onDisplayChange.emit(this);
+        return true;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return false;
@@ -451,6 +477,8 @@ json JsonItem::save() const
         data["increment"] = _increment;
     if (_decrementChanged)
         data["decrement"] = _decrement;
+    if (_imgChanged)
+        data["img"] = _img;
     return data;
 }
 
@@ -471,13 +499,15 @@ bool JsonItem::load(json& j)
         int count = to_int(j["count"],_count);
         int minCount = to_int(j["min_count"], _minCount);
         int maxCount = to_int(j["max_count"], _maxCount);
+        std::string img = to_string(j["img"], _img);
         if (_count != count || _minCount != minCount || _maxCount != maxCount
                 || _stage1 != stage1 || _stage2 != stage2
                 || _overlay != overlay
                 || _overlayBackground != overlayBackground
                 || _overlayFontSize != overlayFontSize
                 || _increment != increment
-                || _decrement != decrement)
+                || _decrement != decrement
+                || _img != img)
         {
             _count = count;
             _minCountChanged = _minCount != minCount;
@@ -495,6 +525,10 @@ bool JsonItem::load(json& j)
             _increment = increment;
             _decrementChanged = _decrement != decrement;
             _decrement = decrement;
+            if (_disabledImg == _img) {
+                _disabledImg = img;
+            }
+            _img = img;
             onChange.emit(this);
         }
         return true;

@@ -173,6 +173,7 @@ a table representing an enum with the following constants: \
 * `.Increment`: sets or gets the increment (left-click) value of consumables
 * `.Decrement`: sets or gets the decrement (right-click) value of consumables
 * `.Type`: gets the type of the item as string ("toggle", ...), since 0.23.0
+* `.Icon`: like LuaItem.Icon, since 0.26.0. Prefer stages instead. Only implemented for toggles and static and exact behavior may change in the future.
 
 *Probably more to come.*
 

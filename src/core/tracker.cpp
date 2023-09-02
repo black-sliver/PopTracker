@@ -81,6 +81,10 @@ bool Tracker::AddItems(const std::string& file) {
             else
                 onStateChanged.emit(this, i->getID());
         }};
+        item.onDisplayChange += {this, [this](void* sender) {
+            JsonItem* i = (JsonItem*)sender;
+            onDisplayChanged.emit(this, i->getID());
+        }};
         if (item.getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
             // update composite when changing part items (and get initial state)
             int n = 0;

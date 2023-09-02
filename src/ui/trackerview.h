@@ -71,6 +71,7 @@ protected:
     int _defaultQuality = -1;
 
     void updateLayout(const std::string& layout);
+    void updateDisplay(const std::string& check);
     void updateState(const std::string& check);
     void updateLocations();
 
