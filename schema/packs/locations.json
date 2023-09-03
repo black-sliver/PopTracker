@@ -52,8 +52,7 @@
                         "visibility_rules": {
                             "example": [
                                 "rule1,rule2",
-                                "rule3,rule4",
-                                "{checkrule1, checkrule2}"
+                                "rule3,rule4"
                             ],
                             "type": "array",
                             "anyOf": [
@@ -182,8 +181,7 @@
                 "visibility_rules": {
                     "example": [
                         "rule1,rule2",
-                        "rule3,rule4",
-                        "{checkrule1, checkrule2}"
+                        "rule3,rule4"
                     ],
                     "type": "array",
                     "anyOf": [
