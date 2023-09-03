@@ -62,6 +62,34 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
     return false;
 }
 
+
+static bool parseRule(const json& v, std::list<std::string>& rule,
+        const char* nodeType, const char* ruleType, const std::string& name)
+{
+    if (v.is_string()) {
+        // string with individual codes separated by comma
+        commasplit(v, rule);
+    }
+    else if (v.is_array()) {
+        // we also allow rules to be arrays of strings instead
+        for (const auto& part: v) {
+            if (!part.is_string()) {
+                fprintf(stderr, "%s: bad %s rule in \"%s\"\n",
+                    nodeType, ruleType, sanitize_print(name).c_str());
+                continue;
+            }
+            rule.push_back(part);
+        }
+    }
+    else {
+        fprintf(stderr, "%s: bad %s rule in \"%s\"\n",
+            nodeType, ruleType, sanitize_print(name).c_str());
+        return false;;
+    }
+    return true;
+}
+
+
 std::list<Location> Location::FromJSON(json& j, const std::list<Location>& parentLookup, const std::list< std::list<std::string> >& prevAccessRules, const std::list< std::list<std::string> >& prevVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
 {
     // TODO: sine we store all intermediate locations now, we could pass a parent to FromJSON instead of all arguments
@@ -116,26 +144,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         // TODO: merge code with Section's access rules
         for (const auto& v : j["access_rules"]) {
             std::list<std::string> newRule;
-            if (v.is_string()) {
-                // string with individual codes separated by comma
-                commasplit(v, newRule);
-            }
-            else if (v.is_array()) {
-                // we also allow rules to be arrays of strings instead
-                for (const auto& part: v) {
-                    if (!part.is_string()) {
-                        fprintf(stderr, "Location: bad access rule in \"%s\"\n",
-                            sanitize_print(name).c_str());
-                        continue;
-                    }
-                    newRule.push_back(part);
-                }
-            }
-            else {
-                fprintf(stderr, "Location: bad access rule in \"%s\"\n",
-                    sanitize_print(name).c_str());
+            if (!parseRule(v, newRule, "Location", "access", name))
                 continue;
-            }
             for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -158,26 +168,8 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         // TODO: merge code with Section's access rules
         for (const auto& v : j["visibility_rules"]) {
             std::list<std::string> newRule;
-            if (v.is_string()) {
-                // string with individual codes separated by comma
-                commasplit(v, newRule);
-            }
-            else if (v.is_array()) {
-                // we also allow rules to be arrays of strings instead
-                for (const auto& part: v) {
-                    if (!part.is_string()) {
-                        fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
-                            sanitize_print(name).c_str());
-                        continue;
-                    }
-                    newRule.push_back(part);
-                }
-            }
-            else {
-                fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
-                    sanitize_print(name).c_str());
+            if (!parseRule(v, newRule, "Location", "visibility", name))
                 continue;
-            }
             for (auto oldRule : parentVisibilityRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -268,28 +260,19 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
     for (const auto& v : j["restrict_visibility_rules"]) {
         // outer array is logical Or, inner array (or string) is logical And
         std::list<std::string> newRule;
-        if (v.is_string()) {
-            // string with individual codes separated by comma
-            commasplit(v, newRule);
-        }
-        else if (v.is_array()) {
-            // we also allow rules to be arrays of strings instead
-            for (const auto& part: v) {
-                if (!part.is_string()) {
-                    fprintf(stderr, "MapLocation: bad visibility rule in \"%s\"\n",
-                        sanitize_print(maploc._mapName).c_str());
-                    continue;
-                }
-                newRule.push_back(part);
-            }
-        }
-        else {
-            fprintf(stderr, "MapLocation: bad visibility rule in \"%s\"\n",
-                sanitize_print(maploc._mapName).c_str());
+        if (!parseRule(v, newRule, "MapLocation", "restrict visibility", maploc._mapName))
             continue;
-        }
         maploc._visibilityRules.push_back(newRule);
     }
+
+    for (const auto& v : j["force_invisibility_rules"]) {
+        // outer array is logical Or, inner array (or string) is logical And
+        std::list<std::string> newRule;
+        if (!parseRule(v, newRule, "MapLocation", "force invisibility", maploc._mapName))
+            continue;
+        maploc._invisibilityRules.push_back(newRule);
+    }
+
     return maploc;
 }
 
@@ -316,26 +299,8 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
         nonEmpty = true;
         for (const auto& v : j["access_rules"]) {
             std::list<std::string> newRule;
-            if (v.is_string()) {
-                // string with individual codes separated by comma
-                commasplit(v, newRule);
-            }
-            else if (v.is_array()) {
-                // we also allow rules to be arrays of strings instead
-                for (const auto& part: v) {
-                    if (!part.is_string()) {
-                        fprintf(stderr, "Location: bad access rule in \"%s\"\n",
-                            sanitize_print(sec._name).c_str());
-                        continue;
-                    }
-                    newRule.push_back(part);
-                }
-            }
-            else {
-                fprintf(stderr, "Location: bad access rule in \"%s\"\n",
-                    sanitize_print(sec._name).c_str());
+            if (!parseRule(v, newRule, "LocationSection", "access", sec._name))
                 continue;
-            }
             for (auto oldRule : parentAccessRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);
@@ -358,26 +323,8 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
         nonEmpty = true;
         for (const auto& v : j["visibility_rules"]) {
             std::list<std::string> newRule;
-            if (v.is_string()) {
-                // string with individual codes separated by comma
-                commasplit(v, newRule);
-            }
-            else if (v.is_array()) {
-                // we also allow rules to be arrays of strings instead
-                for (const auto& part: v) {
-                    if (!part.is_string()) {
-                        fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
-                            sanitize_print(sec._name).c_str());
-                        continue;
-                    }
-                    newRule.push_back(part);
-                }
-            }
-            else {
-                fprintf(stderr, "Location: bad visibility rule in \"%s\"\n",
-                    sanitize_print(sec._name).c_str());
+            if (!parseRule(v, newRule, "LocationSection", "visibility", sec._name))
                 continue;
-            }
             for (auto oldRule : parentVisibilityRules) {
                 for (auto& newTest : newRule) {
                     oldRule.push_back(newTest);

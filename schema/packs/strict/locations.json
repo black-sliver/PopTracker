@@ -216,6 +216,23 @@
                                         "$ref": "#/$defs/rules_array"
                                     }
                                 ]
+                            },
+                            "force_invisibility_rules": {
+                                "example": [
+                                    "rule1,rule2",
+                                    "rule3,rule4"
+                                ],
+                                "type": "array",
+                                "anyOf": [
+                                    {
+                                        "description": "Additional rules that force-hide the map location if true.",
+                                        "$ref": "#/$defs/rules_string"
+                                    },
+                                    {
+                                        "description": "Additional rules that force-hide the map location if true.",
+                                        "$ref": "#/$defs/rules_array"
+                                    }
+                                ]
                             }
                         },
                         "additionalProperties": false

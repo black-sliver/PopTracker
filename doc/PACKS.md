@@ -350,6 +350,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                             "restrict_visibility_rules": [
                                 ...  // additional visibility rules for individual map locations, since 0.26
                             ],
+                            "force_invisibility_rules": [
+                                ... // additional visibility rules that hide the map location if true, since 0.26
+                            ]
                         },
                         ... // having multiple locations seems to have problems?
                     ],

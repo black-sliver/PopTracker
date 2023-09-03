@@ -572,6 +572,9 @@ bool Tracker::isVisible(const Location& location)
 bool Tracker::isVisible(const Location::MapLocation& mapLoc)
 {
     std::list<std::string> parents;
+    if (!mapLoc.getInvisibilityRules().empty()
+            && isReachable(mapLoc.getInvisibilityRules(), true, parents) != AccessibilityLevel::NONE)
+        return false;
     auto res = isReachable(mapLoc.getVisibilityRules(), true, parents);
     return (res != AccessibilityLevel::NONE);
 }
