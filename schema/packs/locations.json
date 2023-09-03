@@ -7,6 +7,22 @@
         "$ref": "#/$defs/location"
     },
     "$defs": {
+        "rules_string": {
+            "items": {
+                "description": "Rules. Comma sperated for AND.",
+                "type": "string"
+            }
+        },
+        "rules_array": {
+            "items": {
+                "description": "List of rules to be AND-ed together.",
+                "type": "array",
+                "items": {
+                    "description": "A rule.",
+                    "type": "string"
+                }
+            }
+        },
         "section": {
             "type": "object",
             "anyOf": [
@@ -31,21 +47,11 @@
                             "anyOf": [
                                 {
                                     "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                                    "items": {
-                                        "description": "Rules. Comma sperated for AND.",
-                                        "type": "string"
-                                    }
+                                    "$ref": "#/$defs/rules_string"
                                 },
                                 {
                                     "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. If rules in [] are matched, the section will be marked as reachable with glitches (yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                                    "items": {
-                                        "description": "List of rules to be AND-ed together.",
-                                        "type": "array",
-                                        "items": {
-                                            "description": "A rule.",
-                                            "type": "string"
-                                        }
-                                    }
+                                    "$ref": "#/$defs/rules_array"
                                 }
                             ]
                         },
@@ -58,21 +64,11 @@
                             "anyOf": [
                                 {
                                     "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                                    "items": {
-                                        "description": "Rules. Comma sperated for AND.",
-                                        "type": "string"
-                                    }
+                                    "$ref": "#/$defs/rules_string"
                                 },
                                 {
                                     "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                                    "items": {
-                                        "description": "List of rules to be AND-ed together.",
-                                        "type": "array",
-                                        "items": {
-                                            "description": "A rule.",
-                                            "type": "string"
-                                        }
-                                    }
+                                    "$ref": "#/$defs/rules_array"
                                 }
                             ]
                         },
@@ -160,21 +156,11 @@
                     "anyOf": [
                         {
                             "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. If rules in [] are matched, the location will be marked as reachable with glitches (yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                            "items": {
-                                "description": "Rules. Comma sperated for AND.",
-                                "type": "string"
-                            }
+                            "$ref": "#/$defs/rules_string"
                         },
                         {
                             "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. If rules in [] are matched, the location will be marked as reachable with glitches (yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                            "items": {
-                                "description": "List of rules to be AND-ed together.",
-                                "type": "array",
-                                "items": {
-                                    "description": "A rule.",
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/$defs/rules_array"
                         }
                     ]
                 },
@@ -187,21 +173,11 @@
                     "anyOf": [
                         {
                             "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
-                            "items": {
-                                "description": "Rules. Comma sperated for AND.",
-                                "type": "string"
-                            }
+                            "$ref": "#/$defs/rules_string"
                         },
                         {
                             "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
-                            "items": {
-                                "description": "List of rules to be AND-ed together.",
-                                "type": "array",
-                                "items": {
-                                    "description": "A rule.",
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/$defs/rules_array"
                         }
                     ]
                 },
@@ -283,21 +259,11 @@
                                 "anyOf": [
                                     {
                                         "description": "Additional visibility rules for individual map location.",
-                                        "items": {
-                                            "description": "Rules. Comma sperated for AND.",
-                                            "type": "string"
-                                        }
+                                        "$ref": "#/$defs/rules_string"
                                     },
                                     {
                                         "description": "Additional visibility rules for individual map location.",
-                                        "items": {
-                                            "description": "List of rules to be AND-ed together.",
-                                            "type": "array",
-                                            "items": {
-                                                "description": "A rule.",
-                                                "type": "string"
-                                            }
-                                        }
+                                        "$ref": "#/$defs/rules_array"
                                     }
                                 ]
                             }
