@@ -105,6 +105,11 @@ JsonItem JsonItem::FromJSON(json& j)
         item._baseItem = j["base_item"];
     }
 
+    if (item._type == Type::TOGGLE || item._type == Type::TOGGLE_BADGED) {
+        if (to_bool(j["initial_active_state"], false))
+            item._stage1 = 1;
+    }
+
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
     item._count  = std::max(item._minCount, std::min(to_int(j["initial_quantity"],0), item._maxCount));
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;

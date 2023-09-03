@@ -238,6 +238,7 @@ a table representing an enum with the following constants: \
           }
   + adds `disabled_img`: override img when off
   + adds `disabled_img_mods`: like `img_mods` but for off. Defaults to `img_mods` + `"@disabled"`). Any value (e.g. `"none"`) disables defaults.
+  + adds `initial_active_state`: precollected if true, since 0.26
 
 * `"consumable"`:
   + has count (0 = off)
@@ -276,6 +277,7 @@ a table representing an enum with the following constants: \
   + display `"img"` over `"base_item"`
   + toggle visibility of `"img"` with right mouse button
   + change underlying item with left mouse button
+  + precollected overlay if `initial_active_state` is true, since 0.26
 ```jsonc
     {
         "name": "Some Item",

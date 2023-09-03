@@ -273,6 +273,10 @@
                     "disabled_img_mods": {
                         "$ref": "#/$defs/disabled_img_mods"
                     },
+                    "initial_active_state": {
+                        "description": "Precollected if true",
+                        "type": "boolean"
+                    },
                     "name": true,
                     "type": true,
                     "codes": true,
@@ -405,6 +409,10 @@
                     "base_item": {
                         "description": "Code identifier for the base item, that this item should overlay.",
                         "type": "string"
+                    },
+                    "initial_active_state": {
+                        "description": "Precollected overlay if true",
+                        "type": "boolean"
                     },
                     "name": true,
                     "type": true,
