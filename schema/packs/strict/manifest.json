@@ -1,5 +1,5 @@
 {
-    "$id": "https://poptracker.github.io/schema/packs/strict/mainfest.json",
+    "$id": "https://poptracker.github.io/schema/packs/strict/manifest.json",
     "allOf": [
         {
             "$ref": "../manifest.json"
