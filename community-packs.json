@@ -4,7 +4,7 @@
         "author": "alwaysintreble",
         "platform": "PC",
         "homepage": "https://github.com/alwaysintreble/TheMessengerTrackPack",
-        "versions_url": "https://raw.githubusercontent.com/alwaysintreble/TheMessengerTrackPack/master/versions.json",
+        "versions_url": "https://raw.githubusercontent.com/alwaysintreble/TheMessengerTrackPack/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/alwaysintreble/TheMessengerTrackPack/master/TheMessengerTrackPack/images/SaveIcon.png",
         "description":  "Map Tracker for The Messenger Randomizer."
     }
