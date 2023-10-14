@@ -2,6 +2,7 @@
 #include "fileutil.h"
 #include "jsonutil.h"
 #include <dirent.h>
+#include <stdlib.h>
 #include "sha256.h"
 
 
@@ -418,6 +419,15 @@ void Pack::addSearchPath(const std::string& path)
         if (std::find(_searchPaths.begin(), _searchPaths.end(), real) != _searchPaths.end())
             return;
         _searchPaths.push_back(real);
+    } else
+#else
+    char* tmp = _fullpath(NULL, path.c_str(), 1024);
+    if (tmp) {
+        auto cmp = [tmp](const std::string& s) { return strcasecmp(tmp, s.c_str()) == 0; };
+        if (std::find_if(_searchPaths.begin(), _searchPaths.end(), cmp) != _searchPaths.end())
+            return;
+        _searchPaths.push_back(tmp);
+        free(tmp);
     } else
 #endif
     {
