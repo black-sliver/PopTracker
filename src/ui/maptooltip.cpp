@@ -125,12 +125,16 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
                 hbox->addChild(w);
                 if (sec.getClearAsGroup()) {
-                    // override onClock to clear everything
+                    // override onClick to clear everything
                     w->onClick.clear();
-                    w->onClick += {w, [tracker, name, locid](void*, int x, int y, int btn) {
+                    w->onClick += {w, [tracker, name, ogName, locid](void*, int x, int y, int btn) {
                         auto& loc = tracker->getLocation(locid);
-                        for (auto& sec: loc.getSections()) {
-                            if (sec.getName() != name) continue;
+                        for (auto& ogSec: loc.getSections()) {
+                            if (ogSec.getName() != ogName)
+                                continue;
+                            auto& sec = ogSec.getRef().empty() ? ogSec : tracker->getLocationSection(ogSec.getRef());
+                            if (ogSec.getName() != name && sec.getName() != name)
+                                continue;
                             // clear all hosted items
                             std::list<std::string> codes = sec.getHostedItems();
                             for (const auto& item: codes) {
