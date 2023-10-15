@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Package source
@@ -22,7 +22,7 @@ jobs:
         cd ..
         tar --exclude-vcs -cJvf "${POP_NAME}_full-source.tar.xz" PopTracker
     - name: Create Release
-      uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
       with:
         draft: true
         prerelease: true
@@ -42,7 +42,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set env
@@ -60,7 +60,7 @@ jobs:
       run: |
         ./appimage-builder --recipe linux/AppImageBuilder.yml
     - name: Create Release
-      uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
       with:
         draft: true
         prerelease: true
@@ -78,7 +78,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set env
@@ -90,7 +90,7 @@ jobs:
     - name: Build DIST # this builds a .tar.xz
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
     - name: Create Release
-      uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
       with:
         draft: true
         prerelease: true
@@ -107,7 +107,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 automake libtool autoconf
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set env
@@ -119,7 +119,7 @@ jobs:
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }} 
     - name: Create Release
-      uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
       with:
         draft: true
         prerelease: true
