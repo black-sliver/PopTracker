@@ -371,11 +371,11 @@ clean:
 	rm -rf $(WIN32_EXE) $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR)
 	rm -rf $(WIN64_EXE) $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR)
 	rm -rf $(NIX_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR)
-	if [[ -d $(NIX_BUILD_DIR) && -z `ls -A $(NIX_BUILD_DIR)` ]]; then rmdir $(NIX_BUILD_DIR) ; fi
-	if [[ -d $(WASM_BUILD_DIR) && -z `ls -A $(WASM_BUILD_DIR)` ]]; then rmdir $(WASM_BUILD_DIR) ; fi
-	if [[ -d $(WIN32_BUILD_DIR) && -z `ls -A $(WIN32_BUILD_DIR)` ]]; then rmdir $(WIN32_BUILD_DIR) ; fi
-	if [[ -d $(WIN64_BUILD_DIR) && -z `ls -A $(WIN64_BUILD_DIR)` ]]; then rmdir $(WIN64_BUILD_DIR) ; fi
-	if [[ -d $(BUILD_DIR) && -z `ls -A $(BUILD_DIR)` ]]; then rmdir $(BUILD_DIR) ; fi
+	[ -d $(NIX_BUILD_DIR) ] && [ -z "${ls -A $(NIX_BUILD_DIR)}" ] && rmdir $(NIX_BUILD_DIR) || true
+	[ -d $(WASM_BUILD_DIR) ] && [ -z "${ls -A $(WASM_BUILD_DIR)}" ] && rmdir $(WASM_BUILD_DIR) || true
+	[ -d $(WIN32_BUILD_DIR) ] && [ -z "${ls -A $(WIN32_BUILD_DIR)}" ] && rmdir $(WIN32_BUILD_DIR) || true
+	[ -d $(WIN64_BUILD_DIR) ] && [ -z "${ls -A $(WIN64_BUILD_DIR)}" ] && rmdir $(WIN64_BUILD_DIR) || true
+	[ -d $(BUILD_DIR) ] && [ -z "${ls -A $(BUILD_DIR)}" ] && rmdir $(BUILD_DIR) || true
 ifdef IS_OSX
 	./macosx/bundle_macosx_app.sh --clear-thirdparty-dirs
 endif
