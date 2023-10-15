@@ -90,7 +90,8 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
         if (sec.getItemCount() > 0 || hostedItems.size() > 0) {
             Container* container = horizontalSections ? (Container*)new VBox(0,0,0,0) : (Container*)this;
 
-            const std::string& name = ogSec.getName().empty() ? sec.getName() : ogSec.getName();
+            const std::string& ogName = ogSec.getName();
+            const std::string& name = ogName.empty() ? sec.getName() : ogName;
             if (!name.empty()) {
                 Label* lbl = new Label(0,0,0,0, smallFont, name);
                 Widget::Color c;
