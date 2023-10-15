@@ -241,7 +241,7 @@ a table representing an enum with the following constants: \
   + adds `initial_active_state`: precollected if true, since 0.26
 
 * `"consumable"`:
-  + has count (0 = off)
+  + has AcquiredCount (0 = grey/disabled)
   + adds `"min_quantity": 0`, since 0.21.0
   + adds `"max_quantity": 0`
   + adds `"increment": 1` can be used if an item pickup is always a certain count, since 0.18.3
