@@ -70,6 +70,36 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  release-ubuntu:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set env
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+    - name: Build RELEASE
+      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j2
+    - name: Run tests
+      run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
+    - name: Build DIST # this builds a .tar.xz
+      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+    - name: Create Release
+      uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+      with:
+        draft: true
+        prerelease: true
+        name: PopTracker v${{ env.RELEASE_VERSION }}
+        files: |
+          dist/*.tar.xz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release-macos:
     runs-on: macos-latest
 
@@ -86,10 +116,6 @@ jobs:
       run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j3
     - name: Run tests
       run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
-    - name: Get version
-      run: |
-        echo "POP_VERSION=`./build/darwin-x86_64/poptracker --version`" >> $GITHUB_ENV
-        echo "POP_NAME=poptracker_`./build/darwin-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV 
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }} 
     - name: Create Release
