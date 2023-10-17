@@ -119,17 +119,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
                 lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
                 lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
-                if (needPin) {
-                    auto pin = makePin();
-                    HBox* hbox = new HBox(0,0,0,0);
-                    hbox->addChild(pin);
-                    hbox->addChild(lbl);
-                    hbox->relayout();
-                    container->addChild(hbox);
-                    needPin = false;
-                } else {
-                    container->addChild(lbl);
-                }
+                container->addChild(lbl);
             } else {
                 _sectionLabels.push_back(nullptr);
             }
