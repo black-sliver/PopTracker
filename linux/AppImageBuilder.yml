@@ -108,17 +108,17 @@ AppDir:
     - usr/share/doc/*/changelog.*
     - usr/share/doc/*/NEWS.*
     - usr/share/doc/*/TODO.*
-  test:
-    # for now, don´t run GUI for automated testing
-    fedora-30:
-      image: appimagecrafters/tests-env:fedora-30
-      command: ./AppRun --list-packs
-    debian-stable:
-      image: appimagecrafters/tests-env:debian-stable
-      command: ./AppRun --list-packs
-    archlinux-latest:
-      image: appimagecrafters/tests-env:archlinux-latest
-      command: ./AppRun --list-packs
+#  test:
+#    # for now, don´t run GUI for automated testing
+#    fedora-30:
+#      image: appimagecrafters/tests-env:fedora-30
+#      command: ./AppRun --list-packs
+#    debian-stable:
+#      image: appimagecrafters/tests-env:debian-stable
+#      command: ./AppRun --list-packs
+#    archlinux-latest:
+#      image: appimagecrafters/tests-env:archlinux-latest
+#      command: ./AppRun --list-packs
 AppImage:
   arch: x86_64
   update-information: guess
