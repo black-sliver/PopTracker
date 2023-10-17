@@ -89,7 +89,8 @@ ifdef IS_OSX
   OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
 else ifdef IS_LINUX
   DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
-  NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(ARCH).tar.xz
+  DISTRO_VERSION = $(shell lsb_release -sr | tr -s '.' '-' | tr A-z a-z )
+  NIX_XZ := $(DIST_DIR)/poptracker_$(VS)_$(DISTRO)-$(DISTRO_VERSION)-$(ARCH).tar.xz
 endif
 WIN32_ZIP := $(DIST_DIR)/poptracker_$(VS)_win32.zip
 WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
