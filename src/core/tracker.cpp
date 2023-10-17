@@ -280,6 +280,15 @@ bool Tracker::AddLayouts(const std::string& file) {
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
+
+static int lua_error_handler(lua_State *L)
+{
+    luaL_traceback(L, L, NULL, 1);
+    fprintf(stderr, "%s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    return 1;
+}
+
 int Tracker::ProviderCountForCode(const std::string& code)
 {
     // cache this, because inefficient use can make the Lua script hang
@@ -292,6 +301,7 @@ int Tracker::ProviderCountForCode(const std::string& code)
         int args = 0;
         auto pos = code.find('|');
         int t;
+        lua_pushcfunction(_L, lua_error_handler);
         if (pos == code.npos) {
             t = lua_getglobal(_L, code.c_str()+1);
         } else {
@@ -309,22 +319,22 @@ int Tracker::ProviderCountForCode(const std::string& code)
         }
         if (t != LUA_TFUNCTION) {
             fprintf(stderr, "Missing Lua function for %s\n", code.c_str());
-            lua_pop(_L, 1); // non-function variable or nil
+            lua_pop(_L, 2); // non-function variable or nil, lua_error_handler
             _providerCountCache[code] = 0;
             return 0;
         }
-        else if (lua_pcall(_L, args, 1, 0) != LUA_OK) {
+        if (lua_pcall(_L, args, 1, -args-2) != LUA_OK) {
             auto err = lua_tostring(_L, -1);
             fprintf(stderr, "Error running %s:\n%s\n",
                 code.c_str(), err ? err : "Unknown error");
-            lua_pop(_L, 1); // error object
+            lua_pop(_L, 2); // error object, lua_error_handler
             _providerCountCache[code] = 0;
             return 0;
         } else {
             int isnum = 0;
             int n = lua_tonumberx(_L, -1, &isnum);
             if (!isnum && lua_isboolean(_L, -1) && lua_toboolean(_L, -1)) n = 1;
-            lua_pop(_L, 1); // result
+            lua_pop(_L, 2); // result, lua_error_handler
             _providerCountCache[code] = n;
             return n;
         }
