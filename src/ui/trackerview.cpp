@@ -358,7 +358,14 @@ void TrackerView::updateLocations()
     // FIXME: we probably want to have a custom widget for that
 
     if (_mapTooltip && _mapTooltipOwner) {
-        _mapTooltipOwner->onLocationHover.emit(_mapTooltipOwner, _mapTooltipName, _mapTooltipPos.left, _mapTooltipPos.top);
+        _mapTooltip->update(_tracker, [this](Item* w, const BaseItem& item) { updateItem(w, item); });
+        // update size if visibility of an item changed
+        if (_mapTooltip->getAutoHeight() > _mapTooltip->getHeight()) {
+            _mapTooltip->setHeight(std::min(_size.height - _mapTooltip->getTop(),
+                    _mapTooltip->getAutoHeight()));
+        } else if (_mapTooltip->getAutoHeight() < _mapTooltip->getHeight()) {
+            _mapTooltip->setHeight(_mapTooltip->getAutoHeight());
+        }
     }
 }
 
@@ -383,61 +390,66 @@ void TrackerView::updateDisplay(const std::string& itemid)
     }
 }
 
+void TrackerView::updateItem(Item* w, const BaseItem& item)
+{
+    if (item.getType() == ::BaseItem::Type::CUSTOM) {
+        int st = item.getActiveStage();
+        auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
+        auto f = item.getImage(st);
+        // TODO: cache image instead always reloading it
+        if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
+            std::string s;
+            _tracker->getPack()->ReadFile(f, s);
+            w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), f, filters);
+            printf("Image updated!\n");
+        }
+    } else if (item.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
+        // stage is controlled by base item, state by badge
+        // stupid hack: if the base item is staged and it has
+        // allow_disabled, we need to add a "disabled" stage
+        int stage = item.getActiveStage();
+        auto o = _tracker->FindObjectForCode(item.getBaseItem().c_str());
+        if (o.type == Tracker::Object::RT::JsonItem) {
+            stage = o.jsonItem->getActiveStage();
+            if (o.jsonItem->getStageCount() && o.jsonItem->getAllowDisabled())
+                stage = o.jsonItem->getState() ? stage+1 : 0;
+            else if (o.jsonItem->getType() == BaseItem::Type::TOGGLE)
+                stage = o.jsonItem->getState();
+        } else if (o.type == Tracker::Object::RT::LuaItem) {
+            stage = o.luaItem->getActiveStage();
+            if (o.luaItem->getStageCount()>1 && o.luaItem->getAllowDisabled())
+                stage = o.luaItem->getState() ? stage+1 : 0;
+        }
+        w->setStage(item.getState(), stage);
+    } else {
+        w->setStage(item.getState(), item.getActiveStage());
+    }
+    if (item.getCount()) {
+        if (item.getCount() == item.getMaxCount()) {
+            w->setOverlayColor({31,255,31});
+        } else {
+            w->setOverlayColor({220,220,220});
+        }
+        w->setOverlay(std::to_string(item.getCount()));
+        w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
+                FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+    } else {
+        auto s = item.getOverlay();
+        w->setOverlay(s);
+        if (!s.empty()) {
+            w->setOverlayColor({220,220,220});
+            w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
+                    FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+        }
+    }
+}
+
 void TrackerView::updateState(const std::string& itemid)
 {
     const auto& item = _tracker->getItemById(itemid);
     printf("update state of %s: \"%s\"\n", itemid.c_str(), item.getName().c_str());
     for (auto w: _items[itemid]) {
-        if (item.getType() == ::BaseItem::Type::CUSTOM) {
-            int st = item.getActiveStage();
-            auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
-            auto f = item.getImage(st);
-            // TODO: cache image instead always reloading it
-            if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
-                std::string s;
-                _tracker->getPack()->ReadFile(f, s);
-                w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), f, filters);
-                printf("Image updated!\n");
-            }
-        } else if (item.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
-            // stage is controlled by base item, state by badge
-            // stupid hack: if the base item is staged and it has
-            // allow_disabled, we need to add a "disabled" stage
-            int stage = item.getActiveStage();
-            auto o = _tracker->FindObjectForCode(item.getBaseItem().c_str());
-            if (o.type == Tracker::Object::RT::JsonItem) {
-                stage = o.jsonItem->getActiveStage();
-                if (o.jsonItem->getStageCount() && o.jsonItem->getAllowDisabled())
-                    stage = o.jsonItem->getState() ? stage+1 : 0;
-                else if (o.jsonItem->getType() == BaseItem::Type::TOGGLE)
-                    stage = o.jsonItem->getState();
-            } else if (o.type == Tracker::Object::RT::LuaItem) {
-                stage = o.luaItem->getActiveStage();
-                if (o.luaItem->getStageCount()>1 && o.luaItem->getAllowDisabled())
-                    stage = o.luaItem->getState() ? stage+1 : 0;
-            }
-            w->setStage(item.getState(), stage);
-        } else {
-            w->setStage(item.getState(), item.getActiveStage());
-        }
-        if (item.getCount()) {
-            if (item.getCount() == item.getMaxCount()) {
-                w->setOverlayColor({31,255,31});
-            } else {
-                w->setOverlayColor({220,220,220});
-            }
-            w->setOverlay(std::to_string(item.getCount()));
-            w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
-                    FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
-        } else {
-            auto s = item.getOverlay();
-            w->setOverlay(s);
-            if (!s.empty()) {
-                w->setOverlayColor({220,220,220});
-                w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
-                        FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
-            }
-        }
+        updateItem(w, item);
     }
     updateLocations();
 }

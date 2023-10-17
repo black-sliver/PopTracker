@@ -85,28 +85,33 @@ public:
         if (_scrollY > 0) _scrollY = 0;
         else if (_children.empty()) _scrollY = 0;
 
+        auto oldScrollY = _scrollY;
         int y = _padding + _scrollY;
         for (auto& child : _children) {
+            if (!child->getVisible())
+                continue;
             child->setTop(y);
             y += child->getHeight() + _spacing;
         }
+        y += _padding;
 
         // recalculate max scroll, and fix up scrolling if outside of window
         if (!_children.empty() && !isFixup) {
-            int oldScrollY = _scrollY;
             const auto& last = _children.back();
             int bot = last->getTop() + last->getHeight();
             _scrollMaxY = _scrollY - (bot - _size.height);
             if (_scrollMaxY > 0) _scrollMaxY = 0;
-            if (_scrollY < _scrollMaxY) _scrollY = _scrollMaxY;
+            if (_scrollY < _scrollMaxY)
+                _scrollY = _scrollMaxY;
             if (_scrollY > 0) _scrollY = 0;
-            if (oldScrollY != _scrollY) relayout(true);
+            if (oldScrollY != _scrollY)
+                relayout(true);
         } else if (!isFixup) {
             _scrollMaxY = 0;
         }
 
         _minSize.height = 2*_padding;
-        _autoSize = {_minSize.width, _size.height - _scrollMaxY};
+        _autoSize = {_minSize.width, y/*_size.height*/ - oldScrollY};
     }
 
     virtual void setPadding(int padding) { _padding = padding; } // TODO: relayout?

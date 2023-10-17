@@ -21,10 +21,22 @@ public:
     static Item* MakeLocationIcon(int x, int y, int width, int height, FONT font, int quality,
         Tracker* tracker, const std::string& locid, const LocationSection& sec, bool opened, bool compact);
 
+    const std::string& getLocationID() const;
+
+    void update(Tracker* tracker, std::function<void(Item*, const BaseItem&)> updateItem);
+
     static constexpr Size MIN_SIZE={ 32,32 };
     static constexpr int OFFSET=2;
 
     static Widget::Color StateColors[5];
+    static Widget::Color getSectionColor(AccessibilityLevel reachable, bool cleared);
+
+private:
+    std::string _id;
+    std::map<std::string, std::list<Item*>> _items;
+    std::vector<Label*> _sectionLabels;
+    std::vector<Container*> _sectionContainers;
+    std::vector<std::list<Item*>> _sectionLocations;
 };
 
 

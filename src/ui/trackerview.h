@@ -6,8 +6,8 @@
 #include "../uilib/group.h"
 #include "../uilib/tabs.h"
 #include "../uilib/fontstore.h"
-#include "../uilib/scrollvbox.h"
 #include "mapwidget.h"
+#include "maptooltip.h"
 #include "item.h"
 #include "../core/tracker.h"
 #include <list>
@@ -48,7 +48,7 @@ protected:
     FontStore *_fontStore = nullptr;
     FONT _font = nullptr;
     FONT _smallFont = nullptr;
-    ScrollVBox *_mapTooltip = nullptr;
+    MapTooltip *_mapTooltip = nullptr;
     Position _mapTooltipPos;
     MapWidget *_mapTooltipOwner = nullptr;
     std::string _mapTooltipName;
@@ -74,6 +74,7 @@ protected:
     void updateDisplay(const std::string& check);
     void updateState(const std::string& check);
     void updateLocations();
+    void updateItem(Item* w, const BaseItem& item);
 
     size_t addLayoutNodes(Container* container, const std::list<LayoutNode>& nodes, size_t depth=0);
     bool addLayoutNode(Container* container, const LayoutNode& node, size_t depth=0);
