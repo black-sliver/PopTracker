@@ -212,6 +212,9 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
     _tracker->onStateChanged += {this, [this](void *s, const std::string& check) {
         updateState(check);
     }};
+    _tracker->onDisplayChanged += {this, [this](void *s, const std::string& check) {
+        updateDisplay(check);
+    }};
     _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
         updateLocations();
     }};
