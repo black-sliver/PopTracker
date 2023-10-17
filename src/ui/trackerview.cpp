@@ -871,7 +871,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         return addLayoutNode(container, _tracker->getLayout(node.getKey()), depth+1);
     }
     else if (node.getType() == "text") {
-        Label *w = new Label(0,0,0,0, _font, node.getText());
+        Label *w = new Label(node.getPosition().x, node.getPosition().y, 0, 0, _font, node.getText());
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         Label::HAlign halign = Label::HAlign::LEFT;
         Label::VAlign valign = Label::VAlign::TOP;
