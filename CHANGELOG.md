@@ -1,5 +1,23 @@
 # PopTracker Changelog
 
+## v0.25.4
+
+* App Features
+  * Add N64 auto-tracking beta for BizHawk
+  * Update map tooltip (visibility) without closing/recreating it
+* Pack Features
+  * Add restrict_visibility_rules and force_invisibility_rules to MapLocations
+  * Add initial_active_state to toggle and toggle_badged
+  * Lua: implement JsonItem.Icon (for toggles only)
+  * Lua: implement ImageReference.FromImageReference
+  * Lua: allow returning false from MemoryWatch to have it trigger again
+  * Lua: print traceback for errors in Lua rules
+* Fixes
+  * Warn instead of crash for invalid tabs (tabbed with no tabs)
+  * Windows: avoid showing duplicates of packs
+  * Don't crash for clear_as_group of multiple hosted items
+  * Some json schema fixes
+
 ## v0.25.3
 
 * App Features
