@@ -100,7 +100,7 @@ if [ "$WITH_PNG" ]; then
     # Build Png
 
     if [ ! -d $LIB_PNG_DEST_DIR ]; then
-      git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR || (echo "Could not clone $LIB_PNG_URL" ; exit 1)
+      git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR || { echo "Could not clone $LIB_PNG_URL" ; exit 1; }
     fi
 
     cd $LIB_PNG_DEST_DIR
@@ -111,7 +111,7 @@ if [ "$WITH_PNG" ]; then
     ./configure $CONFIGURE_FLAGS
     make -j3
 
-    [ -f "$LIB_PNG_TARGET" ] || (echo "Missing $LIB_PNG_TARGET..." ; exit 1)
+    [ -f "$LIB_PNG_TARGET" ] || { echo "Missing $LIB_PNG_TARGET..." ; exit 1; }
 
     cp "$LIB_PNG_TARGET" "../../$LIB_DIR"
     cd "../.."
@@ -121,7 +121,7 @@ if [ "$WITH_FREETYPE" ]; then
     # Build Freetype
 
     if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
-      git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || (echo "Could not clone $LIB_FREETYPE_URL" ; exit 1)
+      git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || { echo "Could not clone $LIB_FREETYPE_URL" ; exit 1; }
     fi
 
     cd $LIB_FREETYPE_DEST_DIR
@@ -133,7 +133,7 @@ if [ "$WITH_FREETYPE" ]; then
     ./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
     make -j3
 
-    [ -f $LIB_FREETYPE_TARGET ] || (echo "Missing $LIB_FREETYPE_TARGET..." ; exit 1)
+    [ -f $LIB_FREETYPE_TARGET ] || { echo "Missing $LIB_FREETYPE_TARGET..." ; exit 1; }
 
     cp "$LIB_FREETYPE_TARGET" "../../$LIB_DIR"
     cd "../.."
@@ -142,7 +142,7 @@ fi
 # Build SDL
 
 if [ ! -d $LIB_SDL_DEST_DIR ]; then
-  git clone $LIB_SDL_URL $LIB_SDL_DEST_DIR || (echo "Could not clone $LIB_SDL_URL" ; exit 1)
+  git clone $LIB_SDL_URL $LIB_SDL_DEST_DIR || { echo "Could not clone $LIB_SDL_URL" ; exit 1; }
 fi
 
 cd $LIB_SDL_DEST_DIR
@@ -154,7 +154,7 @@ git checkout $LIB_SDL_TAG
 ./configure $CONFIGURE_FLAGS
 make -j3
 
-[ -f $LIB_SDL_TARGET ] || (echo "Missing $LIB_SDL_TARGET..." ; exit 1)
+[ -f $LIB_SDL_TARGET ] || { echo "Missing $LIB_SDL_TARGET..." ; exit 1; }
 
 cp "$LIB_SDL_TARGET" "../../$LIB_DIR"
 cd "../.."
@@ -162,7 +162,7 @@ cd "../.."
 # Build SDL_image
 
 if [ ! -d $LIB_SDL_IMAGE_DEST_DIR ]; then
-  git clone --recurse-submodules $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || (echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1)
+  git clone --recurse-submodules $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || { echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1; }
 fi
 
 cd $LIB_SDL_IMAGE_DEST_DIR
@@ -174,7 +174,7 @@ git checkout $LIB_SDL_IMAGE_TAG
 ./configure $CONFIGURE_FLAGS
 make -j3
 
-[ -f $LIB_SDL_IMAGE_TARGET ] || (echo "Missing $LIB_SDL_IMAGE_TARGET..." ; exit 1)
+[ -f $LIB_SDL_IMAGE_TARGET ] || { echo "Missing $LIB_SDL_IMAGE_TARGET..." ; exit 1; }
 
 cp "$LIB_SDL_IMAGE_TARGET" "../../$LIB_DIR"
 cd "../.."
@@ -182,7 +182,7 @@ cd "../.."
 # Build SDL_ttf (presumes freetype is already installed with brew)
 
 if [ ! -d $LIB_SDL_TTF_DEST_DIR ]; then
-  git clone --recurse-submodules $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || (echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1)
+  git clone --recurse-submodules $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || { echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1; }
 fi
 
 cd $LIB_SDL_TTF_DEST_DIR
@@ -194,7 +194,7 @@ git checkout $LIB_SDL_TTF_TAG
 ./configure $CONFIGURE_FLAGS
 make -j3
 
-[ -f $LIB_SDL_TTF_TARGET ] || (echo "Missing $LIB_SDL_TTF_TARGET..." ; exit 1)
+[ -f $LIB_SDL_TTF_TARGET ] || { echo "Missing $LIB_SDL_TTF_TARGET..." ; exit 1; }
 
 cp "$LIB_SDL_TTF_TARGET" "../../$LIB_DIR"
 cd "../.."
@@ -202,7 +202,7 @@ cd "../.."
 # Build OpenSSL
 
 if [ ! -d $LIB_OPENSSL_DEST_DIR ]; then
-  git clone $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR || (echo "Could not clone $LIB_OPENSSL_URL" ; exit 1)
+  git clone $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR || { echo "Could not clone $LIB_OPENSSL_URL" ; exit 1; }
 fi
 
 cd $LIB_OPENSSL_DEST_DIR
@@ -213,8 +213,8 @@ git checkout $LIB_OPENSSL_TAG
 ./config $CONFIGURE_FLAGS
 make -j3
 
-[ -f $LIB_OPENSSL_TARGET ] || (echo "Missing $LIB_OPENSSL_TARGET..." ; exit 1)
-[ -f $LIB_CRYPTO_TARGET ] || (echo "Missing $LIB_CRYPTO_TARGET..." ; exit 1)
+[ -f $LIB_OPENSSL_TARGET ] || { echo "Missing $LIB_OPENSSL_TARGET..." ; exit 1; }
+[ -f $LIB_CRYPTO_TARGET ] || { echo "Missing $LIB_CRYPTO_TARGET..." ; exit 1; }
 
 cp "$LIB_OPENSSL_TARGET" "../../$LIB_DIR"
 cp "$LIB_CRYPTO_TARGET" "../../$LIB_DIR"
