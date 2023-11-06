@@ -56,7 +56,7 @@ LIB_PNG_URL="https://github.com/glennrp/libpng.git"
 LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
 LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
-LIB_SDL_TAG="release-2.28.4"
+LIB_SDL_TAG="release-2.28.5"
 LIB_SDL_IMAGE_TAG="release-2.6.3"
 LIB_SDL_TTF_TAG="release-2.20.2"
 LIB_PNG_TAG="v1.6.40"
@@ -100,13 +100,13 @@ if [ "$WITH_PNG" ]; then
     # Build Png
 
     if [ ! -d $LIB_PNG_DEST_DIR ]; then
-      git clone $LIB_PNG_URL $LIB_PNG_DEST_DIR || { echo "Could not clone $LIB_PNG_URL" ; exit 1; }
+      git clone --depth 1 --branch $LIB_PNG_TAG $LIB_PNG_URL $LIB_PNG_DEST_DIR || { echo "Could not clone $LIB_PNG_URL" ; exit 1; }
+    else
+      git pull
+      git checkout $LIB_PNG_TAG
     fi
 
     cd $LIB_PNG_DEST_DIR
-
-    git pull
-    git checkout $LIB_PNG_TAG
 
     ./configure $CONFIGURE_FLAGS
     make -j3
@@ -121,13 +121,13 @@ if [ "$WITH_FREETYPE" ]; then
     # Build Freetype
 
     if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
-      git clone $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || { echo "Could not clone $LIB_FREETYPE_URL" ; exit 1; }
+      git clone --depth 1 --branch $LIB_FREETYPE_TAG $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || { echo "Could not clone $LIB_FREETYPE_URL" ; exit 1; }
+    else
+      git pull
+      git checkout $LIB_FREETYPE_TAG
     fi
 
     cd $LIB_FREETYPE_DEST_DIR
-
-    git pull
-    git checkout $LIB_FREETYPE_TAG
 
     ./autogen.sh
     ./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
@@ -142,13 +142,13 @@ fi
 # Build SDL
 
 if [ ! -d $LIB_SDL_DEST_DIR ]; then
-  git clone $LIB_SDL_URL $LIB_SDL_DEST_DIR || { echo "Could not clone $LIB_SDL_URL" ; exit 1; }
+  git clone --depth 1 --branch $LIB_SDL_TAG $LIB_SDL_URL $LIB_SDL_DEST_DIR || { echo "Could not clone $LIB_SDL_URL" ; exit 1; }
+else
+  git pull
+  git checkout $LIB_SDL_TAG
 fi
 
 cd $LIB_SDL_DEST_DIR
-
-git pull
-git checkout $LIB_SDL_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -162,13 +162,14 @@ cd "../.."
 # Build SDL_image
 
 if [ ! -d $LIB_SDL_IMAGE_DEST_DIR ]; then
-  git clone --recurse-submodules $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || { echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1; }
+  git clone --recurse-submodules --depth 1 --branch $LIB_SDL_IMAGE_TAG $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || { echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1; }
+else
+  git pull
+  git checkout $LIB_SDL_IMAGE_TAG
+  git submodule update --recursive
 fi
 
 cd $LIB_SDL_IMAGE_DEST_DIR
-
-git pull
-git checkout $LIB_SDL_IMAGE_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -182,13 +183,14 @@ cd "../.."
 # Build SDL_ttf (presumes freetype is already installed with brew)
 
 if [ ! -d $LIB_SDL_TTF_DEST_DIR ]; then
-  git clone --recurse-submodules $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || { echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1; }
+  git clone --recurse-submodules --depth 1 --branch $LIB_SDL_TTF_TAG $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || { echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1; }
+else
+  git pull
+  git checkout $LIB_SDL_TTF_TAG
+  git submodule update --recursive
 fi
 
 cd $LIB_SDL_TTF_DEST_DIR
-
-git pull
-git checkout $LIB_SDL_TTF_TAG
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -202,13 +204,13 @@ cd "../.."
 # Build OpenSSL
 
 if [ ! -d $LIB_OPENSSL_DEST_DIR ]; then
-  git clone $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR || { echo "Could not clone $LIB_OPENSSL_URL" ; exit 1; }
+  git clone --depth 1 --branch $LIB_OPENSSL_TAG $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR || { echo "Could not clone $LIB_OPENSSL_URL" ; exit 1; }
+else
+  git pull
+  git checkout $LIB_OPENSSL_TAG
 fi
 
 cd $LIB_OPENSSL_DEST_DIR
-
-git pull
-git checkout $LIB_OPENSSL_TAG
 
 ./config $CONFIGURE_FLAGS
 make -j3
