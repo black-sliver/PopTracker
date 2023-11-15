@@ -26,6 +26,11 @@ public:
     Tracker(Pack* pack, lua_State *L);
     virtual ~Tracker();
     
+    // Attempt to call a lua func and return an integer value
+    static int RunLuaFunction(lua_State *L, const std::string name);
+    // Attempt to call a lua func. Returns 0 on success
+    // arg out is an output that gives the returned value from lua
+    static int RunLuaFunction(lua_State *L, const std::string name, int out);
     
     struct Object final : public LuaType {
         // NOTE: we could use (something like) std::variant<...> ?

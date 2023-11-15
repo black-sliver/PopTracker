@@ -31,6 +31,79 @@ Tracker::~Tracker()
 {
 }
 
+static int lua_error_handler(lua_State *L)
+{
+    luaL_traceback(L, L, NULL, 1);
+    fprintf(stderr, "%s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    return 1;
+}
+
+/// Attempts to run a lua function by name and return an integer value
+int Tracker::RunLuaFunction(lua_State *L, const std::string name)
+{
+    int out = 0;
+    auto callStatus = RunLuaFunction(L, name, out);
+    if (callStatus == LUA_OK)
+        return out;
+    else
+        return 0;
+}
+
+int Tracker::RunLuaFunction(lua_State* L, const std::string name, int out)
+{
+    std::string funcName = name;
+    // Skip the $ notation
+    if (funcName[0] == '$') {
+        funcName = funcName.substr(1);
+    }
+    int argc = 0;
+    auto pos = funcName.find('|');
+    lua_pushcfunction(L, lua_error_handler);
+    int t = -1;
+    if (pos == std::string::npos) {
+        // No args, makes this simple
+        t = lua_getglobal(L, funcName.c_str());
+    } else {
+        // Function has args provided. Clip the name and split the args
+        t = lua_getglobal(L, funcName.substr(0, pos).c_str());
+        if (t == LUA_TFUNCTION) {
+            std::string::size_type next;
+            while ((next = funcName.find('|', pos+1)) != std::string::npos) {
+                lua_pushstring(L, funcName.substr(pos+1, next-pos-1).c_str());
+                ++argc;
+                pos = next;
+            }
+            // Get the last arg
+            lua_pushstring(L, funcName.substr(pos+1).c_str());
+            ++argc;
+        }
+    }
+    if (t != LUA_TFUNCTION) {
+        fprintf(stderr, "Missing Lua function for %s\n", name.c_str());
+        lua_pop(L, 2); // non-function variable or nil, lua_error_handler
+        return -1;
+    }
+
+    auto callStatus = lua_pcall(L, argc, 1, -argc-2);
+    if (callStatus != LUA_OK) {
+        auto err = lua_tostring(L, -1);
+        fprintf(stderr, "Error running %s:\n%s\n", name.c_str(), err ? err : "Unknown error");
+        lua_pop(L, 2); // error object, lua_error_handler
+        return callStatus;
+    }
+    
+    // This version of the function is set to accept a number if possible
+    int isnum = 0;
+    int n = lua_tonumberx(L, -1, &isnum); // || (lua_isboolean(L, -1) && lua_toboolean(L, -1));
+    if (!isnum && lua_isboolean(L, -1) && lua_toboolean(L, -1))
+        n = 1;
+    lua_pop(L, 2); // result, lua_error_handler
+    out = n;
+    
+    return callStatus;
+}
+
 bool Tracker::AddItems(const std::string& file) {
     printf("Loading items from \"%s\"...\n", file.c_str());
     std::string s;
@@ -279,14 +352,6 @@ bool Tracker::AddLayouts(const std::string& file) {
     // TODO: fire for each named layout
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
-}
-
-static int lua_error_handler(lua_State *L)
-{
-    luaL_traceback(L, L, NULL, 1);
-    fprintf(stderr, "%s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    return 1;
 }
 
 int Tracker::ProviderCountForCode(const std::string& code)
