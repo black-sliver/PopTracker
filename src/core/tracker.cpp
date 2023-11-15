@@ -367,47 +367,9 @@ int Tracker::ProviderCountForCode(const std::string& code)
         return it->second;
     // "codes" starting with $ run Lua functions
     if (!code.empty() && code[0] == '$') {
-        // TODO: use a helper to access Lua instead of having _L here
-        int args = 0;
-        auto pos = code.find('|');
-        int t;
-        lua_pushcfunction(_L, lua_error_handler);
-        if (pos == code.npos) {
-            t = lua_getglobal(_L, code.c_str()+1);
-        } else {
-            t = lua_getglobal(_L, code.substr(1, pos-1).c_str());
-            if (t == LUA_TFUNCTION) {
-                std::string::size_type next;
-                while ((next = code.find('|', pos+1)) != code.npos) {
-                    lua_pushstring(_L, code.substr(pos+1, next-pos-1).c_str());
-                    args++;
-                    pos = next;
-                }
-                lua_pushstring(_L, code.substr(pos+1).c_str());
-                args++;
-            }
-        }
-        if (t != LUA_TFUNCTION) {
-            fprintf(stderr, "Missing Lua function for %s\n", code.c_str());
-            lua_pop(_L, 2); // non-function variable or nil, lua_error_handler
-            _providerCountCache[code] = 0;
-            return 0;
-        }
-        if (lua_pcall(_L, args, 1, -args-2) != LUA_OK) {
-            auto err = lua_tostring(_L, -1);
-            fprintf(stderr, "Error running %s:\n%s\n",
-                code.c_str(), err ? err : "Unknown error");
-            lua_pop(_L, 2); // error object, lua_error_handler
-            _providerCountCache[code] = 0;
-            return 0;
-        } else {
-            int isnum = 0;
-            int n = lua_tonumberx(_L, -1, &isnum);
-            if (!isnum && lua_isboolean(_L, -1) && lua_toboolean(_L, -1)) n = 1;
-            lua_pop(_L, 2); // result, lua_error_handler
-            _providerCountCache[code] = n;
-            return n;
-        }
+        int res = Tracker::RunLuaFunction(_L, code);
+        _providerCountCache[code] = res;
+        return res;
     }
     // other codes count items
     int res=0;
