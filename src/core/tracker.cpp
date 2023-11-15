@@ -79,17 +79,17 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
 }
 
 /// Attempts to run a lua function by name and return an integer value
-int Tracker::RunLuaFunction(lua_State *L, const std::string name)
+int Tracker::runLuaFunction(lua_State *L, const std::string name)
 {
     int out = 0;
-    auto callStatus = RunLuaFunction(L, name, out);
+    auto callStatus = runLuaFunction(L, name, out);
     if (callStatus == LUA_OK)
         return out;
     else
         return 0;
 }
 
-int Tracker::RunLuaFunction(lua_State* L, const std::string name, int out)
+int Tracker::runLuaFunction(lua_State* L, const std::string name, int out)
 {
     int callStatus = RunLuaFunction_inner(L, name);
     if (callStatus != LUA_OK) {
@@ -367,7 +367,7 @@ int Tracker::ProviderCountForCode(const std::string& code)
         return it->second;
     // "codes" starting with $ run Lua functions
     if (!code.empty() && code[0] == '$') {
-        int res = Tracker::RunLuaFunction(_L, code);
+        int res = Tracker::runLuaFunction(_L, code);
         _providerCountCache[code] = res;
         return res;
     }
