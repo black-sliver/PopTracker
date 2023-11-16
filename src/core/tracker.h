@@ -31,7 +31,7 @@ public:
     static int runLuaFunction(lua_State *L, const std::string name);
     // Attempt to call a lua func. Returns 0 on success
     // arg out is an output that gives the returned value from lua
-    static int runLuaFunction(lua_State *L, const std::string name, int out);
+    static int runLuaFunction(lua_State *L, const std::string name, int &out);
     
     struct Object final : public LuaType {
         // NOTE: we could use (something like) std::variant<...> ?

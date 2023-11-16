@@ -65,13 +65,13 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
     int argc = 0;
     if (pos < std::string::npos) {
         std::string::size_type next;
-        while ((next = funcName.find('|', pos+1)) != std::string::npos) {
-            lua_pushstring(L, funcName.substr(pos+1, next-pos-1).c_str());
+        while ((next = workingString.find('|', pos+1)) != std::string::npos) {
+            lua_pushstring(L, workingString.substr(pos+1, next-pos-1).c_str());
             ++argc;
             pos = next;
         }
         // Get the last arg
-        lua_pushstring(L, funcName.substr(pos+1).c_str());
+        lua_pushstring(L, workingString.substr(pos+1).c_str());
         ++argc;
     }
 
@@ -89,7 +89,7 @@ int Tracker::runLuaFunction(lua_State *L, const std::string name)
         return 0;
 }
 
-int Tracker::runLuaFunction(lua_State* L, const std::string name, int out)
+int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
 {
     int callStatus = RunLuaFunction_inner(L, name);
     if (callStatus != LUA_OK) {
