@@ -35,6 +35,7 @@ enum HotkeyID {
     HOTKEY_RELOAD,
     HOTKEY_FORCE_RELOAD,
     HOTKEY_TOGGLE_SPLIT_COLORS,
+    HOTKEY_SHOW_BROADCAST,
 };
 
 
@@ -314,6 +315,9 @@ bool PopTracker::start()
             Ui::MapWidget::SplitRects = !Ui::MapWidget::SplitRects;
             _config["split_map_locations"] = Ui::MapWidget::SplitRects;
         }
+        else if (hotkey.id == HOTKEY_SHOW_BROADCAST) {
+            showBroadcast();
+        }
     }};
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
@@ -327,6 +331,7 @@ bool PopTracker::start()
     _ui->addHotkey({HOTKEY_RELOAD, SDLK_r, KMOD_RCTRL});
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_RCTRL});
+    _ui->addHotkey({HOTKEY_SHOW_BROADCAST, SDLK_F2, KMOD_NONE});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
@@ -388,27 +393,7 @@ bool PopTracker::start()
 
     _win->onMenuPressed += { this, [this](void*, const std::string& item, int index) {
         if (item == Ui::TrackerWindow::MENU_BROADCAST) {
-            if (!_tracker) return;
-            if (_broadcast) {
-                _broadcast->Raise();
-            } else {
-                // create window
-                auto icon = IMG_Load(asset("icon.png").c_str());
-                Ui::Position pos = _win->getPosition() + Ui::Size{0,32};
-                _broadcast = _ui->createWindow<Ui::BroadcastWindow>("Broadcast", icon, pos);
-                SDL_FreeSurface(icon);
-                // set user preferences for visibility of uncleared and unreachable locations
-                auto itHideCleared = _config.find("hide_cleared_locations");
-                auto itHideUnreachable = _config.find("hide_unreachable_locations");
-                if (itHideCleared != _config.end() && itHideCleared.value().is_boolean())
-                    _broadcast->setHideClearedLocations(itHideCleared.value().get<bool>());
-                if (itHideUnreachable != _config.end() && itHideUnreachable.value().is_boolean())
-                    _broadcast->setHideUnreachableLocations(itHideUnreachable.value().get<bool>());
-                // set up window
-                _broadcast->setTracker(_tracker);
-                pos += Ui::Size{_win->getWidth()/2, _win->getHeight()/2 - 32};
-                _broadcast->setCenterPosition(pos); // this will reposition the window after rendering
-            }
+            showBroadcast();
         }
         if (item == Ui::TrackerWindow::MENU_PACK_SETTINGS)
         {
@@ -1215,6 +1200,35 @@ void PopTracker::loadState(const std::string& filename)
             _atSlot = extra["at_slot"];
     }
     if (_pack) _exportUID = _pack->getUID();
+}
+
+void PopTracker::showBroadcast()
+{
+#ifndef __EMSCRIPTEN__ // no multi-window support (yet)
+    if (!_tracker)
+        return;
+
+    if (_broadcast) {
+        _broadcast->Raise();
+    } else if (_tracker->hasLayout("tracker_broadcast")) {
+        // create window
+        auto icon = IMG_Load(asset("icon.png").c_str());
+        Ui::Position pos = _win->getPosition() + Ui::Size{0,32};
+        _broadcast = _ui->createWindow<Ui::BroadcastWindow>("Broadcast", icon, pos);
+        SDL_FreeSurface(icon);
+        // set user preferences for visibility of uncleared and unreachable locations
+        auto itHideCleared = _config.find("hide_cleared_locations");
+        auto itHideUnreachable = _config.find("hide_unreachable_locations");
+        if (itHideCleared != _config.end() && itHideCleared.value().is_boolean())
+            _broadcast->setHideClearedLocations(itHideCleared.value().get<bool>());
+        if (itHideUnreachable != _config.end() && itHideUnreachable.value().is_boolean())
+            _broadcast->setHideUnreachableLocations(itHideUnreachable.value().get<bool>());
+        // set up window
+        _broadcast->setTracker(_tracker);
+        pos += Ui::Size{_win->getWidth()/2, _win->getHeight()/2 - 32};
+        _broadcast->setCenterPosition(pos); // this will reposition the window after rendering
+    }
+#endif
 }
 
 void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)
