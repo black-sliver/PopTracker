@@ -169,10 +169,14 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
             if (itemid.empty()) _lblTooltip->setText("");
             else {
                 auto& item = tracker->getItemById(itemid);
-                _lblTooltip->setText(item.getCurrentName());
+                const auto& text = (item.getBaseItem().empty() || item.getState()) ?
+                    item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
+                _lblTooltip->setText(text);
                 item.onChange += {this, [this, tracker, itemid](void* sender) {
                     const auto& item = tracker->getItemById(itemid);
-                    _lblTooltip->setText(item.getCurrentName());
+                    const auto& text = (item.getBaseItem().empty() || item.getState()) ?
+                        item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
+                    _lblTooltip->setText(text);
                 }};
             }
             _lastHoverItem = itemid;
