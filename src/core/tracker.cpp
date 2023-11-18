@@ -1,4 +1,5 @@
 #include "tracker.h"
+#include <algorithm>
 #include <luaglue/luamethod.h>
 #include <cstring>
 #include <nlohmann/json.hpp>
@@ -426,11 +427,11 @@ const BaseItem& Tracker::getItemByCode(const std::string& code) const
     for (const auto& item: _jsonItems) {
         if (item.canProvideCode(code)) return item;
     }
-    
+
     for (const auto& item: _luaItems) {
         if (item.canProvideCode(code)) return item;
     }
-    
+
     return blankItem;
 }
 BaseItem& Tracker::getItemById(const std::string& id)
@@ -496,6 +497,29 @@ LocationSection& Tracker::getLocationSection(const std::string& id)
 
     }
     return blankLocationSection;
+}
+
+bool Tracker::isPinned(const std::string& id) const
+{
+    return std::find(_pins.begin(), _pins.end(), id) != _pins.end();
+}
+
+void Tracker::setPinned(const std::string& id, bool pinned)
+{
+    auto it = std::find(_pins.begin(), _pins.end(), id);
+    if (pinned && it == _pins.end()) {
+        _pins.push_back(id);
+        onPinChanged.emit(this, id, pinned);
+    }
+    else if (!pinned && it != _pins.end()) {
+        onPinChanged.emit(this, id, pinned);
+        _pins.erase(it);
+    }
+}
+
+const std::list<std::string>& Tracker::getPins() const
+{
+    return _pins;
 }
 
 const Pack* Tracker::getPack() const
@@ -831,16 +855,17 @@ json Tracker::saveState() const
             jSections[id] = sec.save();
         }
     }
-    
+
     json state = { {
         "tracker", {
             {"format_version", 1},
             {"json_items", jJsonItems},
             {"lua_items", jLuaItems},
-            {"sections", jSections}
+            {"sections", jSections},
+            {"pins", _pins},
         }
     } };
-    
+
     return state;
 }
 
@@ -849,6 +874,10 @@ bool Tracker::loadState(nlohmann::json& state)
     _reachableCache.clear();
     _providerCountCache.clear();
     _bulkItemUpdates.clear();
+    for (const auto& pin: _pins)
+        onPinChanged.emit(this, pin, false);
+    _pins.clear();
+
     if (state.type() != json::value_t::object) return false;
     auto& j = state["tracker"]; // state's tracker data
     if (j["format_version"] != 1) return false; // incompatible state format
@@ -885,6 +914,17 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
+    auto& jPins = j["pins"];
+    if (jPins.type() == json::value_t::array) {
+        try {
+            _pins = jPins.get<std::list<std::string>>();
+        } catch (std::exception& ex) {
+            fprintf(stderr, "Could not load pins: %s\n", ex.what());
+        }
+    }
+    for (const auto& pin: _pins)
+        onPinChanged.emit(this, pin, true);
+
     for (const auto& id: _bulkItemUpdates)
         onStateChanged.emit(this, id);
     _bulkItemUpdates.clear();

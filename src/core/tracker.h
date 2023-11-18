@@ -62,7 +62,8 @@ public:
     Signal<const std::string&> onStateChanged;
     Signal<const std::string&> onDisplayChanged; // changed display of an item
     Signal<const std::string&, const std::string&> onUiHint;
-    
+    Signal<const std::string&, bool> onPinChanged;
+
     const LayoutNode& getLayout(const std::string& name) const;
     bool hasLayout(const std::string& name) const;
     const BaseItem& getItemByCode(const std::string& code) const;
@@ -83,6 +84,10 @@ public:
     bool isVisible(const Location& location);
     bool isVisible(const Location::MapLocation& mapLoc);
 
+    bool isPinned(const std::string& id) const;
+    void setPinned(const std::string& id, bool pinned);
+    const std::list<std::string>& getPins() const;
+
     const Pack* getPack() const;
 
     bool changeItemState(const std::string& id, BaseItem::Action action);
@@ -102,6 +107,7 @@ protected:
     std::map<std::string, int> _providerCountCache;
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
+    std::list<std::string> _pins;
 
     std::list<std::string>* _parents = nullptr;
 
