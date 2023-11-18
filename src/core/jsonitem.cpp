@@ -105,7 +105,7 @@ JsonItem JsonItem::FromJSON(json& j)
         item._baseItem = j["base_item"];
     }
 
-    if (item._type == Type::TOGGLE || item._type == Type::TOGGLE_BADGED) {
+    if (item._type == Type::TOGGLE || item._type == Type::TOGGLE_BADGED || item._type == Type::PROGRESSIVE_TOGGLE) {
         if (to_bool(j["initial_active_state"], false))
             item._stage1 = 1;
     }
