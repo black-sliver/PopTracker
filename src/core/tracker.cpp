@@ -31,6 +31,84 @@ Tracker::~Tracker()
 {
 }
 
+static int lua_error_handler(lua_State *L)
+{
+    luaL_traceback(L, L, NULL, 1);
+    fprintf(stderr, "%s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    return 1;
+}
+
+// This functaion can be used internally when the return type is uncertain.
+// Use carefully; the return value(s) and error handler will still be on the lua stack
+static int RunLuaFunction_inner(lua_State *L, const std::string name)
+{
+    lua_pushcfunction(L, lua_error_handler);
+
+    // Trim excess characters (such as $) and extract function name
+    std::string workingString = name;
+    if (workingString[0] == '$') {
+        workingString = workingString.substr(1);
+    }
+    auto pos = workingString.find('|');
+    std::string funcName = workingString.substr(0, pos);
+
+    // Acquire the Lua function
+    int t = lua_getglobal(L, funcName.c_str());
+    if (t != LUA_TFUNCTION) {
+        fprintf(stderr, "Missing Lua function for %s\n", name.c_str());
+        lua_pop(L, 2); // non-function variable or nil, lua_error_handler
+        return -1;
+    }
+
+    // Parse arguments, if any
+    int argc = 0;
+    if (pos < std::string::npos) {
+        std::string::size_type next;
+        while ((next = workingString.find('|', pos+1)) != std::string::npos) {
+            lua_pushstring(L, workingString.substr(pos+1, next-pos-1).c_str());
+            ++argc;
+            pos = next;
+        }
+        // Get the last arg
+        lua_pushstring(L, workingString.substr(pos+1).c_str());
+        ++argc;
+    }
+
+    return lua_pcall(L, argc, 1, -argc-2);
+}
+
+/// Attempts to run a lua function by name and return an integer value
+int Tracker::runLuaFunction(lua_State *L, const std::string name)
+{
+    int out = 0;
+    auto callStatus = runLuaFunction(L, name, out);
+    if (callStatus == LUA_OK)
+        return out;
+    else
+        return 0;
+}
+
+int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
+{
+    int callStatus = RunLuaFunction_inner(L, name);
+    if (callStatus != LUA_OK) {
+        auto err = lua_tostring(L, -1);
+        fprintf(stderr, "Error running %s:\n%s\n", name.c_str(), err ? err : "Unknown error");
+        lua_pop(L, 2); // error object, lua_error_handler
+        return callStatus;
+    }
+    
+    // This version of the function is set to accept a number if possible
+    int isnum = 0;
+    out = lua_tonumberx(L, -1, &isnum); // || (lua_isboolean(L, -1) && lua_toboolean(L, -1));
+    if (!isnum && lua_isboolean(L, -1) && lua_toboolean(L, -1))
+        out = 1;
+    lua_pop(L, 2); // result, lua_error_handler
+    
+    return callStatus;
+}
+
 bool Tracker::AddItems(const std::string& file) {
     printf("Loading items from \"%s\"...\n", file.c_str());
     std::string s;
@@ -281,14 +359,6 @@ bool Tracker::AddLayouts(const std::string& file) {
     return false;
 }
 
-static int lua_error_handler(lua_State *L)
-{
-    luaL_traceback(L, L, NULL, 1);
-    fprintf(stderr, "%s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    return 1;
-}
-
 int Tracker::ProviderCountForCode(const std::string& code)
 {
     // cache this, because inefficient use can make the Lua script hang
@@ -297,47 +367,9 @@ int Tracker::ProviderCountForCode(const std::string& code)
         return it->second;
     // "codes" starting with $ run Lua functions
     if (!code.empty() && code[0] == '$') {
-        // TODO: use a helper to access Lua instead of having _L here
-        int args = 0;
-        auto pos = code.find('|');
-        int t;
-        lua_pushcfunction(_L, lua_error_handler);
-        if (pos == code.npos) {
-            t = lua_getglobal(_L, code.c_str()+1);
-        } else {
-            t = lua_getglobal(_L, code.substr(1, pos-1).c_str());
-            if (t == LUA_TFUNCTION) {
-                std::string::size_type next;
-                while ((next = code.find('|', pos+1)) != code.npos) {
-                    lua_pushstring(_L, code.substr(pos+1, next-pos-1).c_str());
-                    args++;
-                    pos = next;
-                }
-                lua_pushstring(_L, code.substr(pos+1).c_str());
-                args++;
-            }
-        }
-        if (t != LUA_TFUNCTION) {
-            fprintf(stderr, "Missing Lua function for %s\n", code.c_str());
-            lua_pop(_L, 2); // non-function variable or nil, lua_error_handler
-            _providerCountCache[code] = 0;
-            return 0;
-        }
-        if (lua_pcall(_L, args, 1, -args-2) != LUA_OK) {
-            auto err = lua_tostring(_L, -1);
-            fprintf(stderr, "Error running %s:\n%s\n",
-                code.c_str(), err ? err : "Unknown error");
-            lua_pop(_L, 2); // error object, lua_error_handler
-            _providerCountCache[code] = 0;
-            return 0;
-        } else {
-            int isnum = 0;
-            int n = lua_tonumberx(_L, -1, &isnum);
-            if (!isnum && lua_isboolean(_L, -1) && lua_toboolean(_L, -1)) n = 1;
-            lua_pop(_L, 2); // result, lua_error_handler
-            _providerCountCache[code] = n;
-            return n;
-        }
+        int res = Tracker::runLuaFunction(_L, code);
+        _providerCountCache[code] = res;
+        return res;
     }
     // other codes count items
     int res=0;
