@@ -237,6 +237,10 @@
                     "loop": {
                         "$ref": "#/$defs/loop"
                     },
+                    "initial_active_state": {
+                        "description": "Precollected if true",
+                        "type": "boolean"
+                    },
                     "name": true,
                     "type": true,
                     "codes": true,

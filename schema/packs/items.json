@@ -278,6 +278,10 @@
                     },
                     "loop": {
                         "$ref": "#/$defs/loop"
+                    },
+                    "initial_active_state": {
+                        "description": "Precollected if true",
+                        "type": "boolean"
                     }
                 },
                 "required": [
