@@ -627,12 +627,12 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
     // returns 0 for unreachable, 1 for reachable, 2 for glitches required
 
     bool glitchedReachable = false;
-    bool checkOnlyReachable = false;
+    bool inspectOnlyReachable = false;
     if (rules.empty()) return AccessibilityLevel::NORMAL;
     for (const auto& ruleset : rules) { //<-- these are all to be ORed
         if (ruleset.empty()) return AccessibilityLevel::NORMAL; // any empty rule set means true
         AccessibilityLevel reachable = AccessibilityLevel::NORMAL;
-        bool checkOnly = false;
+        bool inspectOnly = false;
         for (const auto& rule: ruleset) { //<-- these are all to be ANDed
             if (rule.empty()) continue; // empty/missing code is true
             std::string s = rule;
@@ -644,14 +644,14 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
             }
             // '{' ... '}' means required to check (i.e. the rule never returns "reachable", but "checkable" instead)
             if (s.length() > 1 && s[0] == '{') {
-                checkOnly = true;
+                inspectOnly = true;
                 s = s.substr(1,s.length()-1);
             }
-            if (checkOnly && s.length() > 0 && s[s.length()-1] == '}') {
+            if (inspectOnly && s.length() > 0 && s[s.length()-1] == '}') {
                 s = s.substr(0, s.length()-1);
             }
-            if (checkOnly && s.empty()) {
-                checkOnlyReachable = true;
+            if (inspectOnly && s.empty()) {
+                inspectOnlyReachable = true;
                 continue;
             }
             // '<rule>:<count>' checks count (e.g. consumables) instead of bool
@@ -663,24 +663,18 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
             }
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
-#if 0
-                if (s[0] != '@') { // value is count
-                    if (it->second >= count) continue;
-                    if (optional) {
-                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
-                    } else {
-                        reachable = AccessibilityLevel::NONE;
-                        break;
-                    }
-                } else
-#endif
                 { // value is glitched/not glitched
                     auto sub = it->second;
-                    if (!checkOnly && sub == AccessibilityLevel::INSPECT) sub = AccessibilityLevel::NONE; // or set checkable = true?
-                    else if (optional && sub == AccessibilityLevel::NONE) sub = AccessibilityLevel::SEQUENCE_BREAK;
-                    else if (sub == AccessibilityLevel::NONE) reachable = AccessibilityLevel::NONE;
-                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE) reachable = AccessibilityLevel::SEQUENCE_BREAK;
-                    if (reachable == AccessibilityLevel::NONE) break;
+                    if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
+                        sub = AccessibilityLevel::NONE; // or set inspectOnly = true?
+                    else if (optional && sub == AccessibilityLevel::NONE)
+                        sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
+                    if (reachable == AccessibilityLevel::NONE)
+                        break;
                 }
             }
             // '@' references other locations
@@ -697,8 +691,10 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                     continue; // invalid location
                 } else if (!loc.getID().empty()) {
                     // @-Rule for location, not a section
-                    if (visibilityRules) sub = isVisible(loc, parents) ? AccessibilityLevel::NORMAL : AccessibilityLevel::NONE;
-                    else sub = isReachable(loc, parents);
+                    if (visibilityRules)
+                        sub = isVisible(loc, parents) ? AccessibilityLevel::NORMAL : AccessibilityLevel::NONE;
+                    else
+                        sub = isReachable(loc, parents);
                     match = true;
                 } else {
                     // @-Rule for a section (also run for missing location)
@@ -706,20 +702,28 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                     std::string subsecname = t+1;
                     auto& subloc = getLocation(sublocid, true);
                     for (auto& subsec: subloc.getSections()) {
-                        if (subsec.getName() != subsecname) continue;
-                        if (visibilityRules) sub = isVisible(subloc, subsec, parents) ? AccessibilityLevel::NONE : AccessibilityLevel::NONE;
-                        else sub = isReachable(subloc, subsec, parents);
+                        if (subsec.getName() != subsecname)
+                            continue;
+                        if (visibilityRules)
+                            sub = isVisible(subloc, subsec, parents) ? AccessibilityLevel::NORMAL : AccessibilityLevel::NONE;
+                        else
+                            sub = isReachable(subloc, subsec, parents);
                         match = true;
                         break;
                     }
                 }
                 if (match) {
-                    if (!visibilityRules) _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
+                    if (!visibilityRules)
+                        _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     // combine current state with sub-result
-                    if (!checkOnly && sub == AccessibilityLevel::INSPECT) sub = AccessibilityLevel::NONE; // or set checkable = true?
-                    else if (optional && sub == AccessibilityLevel::NONE) sub = AccessibilityLevel::SEQUENCE_BREAK;
-                    else if (sub == AccessibilityLevel::NONE) reachable = AccessibilityLevel::NONE;
-                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE) reachable = AccessibilityLevel::SEQUENCE_BREAK;
+                    if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
+                        sub = AccessibilityLevel::NONE; // or set checkable = true?
+                    else if (optional && sub == AccessibilityLevel::NONE)
+                        sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
                 } else {
                     printf("Could not find location %s for access rule!\n",
                             sanitize_print(s).c_str());
@@ -734,8 +738,10 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 _parents = nullptr;
 #if 0
                 _reachableCache[s] = n; // FIXME: test if commenting this out has an impact
+                // NOTE: we currently don't cache count results for code, only '@'
 #endif
-                if (n >= count) continue;
+                if (n >= count)
+                    continue;
                 if (optional) {
                     reachable = AccessibilityLevel::SEQUENCE_BREAK;
                 } else {
@@ -744,12 +750,15 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 }
             }
         }
-        if (reachable == AccessibilityLevel::NORMAL && !checkOnly) return AccessibilityLevel::NORMAL;
-        else if (reachable != AccessibilityLevel::NONE /*== 1*/ && checkOnly) checkOnlyReachable = true;
-        if (reachable == AccessibilityLevel::SEQUENCE_BREAK) glitchedReachable = true;
+        if (reachable == AccessibilityLevel::NORMAL && !inspectOnly)
+            return AccessibilityLevel::NORMAL;
+        else if (reachable != AccessibilityLevel::NONE /*== 1*/ && inspectOnly)
+            inspectOnlyReachable = true;
+        if (reachable == AccessibilityLevel::SEQUENCE_BREAK)
+            glitchedReachable = true;
     }
-    return glitchedReachable ? AccessibilityLevel::SEQUENCE_BREAK :
-           checkOnlyReachable ? AccessibilityLevel::INSPECT :
+    return (glitchedReachable && !inspectOnlyReachable) ? AccessibilityLevel::SEQUENCE_BREAK :
+           (inspectOnlyReachable && !glitchedReachable) ? AccessibilityLevel::INSPECT :
                AccessibilityLevel::NONE;
 }
 
