@@ -9,6 +9,7 @@
 #include <list>
 #include "../core/signal.h"
 #include "../core/fileutil.h"
+#include "../core/assets.h"
 #include <stdlib.h>
 #include <utime.h>
 #include <sys/types.h>
@@ -79,7 +80,7 @@ public:
             return false;
         }
 
-        _ap = new APClient(_uuid, _game, uri);
+        _ap = new APClient(_uuid, _game, uri, asset("cacert.pem"));
         _ap->set_data_package(_datapackage);
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
