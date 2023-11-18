@@ -238,7 +238,7 @@ a table representing an enum with the following constants: \
           }
   + adds `disabled_img`: override img when off
   + adds `disabled_img_mods`: like `img_mods` but for off. Defaults to `img_mods` + `"@disabled"`). Any value (e.g. `"none"`) disables defaults.
-  + adds `initial_active_state`: precollected if true, since 0.26
+  + adds `initial_active_state`: precollected if true, since 0.25.4
 
 * `"consumable"`:
   + has AcquiredCount (0 = grey/disabled)
@@ -253,6 +253,7 @@ a table representing an enum with the following constants: \
   
 * `"progressive_toggle"`:
   + like progressive with `allow_disabled: false`, but the current stage can be toggled between "on" and "off"
+  + precollected overlay if `initial_active_state` is true, since 0.25.5
 
 * `"composite_toggle"`:
   + is linked to two items left and right that have to be defined before
@@ -277,7 +278,7 @@ a table representing an enum with the following constants: \
   + display `"img"` over `"base_item"`
   + toggle visibility of `"img"` with right mouse button
   + change underlying item with left mouse button
-  + precollected overlay if `initial_active_state` is true, since 0.26
+  + precollected overlay if `initial_active_state` is true, since 0.25.4
 ```jsonc
     {
         "name": "Some Item",
