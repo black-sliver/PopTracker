@@ -35,6 +35,17 @@ static const char* timeout_error_message = "Execution aborted. Limit reached.";
 
 static int lua_error_handler(lua_State *L)
 {
+    // skip trace for certain errors unless running in debug mode (DEBUG == true)
+    if (lua_isstring(L, -1) && strstr(lua_tostring(L, -1), timeout_error_message)) {
+        lua_getglobal(L, "DEBUG");
+        lua_pushboolean(L, true);
+        if (!lua_compare(L, -1, -2, LUA_OPEQ)) {
+            // return original error
+            lua_pop(L, 2);
+            return 1;
+        }
+    }
+    // generate and print trace, then return original error
     luaL_traceback(L, L, NULL, 1);
     fprintf(stderr, "%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
