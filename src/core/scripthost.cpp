@@ -410,6 +410,6 @@ void ScriptHost::runMemoryWatchCallbacks()
         if (_memoryWatches[i].name != name)
             i--; // watch at i changed (was removed)
         else if (res != false)
-            w.dirty = false; // watch returned non-false
+            _memoryWatches[i].dirty = false; // watch returned non-false
     }
 }
