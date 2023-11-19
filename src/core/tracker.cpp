@@ -31,12 +31,20 @@ Tracker::~Tracker()
 {
 }
 
+static const char* timeout_error_message = "Execution aborted. Limit reached.";
+
 static int lua_error_handler(lua_State *L)
 {
     luaL_traceback(L, L, NULL, 1);
     fprintf(stderr, "%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
     return 1;
+}
+
+/// when used as count hook, aborts execution of user function after count instructions
+static void lua_timeout_hook(lua_State *L, lua_Debug *)
+{
+    luaL_error(L, timeout_error_message);
 }
 
 // This functaion can be used internally when the return type is uncertain.
@@ -75,7 +83,11 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
         ++argc;
     }
 
-    return lua_pcall(L, argc, 1, -argc-2);
+    constexpr int exec_limit = 100000;
+    lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, exec_limit);
+    auto res = lua_pcall(L, argc, 1, -argc-2);
+    lua_sethook(L, nullptr, 0, 0);
+    return res;
 }
 
 /// Attempts to run a lua function by name and return an integer value
