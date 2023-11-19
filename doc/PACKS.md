@@ -132,6 +132,11 @@ a table representing an enum with the following constants: \
 `None`, `Partial`, `Inspeect`, `SequenceBreak`, `Normal`, `Cleared`
 
 
+### other globals
+
+* `DEBUG` set to true to get more error or debug output
+
+
 ### type LuaItem
 
 `use ImageRef = string`
