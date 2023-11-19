@@ -66,7 +66,6 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
         for (size_t i=0; i<_memoryWatches.size(); i++) {
             // NOTE: since watches can change in a callback, we use vector
             auto& w = _memoryWatches[i];
-            auto name = w.name;
             auto newData = _autoTracker->read((unsigned)w.addr, (unsigned)w.len);
             if (w.data != newData) {
                 DEBUG_printf("  %s changed\n", w.name.c_str());
@@ -80,9 +79,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                 w.data = newData;
                 w.dirty = true;
             }
-            if (_memoryWatches.size() <= i) break;
-            if (_memoryWatches[i].name != name) // current item not unchanged
-                i--;
+            // NOTE: we run the user callbacks in runMemoryWatchCallbacks
         }
     }};
     _autoTracker->onVariablesChanged += {this, [this](void*, const std::list<std::string>& vars) {
