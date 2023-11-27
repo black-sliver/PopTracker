@@ -185,6 +185,10 @@ a table representing an enum with the following constants: \
 * `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
 
 
+### type Location
+* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants (will not give CLEARED at the moment), since 0.25.5
+
+
 ## JSON
 
 ### Items
@@ -429,12 +433,18 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 **Tracker Lua Interface:**
 
 * `Tracker:FindObjectForCode('@location_name/section_name')` returns a Section or nil
+* `Tracker:FindObjectForCode('@location_name')` returns a Location or nil
 
 **Section Lua Interface:**
 
 * `.Owner`: probably points to location, but we return an empty table at the moment. `.Owner.ModifiedByUser` is `nil`.
 * `.ChestCount`: read how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
+* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
+
+**Location Lua Interface:**
+
+* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants, since 0.25.5
 
 **Future:**
 We probably want to add a different (additional) interface to Pop for this:

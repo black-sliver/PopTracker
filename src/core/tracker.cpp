@@ -402,17 +402,24 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
             
         }
     }
-    for (auto& item : _jsonItems) {
-        if (item.canProvideCode(code)) {
-            return &item;
+    if (*code == '@') { // location (not section)
+        const char *start = code+1;
+        auto& loc = getLocation(start, true);
+        if (!loc.getID().empty())
+            return &loc;
+    } else {
+        for (auto& item : _jsonItems) {
+            if (item.canProvideCode(code)) {
+                return &item;
+            }
+        }
+        for (auto& item : _luaItems) {
+            if (item.canProvideCode(code)) {
+                return &item;
+            }
         }
     }
-    for (auto& item : _luaItems) {
-        if (item.canProvideCode(code)) {
-            return &item;
-        }
-    }
-    printf("Did not find object for code \"%s\".\n", code);
+    printf("Did not find object for code \"%s\".\n", sanitize_print(code).c_str());
     return nullptr;
 }
 

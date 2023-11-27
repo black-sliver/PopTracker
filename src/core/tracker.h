@@ -35,20 +35,23 @@ public:
     
     struct Object final : public LuaType {
         // NOTE: we could use (something like) std::variant<...> ?
-        enum class RT { NIL, JsonItem, LuaItem, Section } type;
+        enum class RT { NIL, JsonItem, LuaItem, Section, Location } type;
         union {
             JsonItem *jsonItem;
             LuaItem *luaItem;
             LocationSection *section;
+            Location *location;
         };
         Object (std::nullptr_t val) : type(RT::NIL) {}
         Object (JsonItem *val) : type(RT::JsonItem), jsonItem(val) {}
         Object (LuaItem *val) : type(RT::LuaItem), luaItem(val) {}
         Object (LocationSection *val) : type(RT::Section), section(val) {}
+        Object (Location *val) : type(RT::Location), location(val) {}
         virtual void Lua_Push(lua_State *L) const { // pushes instance to Lua stack
             if (type == RT::JsonItem) jsonItem->Lua_Push(L);
             else if (type == RT::LuaItem) luaItem->Lua_Push(L);
             else if (type == RT::Section) section->Lua_Push(L);
+            else if (type == RT::Location) location->Lua_Push(L);
             else lua_pushnil(L);
         }
     };

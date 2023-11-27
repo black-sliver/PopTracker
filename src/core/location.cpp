@@ -6,6 +6,7 @@
 using nlohmann::json;
 
 const LuaInterface<LocationSection>::MethodMap LocationSection::Lua_Methods = {};
+const LuaInterface<Location>::MethodMap Location::Lua_Methods = {};
 
 int LocationSection::Lua_Index(lua_State *L, const char *key)
 {
@@ -59,6 +60,28 @@ bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
         // FIXME: implement this, see issue #12
         return true;
     }
+    return false;
+}
+
+int Location::Lua_Index(lua_State *L, const char *key)
+{
+    if (strcmp(key, "Owner") == 0) {
+        lua_newtable(L); // dummy
+        return 1;
+    } else if (strcmp(key, "AccessibilityLevel") == 0) {
+        lua_getglobal(L, "Tracker");
+        Tracker* tracker = Tracker::luaL_testthis(L, -1);
+        if (!tracker) return 0;
+        int res = (int)tracker->isReachable(*this);
+        // NOTE: we don't support AccessibilityLevel::CLEARED for Locations yet
+        lua_pushinteger(L, res);
+        return 1;
+    }
+    return 0;
+}
+
+bool Location::Lua_NewIndex(lua_State *L, const char *key)
+{
     return false;
 }
 
