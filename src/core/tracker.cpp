@@ -98,6 +98,13 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
     lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, exec_limit);
     auto res = lua_pcall(L, argc, 1, -argc-2);
     lua_sethook(L, nullptr, 0, 0);
+    
+    if (res != LUA_OK) {
+        auto err = lua_tostring(L, -1);
+        fprintf(stderr, "Error running %s:\n%s\n", name.c_str(), err ? err : "Unknown error");
+        lua_pop(L, 2); // error object, lua_error_handler
+    }
+
     return res;
 }
 
@@ -116,9 +123,7 @@ int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
 {
     int callStatus = RunLuaFunction_inner(L, name);
     if (callStatus != LUA_OK) {
-        auto err = lua_tostring(L, -1);
-        fprintf(stderr, "Error running %s:\n%s\n", name.c_str(), err ? err : "Unknown error");
-        lua_pop(L, 2); // error object, lua_error_handler
+        // RunLuaFunction_inner handles popping the stack in case of errors
         return callStatus;
     }
     
