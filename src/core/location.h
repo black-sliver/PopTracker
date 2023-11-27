@@ -68,7 +68,8 @@ protected: // lua interface
     virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
 
-class Location final {
+class Location final : public LuaInterface<Location> {
+    friend class LuaInterface;
 public:
     class MapLocation final {
     public:
@@ -123,6 +124,12 @@ public:
 #ifndef NDEBUG
     void dump(bool compact=false);
 #endif
+
+protected: // lua interface
+    static constexpr const char Lua_Name[] = "Location";
+    static const LuaInterface::MethodMap Lua_Methods;
+    virtual int Lua_Index(lua_State *L, const char *key) override;
+    virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
 
 #endif // _CORE_LOCATION_H

@@ -1035,6 +1035,7 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     LuaItem::Lua_Register(_L); // TODO: move this to Tracker or ScriptHost
     JsonItem::Lua_Register(_L); // ^
     LocationSection::Lua_Register(_L); // ^
+    Location::Lua_Register(_L); // ^
     
     ImageReference::Lua_Register(_L);
     _imageReference.Lua_Push(_L);
