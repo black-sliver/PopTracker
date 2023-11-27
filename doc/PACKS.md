@@ -187,7 +187,7 @@ a table representing an enum with the following constants: \
 * `.Owner`: returns empty table at the moment, see [Locations](#locations)
 * `.ChestCount`: how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
-* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
+* `.AccessibilityLevel`: read-only, giving one of the AccessibilityLevel constants
 
 
 ## JSON
