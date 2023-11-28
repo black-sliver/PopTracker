@@ -350,6 +350,11 @@ USB2SNES::USB2SNES(const std::string& name)
 
 USB2SNES::~USB2SNES()
 {
+    {
+        std::lock_guard<std::mutex> watchlock(watchmutex);
+        watchlist.clear();
+        no_rom_watchlist.clear();
+    }
     disconnect();
 #ifdef DETACH_THREAD_ON_EXIT
     {
