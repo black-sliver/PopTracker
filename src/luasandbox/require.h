@@ -2,10 +2,7 @@
 #define _LUASANDBOX_REQUIRE_H
 
 #include <stdio.h>
-extern "C" {
-#include <lua.h>
-#include <lauxlib.h>
-}
+#include <luaglue/lua_include.h>
 #include "../core/tracker.h"
 
 static inline int luasandbox_require(lua_State *L)
