@@ -127,8 +127,10 @@ WIN64WINDRES = x86_64-w64-mingw32-windres
 # tool config
 #TODO: -fsanitize=address -fno-omit-frame-pointer ?
 C_FLAGS = -Wall -std=c99 -D_REENTRANT
+LUA_C_FLAGS = -Wall -D_REENTRANT  # we actually use C++ for lua now
 ifeq ($(CONF), DEBUG) # DEBUG
-C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
+C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -ftrapv
+LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
 ifdef IS_LLVM # DEBUG with LLVM
 CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
 LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
@@ -138,6 +140,7 @@ LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-poin
 endif
 else
 C_FLAGS += -O2 -fno-stack-protector -fno-common
+LUA_CFALGS += -O2 -fno-stack-protector -fno-common
 ifdef IS_LLVM # RELEASE or DIST with LLVM
 CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
 LD_FLAGS = -Wl,-dead_strip -O2 -flto
@@ -147,6 +150,8 @@ LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
 endif
 endif
 
+CPP_FLAGS += -DLUA_CPP
+
 # os-specific tool config
 WIN32_CPP_FLAGS = $(CPP_FLAGS)
 WIN64_CPP_FLAGS = $(CPP_FLAGS)
@@ -155,12 +160,14 @@ WIN32_LD_FLAGS = $(LD_FLAGS)
 WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
+NIX_LUA_C_FLAGS = $(LUA_C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
 DEPLOYMENT_TARGET=10.12
 NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
 NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib
 NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
+NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
 endif
 ifeq ($(CONF), DEBUG) # DEBUG
 WINDRES_FLAGS =
@@ -299,25 +306,25 @@ $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
 	mkdir -p $(WASM_BUILD_DIR)/lib
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
-	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMCC) AR="$(EMAR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMPP) AR="$(EMAR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WASM_BUILD_DIR)/lib/lua
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CC) AR="$(AR) rc" CFLAGS="$(NIX_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CPP) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib/lua
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN32_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
-	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CC) AR="$(WIN32AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CPP) AR="$(WIN32AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN32_BUILD_DIR)/lib/lua
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN64_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
-	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CC) AR="$(WIN64AR) rc" CFLAGS="$(C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CPP) AR="$(WIN64AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib/lua
 

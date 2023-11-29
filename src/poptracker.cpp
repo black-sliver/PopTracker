@@ -1,9 +1,5 @@
 #include "poptracker.h"
-extern "C" {
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-}
+#include <luaglue/lua_include.h>
 #include <SDL2/SDL_image.h>
 #include "ui/trackerwindow.h"
 #include "ui/broadcastwindow.h"
