@@ -139,7 +139,12 @@ public:
         if (strcasecmp(proto.c_str(), "https") == 0) {
             if (port.empty()) port = "443";
             resolver = new tcp::resolver(io_context);
-            auto endpoints = resolver->resolve(host, port);
+            asio::error_code ec;
+            auto endpoints = resolver->resolve(host, port, ec);
+            if (ec) {
+                std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
+                return false;
+            }
 
             asio::ssl::context ctx(asio::ssl::context::tlsv12_client);
             ctx.set_options(asio::ssl::context::default_workarounds
@@ -183,7 +188,12 @@ public:
         else if (strcasecmp(proto.c_str(), "http") == 0) {
             if (port.empty()) port = "80";
             resolver = new tcp::resolver(io_context);
-            auto endpoints = resolver->resolve(host, port);
+            asio::error_code ec;
+            auto endpoints = resolver->resolve(host, port, ec);
+            if (ec) {
+                std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
+                return false;
+            }
             c = new tcp_client(io_context, endpoints, request);
         }
         else {
