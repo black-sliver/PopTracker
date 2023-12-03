@@ -1,5 +1,27 @@
 # PopTracker Changelog
 
+## v0.25.5
+
+* App Features
+  * AP: Implement upcoming protocol changes for Archipelago (per-game IDs)
+  * AP: try WSS (SSL) first, then WS (unencrypted)
+  * Add F2 hotkey to open broadcast window
+  * Show base item name in tooltip for badged_toggle while badge is off
+* Pack Features
+  * Implement initial_active_state for progressive_toggle
+  * Update Lua to 5.4.6+3
+  * Lua: abort (recursive) Lua `$`-rules after 100k instructions
+  * Lua: add global boolean `DEBUG`, set to true to produce more verbose debug output
+  * Lua: add Locations to Tracker:FindObjectForCode
+  * Lua: add special "*" code for ScriptHost:AddWatchForCode to receive all code changes
+* Fixes
+  * Don't crash when internet is unavailable
+  * Glitched + Inspect only = Unreachable
+  * Fix possible crash in MemoryWatch handling
+  * AP: Use embedded SSL certificates, fixing connection problems on MacOS and outdated Windows
+  * Some json schema and doc fixes
+  * Avoid memory leaks when throwing Lua errors from native code
+
 ## v0.25.4
 
 * App Features
