@@ -69,6 +69,7 @@ or download the latest "full-source.tar.xz" from [Releases](https://github.com/b
 
 ### GCC / MSYS2
 - install MSYS2 from https://www.msys2.org/
+- use the MINGW64 terminal to install dependencies and building
 - install dependencies:
 
   ```
