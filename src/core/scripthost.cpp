@@ -120,11 +120,15 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             // NOTE: since watches can change in a callback, we use vector
             auto& pair = _codeWatches[i];
             auto name = pair.first;
-            if (item.canProvideCode(pair.second.code)) {
+            bool isWildcard = pair.second.code == "*";
+            if (isWildcard || item.canProvideCode(pair.second.code)) {
                 printf("Item %s changed, which can provide code \"%s\" for watch \"%s\"\n",
                         id.c_str(), pair.second.code.c_str(), pair.first.c_str());
                 lua_rawgeti(_L, LUA_REGISTRYINDEX, pair.second.callback);
-                lua_pushstring(_L, pair.second.code.c_str()); // arg1: code
+                if (isWildcard)
+                    lua_pushstring(_L, item.getCodesString().c_str()); // arg1: item code(s)
+                else
+                    lua_pushstring(_L, pair.second.code.c_str()); // arg1: watched code
                 if (lua_pcall(_L, 1, 0, 0)) {
                     printf("Error calling Memory Watch Callback for %s: %s\n",
                             pair.first.c_str(), lua_tostring(_L, -1));
