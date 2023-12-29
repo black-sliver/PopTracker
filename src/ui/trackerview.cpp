@@ -216,7 +216,7 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
         updateDisplay(check);
     }};
     _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
-        updateLocations();
+        updateLocation(sec.getParentID());
     }};
     updateLayout(layoutRoot);
     updateState("");
@@ -343,10 +343,17 @@ void TrackerView::updateLayout(const std::string& layout)
 
 void TrackerView::updateLocations()
 {
+    updateLocation("");
+}
+
+void TrackerView::updateLocation(const std::string& location)
+{
+    bool all = location.empty();
     for (auto& mappair: _maps) {
-        //const auto& map = _tracker->getMap(mappair.first);
         for (auto& w: mappair.second) {
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
+                if (!all && pair.first != location)
+                    continue;
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.size()<1) {
                     printf("TrackerView: UI changed during updateLocations()\n");
@@ -357,8 +364,6 @@ void TrackerView::updateLocations()
             }
         }
     }
-    // dirty work-around: just run the hove signal to recreate tooltip
-    // FIXME: we probably want to have a custom widget for that
 
     if (_mapTooltip && _mapTooltipOwner) {
         _mapTooltip->update(_tracker, [this](Item* w, const BaseItem& item) { updateItem(w, item); });
