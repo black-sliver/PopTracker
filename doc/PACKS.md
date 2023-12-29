@@ -231,7 +231,8 @@ a table representing an enum with the following constants: \
     
   + img_mods filter to be applied on the img
     - `@disabled`: grey-scale
-    - `overlay|path/to/img.png`: draw a second image over it
+    - `overlay|path/to/img.png|overlay_filters...`: draw a second image over it; overlay_filters are applied to overlay (since 0.25.6)
+    - NOTE: order matters, applied left to right
   + inherit_codes: true will make stage3 provide codes for item, stage1, 2 and 3 (default true)
 
 * `"toggle"`:

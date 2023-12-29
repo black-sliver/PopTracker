@@ -15,6 +15,8 @@
 #include "maptooltip.h"
 #include "mapwidget.h"
 #include "defaults.h" // DEFAULT_FONT_*
+#include <string>
+#include <vector>
 
 namespace Ui {
 
@@ -25,23 +27,35 @@ std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std:
 {
     std::list<ImageFilter> filters;
     for (auto& mod: mods) {
-        std::string name, arg;
+        std::string name;
+        std::vector<std::string> args;
         size_t p = mod.find('|');
         if (p == mod.npos) name = mod;
         else {
             name = mod.substr(0,p);
-            arg  = mod.substr(p+1);
+            while (true) {
+                auto q = mod.find('|', p+1);
+                if (q == mod.npos) {
+                    args.push_back(mod.substr(p+1));
+                    break;
+                }
+                args.push_back(mod.substr(p+1, q-p-1));
+                p = q;
+            }
         }
         if (name == "overlay") {
             // read actual image data into arg instead of filename
-            std::string tmp = std::move(arg);
-            tracker->getPack()->ReadFile(tmp, arg);
+            std::string tmp = std::move(args[0]);
+            tracker->getPack()->ReadFile(tmp, args[0]);
+            for (size_t i=1; i<args.size(); i++)
+                if (args[i] == "@disable" || args[i] == "@disabled")
+                    args[i] = "grey";
         }
         if (name == "@disable" || name == "@disabled")
         {
             name = "grey";
         }
-        filters.push_back({name,arg});
+        filters.push_back({name,args});
     }
     return filters;
 }
