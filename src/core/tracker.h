@@ -126,7 +126,7 @@ protected: // Lua interface implementation
     static const LuaInterface::MethodMap Lua_Methods;
     
     virtual int Lua_Index(lua_State *L, const char* key) override;
-    
+    virtual bool Lua_NewIndex(lua_State *L, const char* key) override;
 };
 
 
