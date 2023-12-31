@@ -184,7 +184,7 @@ ifdef IS_WIN32
   WIN32STRIP = strip
   WIN32WINDRES = windres
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4 -ljxl -lhwy -lsharpyuv
+  WIN32_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4 -ljxl -lhwy -lsharpyuv -lavif -lyuv -ldav1d -lrav1e -lSvtAv1Dec -lSvtAv1Enc -laom -lntdll -lwebpdemux
   ifeq ($(CONF), DIST)
     native: $(WIN32_ZIP)
   else
@@ -198,7 +198,7 @@ else ifdef IS_WIN64
   WIN64STRIP = strip
   WIN64WINDRES = windres
   # MSYS' SDL_* configure is a bloat and links full static
-  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4 -ljxl -lhwy -lsharpyuv
+  WIN64_LIBS += `pkg-config --libs SDL2_image libpng libjpeg libwebp SDL2_ttf freetype2 harfbuzz` -ldwrite -ltiff -lLerc -lbrotlidec -lbrotlicommon -lfreetype -lgraphite2 -llzma -lz -lwebp -lzstd -ldeflate -ljbig -ljpeg -lrpcrt4 -ljxl -lhwy -lsharpyuv -lavif -lyuv -ldav1d -lrav1e -lSvtAv1Dec -lSvtAv1Enc -laom -lntdll -lwebpdemux
   ifeq ($(CONF), DIST)
     native: $(WIN64_ZIP)
   else
