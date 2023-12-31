@@ -113,14 +113,14 @@ static bool parseRule(const json& v, std::list<std::string>& rule,
 }
 
 
-std::list<Location> Location::FromJSON(json& j, const std::list<Location>& parentLookup, const std::list< std::list<std::string> >& prevAccessRules, const std::list< std::list<std::string> >& prevVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
+std::list<Location> Location::FromJSON(json& j, const std::list<Location>& parentLookup, const std::string& prevAccessResolver, const std::list< std::list<std::string> >& prevAccessRules, const std::list< std::list<std::string> >& prevVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
 {
     // TODO: sine we store all intermediate locations now, we could pass a parent to FromJSON instead of all arguments
     std::list<Location> locs;
     
     if (j.type() == json::value_t::array) {
         for (auto& v : j) {
-            for (auto& loc : FromJSON(v, parentLookup, prevAccessRules, prevVisibilityRules, parentName, closedImgR, openedImgR, overlayBackgroundR)) {
+            for (auto& loc : FromJSON(v, parentLookup, prevAccessResolver, prevAccessRules, prevVisibilityRules, parentName, closedImgR, openedImgR, overlayBackgroundR)) {
                 locs.push_back(std::move(loc)); // TODO: move constructor
             }
         }
@@ -159,8 +159,11 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         }
     }
 
+    const auto& parentAccesResolver = parentLocation ? parentLocation->getAccessResolver() : prevAccessResolver;
     const auto& parentAccessRules = parentLocation ? parentLocation->getAccessRules() : prevAccessRules;
     const auto& parentVisibilityRules = parentLocation ? parentLocation->getVisibilityRules() : prevVisibilityRules;
+
+    std::string accessResolver = to_string(j, "access_resolver", parentAccesResolver);
 
     std::list< std::list<std::string> > accessRules;
     if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
@@ -220,6 +223,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         loc._name = name;
         loc._parentName = parentName;
         loc._id = loc._parentName.empty() ? loc._name : (loc._parentName + "/" + loc._name);
+        loc._accessResolver = accessResolver;
         loc._accessRules = accessRules;
         loc._visibilityRules = visibilityRules;
         if (j["map_locations"].is_array()) {
@@ -239,7 +243,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
                     fprintf(stderr, "Location: bad section\n");
                     continue;
                 }
-                loc._sections.push_back(LocationSection::FromJSON(v, loc._id, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
+                loc._sections.push_back(LocationSection::FromJSON(v, loc._id, accessResolver, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
             }
         } else if (!j["sections"].is_null()) {
             fprintf(stderr, "Location: invalid sections\n");
@@ -249,7 +253,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
 
     if (j["children"].type() == json::value_t::array) {
         std::string fullname = parentName.empty() ? name : (parentName + "/" + name);
-        for (auto& loc : Location::FromJSON(j["children"], parentLookup, accessRules, visibilityRules, fullname, closedImg, openedImg, overlayBackground)) {
+        for (auto& loc : Location::FromJSON(j["children"], parentLookup, accessResolver, accessRules, visibilityRules, fullname, closedImg, openedImg, overlayBackground)) {
             locs.push_back(std::move(loc));
         }
     } else if (j["children"].type() != json::value_t::null) {
@@ -300,7 +304,7 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
 }
 
 
-LocationSection LocationSection::FromJSON(json& j, const std::string parentId, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
+LocationSection LocationSection::FromJSON(json& j, const std::string parentId, const std::string& parentAccessResolver, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
 {
     // TODO: pass inherited values as parent instead
     LocationSection sec;
@@ -316,6 +320,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
     sec._itemCount = sec._hostedItems.empty() && sec._ref.empty() ? 1 : 0;
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
     bool nonEmpty = sec._itemCount > 0 || !sec._hostedItems.empty();
+    sec._accessResolver = to_string(j, "access_resolver", parentAccessResolver);
 
     if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
         // TODO: merge code with Location's access rules
