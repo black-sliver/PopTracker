@@ -420,4 +420,63 @@ static bool getFileMTime(const std::string& path, std::chrono::system_clock::tim
     return getFileMTime(path.c_str(), tp);
 }
 
+#ifdef WIN32
+// for now we use ANSI paths on windows, so we have to convert ANSI -> UTF8
+static std::string pathToUTF8(const std::string& s)
+{
+    std::wstring wbuf;
+    std::string res;
+    // ansi -> wstring
+    int wlen = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, NULL, 0);
+    if (wlen < 1) // error
+        return res;
+    wbuf.resize(wlen); // resize to incl NUL, since the implicit NUL can not be written
+    wlen = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, wbuf.data(), wbuf.size());
+    if (wlen < 1) // error
+        return res;
+    wbuf.resize(wlen - 1); // cut terminating NUL
+    // wstring -> utf8
+    int len = WideCharToMultiByte(CP_UTF8, 0, wbuf.c_str(), -1, NULL, 0, NULL, NULL);
+    if (len < 1) // error
+        return res;
+    res.resize(len);
+    len = WideCharToMultiByte(CP_UTF8, 0, wbuf.c_str(), -1, res.data(), res.size(), NULL, NULL);
+    if (len < 1) // error
+        res.resize(0);
+    else
+        res.resize(len - 1); // cut terminating NUL
+    return res;
+}
+
+static std::string pathFromUTF8(const std::string& s)
+{
+    std::wstring wbuf;
+    std::string res;
+    // utf8 -> wstring
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
+    if (wlen < 1) // error
+        return res;
+    wbuf.resize(wlen); // resize to incl NUL, since the implicit NUL can not be written
+    wlen = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, wbuf.data(), wbuf.size());
+    if (wlen < 1) // error
+        return res;
+    wbuf.resize(wlen - 1); // cut terminating NUL
+    // wstring -> ansi
+    int len = WideCharToMultiByte(CP_ACP, 0, wbuf.c_str(), -1, NULL, 0, NULL, NULL);
+    if (len < 1) // error
+        return res;
+    res.resize(len);
+    len = WideCharToMultiByte(CP_ACP, 0, wbuf.c_str(), -1, res.data(), res.size(), NULL, NULL);
+    if (len < 1) // error
+        res.resize(0);
+    else
+        res.resize(len - 1); // cut terminating NUL
+    return res;
+}
+#else // non-WIN32
+// on non-windows paths are expected to be UTF8
+#define pathToUTF8(s) (s)
+#define pathFromUTF8(s) (s)
+#endif
+
 #endif // _CORE_FILEUTIL_H
