@@ -84,6 +84,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
                 return writeFile(filename, new_state);
         } catch (std::exception& ex) {
             fprintf(stderr, "error saving: %s\n", ex.what());
+            return false;
         }
         return true;
     }    
