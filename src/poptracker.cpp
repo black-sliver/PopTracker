@@ -144,12 +144,12 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         _config["software_fps_limit"] = DEFAULT_SOFTWARE_FPS_LIMIT;
 
     if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
-        _exportFile = _config["export_file"];
+        _exportFile = pathFromUTF8(_config["export_file"]);
         _exportUID = _config["export_uid"];
     }
 
     if (_config["export_dir"].is_string())
-        _exportDir = _config["export_dir"];
+        _exportDir = pathFromUTF8(_config["export_dir"]);
 
     if (_config["at_uri"].is_string())
         _atUri = _config["at_uri"];
@@ -349,9 +349,9 @@ bool PopTracker::start()
             if (pos.top <= -1 * size.height)
                 pos.top = 0;
         }
-        auto jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
+        auto& jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
-            std::string path = to_string(jPack["path"],"");
+            std::string path = pathFromUTF8(to_string(jPack["path"],""));
             std::string variant = to_string(jPack["variant"],"");
             if (!scheduleLoadTracker(path,variant))
             {
@@ -502,7 +502,7 @@ bool PopTracker::start()
             json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
             if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename, true))
             {
-                _exportFile = filename;
+                _exportFile = filename; // this is local encoding for fopen
                 _exportUID = _pack->getUID();
                 _exportDir = os_dirname(_exportFile);
             }
@@ -518,7 +518,7 @@ bool PopTracker::start()
             std::string filename;
             if (!Dlg::OpenFile("Load State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
             if (filename != _exportFile) {
-                _exportFile = filename;
+                _exportFile = filename; // this is local encoding for fopen
                 _exportDir = os_dirname(_exportFile);
                 _exportUID.clear();
             }
@@ -731,7 +731,7 @@ bool PopTracker::frame()
         _config["format_version"] = 1;
         if (_pack)
             _config["pack"] = {
-                {"path",_pack->getPath()},
+                {"path",pathToUTF8(_pack->getPath())},
                 {"variant",_pack->getVariant()},
                 {"uid",_pack->getUID()},
                 {"version",_pack->getVersion()}
@@ -744,9 +744,9 @@ bool PopTracker::frame()
                 {"display_name", _win->getDisplayName()},
                 {"display_pos", {disppos.left,disppos.top}}
             };
-        _config["export_file"] = _exportFile;
+        _config["export_file"] = pathToUTF8(_exportFile);
         _config["export_uid"] = _exportUID;
-        _config["export_dir"] = _exportDir;
+        _config["export_dir"] = pathToUTF8(_exportDir);
         saveConfig();
     }
 

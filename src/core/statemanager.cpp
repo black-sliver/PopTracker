@@ -51,7 +51,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
     }
     state["ui_hints"] = jUiHints;
     state["pack"] = {
-        { "path", pack->getPath() },
+        { "path", pathToUTF8(pack->getPath()) },
         { "uid", pack->getUID() },
         { "variant", pack->getVariant() },
         { "version", pack->getVersion() },
@@ -77,10 +77,14 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         }
         printf("Saving state \"%s\" to file %s...\n",
                 external ? "export" : name.c_str(), filename.c_str());
-        std::string new_state = state.dump();
-        std::string old_state;
-        if (!readFile(filename, old_state) || old_state != new_state)
-            return writeFile(filename, new_state);
+        try {
+            std::string new_state = state.dump();
+            std::string old_state;
+            if (!readFile(filename, old_state) || old_state != new_state)
+                return writeFile(filename, new_state);
+        } catch (std::exception& ex) {
+            fprintf(stderr, "error saving: %s\n", ex.what());
+        }
         return true;
     }    
 }
