@@ -418,6 +418,8 @@ Rule-goups inside `{` `}` are a different set of rules to mark the section as "c
 
 Individual rules can be specified as json array instead of string, which allows to use `,` inside names or arguments. Only available in PopTracker, since 0.19.1.
 
+Rules can be specified as a single string, which is equivalent to `[[string]]`. Only available in PopTracker, since 0.25.6.
+
 **Parent:**
 With `"parent"`, the location's parent can be overwritten. Since PopTracker v0.19.2.
 This is useful to put a location from `dungeons.json` into a location from `overworld.json`,
