@@ -94,7 +94,7 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
         ++argc;
     }
 
-    constexpr int exec_limit = 100000;
+    constexpr int exec_limit = 500000;
     lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, exec_limit);
     auto res = lua_pcall(L, argc, 1, -argc-2);
     lua_sethook(L, nullptr, 0, 0);
