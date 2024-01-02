@@ -130,7 +130,7 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 ### global AccessibilityLevel (enum)
 
 a table representing an enum with the following constants: \
-`None`, `Partial`, `Inspeect`, `SequenceBreak`, `Normal`, `Cleared`
+`None`, `Partial`, `Inspect`, `SequenceBreak`, `Normal`, `Cleared`
 
 
 ### other globals
