@@ -399,9 +399,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
 Each `map_location` is a square on the map and shows a popup with individual chests.
 
 **Rules:**
-Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
+Rules starting with `$` will call the Lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
 
-A rule starting with `^` interprets the value as AccessibilityLevel instead of count. That is `^$func` can directly set the AccessibilityLevel.
+Rules starting with `^` interpret the value as AccessibilityLevel instead of count. That is `^$func` can directly set the AccessibilityLevel, sometimes removing the need for `[]` and `{}` (see below). Only available in PopTracker, since 0.25.6.
 
 For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
 The return value has to be a number (count) or boolean (since v0.20.4).
@@ -414,7 +414,7 @@ Rule-goups inside `{` `}` are a different set of rules to mark the section as "c
 
 `{<checkrule1>, <checkrule2>}` in example above are combined as: `(<checkrule1> AND <checkrule2>)` have to be met to check.
 
-In PopTracker (since 0.19.1) rules can be specified as json array instead of string, which allows to use `,` inside names or arguments
+Individual rules can be specified as json array instead of string, which allows to use `,` inside names or arguments. Only available in PopTracker, since 0.19.1.
 
 **Parent:**
 With `"parent"`, the location's parent can be overwritten. Since PopTracker v0.19.2.
