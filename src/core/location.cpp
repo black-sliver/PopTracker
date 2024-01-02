@@ -179,6 +179,16 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
                 accessRules.push_back(newRule);
             }
         }
+    } else if (j["access_rules"].is_string() && !j["access_rules"].empty()) {
+        // single string access rule, same as [["code"]]
+        const std::string& newTest = j["access_rules"];
+        for (auto oldRule : parentAccessRules) {
+            oldRule.push_back(newTest);
+            accessRules.push_back(oldRule);
+        }
+        if (parentAccessRules.empty()) {
+            accessRules.push_back({newTest});
+        }
     } else {
         accessRules = parentAccessRules; // TODO: avoid copy
         if (!j["access_rules"].is_null()) {
@@ -202,6 +212,16 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
             if (parentVisibilityRules.empty()) {
                 visibilityRules.push_back(newRule);
             }
+        }
+    } else if (j["visibility_rules"].is_string() && !j["visibility_rules"].empty()) {
+        // single string visibility rule, same as [["code"]]
+        const std::string& newTest = j["visibility_rules"];
+        for (auto oldRule : parentVisibilityRules) {
+            oldRule.push_back(newTest);
+            visibilityRules.push_back(oldRule);
+        }
+        if (parentVisibilityRules.empty()) {
+            visibilityRules.push_back({newTest});
         }
     } else {
         visibilityRules = parentVisibilityRules; // TODO: avoid copy
@@ -280,20 +300,36 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
     maploc._size = to_int(j["size"],-1);
     maploc._borderThickness = to_int(j["border_thickness"],-1);
 
-    for (const auto& v : j["restrict_visibility_rules"]) {
-        // outer array is logical Or, inner array (or string) is logical And
-        std::list<std::string> newRule;
-        if (!parseRule(v, newRule, "MapLocation", "restrict visibility", maploc._mapName))
-            continue;
-        maploc._visibilityRules.push_back(newRule);
+    if (j["restrict_visibility_rules"].is_array()) {
+        for (const auto& v : j["restrict_visibility_rules"]) {
+            // outer array is logical Or, inner array (or string) is logical And
+            std::list<std::string> newRule;
+            if (!parseRule(v, newRule, "MapLocation", "restrict visibility", maploc._mapName))
+                continue;
+            maploc._visibilityRules.push_back(newRule);
+        }
+    } else if (j["restrict_visibility_rules"].is_string()) {
+        const std::string& newTest = j["restrict_visibility_rules"];
+        maploc._visibilityRules.push_back({newTest});
+    } else if (!j["restrict_visibility_rules"].is_null()) {
+        fprintf(stderr, "MapLocation: invalid restrict_visibility_rules for \"%s\"\n",
+                sanitize_print(maploc._mapName).c_str());
     }
 
-    for (const auto& v : j["force_invisibility_rules"]) {
-        // outer array is logical Or, inner array (or string) is logical And
-        std::list<std::string> newRule;
-        if (!parseRule(v, newRule, "MapLocation", "force invisibility", maploc._mapName))
-            continue;
-        maploc._invisibilityRules.push_back(newRule);
+    if (j["force_invisibility_rules"].is_array()) {
+        for (const auto& v : j["force_invisibility_rules"]) {
+            // outer array is logical Or, inner array (or string) is logical And
+            std::list<std::string> newRule;
+            if (!parseRule(v, newRule, "MapLocation", "force invisibility", maploc._mapName))
+                continue;
+            maploc._invisibilityRules.push_back(newRule);
+        }
+    } else if (j["force_invisibility_rules"].is_string()) {
+        const std::string& newTest = j["force_invisibility_rules"];
+        maploc._invisibilityRules.push_back({newTest});
+    } else if (!j["force_invisibility_rules"].is_null()) {
+        fprintf(stderr, "MapLocation: invalid force_invisibility_rules for \"%s\"\n",
+                sanitize_print(maploc._mapName).c_str());
     }
 
     return maploc;
@@ -334,6 +370,16 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
                 sec._accessRules.push_back(newRule);
             }
         }
+    } else if (j["access_rules"].is_string() && !j["access_rules"].empty()) {
+        // single string access rule, same as [["code"]]
+        const std::string& newTest = j["access_rules"];
+        for (auto oldRule : parentAccessRules) {
+            oldRule.push_back(newTest);
+            sec._accessRules.push_back(oldRule);
+        }
+        if (parentAccessRules.empty()) {
+            sec._accessRules.push_back({newTest});
+        }
     } else {
         sec._accessRules = parentAccessRules;
         if (!j["access_rules"].is_null()) {
@@ -357,6 +403,16 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
             if (parentVisibilityRules.empty()) {
                 sec._visibilityRules.push_back(newRule);
             }
+        }
+    } else if (j["visibility_rules"].is_string() && !j["visibility_rules"].empty()) {
+        // single string visibility rule, same as [["code"]]
+        const std::string& newTest = j["visibility_rules"];
+        for (auto oldRule : parentVisibilityRules) {
+            oldRule.push_back(newTest);
+            sec._visibilityRules.push_back(oldRule);
+        }
+        if (parentVisibilityRules.empty()) {
+            sec._visibilityRules.push_back({newTest});
         }
     } else {
         sec._visibilityRules = parentVisibilityRules;
