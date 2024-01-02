@@ -696,6 +696,11 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 count = atoi(s.c_str()+p+1);
                 s = s.substr(0,p);
             }
+            // '^$func' gives direct accessibility level rather than an integer code count
+            bool isAccessibilitLevel = s[0] == '^'; // use value as level instead of count
+            if (isAccessibilitLevel)
+                s = s.substr(1);
+            // check cache for '@' rules
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
                 { // value is glitched/not glitched
@@ -771,6 +776,20 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 _parents = &parents;
                 int n = ProviderCountForCode(s);
                 _parents = nullptr;
+                if (isAccessibilitLevel) { // TODO: merge this with '@' code path
+                    AccessibilityLevel sub = (AccessibilityLevel)n;
+                    if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
+                        inspectOnly = true;
+                    else if (optional && sub == AccessibilityLevel::NONE)
+                        sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
+                    if (reachable == AccessibilityLevel::NONE)
+                        break;
+                    continue;
+                }
 #if 0
                 _reachableCache[s] = n; // FIXME: test if commenting this out has an impact
                 // NOTE: we currently don't cache count results for code, only '@'
