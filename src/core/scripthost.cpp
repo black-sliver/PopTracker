@@ -159,7 +159,7 @@ bool ScriptHost::LoadScript(const std::string& file)
         fprintf(stderr, "File not found!\n");
         return false;
     }
-    
+
     const char* buf = script.c_str();
     size_t len = script.length();
     if (len>=3 && memcmp(buf, "\xEF\xBB\xBF", 3) == 0) {
@@ -168,7 +168,14 @@ bool ScriptHost::LoadScript(const std::string& file)
         len -= 3;
     }
     if (luaL_loadbufferx(_L, buf, len, file.c_str(), "t") == LUA_OK) {
-        if (lua_pcall(_L, 0, 1, 0) == LUA_OK) {
+        std::string modname = file;
+        if (strncasecmp(modname.c_str(), "scripts/", 8) == 0)
+            modname = modname.substr(8);
+        if (modname.length() > 4 && strcasecmp(modname.c_str() + modname.length() - 4, ".lua") == 0)
+            modname = modname.substr(0, modname.length() - 4);
+        std::replace(modname.begin(), modname.end(), '/', '.');
+        lua_pushstring(_L, modname.c_str());
+        if (lua_pcall(_L, 1, 1, 0) == LUA_OK) {
             // if it was executed successfully, pop everything from stack
             lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ? 
         } else {
@@ -183,7 +190,7 @@ bool ScriptHost::LoadScript(const std::string& file)
         lua_pop(_L, 1); // TODO: verify this is correct
         return false;
     }
-    
+
     return true;
 }
 
