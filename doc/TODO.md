@@ -31,6 +31,9 @@ Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 - build with `-D_FORTIFY_SOURCE=2`, `-pie`, ASLR, RELRO ?
 - fuzz lua and json interfaces
 
+## Docs
+- compile README to HTML and open local copy with F1
+
 ## WASM
 - custom html, to only have canvas. Use js console for stdout and stderr
 - sync sdl window with html canvas (size)

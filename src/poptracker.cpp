@@ -1,5 +1,6 @@
 #include "poptracker.h"
 #include <luaglue/lua_include.h>
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "ui/trackerwindow.h"
 #include "ui/broadcastwindow.h"
@@ -32,6 +33,7 @@ enum HotkeyID {
     HOTKEY_FORCE_RELOAD,
     HOTKEY_TOGGLE_SPLIT_COLORS,
     HOTKEY_SHOW_BROADCAST,
+    HOTKEY_SHOW_HELP,
 };
 
 
@@ -314,6 +316,11 @@ bool PopTracker::start()
         else if (hotkey.id == HOTKEY_SHOW_BROADCAST) {
             showBroadcast();
         }
+        else if (hotkey.id == HOTKEY_SHOW_HELP) {
+            if (SDL_OpenURL("https://github.com/black-sliver/PopTracker/blob/master/README.md") != 0) {
+                Dlg::MsgBox("Error", SDL_GetError(), Dlg::Buttons::OK, Dlg::Icon::Error);
+            }
+        }
     }};
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
@@ -328,6 +335,7 @@ bool PopTracker::start()
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_RCTRL});
     _ui->addHotkey({HOTKEY_SHOW_BROADCAST, SDLK_F2, KMOD_NONE});
+    _ui->addHotkey({HOTKEY_SHOW_HELP, SDLK_F1, KMOD_NONE});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
