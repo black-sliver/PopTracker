@@ -8,7 +8,7 @@
 
 ## Internal API
 
-* [Lua Glue](LUAGLUE.md)
+* [Lua Glue](https://github.com/black-sliver/luaglue/blob/main/README.md)
 * [UI Lib](UILIB.md)
 
 

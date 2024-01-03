@@ -54,8 +54,8 @@ Note that std::string allows easier integration with C code than a std::stream.
 We may want to use mmap or raw pointer in the future, see [Ideal ZIP](#ideal-zip).
 
 ### Lua Glue
-since packs use lua to do actual stuff, we map c++ classes into lua.
-See [LUAGLUE.md](LUAGLUE.md) for the lua interface code.
+since packs use Lua to do actual stuff, we map C++ classes into Lua.
+See [luaglue/README.md](https://github.com/black-sliver/luaglue/blob/main/README.md) for the lua interface code.
 
 ### Game pack interface
 see [PACKS.md](PACKS.md)
