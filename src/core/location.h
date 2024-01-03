@@ -23,6 +23,7 @@ class LocationSection final : public LuaInterface<LocationSection> {
 public:
     static LocationSection FromJSON(nlohmann::json& j,
             const std::string parentId,
+            const std::string& parentAccessResolver="",
             const std::list< std::list<std::string> >& parentAccessRules={},
             const std::list< std::list<std::string> >& parentVisibilityRules={},
             const std::string& closedImg="", const std::string& openedImg="",
@@ -37,6 +38,7 @@ protected:
     int _itemCount=0;
     int _itemCleared=0;
     std::list<std::string> _hostedItems;
+    std::string _accessResolver;
     std::list< std::list<std::string> > _accessRules;
     std::list< std::list<std::string> > _visibilityRules;
     std::string _overlayBackground;
@@ -44,6 +46,7 @@ protected:
 public:
     // getters
     const std::string& getName() const { return _name; }
+    const std::string& getAccessResolver() const { return _accessResolver; }
     const std::list< std::list<std::string> > getAccessRules() const { return _accessRules; }
     const std::list< std::list<std::string> > getVisibilityRules() const { return _visibilityRules; }
     int getItemCount() const { return _itemCount; }
@@ -95,6 +98,7 @@ public:
 
     static std::list<Location> FromJSON(nlohmann::json& j,
         const std::list<Location>& parentLookup,
+        const std::string& parentAccessResolver="",
         const std::list< std::list<std::string> >& parentAccessRules={},
         const std::list< std::list<std::string> >& parentVisibilityRules={},
         const std::string& parentName="", const std::string& closedImg="",
@@ -106,6 +110,7 @@ protected:
     std::string _id;
     std::list<MapLocation> _mapLocations;
     std::list<LocationSection> _sections;
+    std::string _accessResolver; // this is only used if referenced through @-RUles
     std::list< std::list<std::string> > _accessRules; // this is only used if referenced through @-Rules
     std::list< std::list<std::string> > _visibilityRules;
 public:
@@ -115,6 +120,7 @@ public:
     const std::list<MapLocation>& getMapLocations() const { return _mapLocations; }
     std::list<LocationSection>& getSections() { return _sections; }
     const std::list<LocationSection>& getSections() const { return _sections; }
+    const std::string& getAccessResolver() const { return _accessResolver; }
     std::list< std::list<std::string> >& getAccessRules() { return _accessRules; }
     const std::list< std::list<std::string> >& getAccessRules() const { return _accessRules; }
     std::list< std::list<std::string> >& getVisibilityRules() { return _visibilityRules; }

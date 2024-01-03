@@ -36,6 +36,10 @@
                             "description": "Short version of name. Currently unused.",
                             "type": "string"
                         },
+                        "access_resolver": {
+                            "description": "Optional method to resolve access. Use \"$func\" to call a Lua function with Section as argument that returns an AccessibilityLevel.",
+                            "type": "string"
+                        },
                         "access_rules": {
                             "example": [
                                 "rule1,rule2",
@@ -126,6 +130,10 @@
                 },
                 "short_name": {
                     "description": "Short version of name. Currently unused.",
+                    "type": "string"
+                },
+                "access_resolver": {
+                    "description": "Optional method to resolve access for each section. Use \"$func\" to call a Lua function with Section as argument that returns an AccessibilityLevel. This value is inherited by children, empty string resets to default behavior.",
                     "type": "string"
                 },
                 "access_rules": {

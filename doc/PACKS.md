@@ -330,6 +330,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
         {
             "name": "Area name",
             "short_name": "Area", // shorter version of name. currently unused
+            "access_resolver": "$func", // optional method to resolve access. overrides access_rules
             "access_rules": [
                 "<rule1>,<rule2>",
                 "<rule3>,<rule4>",
@@ -400,6 +401,11 @@ Locations define drops on maps, rules to have them accessible as well as the loo
 Each `map_location` is a square on the map and shows a popup with individual chests.
 
 **Rules:**
+If access_resolver if provided or inherited for a section and starts with `$`, access_rules are ignored and the
+provided global Lua function is called for each section instead of resolving access_rules. Useful for pure Lua logic.
+The Lua function has to return one of AccessibilityLevel values.
+If access_resolver is `""` (default), access_rules are resolved internally as described below.
+
 Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
 
 For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
