@@ -1,6 +1,6 @@
 # PopTracker Overview
 
-This is a rough overview of internals and what we (have to) provide and what dependencies we have.
+This is a rough overview of internals and what we want to provide.
 
 Check linked docs for specifics.
 
@@ -8,53 +8,27 @@ Check linked docs for specifics.
 - scriptable tracker and map tracker, similar to existing solutions
 - open source, platform independent 
 - runs in browser and on desktop
-  - have a Makefile that builds WASM blob, Linux binaries, Windows exe
-  - OSX support?
+  - have a Makefile that builds WASM blob, Linux binaries, Windows exe and macOS app bundle
 - auto-tracking support
-  - usb2snes interface
+  - see [AUTOTRACKING.md] for currently implemented things
   - more TBD
 - provide an interface that is compatible to existing packs
+- maybe add nicer interfaces on top or in parallel
 
 See [TODO.md](TODO.md) for current state of things.
 
 ## WASM work-arounds
-- `while(true)` does not work in WASM, so we define an interface `App` that
-  - implements a mainloop on desktop
-  - hooks into AnimationFrame via `emscripten_set_main_loop` in WASM
 
 ## UI requirements
-- item/status "icons" inside hbox/vbox/grid
-- map display: custom widget
-- map "icons" drawn in mapwidget's render()
-- hover -> tooltips -> floating regular widgets/containers
-- have "icons" be just widgets, state/image updated from back-end events/signals
-- use one TrackerView(Tracker*) widget to link up state with ui
-- we may require a "texture store" to support WebGL on mobile
-- layout.json => LayoutNodes => Widgets
-
-see [UILIB.md](UILIB.md) (outdated)
-
-NOTE: UI needs a lot of rework.
-
+see [UILIB.md](UILIB.md)
 
 ## Interface ideas
-### Packs
-```
-class Pack abstracts away Filesystem
-    ::Pack("path") loads a pack, where path can be a directory or .zip file containing a manifest.json
-    ::ReadFile(std::string fn,std::string& buf) will read file `fn` of the package into buffer `buf` and return a result code (no exceptions)
-    static ::ListPacks() returns a list of packs
-    ::ListVariants() returns a list of available variants for the pack
-    ::getVariant() returns currently active variant (or "" if none is active)
-    ::setVariant("variant") sets the active variant, used when resolving paths
-```
-
-Note that std::string allows easier integration with C code than a std::stream.
+std::string allows easier integration with C code than a std::stream.
 
 We may want to use mmap or raw pointer in the future, see [Ideal ZIP](#ideal-zip).
 
 ### Lua Glue
-since packs use Lua to do actual stuff, we map C++ classes into Lua.
+Since packs use Lua to do actual stuff, we map C++ classes into Lua.
 See [luaglue/README.md](https://github.com/black-sliver/luaglue/blob/main/README.md) for the lua interface code.
 
 ### Game pack interface
@@ -63,33 +37,14 @@ see [PACKS.md](PACKS.md)
 We do not use the data directly, but instead load it into objects via
 Class::FromJSON, which are then used for to the actual (UI) implementation.
 
+## WASM support
+At some point PopTracker should be able to run inside a webbrowser using
+[WASM](https://en.wikipedia.org/wiki/WebAssembly).
+Most or all dependencies should work with emcc, but UI/window handling is not done yet nor is a virtual file system.
 
-## Back-end requirements
-- Lua VM
-- JSON parser
-- UI/Layout abstraction (JSON -> Widgets -> Pixels)
-
-## Base System / Dependencies
-- libsdl
-- libsdl_ttf
-- libfreetype as dependency of sdl_ttf
-- libsdl_image
-- libpng as dependency of sdl_image
-- zlib
-- liblua
-- json.hpp - https://github.com/nlohmann/json + patch to allow trailing commas
-
-## Linking
-emcc for web/wasm deployment provides some (specialized) versions of some libs:
-- SDL2
-- SDL2_image
-- SDL2_ttf
-- libpng
-- zlib
-- and their dependencies
-
-for now we link the libraries dynamically on Linux and use prebuilt SDL-devel (mingw) libs on Windows,
-but a more comlpex source tree + Makefile could integrate them as well
+- `while(true)` does not work in WASM, so we define an interface `App` that
+  - implements a mainloop on desktop
+  - hooks into AnimationFrame via `emscripten_set_main_loop` in WASM
 
 ## UI-Data-Bindings
 - signal Tracker::onLayoutChanged -> Ui::TrackerView::relayout
