@@ -14,5 +14,5 @@
 
 ## Misc
 
-* [Project Overview](OUTLINE.md) (outdated)
-* [TODO](TODO.md) (outdated)
+* [Project Overview](OUTLINE.md)
+* [TODO](TODO.md)
