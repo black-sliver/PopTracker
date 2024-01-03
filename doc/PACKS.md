@@ -72,6 +72,7 @@ Configures behavior of the pack.
 
     {
         "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
+        "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
     }
 
 Currently **not** user overridable.

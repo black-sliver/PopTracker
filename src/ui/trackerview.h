@@ -68,7 +68,8 @@ protected:
     bool _hideClearedLocations = false;
     bool _hideUnreachableLocations = false;
 
-    int _defaultQuality = -1;
+    int _defaultItemQuality = -1;
+    int _defaultMapQuality = 2; // default smooth
 
     void updateLayout(const std::string& layout);
     void updateDisplay(const std::string& check);
