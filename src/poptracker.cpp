@@ -170,28 +170,45 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     _ui = nullptr; // UI init moved to start()
 
     Pack::addSearchPath("packs"); // current directory
+    Pack::addOverrideSearchPath("user-override");
 
     std::string cwdPath = getCwd();
     std::string documentsPath = getDocumentsPath();
     std::string homePath = getHomePath();
 
-    _homePackDir = os_pathcat(homePath, "PopTracker", "packs");
+    std::string homePopTrackerPath = os_pathcat(homePath, "PopTracker");
+    _homePackDir = os_pathcat(homePopTrackerPath, "packs");
     _appPackDir = os_pathcat(appPath, "packs");
 
     if (!homePath.empty()) {
         Pack::addSearchPath(_homePackDir); // default user packs
-        if (!_isPortable)
-            Assets::addSearchPath(os_pathcat(homePath, "PopTracker", "assets")); // default user overrides
+        if (!_isPortable) {
+            // default user overrides
+            std::string homeUserOverrides = os_pathcat(homePopTrackerPath, "user-override");
+            if (dirExists(homePopTrackerPath))
+                mkdir_recursive(homeUserOverrides);
+            Pack::addOverrideSearchPath(homeUserOverrides);
+            Assets::addSearchPath(os_pathcat(homePopTrackerPath, "assets"));
+        }
     }
     if (!documentsPath.empty() && documentsPath != ".") {
-        Pack::addSearchPath(os_pathcat(documentsPath, "PopTracker", "packs")); // alternative user packs
+        std::string documentsPopTrackerPath = os_pathcat(documentsPath, "PopTracker");
+        Pack::addSearchPath(os_pathcat(documentsPopTrackerPath, "packs")); // alternative user packs
+        if (!_isPortable) {
+            std::string documentsUserOverrides = os_pathcat(documentsPopTrackerPath, "user-override");
+            Pack::addOverrideSearchPath(documentsUserOverrides);
+            if (dirExists(documentsPopTrackerPath))
+                mkdir_recursive(documentsUserOverrides);
+        }
         if (_config.value<bool>("add_emo_packs", false)) {
             Pack::addSearchPath(os_pathcat(documentsPath, "EmoTracker", "packs")); // "old" packs
         }
     }
+
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
         Pack::addSearchPath(_appPackDir); // system packs
-        Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
+        Pack::addOverrideSearchPath(os_pathcat(appPath, "user-override")); // portable/system overrides
+        Assets::addSearchPath(os_pathcat(appPath, "assets")); // system assets
     }
 
     _asio = new asio::io_service();

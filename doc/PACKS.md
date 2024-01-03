@@ -74,7 +74,7 @@ Configures behavior of the pack.
         "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
     }
 
-Currently **not** user overridable.
+NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
 
 
 ## Lua Interface

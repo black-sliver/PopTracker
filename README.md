@@ -108,3 +108,15 @@ Currently there is no plug-in interface.
 If you want to work towards implementing such a system, please check
 [PLUGIN LICENSE ADDENDUM.md](PLUGIN%20LICENSE%20ADDENDUM.md)
 for licensing considerations.
+
+## User Overrides
+Users can override files from packs by creating a folder with the same file
+structure as in the pack, named `.../user-override/<pack_uid>` where `...` is
+any one of `Documents/PopTracker`, `%home%/PopTracker` or `AppPath`.
+
+## Portable Mode
+When creating a file called `portable.txt` next to the program (not macos) or
+next to poptracker **inside** the AppBundle (macos-only), the app runs in
+portable mode, which changes the default pack folder to be next to the program
+(not in home folder) and disables asset and pack overrides from home folder
+(only allows overrides from program folder).
