@@ -67,7 +67,22 @@ public:
     static bool isInSearchPath(const std::string& path);
     static const std::vector<std::string>& getSearchPaths();
 
+    static void addOverrideSearchPath(const std::string& path);
+
 private:
+    class Override {
+    public:
+        Override(const std::string& path);
+        virtual ~Override();
+
+        bool ReadFile(const std::string& file, std::string& out) const;
+        bool hasFilesChanged(std::chrono::system_clock::time_point since) const;
+        const std::string& getPath() const { return _path; }
+
+    private:
+        std::string _path;
+    };
+
     Zip* _zip;
     std::string _path;
     std::string _variant;
@@ -80,10 +95,12 @@ private:
     Version _targetPopTrackerVersion;
     nlohmann::json _manifest;
     nlohmann::json _settings;
+    Override* _override;
 
     std::chrono::system_clock::time_point _loaded;
 
     static std::vector<std::string> _searchPaths;
+    static std::vector<std::string> _overrideSearchPaths;
 };
 
 #endif // _CORE_PACK_H

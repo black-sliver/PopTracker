@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include "sha256.h"
+#include "util.h"
 
 
 using nlohmann::json;
@@ -103,9 +104,10 @@ static bool dirNewerThan(const char* path, const std::chrono::system_clock::time
 
 
 std::vector<std::string> Pack::_searchPaths;
+std::vector<std::string> Pack::_overrideSearchPaths;
 
 
-Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
+Pack::Pack(const std::string& path) : _zip(nullptr), _path(path), _override(nullptr)
 {
     _loaded = std::chrono::system_clock::now();
     std::string s;
@@ -134,10 +136,23 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path)
         _minPopTrackerVersion = to_string(_manifest, "min_poptracker_version", "");
         _targetPopTrackerVersion = to_string(_manifest, "target_poptracker_version", "");
     }
+
+    if (!_uid.empty()) {
+        for (const auto& path: _overrideSearchPaths) {
+            std::string overridePath = os_pathcat(path, _uid);
+            if (dirExists(overridePath)) {
+                _override = new Override(overridePath);
+                break;
+            }
+        }
+    }
 }
 
 Pack::~Pack()
 {
+    if (_override)
+        delete _override;
+    _override = nullptr;
     if (_zip)
         delete _zip;
     _zip = nullptr;
@@ -201,8 +216,23 @@ bool Pack::hasFile(const std::string& userfile) const
 bool Pack::ReadFile(const std::string& userfile, std::string& out) const
 {
     std::string file;
-    if (!sanitizePath(userfile, file)) return false;
-    
+    if (!sanitizePath(userfile, file))
+        return false;
+
+    if (_override && userfile != "settings.json") {
+        bool packHasVariantFile = false;
+        if (!_variant.empty()) {
+            if (_zip)
+                packHasVariantFile = _zip->hasFile(_variant+"/"+file);
+            else
+                packHasVariantFile = fileExists(os_pathcat(_path,_variant,file));
+        }
+        if (packHasVariantFile && _override->ReadFile(_variant+"/"+file, out))
+            return true;
+        else if ((!packHasVariantFile || _variant.empty()) && _override->ReadFile(file, out))
+            return true;
+    }
+
     if (_zip) {
         if (!_variant.empty() && _zip->readFile(_variant+"/"+file, out))
             return true;
@@ -252,14 +282,26 @@ void Pack::setVariant(const std::string& variant)
 
     std::string s;
     if (ReadFile("settings.json", s)) {
-        // TODO: allow extending from pack overrides
         _settings = parse_jsonc(s);
-        if (_settings.type() != json::value_t::object)
+        if (!_settings.is_object())
             fprintf(stderr, "WARNING: invalid settings.json\n");
     }
 
     if (_settings.type() != json::value_t::object)
         _settings = json::object();
+
+    if (_override) {
+        printf("overriding from %s\n", sanitize_print(_override->getPath()).c_str());
+        if (_override->ReadFile("settings.json", s)) {
+            json overrides = parse_jsonc(s);
+            if (!overrides.is_object()) {
+                fprintf(stderr, "WARNING: invalid settings.json override\n");
+            } else {
+                printf("settings.json overridden\n");
+                _settings.update(overrides); // extend/override
+            }
+        }
+    }
 }
 
 std::string Pack::getPlatform() const
@@ -322,6 +364,8 @@ std::set<std::string> Pack::getVariantFlags() const
 
 bool Pack::hasFilesChanged() const
 {
+    if (_override && _override->hasFilesChanged(_loaded))
+        return true;
     if (_zip)
         return fileNewerThan(_path, _loaded);
     else
@@ -409,32 +453,37 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
     return {};
 }
 
-void Pack::addSearchPath(const std::string& path)
+static void addPath(const std::string& path, std::vector<std::string>& paths)
 {
 #if !defined WIN32 && !defined _WIN32
     char* tmp = realpath(path.c_str(), NULL);
     if (tmp) {
         std::string real = tmp;
         free(tmp);
-        if (std::find(_searchPaths.begin(), _searchPaths.end(), real) != _searchPaths.end())
+        if (std::find(paths.begin(), paths.end(), real) != paths.end())
             return;
-        _searchPaths.push_back(real);
+        paths.push_back(real);
     } else
 #else
     char* tmp = _fullpath(NULL, path.c_str(), 1024);
     if (tmp) {
         auto cmp = [tmp](const std::string& s) { return strcasecmp(tmp, s.c_str()) == 0; };
-        if (std::find_if(_searchPaths.begin(), _searchPaths.end(), cmp) != _searchPaths.end())
+        if (std::find_if(paths.begin(), paths.end(), cmp) != paths.end())
             return;
-        _searchPaths.push_back(tmp);
+        paths.push_back(tmp);
         free(tmp);
     } else
 #endif
     {
-        if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end())
+        if (std::find(paths.begin(), paths.end(), path) != paths.end())
             return;
-        _searchPaths.push_back(path);
+        paths.push_back(path);
     }
+}
+
+void Pack::addSearchPath(const std::string& path)
+{
+    addPath(path, _searchPaths);
 }
 
 bool Pack::isInSearchPath(const std::string& uncleanPath)
@@ -451,4 +500,52 @@ bool Pack::isInSearchPath(const std::string& uncleanPath)
 const std::vector<std::string>& Pack::getSearchPaths()
 {
     return _searchPaths;
+}
+
+void Pack::addOverrideSearchPath(const std::string& path)
+{
+    addPath(path, _overrideSearchPaths);
+}
+
+Pack::Override::Override(const std::string& path)
+    : _path(path)
+{
+}
+
+Pack::Override::~Override()
+{
+}
+
+bool Pack::Override::ReadFile(const std::string& userfile, std::string& out) const
+{
+    std::string file;
+    if (!sanitizePath(userfile, file))
+        return false;
+
+    out.clear();
+    FILE* f = nullptr;
+    if (!f) {
+        f = fopen(os_pathcat(_path,file).c_str(), "rb");
+    }
+    if (!f) {
+        return false;
+    }
+    while (!feof(f)) {
+        char buf[4096];
+        size_t sz = fread(buf, 1, sizeof(buf), f);
+        if (ferror(f)) goto read_err;
+        out += std::string(buf, sz);
+    }
+    fclose(f);
+    return true;
+
+read_err:
+    fclose(f);
+    out.clear();
+    return false;
+}
+
+bool Pack::Override::hasFilesChanged(std::chrono::system_clock::time_point since) const
+{
+    return dirNewerThan(_path.c_str(), since);
 }

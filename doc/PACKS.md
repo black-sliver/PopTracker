@@ -75,7 +75,7 @@ Configures behavior of the pack.
         "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
     }
 
-Currently **not** user overridable.
+NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
 
 
 ## Lua Interface
