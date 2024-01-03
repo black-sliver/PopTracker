@@ -8,11 +8,11 @@
 static inline int luasandbox_require(lua_State *L)
 {
     // get filename being required
-    const char* file = luaL_checkstring(L, -1);
+    const char* name = luaL_checkstring(L, -1);
 
     // check cache
     luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
-    int t = lua_getfield(L, -1, file);
+    int t = lua_getfield(L, -1, name);
     if (t != LUA_TNONE && t != LUA_TNIL) {
         lua_remove(L, -2); // remove _LOADED from stack
         return 1;
@@ -34,42 +34,47 @@ static inline int luasandbox_require(lua_State *L)
         return 0;
     }
 
+    std::string filename = name;
+    std::replace(filename.begin(), filename.end(), '.', '/');
+
     // load file to string
-    std::string* pscript = new std::string();
+    std::string pscript;
     // TODO: add support for package.path
     bool ok = false;
     for (const std::string prefix : {"scripts/", ""}) {
-        for (const std::string& folder : {std::string(""), std::string(file)+"/"}) {
-            for (const std::string suffix : {"", ".lua"}) {
-                ok = pack->ReadFile(prefix + folder + file + suffix, *pscript);
-                if (ok) break;
+        for (const std::string& part : {filename, filename+"/init"}) {
+            for (const std::string suffix : {".LUA", ".lua"}) {
+                ok = pack->ReadFile(prefix + part + suffix, pscript);
+                if (ok) {
+                    filename = prefix + part + suffix;
+                    break;
+                }
             }
-            if (ok) break;
+            if (ok)
+                break;
         }
-        if (ok) break;
+        if (ok)
+            break;
     }
     if (!ok) {
-        delete pscript;
         lua_pop(L, 2); // pop Tracker and _LOADED
-        luaL_error(L, "No such module: %s", file);
+        luaL_error(L, "No such module: %s", name);
         return 0;
     }
     lua_pop(L, 1); // pop Tracker
 
-    if (luaL_loadbufferx(L, pscript->c_str(), pscript->length(), file, "t") == LUA_OK) {
-        if (lua_pcall(L, 0, 1, 0) == LUA_OK) {
-            delete pscript;
+    if (luaL_loadbufferx(L, pscript.c_str(), pscript.length(), filename.c_str(), "t") == LUA_OK) {
+        lua_pushstring(L, name);
+        if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
             lua_pushvalue(L, -1); // duplicate result
-            lua_setfield(L, -3, file);
+            lua_setfield(L, -3, name);
             lua_remove(L, -2); // remove _LOADED from stack
             return 1;
         } else {
-            delete pscript;
             lua_remove(L, -2); // remove _LOADED from stack
             lua_error(L);
         }
     } else {
-        delete pscript;
         lua_remove(L, -2); // remove _LOADED from stack
         lua_error(L);
     }
