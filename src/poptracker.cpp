@@ -165,6 +165,13 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (_config["split_map_locations"].is_boolean())
         Ui::MapWidget::SplitRects = _config["split_map_locations"];
 
+    if (_config["override_rule_exec_limit"].is_number_unsigned()) {
+        if (_config["override_rule_exec_limit"] > std::numeric_limits<int>::max())
+            _config["override_rule_exec_limit"] = std::numeric_limits<int>::max();
+        Tracker::setExecLimit(_config["override_rule_exec_limit"]);
+    } else if (!_config["override_rule_exec_limit"].is_null())
+        _config["override_rule_exec_limit"] = nullptr; // clear invalid value
+
     saveConfig();
 
     _ui = nullptr; // UI init moved to start()
