@@ -1,0 +1,14 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/strict/settings.json",
+    "allOf": [
+        {
+            "$ref": "../settings.json"
+        },
+        {
+            "properties": {
+                "smooth_scaling": true
+            },
+            "additionalProperties": false
+        }
+    ]
+}
