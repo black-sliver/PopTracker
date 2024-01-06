@@ -16,6 +16,8 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, UiHint, const char*, const char*),
 };
 
+int Tracker::_execLimit = Tracker::DEFAULT_EXEC_LIMIT;
+
 static LayoutNode blankLayoutNode = LayoutNode::FromJSON(json({}));
 static JsonItem blankItem = JsonItem::FromJSON(json({}));
 static Map blankMap = Map::FromJSON(json({}));
@@ -60,7 +62,7 @@ static void lua_timeout_hook(lua_State *L, lua_Debug *)
 
 // This functaion can be used internally when the return type is uncertain.
 // Use carefully; the return value(s) and error handler will still be on the lua stack
-static int RunLuaFunction_inner(lua_State *L, const std::string name)
+static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLimit)
 {
     lua_pushcfunction(L, lua_error_handler);
 
@@ -94,10 +96,11 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
         ++argc;
     }
 
-    constexpr int exec_limit = 500000;
-    lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, exec_limit);
+    if (execLimit > 0)
+        lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, execLimit);
     auto res = lua_pcall(L, argc, 1, -argc-2);
-    lua_sethook(L, nullptr, 0, 0);
+    if (execLimit > 0)
+        lua_sethook(L, nullptr, 0, 0);
     
     if (res != LUA_OK) {
         auto err = lua_tostring(L, -1);
@@ -121,7 +124,7 @@ int Tracker::runLuaFunction(lua_State *L, const std::string name)
 
 int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
 {
-    int callStatus = RunLuaFunction_inner(L, name);
+    int callStatus = RunLuaFunction_inner(L, name, _execLimit);
     if (callStatus != LUA_OK) {
         // RunLuaFunction_inner handles popping the stack in case of errors
         return callStatus;
@@ -958,4 +961,9 @@ bool Tracker::loadState(nlohmann::json& state)
     _bulkUpdate = false;
 
     return true;
+}
+
+void Tracker::setExecLimit(int execLimit)
+{
+    _execLimit = execLimit;
 }
