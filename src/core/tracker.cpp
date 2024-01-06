@@ -698,8 +698,15 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
             }
             // '^$func' gives direct accessibility level rather than an integer code count
             bool isAccessibilitLevel = s[0] == '^'; // use value as level instead of count
-            if (isAccessibilitLevel)
+            if (isAccessibilitLevel) {
+                if (s.length() < 3 || s[1] != '$') { // only ^$ supported
+                    fprintf(stderr, "Warning: invalid rule \"%s\"",
+                            sanitize_print(s).c_str());
+                    reachable = AccessibilityLevel::NONE;
+                    break;
+                }
                 s = s.substr(1);
+            }
             // check cache for '@' rules
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
