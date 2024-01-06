@@ -102,9 +102,10 @@ The following interfaces are provided:
 
 ### global ScriptHost
 
-* `bool :LoadScript(luafilename)`: load and execute a lua script
+* `bool :LoadScript(luafilename)`: load and execute a lua script from absolute filename inside pack
   * `require` can be used instead (since PopTracker 0.21.0)
   * `require` behaves mostly like Lua require since 0.25.6
+    * `"foo.baz"` will try `/scripts/foo/baz.lua`, `/scripts/foo/baz/init.lua`, `/foo/baz.lua` and `/foo/baz/init.lua`
   * `...` contains mod name for relative require since 0.25.6
 * `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
@@ -138,6 +139,7 @@ a table representing an enum with the following constants: \
 ### other globals
 
 * `DEBUG` set to true to get more error or debug output
+* `require` function, see [ScriptHost:LoadScript](#global-scripthost)
 
 
 ### type LuaItem
