@@ -6,7 +6,8 @@
         },
         {
             "properties": {
-                "smooth_scaling": true
+                "smooth_scaling": true,
+                "smooth_map_scaling": true
             },
             "additionalProperties": false
         }
