@@ -22,6 +22,7 @@ class Tracker final : public LuaInterface<Tracker> {
     friend class LuaInterface;
     
 public:
+    static constexpr int DEFAULT_EXEC_LIMIT = 500000;
     
     Tracker(Pack* pack, lua_State *L);
     virtual ~Tracker();
@@ -96,6 +97,7 @@ public:
 
     bool changeItemState(const std::string& id, BaseItem::Action action);
 
+    static void setExecLimit(int execLimit);
 
 protected:
     Pack* _pack;
@@ -113,6 +115,8 @@ protected:
     bool _bulkUpdate = false;
 
     std::list<std::string>* _parents = nullptr;
+
+    static int _execLimit;
 
     AccessibilityLevel isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents);
     bool isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents);

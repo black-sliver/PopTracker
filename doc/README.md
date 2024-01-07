@@ -8,11 +8,11 @@
 
 ## Internal API
 
-* [Lua Glue](LUAGLUE.md)
+* [Lua Glue](https://github.com/black-sliver/luaglue/blob/main/README.md)
 * [UI Lib](UILIB.md)
 
 
 ## Misc
 
-* [Project Overview](OUTLINE.md) (outdated)
-* [TODO](TODO.md) (outdated)
+* [Project Overview](OUTLINE.md)
+* [TODO](TODO.md)

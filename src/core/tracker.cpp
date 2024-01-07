@@ -16,6 +16,8 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, UiHint, const char*, const char*),
 };
 
+int Tracker::_execLimit = Tracker::DEFAULT_EXEC_LIMIT;
+
 static LayoutNode blankLayoutNode = LayoutNode::FromJSON(json({}));
 static JsonItem blankItem = JsonItem::FromJSON(json({}));
 static Map blankMap = Map::FromJSON(json({}));
@@ -60,7 +62,7 @@ static void lua_timeout_hook(lua_State *L, lua_Debug *)
 
 // This functaion can be used internally when the return type is uncertain.
 // Use carefully; the return value(s) and error handler will still be on the lua stack
-static int RunLuaFunction_inner(lua_State *L, const std::string name)
+static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLimit)
 {
     lua_pushcfunction(L, lua_error_handler);
 
@@ -94,10 +96,11 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name)
         ++argc;
     }
 
-    constexpr int exec_limit = 100000;
-    lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, exec_limit);
+    if (execLimit > 0)
+        lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, execLimit);
     auto res = lua_pcall(L, argc, 1, -argc-2);
-    lua_sethook(L, nullptr, 0, 0);
+    if (execLimit > 0)
+        lua_sethook(L, nullptr, 0, 0);
     
     if (res != LUA_OK) {
         auto err = lua_tostring(L, -1);
@@ -121,7 +124,7 @@ int Tracker::runLuaFunction(lua_State *L, const std::string name)
 
 int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
 {
-    int callStatus = RunLuaFunction_inner(L, name);
+    int callStatus = RunLuaFunction_inner(L, name, _execLimit);
     if (callStatus != LUA_OK) {
         // RunLuaFunction_inner handles popping the stack in case of errors
         return callStatus;
@@ -716,6 +719,18 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 count = atoi(s.c_str()+p+1);
                 s = s.substr(0,p);
             }
+            // '^$func' gives direct accessibility level rather than an integer code count
+            bool isAccessibilitLevel = s[0] == '^'; // use value as level instead of count
+            if (isAccessibilitLevel) {
+                if (s.length() < 3 || s[1] != '$') { // only ^$ supported
+                    fprintf(stderr, "Warning: invalid rule \"%s\"",
+                            sanitize_print(s).c_str());
+                    reachable = AccessibilityLevel::NONE;
+                    break;
+                }
+                s = s.substr(1);
+            }
+            // check cache for '@' rules
             auto it = _reachableCache.find(s);
             if (it != _reachableCache.end()) {
                 { // value is glitched/not glitched
@@ -792,6 +807,20 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 _parents = &parents;
                 int n = ProviderCountForCode(s);
                 _parents = nullptr;
+                if (isAccessibilitLevel) { // TODO: merge this with '@' code path
+                    AccessibilityLevel sub = (AccessibilityLevel)n;
+                    if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
+                        inspectOnly = true;
+                    else if (optional && sub == AccessibilityLevel::NONE)
+                        sub = AccessibilityLevel::SEQUENCE_BREAK;
+                    else if (sub == AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::NONE;
+                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE)
+                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
+                    if (reachable == AccessibilityLevel::NONE)
+                        break;
+                    continue;
+                }
                 if (n >= count)
                     continue;
                 if (optional) {
@@ -976,4 +1005,9 @@ bool Tracker::loadState(nlohmann::json& state)
     _bulkUpdate = false;
 
     return true;
+}
+
+void Tracker::setExecLimit(int execLimit)
+{
+    _execLimit = execLimit;
 }

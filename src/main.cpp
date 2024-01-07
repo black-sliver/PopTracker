@@ -180,7 +180,7 @@ int main(int argc, char** argv)
     // argc/argv should be empty here. we pass everything through json args
     json args = json::object();
     if (packPath) {
-        args["pack"] = { {"path", packPath} };
+        args["pack"] = { {"path", pathToUTF8(packPath)} };
     } else if (loadPack) {
         args["pack"] = { {"uid", loadPack} };
     }

@@ -1,0 +1,18 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/settings.json",
+    "title": "PopTracker Pack settings",
+    "description": "Settings for a PopTracker pack.",
+    "type": "object",
+    "properties": {
+        "smooth_scaling": {
+            "description": "Sets scaling algorithm for items/icons. false = null = crisp, true = smooth",
+            "type": ["boolean", "null"],
+            "default": false
+        },
+        "smooth_map_scaling": {
+            "description": "Sets scaling algorithm for maps. false = crisp, true = null = smooth",
+            "type": ["boolean", "null"],
+            "default": true
+        }
+    }
+}

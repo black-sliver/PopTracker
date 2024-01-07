@@ -8,9 +8,10 @@ This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
 
-Copy or unpack tracker packs to `EXEDIR/packs`, `HOME/PopTracker/packs`, `Documents/PopTracker/packs` or `CWD/packs`.\
-On Windows, it will also find packs installed in EmoTracker.\
-On macOS, EXEDIR is *inside* the app bundle, meaning `HOME/PopTracker/packs` is preferred.
+Drag & drop downloaded packs into the PopTracker window to install them without unpacking.\
+Alternatively copy or unpack tracker packs into one of the search paths
+`EXEDIR/packs` (not on macOS), `HOME/PopTracker/packs`,
+`Documents/PopTracker/packs` or `CWD/packs`.
 
 Use the Load button in the top left corner to load a pack.
 
@@ -88,6 +89,10 @@ We do not allow direct access to process memory or sockets from Lua. Instead
 tracker. Click on the grey "AP" to connect to a server if the pack supports it.
 See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md) for more details.
 
+### Bizhawk Connector
+Preview, currently only when setting platform to "n64". See
+[doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md#supported-interfaces) for details.
+
 ### Other systems
 No work has been done for other systems yet.
 
@@ -103,3 +108,15 @@ Currently there is no plug-in interface.
 If you want to work towards implementing such a system, please check
 [PLUGIN LICENSE ADDENDUM.md](PLUGIN%20LICENSE%20ADDENDUM.md)
 for licensing considerations.
+
+## User Overrides
+Users can override files from packs by creating a folder with the same file
+structure as in the pack, named `.../user-override/<pack_uid>` where `...` is
+any one of `Documents/PopTracker`, `%home%/PopTracker` or `AppPath`.
+
+## Portable Mode
+When creating a file called `portable.txt` next to the program (not macos) or
+next to poptracker **inside** the AppBundle (macos-only), the app runs in
+portable mode, which changes the default pack folder to be next to the program
+(not in home folder) and disables asset and pack overrides from home folder
+(only allows overrides from program folder).

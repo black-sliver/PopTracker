@@ -72,9 +72,10 @@ Configures behavior of the pack.
 
     {
         "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
+        "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
     }
 
-Currently **not** user overridable.
+NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
 
 
 ## Lua Interface
@@ -102,8 +103,11 @@ The following interfaces are provided:
 
 ### global ScriptHost
 
-* `bool :LoadScript(luafilename)`: load and execute a lua script
+* `bool :LoadScript(luafilename)`: load and execute a lua script from absolute filename inside pack
   * `require` can be used instead (since PopTracker 0.21.0)
+  * `require` behaves mostly like Lua require since 0.25.6
+    * `"foo.baz"` will try `/scripts/foo/baz.lua`, `/scripts/foo/baz/init.lua`, `/foo/baz.lua` and `/foo/baz/init.lua`
+  * `...` contains mod name for relative require since 0.25.6
 * `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
 * `bool :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
@@ -130,12 +134,13 @@ a string in the form of `"1.0.0"` -- **TODO**: move to Tracker.PopVersion ?
 ### global AccessibilityLevel (enum)
 
 a table representing an enum with the following constants: \
-`None`, `Partial`, `Inspeect`, `SequenceBreak`, `Normal`, `Cleared`
+`None`, `Partial`, `Inspect`, `SequenceBreak`, `Normal`, `Cleared`
 
 
 ### other globals
 
 * `DEBUG` set to true to get more error or debug output
+* `require` function, see [ScriptHost:LoadScript](#global-scripthost)
 
 
 ### type LuaItem
@@ -232,7 +237,8 @@ a table representing an enum with the following constants: \
     
   + img_mods filter to be applied on the img
     - `@disabled`: grey-scale
-    - `overlay|path/to/img.png`: draw a second image over it
+    - `overlay|path/to/img.png|overlay_filters...`: draw a second image over it; overlay_filters are applied to overlay (since 0.25.6)
+    - NOTE: order matters, applied left to right
   + inherit_codes: true will make stage3 provide codes for item, stage1, 2 and 3 (default true)
 
 * `"toggle"`:
@@ -400,7 +406,9 @@ Locations define drops on maps, rules to have them accessible as well as the loo
 Each `map_location` is a square on the map and shows a popup with individual chests.
 
 **Rules:**
-Rules starting with `$` will call the lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
+Rules starting with `$` will call the Lua function with that name, `@<location>/<section>` will use the result of a different access rule, other rules will just look at items' `code` (runs ProviderCountForCode(rule)).
+
+Rules starting with `^` interpret the value as AccessibilityLevel instead of count. That is `^$func` can directly set the AccessibilityLevel, sometimes removing the need for `[]` and `{}` (see below). Only available in PopTracker, since 0.25.6.
 
 For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
 The return value has to be a number (count) or boolean (since v0.20.4).
@@ -413,7 +421,9 @@ Rule-goups inside `{` `}` are a different set of rules to mark the section as "c
 
 `{<checkrule1>, <checkrule2>}` in example above are combined as: `(<checkrule1> AND <checkrule2>)` have to be met to check.
 
-In PopTracker (since 0.19.1) rules can be specified as json array instead of string, which allows to use `,` inside names or arguments
+Individual rules can be specified as json array instead of string, which allows to use `,` inside names or arguments. Only available in PopTracker, since 0.19.1.
+
+Rules can be specified as a single string, which is equivalent to `[[string]]`. Only available in PopTracker, since 0.25.6.
 
 **Parent:**
 With `"parent"`, the location's parent can be overwritten. Since PopTracker v0.19.2.

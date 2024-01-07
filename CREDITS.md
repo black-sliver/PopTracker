@@ -4,6 +4,7 @@
 
 * [black-sliver](https://github.com/black-sliver)
 * [sbzappa](https://github.com/sbzappa)
+* [coavins](https://github.com/coavins/)
 
 ## Other Contributors
 

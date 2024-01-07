@@ -15,6 +15,8 @@
 #include "maptooltip.h"
 #include "mapwidget.h"
 #include "defaults.h" // DEFAULT_FONT_*
+#include <string>
+#include <vector>
 
 namespace Ui {
 
@@ -25,23 +27,35 @@ std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std:
 {
     std::list<ImageFilter> filters;
     for (auto& mod: mods) {
-        std::string name, arg;
+        std::string name;
+        std::vector<std::string> args;
         size_t p = mod.find('|');
         if (p == mod.npos) name = mod;
         else {
             name = mod.substr(0,p);
-            arg  = mod.substr(p+1);
+            while (true) {
+                auto q = mod.find('|', p+1);
+                if (q == mod.npos) {
+                    args.push_back(mod.substr(p+1));
+                    break;
+                }
+                args.push_back(mod.substr(p+1, q-p-1));
+                p = q;
+            }
         }
         if (name == "overlay") {
             // read actual image data into arg instead of filename
-            std::string tmp = std::move(arg);
-            tracker->getPack()->ReadFile(tmp, arg);
+            std::string tmp = std::move(args[0]);
+            tracker->getPack()->ReadFile(tmp, args[0]);
+            for (size_t i=1; i<args.size(); i++)
+                if (args[i] == "@disable" || args[i] == "@disabled")
+                    args[i] = "grey";
         }
         if (name == "@disable" || name == "@disabled")
         {
             name = "grey";
         }
-        filters.push_back({name,arg});
+        filters.push_back({name,args});
     }
     return filters;
 }
@@ -85,7 +99,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
     Item *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
             FontStore::sizeFromData(DEFAULT_FONT_SIZE, item->getOverlayFontSize())));
-    w->setQuality(_defaultQuality);
+    w->setQuality(_defaultItemQuality);
     size_t stages = item->getStageCount();
     bool disabled = item->getAllowDisabled();
     bool stagedWithDisabled = item->getStageCount() && disabled;
@@ -204,7 +218,10 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
         const auto& settings = pack->getSettings();
         auto itScaling = settings.find("smooth_scaling");
         if (itScaling != settings.end() && itScaling.value().is_boolean())
-            _defaultQuality = itScaling.value() ? 2 : 0;
+            _defaultItemQuality = itScaling.value() ? 2 : 0;
+        itScaling = settings.find("smooth_map_scaling");
+        if (itScaling != settings.end() && itScaling.value().is_boolean())
+            _defaultMapQuality = itScaling.value() ? 2 : 0;
     }
     _tracker->onLayoutChanged += {this, [this](void *s, const std::string& layout) {
         updateLayout(layout);
@@ -706,7 +723,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setHideClearedLocations(_hideClearedLocations);
             w->setHideUnreachableLocations(_hideUnreachableLocations);
             _maps[mapname].push_back(w);
-            w->setQuality(2);
+            w->setQuality(_defaultMapQuality);
             if (!node.getBackground().empty()) w->setBackground(node.getBackground());
             w->setGrow(1,1);
             w->setMinSize({200,200});
@@ -749,7 +766,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 _mapTooltipName = locid;
                 _mapTooltipPos = {absX,absY};
                 auto off = MapTooltip::OFFSET;
-                _mapTooltip = new MapTooltip(absX-_absX-off, absY-_absY-off, _font, _smallFont, _defaultQuality,
+                _mapTooltip = new MapTooltip(absX-_absX-off, absY-_absY-off, _font, _smallFont, _defaultItemQuality,
                         _tracker, locid, [this](auto ...args) { return makeItem(args...); });
                 // TODO: move mapTooltip to mapwidget?
                 // fix up position

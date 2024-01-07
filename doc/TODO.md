@@ -2,36 +2,26 @@
 
 Check [OUTLINE.md](OUTLINE.md) to get an overview of everything.
 
-## Current Plans
-see [github projects](https://github.com/black-sliver/PopTracker/projects) (outdated)
-
 ## Help wanted
 - OSX .dmg
-- Custom application icon
 - Fancier GUI
   - Better widgets ("real" buttons)
   - Nicer icons (I'm not an artist)
 
 ## General Stuff
 - isReachable optimizations:
-    - do not call into Lua from updateLocationState(): prebuild cache
     - invalidate only parts of _reachableCache when toggling items?
     - update location state on next frame instead of immediately (start of auto-tracking)
     - try to determine if location state needs update?
 - show version somewhere in the app
 - MemoryWatch: only run callback if all bytes of a watch have been read to avoid potential races (this has to add race-free bool to SNES::readBlock)
-- auto-tracking for N64?
 - pins
 - notes
-- background color of groups/titles
 - alignment of widgets inside widgets
-- Makefile: 32bit exe (static linking is currently somewhat broken)
 - Show error (+reason) when loading a pack fails
-- Log/console/error window as part of the UI
+- Log/console/error window as part of the UI (currently --console and stdout in shell/prompt exists)
 - Remove toolbar and put everything inside a context menu on desktop?
-- Update websocketpp, update asio (or use a different websocket implementation)
-  - included websocketpp is patched to allow std::thread on mingw
-  - included asio is the latest one that works with websocketpp 0.8.1
+- Update websocketpp, update asio
 - Item: `swap_actions: <bool>` (swaps left and right mouse button, alttpr)
 - Map/Locations:
   - number overlay on map (X unreachable red, Y reachable white)
@@ -40,6 +30,9 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects) (outd
 - Fix UI stuff
 - build with `-D_FORTIFY_SOURCE=2`, `-pie`, ASLR, RELRO ?
 - fuzz lua and json interfaces
+
+## Docs
+- compile README to HTML and open local copy with F1
 
 ## WASM
 - custom html, to only have canvas. Use js console for stdout and stderr
@@ -75,7 +68,6 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects) (outd
   - a uniform logic for relayout has to be found
   - a lot of hacks to make the current model somewhat work (see `// FIXME:`s and `// TODO:`s in source)
 - Responsive UI
-  - Toolbar hover/pressed
   - Pack-loading button-widget
 
 ## Random Notes
@@ -83,9 +75,8 @@ see [github projects](https://github.com/black-sliver/PopTracker/projects) (outd
 - Item::ID in json? Auto-generated at the moment
 - Location::ID in json? Concat of names at the moment
 - Unique ID for actual drops (locations' sections' checks) so we can have the same drop on two maps (detailed and overview)
-- Location/section help/info (requirements to reach it)
+- Location/section help/info/hover text (requirements to reach it)
 ### Other stuff
-- enum class Ui::MouseButton in Mouse Events (instead of int and C-style enum)
 - enum flags Ui::Map::LocationState with operator|
 - (Evermizer: `settings_popup`) Layout: `header_background`
 - (Evermizer) Layout: header_content: adds a button to the header

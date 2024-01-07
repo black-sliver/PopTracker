@@ -1,5 +1,6 @@
 #include "poptracker.h"
 #include <luaglue/lua_include.h>
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "ui/trackerwindow.h"
 #include "ui/broadcastwindow.h"
@@ -32,6 +33,7 @@ enum HotkeyID {
     HOTKEY_FORCE_RELOAD,
     HOTKEY_TOGGLE_SPLIT_COLORS,
     HOTKEY_SHOW_BROADCAST,
+    HOTKEY_SHOW_HELP,
 };
 
 
@@ -144,12 +146,12 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         _config["software_fps_limit"] = DEFAULT_SOFTWARE_FPS_LIMIT;
 
     if (_config["export_file"].is_string() && _config["export_uid"].is_string()) {
-        _exportFile = _config["export_file"];
+        _exportFile = pathFromUTF8(_config["export_file"]);
         _exportUID = _config["export_uid"];
     }
 
     if (_config["export_dir"].is_string())
-        _exportDir = _config["export_dir"];
+        _exportDir = pathFromUTF8(_config["export_dir"]);
 
     if (_config["at_uri"].is_string())
         _atUri = _config["at_uri"];
@@ -163,33 +165,57 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (_config["split_map_locations"].is_boolean())
         Ui::MapWidget::SplitRects = _config["split_map_locations"];
 
+    if (_config["override_rule_exec_limit"].is_number_unsigned()) {
+        if (_config["override_rule_exec_limit"] > std::numeric_limits<int>::max())
+            _config["override_rule_exec_limit"] = std::numeric_limits<int>::max();
+        Tracker::setExecLimit(_config["override_rule_exec_limit"]);
+    } else if (!_config["override_rule_exec_limit"].is_null())
+        _config["override_rule_exec_limit"] = nullptr; // clear invalid value
+
     saveConfig();
 
     _ui = nullptr; // UI init moved to start()
 
     Pack::addSearchPath("packs"); // current directory
+    Pack::addOverrideSearchPath("user-override");
 
     std::string cwdPath = getCwd();
     std::string documentsPath = getDocumentsPath();
     std::string homePath = getHomePath();
 
-    _homePackDir = os_pathcat(homePath, "PopTracker", "packs");
+    std::string homePopTrackerPath = os_pathcat(homePath, "PopTracker");
+    _homePackDir = os_pathcat(homePopTrackerPath, "packs");
     _appPackDir = os_pathcat(appPath, "packs");
 
     if (!homePath.empty()) {
         Pack::addSearchPath(_homePackDir); // default user packs
-        if (!_isPortable)
-            Assets::addSearchPath(os_pathcat(homePath, "PopTracker", "assets")); // default user overrides
+        if (!_isPortable) {
+            // default user overrides
+            std::string homeUserOverrides = os_pathcat(homePopTrackerPath, "user-override");
+            if (dirExists(homePopTrackerPath))
+                mkdir_recursive(homeUserOverrides);
+            Pack::addOverrideSearchPath(homeUserOverrides);
+            Assets::addSearchPath(os_pathcat(homePopTrackerPath, "assets"));
+        }
     }
     if (!documentsPath.empty() && documentsPath != ".") {
-        Pack::addSearchPath(os_pathcat(documentsPath, "PopTracker", "packs")); // alternative user packs
+        std::string documentsPopTrackerPath = os_pathcat(documentsPath, "PopTracker");
+        Pack::addSearchPath(os_pathcat(documentsPopTrackerPath, "packs")); // alternative user packs
+        if (!_isPortable) {
+            std::string documentsUserOverrides = os_pathcat(documentsPopTrackerPath, "user-override");
+            Pack::addOverrideSearchPath(documentsUserOverrides);
+            if (dirExists(documentsPopTrackerPath))
+                mkdir_recursive(documentsUserOverrides);
+        }
         if (_config.value<bool>("add_emo_packs", false)) {
             Pack::addSearchPath(os_pathcat(documentsPath, "EmoTracker", "packs")); // "old" packs
         }
     }
+
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
         Pack::addSearchPath(_appPackDir); // system packs
-        Assets::addSearchPath(os_pathcat(appPath,"assets")); // system assets
+        Pack::addOverrideSearchPath(os_pathcat(appPath, "user-override")); // portable/system overrides
+        Assets::addSearchPath(os_pathcat(appPath, "assets")); // system assets
     }
 
     _asio = new asio::io_service();
@@ -314,6 +340,11 @@ bool PopTracker::start()
         else if (hotkey.id == HOTKEY_SHOW_BROADCAST) {
             showBroadcast();
         }
+        else if (hotkey.id == HOTKEY_SHOW_HELP) {
+            if (SDL_OpenURL("https://github.com/black-sliver/PopTracker/blob/master/README.md") != 0) {
+                Dlg::MsgBox("Error", SDL_GetError(), Dlg::Buttons::OK, Dlg::Icon::Error);
+            }
+        }
     }};
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_F11, KMOD_NONE});
     _ui->addHotkey({HOTKEY_TOGGLE_VISIBILITY, SDLK_h, KMOD_LCTRL});
@@ -328,6 +359,7 @@ bool PopTracker::start()
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_LCTRL});
     _ui->addHotkey({HOTKEY_TOGGLE_SPLIT_COLORS, SDLK_p, KMOD_RCTRL});
     _ui->addHotkey({HOTKEY_SHOW_BROADCAST, SDLK_F2, KMOD_NONE});
+    _ui->addHotkey({HOTKEY_SHOW_HELP, SDLK_F1, KMOD_NONE});
 
     // restore state from config
     if (_config.type() == json::value_t::object) {
@@ -349,9 +381,9 @@ bool PopTracker::start()
             if (pos.top <= -1 * size.height)
                 pos.top = 0;
         }
-        auto jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
+        auto& jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
-            std::string path = to_string(jPack["path"],"");
+            std::string path = pathFromUTF8(to_string(jPack["path"],""));
             std::string variant = to_string(jPack["variant"],"");
             if (!scheduleLoadTracker(path,variant))
             {
@@ -502,7 +534,7 @@ bool PopTracker::start()
             json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
             if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename, true))
             {
-                _exportFile = filename;
+                _exportFile = filename; // this is local encoding for fopen
                 _exportUID = _pack->getUID();
                 _exportDir = os_dirname(_exportFile);
             }
@@ -518,7 +550,7 @@ bool PopTracker::start()
             std::string filename;
             if (!Dlg::OpenFile("Load State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
             if (filename != _exportFile) {
-                _exportFile = filename;
+                _exportFile = filename; // this is local encoding for fopen
                 _exportDir = os_dirname(_exportFile);
                 _exportUID.clear();
             }
@@ -731,7 +763,7 @@ bool PopTracker::frame()
         _config["format_version"] = 1;
         if (_pack)
             _config["pack"] = {
-                {"path",_pack->getPath()},
+                {"path",pathToUTF8(_pack->getPath())},
                 {"variant",_pack->getVariant()},
                 {"uid",_pack->getUID()},
                 {"version",_pack->getVersion()}
@@ -744,9 +776,9 @@ bool PopTracker::frame()
                 {"display_name", _win->getDisplayName()},
                 {"display_pos", {disppos.left,disppos.top}}
             };
-        _config["export_file"] = _exportFile;
+        _config["export_file"] = pathToUTF8(_exportFile);
         _config["export_uid"] = _exportUID;
-        _config["export_dir"] = _exportDir;
+        _config["export_dir"] = pathToUTF8(_exportDir);
         saveConfig();
     }
 
