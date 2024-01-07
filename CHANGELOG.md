@@ -1,5 +1,27 @@
 # PopTracker Changelog
 
+## v0.25.6
+
+* App Features
+  * Add some topics to readme: Bizhawk connector, pack install, user override, portable mode
+  * Add F1 hotkey to open the readme
+  * Implement user overrides for packs
+  * Speedup rule evaluation when modifying locations (from Lua)
+* Pack Features
+  * Add support for image mods on overlay images using `|`
+  * Add `^$` rule syntax to directly set AccessibilityLevel from Lua (instead of count/bool)
+  * Add shorter single string rule syntax option `"access_rules": "one_code"`
+  * Add smooth_map_scaling to settings.json
+  * json schema for settings.json
+  * Lua: properly implement require, set `...` variable to current module
+  * Allow setting and reading the Tracker.BulkUpdate flag
+    * automatically set while loading state
+    * when set to `true`, rule evaluation is deferred until set to `false` again
+* Fixes
+  * Correctly encode non-ASCII paths on windows when saving (instead of crashing)
+  * Lua: increase execution limit of rules to 500k instructions - some packs ran into the limit
+  * Internal doc update/cleanup
+
 ## v0.25.5
 
 * App Features
