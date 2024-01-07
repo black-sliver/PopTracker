@@ -98,6 +98,7 @@ The following interfaces are provided:
 * `int :ProviderCountForCode(code)`: number of items that provide the code (sum of count for consumables)
 * `mixed :FindObjectForCode(string)`: returns items for `code` or location section for `@location/section`
 * `void :UiHint(name,string)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0
+* `bool .BulkUpdate`: can be set to true from Lua to pause running logic rules.
 
 
 ### global ScriptHost

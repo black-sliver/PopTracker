@@ -162,7 +162,8 @@ bool Tracker::AddItems(const std::string& file) {
         auto& item = _jsonItems.back();
         item.setID(++_lastItemID);
         item.onChange += {this, [this](void* sender) {
-            if (!_bulkUpdate) _reachableCache.clear();
+            if (!_bulkUpdate)
+                _reachableCache.clear();
             _providerCountCache.clear();
             JsonItem* i = (JsonItem*)sender;
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
@@ -463,10 +464,29 @@ int Tracker::Lua_Index(lua_State *L, const char* key) {
     if (strcmp(key, "ActiveVariantUID") == 0) {
         lua_pushstring(L, _pack->getVariant().c_str());
         return 1;
+    } else if (strcmp(key, "BulkUpdate") == 0) {
+        lua_pushboolean(L, _bulkUpdate);
+        return 1;
     } else {
         printf("Tracker::Lua_Index(\"%s\") unknown\n", key);
     }
     return 0;
+}
+
+bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
+    if (strcmp(key, "ActiveVariantUID") == 0) {
+        luaL_error(L, "Tried to write read-only property Tracker.%s", key);
+    } else if (strcmp(key, "BulkUpdate") == 0) {
+        bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
+        if (!val) {
+            for (const auto& id: _bulkItemUpdates)
+                onStateChanged.emit(this, id);
+            _bulkItemUpdates.clear();
+        }
+        _bulkUpdate = val;
+        return true;
+    }
+    return false;
 }
 
 const Map& Tracker::getMap(const std::string& name) const
@@ -783,6 +803,7 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
             // '$' calls into Lua, now also supported by ProviderCountForCode
             // other: references codes (with or without count)
             else {
+                // NOTE: we don't use _reachableCache here, instead ProvideCountForCode has a cache
                 _parents = &parents;
                 int n = ProviderCountForCode(s);
                 _parents = nullptr;
@@ -800,10 +821,6 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                         break;
                     continue;
                 }
-#if 0
-                _reachableCache[s] = n; // FIXME: test if commenting this out has an impact
-                // NOTE: we currently don't cache count results for code, only '@'
-#endif
                 if (n >= count)
                     continue;
                 if (optional) {
@@ -885,7 +902,8 @@ LuaItem * Tracker::CreateLuaItem()
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
-        if (!_bulkUpdate) _reachableCache.clear();
+        if (!_bulkUpdate)
+            _reachableCache.clear();
         _providerCountCache.clear();
         LuaItem* i = (LuaItem*)sender;
         if (_bulkUpdate)
