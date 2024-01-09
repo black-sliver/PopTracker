@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.25.7
+
+* Fixes
+  * Fix updating map locations that use `ref`(speedup in 0.25.6 broke this)
+
 ## v0.25.6
 
 * App Features
