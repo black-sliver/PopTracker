@@ -75,7 +75,8 @@ protected:
     void updateDisplay(const std::string& check);
     void updateState(const std::string& check);
     void updateLocations();
-    void updateLocation(const std::string& location);
+    void updateLocation(const std::string& location, bool all=false);
+    void updateMapTooltip();
     void updateItem(Item* w, const BaseItem& item);
 
     size_t addLayoutNodes(Container* container, const std::list<LayoutNode>& nodes, size_t depth=0);
