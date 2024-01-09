@@ -61,6 +61,8 @@ public:
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
 
+    bool operator<(const LocationSection& rhs) const;
+
 protected: // lua interface
     static constexpr const char Lua_Name[] = "LocationSection";
     static const LuaInterface::MethodMap Lua_Methods;

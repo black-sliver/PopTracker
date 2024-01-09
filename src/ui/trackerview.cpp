@@ -234,6 +234,9 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
     }};
     _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
         updateLocation(sec.getParentID());
+        for (const auto& pair: _tracker->getReferencingSections(sec))
+            updateLocation(pair.first.get().getID());
+        updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
     }};
     updateLayout(layoutRoot);
     updateState("");
@@ -360,12 +363,12 @@ void TrackerView::updateLayout(const std::string& layout)
 
 void TrackerView::updateLocations()
 {
-    updateLocation("");
+    updateLocation("", true);
+    updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
 }
 
-void TrackerView::updateLocation(const std::string& location)
+void TrackerView::updateLocation(const std::string& location, bool all)
 {
-    bool all = location.empty();
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
@@ -381,7 +384,10 @@ void TrackerView::updateLocation(const std::string& location)
             }
         }
     }
+}
 
+void TrackerView::updateMapTooltip()
+{
     if (_mapTooltip && _mapTooltipOwner) {
         _mapTooltip->update(_tracker, [this](Item* w, const BaseItem& item) { updateItem(w, item); });
         // update size if visibility of an item changed

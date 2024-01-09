@@ -12,6 +12,7 @@
 #include "signal.h"
 #include <string>
 #include <list>
+#include <functional>
 #include <cstddef> // nullptr_t
 #include <nlohmann/json.hpp>
 
@@ -81,7 +82,10 @@ public:
     std::list<std::string> getMapNames() const;
     std::list< std::pair<std::string, Location::MapLocation> > getMapLocations(const std::string& mapname) const;
     Location& getLocation(const std::string& name, bool partialMatch=false);
+    std::pair<Location&, LocationSection&> getLocationAndSection(const std::string& id);
     LocationSection& getLocationSection(const std::string& id);
+    const std::vector<std::pair<std::reference_wrapper<const Location>, std::reference_wrapper<const LocationSection>>>&
+    getReferencingSections(const LocationSection& sec);
 
     nlohmann::json saveState() const;
     bool loadState(nlohmann::json& state);
@@ -114,6 +118,12 @@ protected:
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
 
+    std::map<std::string, std::vector<std::string>> _sectionNameRefs;
+    std::map<std::reference_wrapper<const LocationSection>,
+             std::vector<std::pair<std::reference_wrapper<const Location>,
+                                   std::reference_wrapper<const LocationSection>>>,
+             std::less<const LocationSection&>> _sectionRefs;
+
     std::list<std::string>* _parents = nullptr;
 
     static int _execLimit;
@@ -124,6 +134,7 @@ protected:
     bool isVisible(const Location& location, std::list<std::string>& parents);
     AccessibilityLevel isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents);
 
+    void rebuildSectionRefs();
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";

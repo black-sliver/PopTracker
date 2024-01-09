@@ -458,6 +458,7 @@ json LocationSection::save() const
         {"cleared", _itemCleared}
     };
 }
+
 bool LocationSection::load(json& j)
 {
     if (j.type() == json::value_t::object) {
@@ -469,6 +470,13 @@ bool LocationSection::load(json& j)
         return true;
     }
     return false;
+}
+
+bool LocationSection::operator<(const LocationSection& rhs) const
+{
+    if (this->getParentID() == rhs.getParentID())
+        return this->getName() < rhs.getName();
+    return this->getParentID() < rhs.getParentID();
 }
 
 

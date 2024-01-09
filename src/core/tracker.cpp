@@ -282,6 +282,7 @@ bool Tracker::AddLocations(const std::string& file) {
     
     _reachableCache.clear();
     _providerCountCache.clear();
+    _sectionRefs.clear();
     for (auto& loc : Location::FromJSON(j, _locations)) {
         // find duplicate, warn and merge
 #ifdef MERGE_DUPLICATE_LOCATIONS // this should be default in the future
@@ -329,10 +330,12 @@ bool Tracker::AddLocations(const std::string& file) {
 #endif
         _locations.push_back(std::move(loc)); // TODO: move constructor
         for (auto& sec : _locations.back().getSections()) {
+            if (!sec.getRef().empty())
+                _sectionNameRefs[sec.getRef()].push_back(_locations.back().getID() + "/" + sec.getName());
             sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};
         }
     }
-    
+
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
@@ -570,7 +573,7 @@ Location& Tracker::getLocation(const std::string& id, bool partialMatch)
     return blankLocation;
 }
 
-LocationSection& Tracker::getLocationSection(const std::string& id)
+std::pair<Location&, LocationSection&> Tracker::getLocationAndSection(const std::string& id)
 {
     const char *start = id.c_str();
     const char *t = strrchr(start, '/');
@@ -581,11 +584,47 @@ LocationSection& Tracker::getLocationSection(const std::string& id)
         auto& loc = getLocation(locid, true);
         for (auto& sec: loc.getSections()) {
             if (sec.getName() != secname) continue;
-            return sec;
+            return {loc, sec};
         }
-
     }
-    return blankLocationSection;
+    return {blankLocation, blankLocationSection};
+}
+
+LocationSection& Tracker::getLocationSection(const std::string& id)
+{
+    return getLocationAndSection(id).second;
+}
+
+const std::vector<std::pair<std::reference_wrapper<const Location>, std::reference_wrapper<const LocationSection>>>&
+Tracker::getReferencingSections(const LocationSection& sec)
+{
+    static std::vector<std::pair<std::reference_wrapper<const Location>, std::reference_wrapper<const LocationSection>>>
+    blank = {};
+
+    if (_sectionRefs.empty() && !_sectionNameRefs.empty())
+        rebuildSectionRefs();
+
+    auto it = _sectionRefs.find(sec);
+    if (it != _sectionRefs.end()) {
+        return it->second;
+    }
+    return blank;
+}
+
+void Tracker::rebuildSectionRefs()
+{
+    _sectionRefs.clear();
+    for (const auto& pair: _sectionNameRefs) {
+        const auto& target = getLocationSection(pair.first);
+        if (target.getName().empty())
+            continue;
+        for (const auto& sourceName: pair.second) {
+            const auto& source = getLocationAndSection(sourceName);
+            if (source.second.getRef().empty())
+                continue;
+            _sectionRefs[target].push_back(source);
+        }
+    }
 }
 
 const Pack* Tracker::getPack() const
