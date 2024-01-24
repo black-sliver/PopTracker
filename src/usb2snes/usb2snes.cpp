@@ -467,6 +467,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
 {
     // WRAM
     if ((addr>>16)==0x7e || (addr>>16)==0x7f) return 0xF50000 + (addr&0x1ffff);
+
     // CART
     switch (mapping) {
         case Mapping::LOROM:
@@ -484,6 +485,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             // ROM
             return ((addr&0x7f0000) >> 1) + (addr&0x7fff); // pretty sure this is correct
             break;
+
         case Mapping::HIROM:
             // FASTROM MIRROR
             if (addr>=0x800000) addr -= 0x800000;
@@ -496,6 +498,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             // ROM
             return addr & 0x3fffff;
             break;
+
         case Mapping::EXLOROM:
             // NOTE: this is probably completely wrong, but we need *something*
             // SRAM
@@ -512,6 +515,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
                 return ((addr&0x7f0000) >> 1) + (addr&0x7fff);
             // ROM2
             return 0x400000 + ((addr&0x7f0000) >> 1) + (addr&0x7fff);
+
         case Mapping::EXHIROM:
             // ROM1
             if (addr>=0xc00000 && addr<=0xffffff)
@@ -530,10 +534,58 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             if ((addr&0xffff) < 0x2000)
                 return 0xf50000 + (addr&0x1fff);
             break;
+
+        case Mapping::SA1:
+            // copied from https://github.com/alttpo/snes/blob/main/mapping/sa1rom/mapping.go
+            // ROM
+            if (addr>=0xc00000)
+                return addr & 0x3fffff;
+            // MIXED fast
+            if (addr>=0x800000) {
+                auto offs = addr & 0xffff;
+                auto bank = addr >> 16;
+                if (offs >= 0x8000)
+                    return ((bank - 0x80 + 0x40) << 15) | (offs & 0x7fff);
+                if (offs >= 0x6000)
+                    // BW-RAM image dynamically selects a single $2000 sized block
+                    return 0xe00000 + (offs - 0x6000);
+                if (offs < 0x2000)
+                    // WRAM
+                    return 0xf50000 + offs;
+                break; // unmapped or SA-1 registers
+            }
+            if (addr>=0x500000) {
+                break; // unmapped?
+            }
+            if (addr>=0x440000) {
+		// BW-RAM image dynamically selects a single $2000 sized block
+		return 0xe00000 + (addr & 0x1FFF);
+            }
+            if (addr>=0x400000) {
+		// BW-RAM area: linearly mapped
+		return 0xe00000 + addr - 0x400000;
+            }
+            // MIXED slow
+            if (addr<0x400000) {
+                auto offs = addr & 0xffff;
+                auto bank = addr >> 16;
+                if (offs >= 0x8000)
+                    return (bank << 15) + (offs & 0x7fff);
+                if (offs >= 0x6000)
+                    // BW-RAM image dynamically selects a single $2000 sized block
+                    return 0xe00000 + (offs - 0x6000);
+                if (offs < 0x2000)
+                    // WRAM
+                    return 0xf50000 + offs;
+                break; // unmapped or SA-1 registers
+            }
+
         case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
             return addr&0x3ffff; // NOTE: this can not access SRAM
             break;
     }
+
+    // unmapped
     return 0;
 }
 static bool is_rom(uint32_t usb2snes_addr)

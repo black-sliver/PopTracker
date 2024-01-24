@@ -25,7 +25,7 @@ If you find a non-working case, please report.
 
 For snes, the interface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
-"lorom", "hirom", "exlorom" or "exhirom", or the internal game-name table.
+"lorom", "hirom", "exlorom", "exhirom" or "sa-1", or the internal game-name table.
 
 
 ### global ScriptHost

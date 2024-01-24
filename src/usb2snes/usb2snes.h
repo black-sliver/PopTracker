@@ -16,7 +16,8 @@ class USB2SNES {
             LOROM,
             HIROM,
             EXLOROM,
-            EXHIROM
+            EXHIROM,
+            SA1,
         };
 
         USB2SNES(const std::string& appname);

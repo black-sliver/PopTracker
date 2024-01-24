@@ -60,15 +60,17 @@ public:
             _lastBackendIndex++;
             _backendIndex[_snes] = _lastBackendIndex;
             _state.push_back(State::Disconnected);
-            if (flags.find("lorom") != flags.end()) {
+
+            if (flags.find("lorom") != flags.end())
                 _snes->setMapping(USB2SNES::Mapping::LOROM);
-            } else if (flags.find("hirom") != flags.end()) {
+            else if (flags.find("hirom") != flags.end())
                 _snes->setMapping(USB2SNES::Mapping::HIROM);
-            } else if (flags.find("exlorom") != flags.end()) {
+            else if (flags.find("exlorom") != flags.end())
                 _snes->setMapping(USB2SNES::Mapping::EXLOROM);
-            } else if (flags.find("exhirom") != flags.end()) {
+            else if (flags.find("exhirom") != flags.end())
                 _snes->setMapping(USB2SNES::Mapping::EXHIROM);
-            }
+            else if (flags.find("sa-1") != flags.end())
+                _snes->setMapping(USB2SNES::Mapping::SA1);
         }
         if (strcasecmp(platform.c_str(), "n64") == 0) {
             _provider = new LuaConnector::LuaConnector(_name);
