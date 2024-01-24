@@ -236,8 +236,8 @@ bool Ui::render()
                 }
                 case SDL_MOUSEWHEEL: {
                     EVENT_LOCK(this);
-                    int x = ev.wheel.x * 16;
-                    int y = ev.wheel.y * 16;
+                    int x = ev.wheel.x * 48;
+                    int y = ev.wheel.y * 48;
                     unsigned mod = 0;
                     auto winIt = _windows.find(ev.motion.windowID);
                     if (winIt != _windows.end()) {
