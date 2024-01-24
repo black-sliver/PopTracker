@@ -87,18 +87,19 @@ public:
 
         auto oldScrollY = _scrollY;
         int y = _padding + _scrollY;
+        Widget* lastChild = nullptr;
         for (auto& child : _children) {
             if (!child->getVisible())
                 continue;
             child->setTop(y);
             y += child->getHeight() + _spacing;
+            lastChild = child;
         }
         y += _padding;
 
         // recalculate max scroll, and fix up scrolling if outside of window
-        if (!_children.empty() && !isFixup) {
-            const auto& last = _children.back();
-            int bot = last->getTop() + last->getHeight();
+        if (lastChild && !isFixup) {
+            int bot = lastChild->getTop() + lastChild->getHeight();
             _scrollMaxY = _scrollY - (bot - _size.height);
             if (_scrollMaxY > 0) _scrollMaxY = 0;
             if (_scrollY < _scrollMaxY)
