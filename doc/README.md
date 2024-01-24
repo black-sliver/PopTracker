@@ -2,6 +2,7 @@
 
 ## Pack API
 
+* [Pack Creation Guide](PackCreation.md) by MisterIbis
 * [Pack Specification and Interfaces](PACKS.md)
 * [Auto-Tracking](AUTOTRACKING.md)
 
