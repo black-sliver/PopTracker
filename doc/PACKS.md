@@ -52,6 +52,7 @@ Currently supported flags:
 * `"hirom"`: (SNES) game has HiROM mapping
 * `"exlorom"`: (SNES) game has ExLoROM mapping
 * `"exhirom"`: (SNES) game has ExHiROM mapping
+* `"sa-1"`: (SNES) game has SA-1 mapping
 
 `versions_url` can be used for automatic updates. Information from global `packs.json` takes precedence.
 See https://github.com/black-sliver/PopTracker/tree/packlist for more information.
