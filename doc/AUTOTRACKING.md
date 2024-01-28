@@ -23,7 +23,7 @@ If you find a non-working case, please report.
 
 ## Memory Interface (USB2SNES, Lua)
 
-For snes, the inferface uses bus addresses, a valid address mapping has to be
+For snes, the interface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
 "lorom", "hirom", "exlorom" or "exhirom", or the internal game-name table.
 
@@ -62,7 +62,7 @@ ScriptHost:LoadScript("scripts/autotracking.lua")
 -- autotracking.lua
 
 function updateAlchemy(mem)
-    local b = mem:ReadUint8(0x7E2258)
+    local b = mem:ReadUInt8(0x7E2258)
     Tracker:FindObjectForCode("acid_rain").Active = (b & 0x01)>0 -- Acid Rain
     -- etc.
     return true -- (optional) returning false will call the callback again if anything else changes
