@@ -43,6 +43,9 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key,"OnRightClickFunc")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _onRightClickFunc.ref);
         return 1;
+    } else if (strcmp(key,"OnMiddleClickFunc") == 0) {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, _onMiddleClickFunc.ref);
+        return 1;
     } else if (strcmp(key,"CanProvideCodeFunc")==0) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, _canProvideCodeFunc.ref);
         return 1;
@@ -131,6 +134,9 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key,"OnRightClickFunc")==0) {
         _onRightClickFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
         return true;
+    } else if (strcmp(key,"OnMiddleClickFunc") == 0) {
+        _onMiddleClickFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
+        return true;
     } else if (strcmp(key,"CanProvideCodeFunc")==0) {
         _canProvideCodeFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
         return true;
@@ -213,10 +219,11 @@ int LuaItem::providesCode(const std::string code) const
 
 bool LuaItem::changeState(Action action)
 {
-    // for now we'll just have Left=Next send left-click, Right=Prev send right-click
+    // for now we'll just have Left=Next send left-click, Right=Prev send right-click and Toggle send middle-click
     if (action == BaseItem::Action::Secondary || action == BaseItem::Action::Prev)
     {
-        if (!_onRightClickFunc.valid()) return false;
+        if (!_onRightClickFunc.valid())
+            return false;
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _onRightClickFunc.ref);
         Lua_Push(_L); // arg1: this
         if (lua_pcall(_L, 1, 0, 0)) {
@@ -225,9 +232,22 @@ bool LuaItem::changeState(Action action)
             return false;
         }
     }
+    else if (action == BaseItem::Action::Toggle)
+    {
+        if (!_onMiddleClickFunc.valid())
+            return false;
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, _onMiddleClickFunc.ref);
+        Lua_Push(_L); // arg1: this
+        if (lua_pcall(_L, 1, 0, 0)) {
+            printf("Error calling Item:onMiddleClick: %s\n", lua_tostring(_L, -1));
+            lua_pop(_L, 1);
+            return false;
+        }
+    }
     else
     {
-        if (!_onLeftClickFunc.valid()) return false;
+        if (!_onLeftClickFunc.valid())
+            return false;
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _onLeftClickFunc.ref);
         Lua_Push(_L); // arg1: this
         if (lua_pcall(_L, 1, 0, 0)) {

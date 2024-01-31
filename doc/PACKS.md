@@ -165,7 +165,8 @@ a table representing an enum with the following constants: \
 * `object .ItemState`: (any) object to track internal state in Lua. Keys have to be strings for Get and Set below to work.
 * `closure(LuaItem) .OnLeftClickFunc`: called when left-clicking
 * `closure(LuaItem) .OnRightClickFunc`: called when right-clicking
-* **TODO**: Middle, Forward, Backward or a generalized onClick(button)
+* `closure(LuaItem) .OnMiddleClickFunc`: called when middle-clicking, since 0.25.8
+* **TODO**: Forward, Backward or a generalized onClick(button)
 * `closure(LuaItem,string code) .CanProvideCodeFunc`: called to determine if item has code
 * `closure(LuaItem,string code) .ProvidesCodeFunc`: called to track progress, closure should returns 1 if code is provided (can provide && active)
 * `closure(LuaItem,string code) .AdvanceToCodeFunc`: called to change item's stage to provide code (not in use yet)
