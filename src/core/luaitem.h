@@ -54,6 +54,7 @@ private:
     LuaRef _itemState;
     LuaRef _onLeftClickFunc;
     LuaRef _onRightClickFunc;
+    LuaRef _onMiddleClickFunc;
     LuaRef _canProvideCodeFunc;
     LuaRef _providesCodeFunc;
     LuaRef _advanceToCodeFunc;
