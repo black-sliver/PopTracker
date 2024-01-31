@@ -71,6 +71,7 @@ public:
                 _snes->setMapping(USB2SNES::Mapping::EXHIROM);
             else if (flags.find("sa-1") != flags.end())
                 _snes->setMapping(USB2SNES::Mapping::SA1);
+            _snesMapping = _snes->getMapping();
         }
         if (strcasecmp(platform.c_str(), "n64") == 0) {
             _provider = new LuaConnector::LuaConnector(_name);
@@ -321,7 +322,9 @@ public:
         return false;
     }
 
-    void setInterval(unsigned ms) {
+    void setInterval(unsigned ms)
+    {
+        _interval = ms;
         if (_snes)
             _snes->setUpdateInterval(ms);
         if (_provider)
@@ -516,9 +519,12 @@ public:
                 } else {
                     delete _snes;
                 }
-                _snes = new USB2SNES(_name);
                 _backendIndex.erase(_snes);
+                _snes = new USB2SNES(_name);
                 _backendIndex[_snes] = index;
+                _snes->setMapping(_snesMapping);
+                if (_interval != INTERVAL_UNSET)
+                    _snes->setUpdateInterval(_interval);
             }
             if (_uat && _backendIndex[_uat] == index
                     && _uat->getState() != UATClient::State::DISCONNECTED
@@ -589,6 +595,10 @@ protected:
     std::string _name;
     bool _sentState = false;
     std::vector<std::string> _snesAddresses;
+    unsigned _interval = INTERVAL_UNSET;
+    USB2SNES::Mapping _snesMapping;
+
+    static constexpr unsigned INTERVAL_UNSET = std::numeric_limits<unsigned>::max();
 
     static const std::string BACKEND_AP_NAME;
     static const std::string BACKEND_UAT_NAME;

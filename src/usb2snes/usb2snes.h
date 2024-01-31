@@ -30,6 +30,7 @@ class USB2SNES {
         bool wsConnected();
         bool snesConnected();
         void setMapping(Mapping mapping);
+        Mapping getMapping() const;
         void addWatch(uint32_t addr, unsigned len=1);
         void removeWatch(uint32_t addr, unsigned len=1);
         uint8_t read(uint32_t addr);

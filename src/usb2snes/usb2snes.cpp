@@ -599,6 +599,11 @@ void USB2SNES::setMapping(USB2SNES::Mapping value)
     mapping = value;
 }
 
+USB2SNES::Mapping USB2SNES::getMapping() const
+{
+    return mapping;
+}
+
 void USB2SNES::addWatch(uint32_t addr, unsigned len)
 {
     uint32_t usb2snes_addr = mapaddr(addr);
