@@ -149,7 +149,7 @@ a table representing an enum with the following constants: \
 * `ImageRef .Icon`: change the icon. Use `ImageReference:FromPackRelativePath`.
 * `string .IconMods`: icon modifier, see JSON's img_mods. Only available in PopTracker, since 0.11.0
 * `string .Name`: item's name
-* `object .ItemState`: (any) object to track internal state in lua
+* `object .ItemState`: (any) object to track internal state in Lua. Keys have to be strings for Get and Set below to work.
 * `closure(LuaItem) .OnLeftClickFunc`: called when left-clicking
 * `closure(LuaItem) .OnRightClickFunc`: called when right-clicking
 * **TODO**: Middle, Forward, Backward or a generalized onClick(button)
@@ -159,8 +159,8 @@ a table representing an enum with the following constants: \
 * `closure(LuaItem) .SaveFunc`: called when saving, closure should return a lua object that works in LoadFunc
 * `closure(LuaItem,object data) .LoadFunc`: called when loading, data as returned by `SaveFunc`
 * `closure(LuaItem,key,value) .PropertyChangedFunc`: called when :Set is called and the value changed
-* `:Set(key,value)`: write to property store (NOTE: property store == .ItemState)
-* `:Get(key)`: read from property store. not sure what this is good for if we have `.ItemState`
+* `:Set(string key,value)`: write to property store (NOTE: property store == .ItemState)
+* `:Get(string key)`: read from property store. not sure what this is good for if we have `.ItemState`
 * `:SetOverlay(string)`: set overlay text (see JsonItem), only available in PopTracker
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
