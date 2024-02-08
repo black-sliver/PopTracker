@@ -11,11 +11,12 @@
 -- * for chests this is left as an exercise for the reader
 -- Alternatively try-catch (pcall) can be used to handle unexpected values.
 
-function updateToggles(store, vars)
+local updateToggles = function(store, vars)
     print("updateToggles")
     for _, var in ipairs(vars) do
         local o = Tracker:FindObjectForCode(var)
         local val = store:ReadVariable(var)
+        ---@cast o JsonItem
         if type(val) == "number" then; o.Active = val > 0
         elseif type(val) == "string" then; o.Active = val ~= ""
         else; o.Active = not(not val)
@@ -24,11 +25,12 @@ function updateToggles(store, vars)
     end
 end
 
-function updateConsumables(store, vars)
+local updateConsumables = function(store, vars)
     print("updateConsumables")
     for _, var in ipairs(vars) do
         local o = Tracker:FindObjectForCode(var)
         local val = store:ReadVariable(var)
+        ---@cast o JsonItem
         if type(val) == "number" then; o.AcquiredCount = val
         else; o.AcquiredCount = 0
         end
@@ -36,11 +38,12 @@ function updateConsumables(store, vars)
     end
 end
 
-function updateProgressiveToggles(store, vars)
+local updateProgressiveToggles = function(store, vars)
     print("updateProgressiveToggles")
     for _, var in ipairs(vars) do
         local o = Tracker:FindObjectForCode(var)
         local val = store:ReadVariable(var)
+        ---@cast o JsonItem
         if type(val) == "table" and type(val[2]) == "number" then
             if type(val[1]) == "number" then; o.Active = val[1]>0
             else; o.Active = not(not val[1])
@@ -53,7 +56,7 @@ function updateProgressiveToggles(store, vars)
     end
 end
 
-function updateLocations(store, vars)
+local updateLocations = function(store, vars)
     print("updateLocations")
     -- if the variable is not named the same as the location
     -- you'll have to map them to actual section names
@@ -62,6 +65,7 @@ function updateLocations(store, vars)
     for _, var in ipairs(vars) do
         local o = Tracker:FindObjectForCode("@"..var) -- grab section
         local val = store:ReadVariable(var)
+        ---@cast o LocationSection
         o.AvailableChestCount = o.ChestCount - val -- in this case val = that many chests are looted
     end
 end

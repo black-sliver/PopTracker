@@ -85,6 +85,15 @@ NOTE: User overrides for settings are merged with the pack, replacing individual
 
   you can have global items in `items/items.json` OR per-variant items in `[variant]/items/item.json`
 
+* To get proper auto-complete, type hints and warnings for the PopTracker API, you can use
+  [LuaLS](https://github.com/LuaLS/lua-language-server?tab=readme-ov-file#lua-language-server)
+  (VSCode/ium extension: search for `sumneko.lua`)
+  with our [Definition File](../api/lua/definition/poptracker.lua).\
+  You have to add a `.luarc.json` [(example)](../examples/uat-example/.luarc.json)
+  with the correct path (typically `../../api/lua/definition`) to your project and restart the Language Server or IDE.\
+  It is recommended to check that file into Git, but exclude it from the final pack when zipping.
+
+
 The following interfaces are provided:
 
 
@@ -108,9 +117,11 @@ The following interfaces are provided:
   * `require` behaves mostly like Lua require since 0.25.6
     * `"foo.baz"` will try `/scripts/foo/baz.lua`, `/scripts/foo/baz/init.lua`, `/foo/baz.lua` and `/foo/baz/init.lua`
   * `...` contains mod name for relative require since 0.25.6
-* `bool :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
+* `ref :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
-* `bool :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
+* `ref :AddVariableWatch(name,{variables, ...},callback,interal)`: add a variable watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
+* `bool :RemoveVariableWatch(name)`: remove variable watch by name, available since 0.16.0
+* `ref :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
 * `bool :RemoveWatchForCode(name)`: remove watch by name
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 
@@ -124,6 +135,7 @@ The following interfaces are provided:
 
 `use ImageRef = string`
 * `ImageRef :FromPackRelativePath(filename)`: for now this will just return filename and path resoltuion is done later.
+* `ImageRef :FromImageReference(original, mod)`: return ImageRef that is original ImageRef + mod string.
 
 
 ### global PopVersion

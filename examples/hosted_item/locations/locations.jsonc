@@ -33,7 +33,7 @@
                         "item_count": 1,
                         "hosted_item": "e",
                         "access_rules": [
-                            "$some_rule"
+                            "$SomeRule"
                         ]
                     }
                 ]
