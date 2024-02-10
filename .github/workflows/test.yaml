@@ -9,6 +9,7 @@ on:
       - '!**.md'
       - '!doc/**'
       - '!schema/**'
+      - '!api/lua/definition/**'
       - '!.github/workflows/**'
       - '.github/workflows/test.yaml'
   pull_request:
@@ -19,6 +20,7 @@ on:
       - '!**.md'
       - '!doc/**'
       - '!schema/**'
+      - '!api/lua/definition/**'
       - '!.github/workflows/**'
       - '.github/workflows/test.yaml'
 
