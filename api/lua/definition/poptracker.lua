@@ -21,11 +21,12 @@ PopVersion = "0.25.7"
 ---@type boolean
 DEBUG = false
 
----If defined in global scope, called when a game is connected (currently memory interfaces only)
----@type function():nil
+---If defined in global scope, called when a game is connected (currently memory interfaces only).
+---@type fun():nil
 autotracker_started = nil
 
----If defined in global scope, called when auto-tracking is disabled by the user (currently memory interfaces only)
+---If defined in global scope, called when auto-tracking is disabled by the user (currently memory interfaces only).
+---@type fun():nil
 autotracker_stopped = nil
 
 
@@ -38,43 +39,43 @@ Tracker = {}
 Tracker.ActiveVariantUID = ""
 
 ---load items from json
----@param jsonFIlename string
+---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
-function Tracker:AddItems(jsonFIlename) end
+function Tracker:AddItems(jsonFilename) end
 
 ---load maps from json
----@param jsonFilename string
+---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
 function Tracker:AddMaps(jsonFilename) end
 
 ---load locations from json
----@param jsonFilename string
+---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
 function Tracker:AddLocations(jsonFilename) end
 
 ---load layouts from json
----@param jsonFilename string
+---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
 function Tracker:AddLayouts(jsonFilename) end
 
----Returns number of items that provide the code (sum of count for consumables).
----@param code string
----@return integer
+---get provided count for an (item) code
+---@param code string the (item) code to look up
+---@return integer count of items providing the code or the sum of count for consumables
 function Tracker:ProviderCountForCode(code) end
 
----Returns item for `code` or location section for `@location/section`
----@param code string
----@return AnyObject?
+---get item for `code`, location for `@location` or location section for `@location/section`
+---@param code string the code to look up
+---@return AnyObject? object that matches the code
 function Tracker:FindObjectForCode(code) end
 
----Sends a hint to the UI, see https://github.com/black-sliver/PopTracker/blob/master/doc/PACKS.md#ui-hints
----Only available in PopTracker, since 0.11.0
+---Sends a hint to the UI, see https://github.com/black-sliver/PopTracker/blob/master/doc/PACKS.md#ui-hints .
+---Only available in PopTracker, since 0.11.0.
 ---@param name string
 ---@param value string
 ---@return nil
 function Tracker:UiHint(name, value) end
 
----can be set to true from Lua to pause running logic rules.
+---pause evaluating logic rules when set to true
 ---@type boolean
 Tracker.BulkUpdate = false
 
@@ -89,18 +90,18 @@ ScriptHost = {}
 ---* require can be used instead since 0.25.6 (0.21.0 in some cases)
 ---    * `require "foo.baz"` will try `/scripts/foo/baz.lua`, `/scripts/foo/baz/init.lua`,
 ---    `/foo/baz.lua` and `/foo/baz/init.lua`
----    * LoadScript needs absolute path instead
+---    * LoadScript needs an "absolute" path (including `scripts/`) instead
 ---    * LoadScript needs to use globals, require can return for `local x = require "foo"`
----* require is recommended if backwards compatibility is not required.
----@param luaFilename string
+---* require is recommended if backwards compatibility is not required
+---@param luaFilename string file to run, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
 function ScriptHost:LoadScript(luaFilename) end
 
 ---add a memory watch for auto-tracking, see [AUTOTRACKING.md](https://github.com/black-sliver/PopTracker/blob/master/doc/AUTOTRACKING.md)
----@param name string
----@param addr integer
----@param len integer
----@param callback function(segment:Segment):nil
+---@param name string identifier/name of this watch
+---@param addr integer start address of memory block to watch
+---@param len integer length of memory block to watch in bytes
+---@param callback fun(segment:Segment):nil called when watched memory changes
 ---@param interval integer? milliseconds
 ---@return string reference for RemoveMemoryWatch
 function ScriptHost:AddMemoryWatch(name, addr, len, callback, interval) end
@@ -112,10 +113,10 @@ function ScriptHost:RemoveMemoryWatch(name) end
 
 ---callback(code) will be called whenever an item changed state that canProvide(code).
 ---Only available in PopTracker, since 0.11.0,
----@param name string
+---@param name string identifier/name of this watch
 ---@param code string Code to watch for. Use `"*"` for *all* codes since 0.25.5.
----@param callback function(code:string):nil
----@return string reference for RemoveWatchForCode since 0.18.2.
+---@param callback fun(code:string):nil called when warched (item) code changes
+---@return string reference for RemoveWatchForCode since 0.18.2
 function ScriptHost:AddWatchForCode(name, code, callback) end
 
 ---remove watch for code by name/reference, available since 0.18.2
@@ -123,22 +124,22 @@ function ScriptHost:AddWatchForCode(name, code, callback) end
 ---@return boolean true on success
 function ScriptHost:RemoveWatchForCode(name) end
 
----callback(store, {var_name, ...}) will be called whenever a remote variable changes.
+---callback(store, {variableName, ...}) will be called whenever a remote variable changes.
 ---See [AUTOTRACKING.md](https://github.com/black-sliver/PopTracker/blob/master/doc/AUTOTRACKING.md#variable-interface-uat)
 -- and [UAT REDME.md](https://github.com/black-sliver/UAT/blob/master/README.md) for more info.
----@param name string
+---@param name string identifier/name of this watch
 ---@param variables string[] array of variable names
----@param callback function(store:VariableStore, changed_keys_array:table):nil
+---@param callback fun(store:VariableStore, changedKeysArray:table):nil called when any watched variable changes
 ---@param interval integer? optional, currently unused
----@return string reference for RemoveVariableWatch since 0.18.2.
+---@return string reference for RemoveVariableWatch since 0.18.2
 function ScriptHost:AddVariableWatch(name, variables, callback, interval) end
 
 ---remove variable watch by name/reference
----@param name any
+---@param name string
 ---@returns boolean true on success
 function ScriptHost:RemoveVariableWatch(name) end
 
----Create a new LuaItem
+---create a new LuaItem
 ---@return LuaItem 
 function ScriptHost:CreateLuaItem() end
 
@@ -191,7 +192,7 @@ function AutoTracker:ReadVariable(variableName) end
 ---| 0 # Disabled
 ---| 1 # Disconnected
 ---| 2 # Socket Connected (not ready)
----| 3 # Game/Consolve connected (ready)
+---| 3 # Game/Console connected (ready)
 
 ---get an integer corresponding to the current state of an auto-tracking backend.
 -- Available since 0.20.2.
@@ -245,7 +246,7 @@ function VariableStore:ReadVariable(variableName) end
 ---@class Archipelago
 Archipelago = {}
 
----The slot number of the connected player or -1 if not connected
+---The slot number of the connected player or -1 if not connected.
 ---@type integer
 Archipelago.PlayerNumber = -1
 
@@ -265,81 +266,81 @@ Archipelago.CheckedLocations = {}
 Archipelago.MissingLocations = {}
 
 ---Add callback to be called when connecting to a (new) server and state should be cleared.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(slotData:{ [string]: any }):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(slotData:{ [string]: any }):nil
 ---@return boolean true on success
 function Archipelago:AddClearHandler(name, callback) end
 
 ---Add callback to be called when called when an item is received.
 ---(player_number not in callback before 0.20.2)
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(index:integer, itemID:integer, itemName:string, playerNumber:integer):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(index:integer, itemID:integer, itemName:string, playerNumber:integer):nil
 ---@return boolean true on success
 function Archipelago:AddItemHandler(name, callback) end
 
 ---Add callback to be called when a location was checked.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(locationID:integer, locationName:string):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(locationID:integer, locationName:string):nil
 ---@return boolean true on success
 function Archipelago:AddLocationHandler(name, callback) end
 
 ---Add callback to be called when a location was scouted.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(locationID:integer, locationName:string, itemID:integer, itemName:string, itemPlayer:integer):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(locationID:integer, locationName:string, itemID:integer, itemName:string, itemPlayer:integer):nil
 ---@return boolean true on success
 function Archipelago:AddScoutHandler(name, callback) end
 
 ---Add callback to be called when the server sends a bounce.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(message:{ [string]: any }):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(message:{ [string]: any }):nil called when receiving a bounce
 ---@return boolean true on success
 function Archipelago:AddBouncedHandler(name, callback) end
 
 ---Add callback to be called when the server replies to Get.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(key:string, value:any):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(key:string, value:any):nil
 ---@return boolean true on success
 function Archipelago:AddRetrievedHandler(name, callback) end
 
 ---Add callback to be called when a watched data storage value is changed.
----@param name string Identifier/name of this handler (for debugging)
----@param callback function(key:string, value:any, oldValue:any):nil
+---@param name string identifier/name of this handler (for debugging)
+---@param callback fun(key:string, value:any, oldValue:any):nil
 ---@return boolean true on success
 function Archipelago:AddSetReplyHandler(name, callback) end
 
 ---Ask the server for values from data storage, run this from a ClearHandler, keys is an array of strings.
----@param keys string[] Keys to get
+---@param keys string[] keys to get
 ---@return boolean true on success
 function Archipelago:Get(keys) end
 
 ---Ask the server to notify when a data storage value is changed.
 ---Run this from a ClearHandler, keys is an array of strings.
----@param keys string[] Keys to watch
+---@param keys string[] keys to watch
 ---@return boolean true on success
 function Archipelago:SetNotify(keys) end
 
 
 ---- ImageRef ----
 
----Reference to a single image (currently a string)
+---reference to a single image (currently a string)
 ---@class ImageRef
 ImageRef = {}
 
 
 ---- ImageReference ----
 
----Utility to create `ImageRef`s
+---utility to create `ImageRef`s
 ---@class ImageReference
 ImageReference = {}
 
----Get an image reference from filename.
+---Create an image reference from filename.
 ---Note: currently path resultion happens when the ImageRef is being used, so there is no way to detect errors.
 ---@param filename string
 ---@return ImageRef reference to the image for filename
 function ImageReference:FromPackRelativePath(filename) end
 
----Get an image reference with mods applied
----@param original ImageRef
+---Create an image reference with mods applied on top of another image reference.
+---@param original ImageRef the base image
 ---@param mod string Mod(s) to apply. Separate with ',' for multiple.
 ---@return ImageRef reference to the new image
 function ImageReference:FromImageReference(original, mod) end
@@ -385,41 +386,41 @@ LuaItem.Type = "custom"
 
 ---Called to match item to code (to place it in layouts).
 ---Note: LuaItems have to be created before the corresponding layout is loaded.
----@type function(self:LuaItem, code:string):boolean
+---@type fun(self:LuaItem, code:string):boolean
 LuaItem.CanProvideCodeFunc = nil
 
 ---Called to check if item provides code for access rules (ProviderCountForCode).
----@type function(self:LuaItem, code:string):boolean
+---@type fun(self:LuaItem, code:string):boolean
 LuaItem.ProvidesCodeFunc = nil
 
 ---Called to change item's stage to provide code (not in use yet).
----@type function(self:LuaItem, code:string)
+---@type fun(self:LuaItem, code:string)
 LuaItem.AdvanceToCodeFunc = nil
 
 ---Called when item is left-clicked.
----@type function(self:LuaItem):nil
+---@type fun(self:LuaItem):nil
 LuaItem.OnLeftClickFunc = nil
 
 ---Called when item is right-clicked.
----@type function(self:LuaItem):nil
+---@type fun(self:LuaItem):nil
 LuaItem.OnRightClickFunc = nil
 
 ---Called when item is middle-clicked.
 ---PopTracker, since 0.25.8.
----@type function(self:LuaItem):nil
+---@type fun(self:LuaItem):nil
 LuaItem.OnMiddleClickFunc = nil
 
 ---Called when saving. Should return a Lua object that works in `LoadFunc`.
----@type function(self:LuaItem):any
+---@type fun(self:LuaItem):any
 LuaItem.SaveFunc = nil
 
 ---Callend when loading, data as returned by `SaveFunc`.
----@type function(self:LuaItem, data:any):nil
+---@type fun(self:LuaItem, data:any):nil
 LuaItem.LoadFunc = nil
 
 ---Called when :Set was called and the value changed.
 ---Can be used to update `.Icon`, etc. from `.ItemState` or `:Get()`.
----@type function(self:LuaItem, key:string, value:any):nil
+---@type fun(self:LuaItem, key:string, value:any):nil
 LuaItem.PropertyChangedFunc = nil
 
 ---Write to property store. If the value changed, this will call `.PropertyChangedFunc`.
@@ -435,7 +436,7 @@ function LuaItem:Set(key, value) end
 function LuaItem:Get(key) end
 
 ---Set item overlay text (like count, but also for non-consumables).
----(Only available in PopTracker)
+---Only available in PopTracker.
 ---@param text string
 function LuaItem:SetOverlay(text) end
 
@@ -458,7 +459,7 @@ JsonItem = {}
 ---Get or set the item's image. Use `ImageReference:FromPackRelativePath` to create an `ImageRef`.
 ---For performance reasons, using a staged item is recommended.
 ---Currently only works for items of type toggle and static.
--- Available since 0.26.0
+-- Available since 0.26.0.
 ---@type ImageRef?
 JsonItem.Icon = nil
 
@@ -500,7 +501,7 @@ JsonItem.Owner = {}
 JsonItem.Type = ""
 
 ---Set item overlay text (like count, but also for non-consumables).
----(Only available in PopTracker)
+---Only available in PopTracker.
 ---@param text string
 function JsonItem:SetOverlay(text) end
 
