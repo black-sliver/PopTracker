@@ -41,24 +41,31 @@ static void commasplit(const std::string& s, std::list<std::string>& l)
     auto sta = s.find_first_not_of(' '); // ltrim
     auto end = s.find(',');
     while (end != std::string::npos) {
-        auto p = s.find_last_not_of(' ', end-1)+1; // rtrim
-        l.push_back(s.substr(sta,p-sta));
+        if (sta == end) {
+            l.push_back("");
+        } else {
+            auto p = s.find_last_not_of(' ', end - 1) + 1; // rtrim
+            l.push_back(s.substr(sta, p - sta));
+        }
         sta = s.find_first_not_of(' ', end + 1); // ltrim
-        end = s.find(',',sta);
+        end = s.find(',', sta);
     }
-    end = s.find_last_not_of(' ')+1; // rtrim
-    if (sta < end) l.push_back(s.substr(sta,end-sta));
+    end = s.find_last_not_of(' ') + 1; // rtrim
+    if (sta < end) // ignore trailing comma
+        l.push_back(s.substr(sta, end - sta));
 }
+
 static std::list<std::string> commasplit(const std::string& s)
 {
     std::list<std::string> lst;
     commasplit(s, lst);
     return lst;
 }
+
 static std::list<std::string> commasplit(std::string&& s)
 {
     std::string tmp = s;
-    return commasplit(s);
+    return commasplit(tmp);
 }
 
 
