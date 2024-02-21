@@ -289,19 +289,19 @@ void MapTooltip::update(Tracker* tracker, std::function<void(Item*, const BaseIt
             Widget::Color c = getSectionColor(reachable, cleared);
             lbl->setTextColor(c);
             // NOTE: currently there will always be only one _sectionLocation since compact is always true
-            bool compact = true;
-            if (!_sectionLocations[i].empty()) {
-                int itemcount = sec.getItemCount() ;
-                int looted = sec.getItemCleared();
-                bool opened = compact ? looted>=itemcount : i<=looted;
-                Item* w = _sectionLocations[i].front();
-                if (itemcount!=1 && itemcount>looted) {
-                    w->setOverlay(std::to_string(itemcount - looted));
-                } else {
-                    w->setOverlay("");
-                }
-                w->setStage(opened?1:0,0);
+        }
+        bool compact = true;
+        if (!_sectionLocations[i].empty()) {
+            int itemcount = sec.getItemCount() ;
+            int looted = sec.getItemCleared();
+            bool opened = compact ? looted>=itemcount : i<=looted;
+            Item* w = _sectionLocations[i].front();
+            if (itemcount!=1 && itemcount>looted) {
+                w->setOverlay(std::to_string(itemcount - looted));
+            } else {
+                w->setOverlay("");
             }
+            w->setStage(opened?1:0,0);
         }
         i++;
     }
