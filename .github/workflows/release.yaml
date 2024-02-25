@@ -22,7 +22,7 @@ jobs:
         cd ..
         tar --exclude-vcs -cJvf "${POP_NAME}_full-source.tar.xz" PopTracker
     - name: Create Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
         draft: true
         prerelease: true
@@ -60,7 +60,7 @@ jobs:
       run: |
         ./appimage-builder --recipe linux/AppImageBuilder.yml
     - name: Create Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
         draft: true
         prerelease: true
@@ -90,7 +90,7 @@ jobs:
     - name: Build DIST # this builds a .tar.xz
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
     - name: Create Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
         draft: true
         prerelease: true
@@ -119,7 +119,7 @@ jobs:
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }} 
     - name: Create Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
         draft: true
         prerelease: true
