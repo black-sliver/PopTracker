@@ -6,6 +6,6 @@ Tracker:AddLocations("locations/locations.json")
 Tracker:AddItems("items/items.json")
 Tracker:AddLayouts("layouts/standard.json")
 
-if AutoTracker.ReadVariable then
+if ScriptHost.AddVariableWatch then
     ScriptHost:LoadScript("scripts/autotracking.lua")
 end

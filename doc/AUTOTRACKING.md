@@ -36,7 +36,8 @@ provided, either through auto-detection (not implemented), variant's flags
 
 
 ### global AutoTracker
-Reading from AutoTracker may be slower than reading from Segment (watch callback argument). `baseaddr`+`offset` is the absolute memory address.
+Reading from AutoTracker may be slower than reading from Segment (watch callback argument).
+`baseaddr`+`offset` is the absolute memory address.
 * `int :ReadU8(baseaddr[,offset])` read 8bit unsigned integer, may return 0 if not yet cached
 * `int :ReadU16(baseaddr[,offset])` as above, 16bit
 * `int :ReadU24(baseaddr[,offset])` as above, 24bit
@@ -61,7 +62,7 @@ ScriptHost:LoadScript("scripts/autotracking.lua")
 
 -- autotracking.lua
 
-function updateAlchemy(mem)
+local updateAlchemy = function(mem)
     local b = mem:ReadUInt8(0x7E2258)
     Tracker:FindObjectForCode("acid_rain").Active = (b & 0x01)>0 -- Acid Rain
     -- etc.
@@ -86,16 +87,15 @@ if available, also add the flag `"uatbridge"`.
 * `:AddVariableWatch(name, {variable_name, ...}, callback[, interval_in_ms])` returns a reference (name) to the watch
 * `:RemoveVariableWatch(name)`
 * callback signature:
-`function(Store, {changed_variable_name, ...})` (see [type Store](#type-store))
+`function(store, {changedVariable_name, ...})` (see [type VariableStore](#type-variablestore))
 
 
 ### global AutoTracker
-Reading from AutoTracker may be slower than reading from Store (watch callback argument).
+Reading from AutoTracker is deprecated. Use watch and read from store (callback argument) instead.
 * `variant :ReadVariable(variable_name)` returns what the remote sent for the variable_name
 
 
-### type Store
-Reading from Store (watch callback argument) is preferred.
+### type VariableStore
 * `variant :ReadVariable(variable_name)` returns what the remote sent for the variable_name
 
 
@@ -104,14 +104,14 @@ Reading from Store (watch callback argument) is preferred.
 ```lua
 -- init.lua
 
-if AutoTracker.ReadVariable then
+if ScriptHost.AddVariableWatch then
     ScriptHost:LoadScript("scripts/autotracking.lua")
 end
 
 
 -- autotracking.lua
 
-function updateAlchemy(store)
+local updateAlchemy = function(store)
     Tracker:FindObjectForCode("acid_rain").Active = store:ReadVariable("acid_rain")>0 -- Acid Rain
     -- etc.
 end

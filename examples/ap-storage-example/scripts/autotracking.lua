@@ -11,9 +11,10 @@
 -- Alternatively try-catch (pcall) can be used to handle unexpected values.
 
 
-function onRetrieved(key, val)
+local onRetrieved = function(key, val)
     local o = Tracker:FindObjectForCode(key)
     -- a is toggle, b is consumable, c is progressive toggle
+    ---@cast o JsonItem
     if key == "a" then
         if type(val) == "number" then; o.Active = val > 0
         elseif type(val) == "string" then; o.Active = val ~= ""
@@ -41,7 +42,7 @@ function onRetrieved(key, val)
 end
 
 
-function onClear()
+local onClear = function()
     Archipelago:SetNotify({"a", "b", "c"}) -- listen for changes
     Archipelago:Get({"a", "b", "c"}) -- ask for current values
 end
@@ -51,4 +52,3 @@ Archipelago:AddClearHandler("Clear", onClear) -- called when connecting
 Archipelago:AddRetrievedHandler("Retrieved", onRetrieved) -- called when doing Get
 Archipelago:AddSetReplyHandler("Retrieved", onRetrieved) -- called when a watched value got updated
 print("running!")
-
