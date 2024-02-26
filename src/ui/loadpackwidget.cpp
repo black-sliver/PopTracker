@@ -48,6 +48,7 @@ void LoadPackWidget::update()
     auto availablePacks = Pack::ListAvailable();
     _packs->clearChildren();
     _variants->clearChildren();
+    _curPackHover = nullptr;
     _curPackLabel = nullptr;
     _curVariantLabel = nullptr;
     _disableHoverSelect = false;
