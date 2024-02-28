@@ -48,33 +48,52 @@ void LoadPackWidget::update()
     auto availablePacks = Pack::ListAvailable();
     _packs->clearChildren();
     _variants->clearChildren();
+    _curPackHover = nullptr;
     _curPackLabel = nullptr;
     _curVariantLabel = nullptr;
+    _disableHoverSelect = false;
+
     for (auto& pack : availablePacks) {
         auto lbl = new Label(0, 0, 0, 0, _font, " " + pack.packName + " " + pack.version); // TODO: button instead of label
         lbl->setGrow(1,0);
         lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
         lbl->setMinSize({64,lbl->getAutoHeight()});
         lbl->setSize({_size.width/2,32}); // TODO; hbox with even split instead
-        lbl->setBackground({32,32,32});
+        lbl->setBackground(PACK_BG_DEFAULT);
         _packs->addChild(lbl);
+
         lbl->onMouseEnter += {this,[this,pack](void* s, int x, int y, unsigned buttons) {
-            if (_curPackLabel == s) return;
-            if (_curPackLabel) _curPackLabel->setBackground({32,32,32});
+            if (_curPackHover != s) {
+                if (_curPackHover == _curPackLabel && _disableHoverSelect)
+                    _curPackHover->setBackground(PACK_BG_ACTIVE);
+                else if (_curPackHover)
+                    _curPackHover->setBackground(PACK_BG_DEFAULT);
+
+                _curPackHover = (Label*)s;
+                if (_curPackHover == _curPackLabel && _disableHoverSelect)
+                    _curPackHover->setBackground(PACK_BG_ACTIVE_HOVER);
+                else
+                    _curPackHover->setBackground(PACK_BG_HOVER);
+            }
+            if (_disableHoverSelect || _curPackLabel == s)
+                return;
+
+            if (_curPackLabel)
+                _curPackLabel->setBackground(PACK_BG_DEFAULT);
+
             _curPackLabel = (Label*)s;
-            _curPackLabel->setBackground({64,64,64});
             _variants->clearChildren();
             for (auto& variant: pack.variants) {
                 auto lbl = new Label(0,0,0,0, _font, " " + variant.name); // TODO: button instead of label
                 lbl->setGrow(1,0);
                 lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
-                lbl->setMinSize(lbl->getAutoSize());
-                lbl->setSize({_variants->getWidth(),32});
-                lbl->setBackground({64,64,64});
+                lbl->setMinSize({64,lbl->getAutoHeight()});
+                lbl->setSize({_variants->getWidth(),32}); // FIXME: this should be done by vbox
+                lbl->setBackground(VARIANT_BG_DEFAULT);
                 _variants->addChild(lbl);
                 lbl->onMouseLeave += {this,[this,variant](void *s) {
                     if (_curVariantLabel != s) return;
-                    _curVariantLabel->setBackground({64,64,64});
+                    _curVariantLabel->setBackground(VARIANT_BG_DEFAULT);
                     _curVariantLabel = nullptr;
                 }};
                 std::string path = pack.path;
@@ -82,7 +101,7 @@ void LoadPackWidget::update()
                     if (!s || s==_curVariantLabel) return;
                     if (_curVariantLabel) _curVariantLabel->onMouseLeave.emit(_curVariantLabel);
                     _curVariantLabel = (Label*)s;
-                    _curVariantLabel->setBackground({96,96,96});
+                    _curVariantLabel->setBackground(VARIANT_BG_HOVER);
                 }};
                 lbl->onClick += {this,[this,path,variant](void *s, int x, int y, int button) {
                     if (button == MouseButton::BUTTON_LEFT) {
@@ -93,10 +112,30 @@ void LoadPackWidget::update()
             auto spacer = new Label(0, 0, 0, 0, nullptr, "");
             spacer->setGrow(1,1);
             _variants->addChild(spacer);
-            _variants->relayout();
-            _main->relayout();
+            _main->relayout(); // changes width of _variants
+            _variants->relayout(); // changes width of labels
+            _main->relayout(); // fix split in hbox // FIXME: this should not be required
+        }};
+
+        lbl->onClick += {this, [this](void* s, int x, int y, int buttons) {
+            _disableHoverSelect = false;
+            ((Label*)s)->onMouseEnter.emit(s, x, y, (unsigned)buttons);
+            _disableHoverSelect = true;
+            if (_curPackLabel)
+                _curPackLabel->setBackground(PACK_BG_ACTIVE_HOVER);
         }};
     }
+
+    _packs->onMouseLeave += {this, [this](void* s) {
+        if (_disableHoverSelect && _curPackHover) {
+            if (_curPackHover == _curPackLabel) {
+                _curPackHover->setBackground(PACK_BG_ACTIVE);
+            } else {
+                _curPackHover->setBackground(PACK_BG_DEFAULT);
+            }
+        }
+    }};
+
     if (availablePacks.empty()) {
         auto lbl = new Label(0, 0, 0, 0, _font, "No packs installed!");
         lbl->setGrow(1,1);
