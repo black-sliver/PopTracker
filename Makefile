@@ -26,7 +26,8 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/ap/*.h) \
       $(wildcard $(SRC_DIR)/luaconnector/*.h) \
       $(wildcard $(SRC_DIR)/http/*.h) \
-      $(wildcard $(SRC_DIR)/packmanager/*.h)
+      $(wildcard $(SRC_DIR)/packmanager/*.h) \
+      $(wildcard $(LIB_DIR)/tinyfiledialogs/*)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib

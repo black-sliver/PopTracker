@@ -523,8 +523,9 @@ bool PopTracker::start()
             if (!_pack) return;
             std::string lastName;
             if (_exportFile.empty() || _exportUID != _pack->getUID()) {
-                lastName = _pack->getGameName() + ".json";
-                if (!_exportDir.empty()) lastName = os_pathcat(_exportDir, lastName);
+                lastName = sanitize_filename(_pack->getGameName()) + ".json";
+                if (!_exportDir.empty())
+                    lastName = os_pathcat(_exportDir, lastName);
             } else {
                 lastName = _exportFile;
             }

@@ -16,6 +16,7 @@
   * Fix scrolling behavior in map tooltip when last element is hidden
   * Fix unnamed map tooltip section not properly updating
   * Fix handling of leading comma in json and Item.IconMods
+  * Fix save state export dialog not opening when pack name has special characters in it
 
 ## v0.25.7
 
