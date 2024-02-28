@@ -1,5 +1,22 @@
 # PopTracker Changelog
 
+## v0.25.8
+
+* App Features
+  * Make pack selection "stick" when clicking it
+  * Increase scrolling distance/speed
+* Pack Features
+  * SNES auto-tracking: add SA-1 mapping
+  * LuaItem: add OnMiddleClickFunc
+  * Add LuaLS definition file - see
+    [*Lua Interface* in PACKS.md](https://github.com/black-sliver/PopTracker/blob/master/doc/PACKS.md#lua-interface)
+  * Update example packs
+* Fixes
+  * SNES auto-tracking: fix reconnect not working properly (breaking the mapping)
+  * Fix scrolling behavior in map tooltip when last element is hidden
+  * Fix unnamed map tooltip section not properly updating
+  * Fix handling of leading comma in json and Item.IconMods
+
 ## v0.25.7
 
 * Fixes
