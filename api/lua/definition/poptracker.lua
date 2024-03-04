@@ -68,10 +68,13 @@ function Tracker:ProviderCountForCode(code) end
 ---@return AnyObject? object that matches the code
 function Tracker:FindObjectForCode(code) end
 
+---@alias UiHintName
+---| "ActivateTab" # Activates tab with tab name = hint value. Available since 0.11.0.
+
 ---Sends a hint to the UI, see https://github.com/black-sliver/PopTracker/blob/master/doc/PACKS.md#ui-hints .
 ---Only available in PopTracker, since 0.11.0.
----@param name string
----@param value string
+---@param name UiHintName which adjustment the UI should do
+---@param value string value or argument for the hint
 ---@return nil
 function Tracker:UiHint(name, value) end
 

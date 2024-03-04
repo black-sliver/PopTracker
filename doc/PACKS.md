@@ -107,7 +107,7 @@ The following interfaces are provided:
 * `bool :AddLayouts(jsonfilename)`: load layouts from json
 * `int :ProviderCountForCode(code)`: number of items that provide the code (sum of count for consumables)
 * `mixed :FindObjectForCode(string)`: returns items for `code` or location section for `@location/section`
-* `void :UiHint(name,string)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0
+* `void :UiHint(name, value)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0
 * `bool .BulkUpdate`: can be set to true from Lua to pause running logic rules.
 
 
@@ -538,6 +538,7 @@ Margin defaults to 0 for items and "inner arrays" (array inside array), 5 for ev
 ## Ui Hints
 
 Instead of allowing Lua direct access to the UI/Widgets, there is a "Hints" interface. See [global Tracker](#global-tracker).
+Hints consist of name and value. The name describes which adjustment to make, value is the value for that adjustment.
 
-* `"ActivateTab"`: value = tab name, since 0.11.0
-
+The following hint names are defined:
+* `"ActivateTab"`: value = tab name, activates tab with tab name, since 0.11.0
