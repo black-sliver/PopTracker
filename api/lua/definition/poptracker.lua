@@ -13,9 +13,10 @@
 
 ---- Globals ----
 
----Currently running PopTracker version as string.
+---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.25.7"
+PopVersion = "0.25.8"
+-- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true to get more error or debug output.
 ---@type boolean
