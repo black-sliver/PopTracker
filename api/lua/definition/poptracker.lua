@@ -148,12 +148,14 @@ function ScriptHost:RemoveVariableWatch(name) end
 function ScriptHost:CreateLuaItem() end
 
 ---Add a handler/callback that runs on every frame.
+---Available since 0.25.9.
 ---@param name string identifier/name of this callback
----@param callback fun():nil called every frame
+---@param callback fun(elapsedSeconds:number):nil called every frame, argument is elapsed time in seconds since last call
 ---@return string reference for RemoveOnFrameHandler
 function ScriptHost:AddOnFrameHandler(name, callback) end
 
 ---Remove a handler/callback added by AddOnFrameHandler(name).
+---Available since 0.25.9.
 ---@param name string identifier/name of the handler to remove
 ---@return boolean true on success
 function ScriptHost:RemoveOnFrameHandler(name) end

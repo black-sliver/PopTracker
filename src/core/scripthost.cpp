@@ -362,16 +362,16 @@ std::string ScriptHost::AddOnFrameHandler(const std::string& name, LuaRef callba
     RemoveOnFrameHandler(name);
     if (!callback.valid())
         luaL_error(_L, "Invalid callback");
-    _onFrameCallbacks.push_back({name, callback});
+    _onFrameHandlers.push_back(OnFrameHandler{callback.ref, name, Ui::getMicroTicks()});
     return name;
 }
 
 bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
 {
-    for (auto it = _onFrameCallbacks.begin(); it != _onFrameCallbacks.end(); it++) {
-        if (it->first == name) {
-            luaL_unref(_L, LUA_REGISTRYINDEX, it->second.ref);
-            _onFrameCallbacks.erase(it);
+    for (auto it = _onFrameHandlers.begin(); it != _onFrameHandlers.end(); it++) {
+        if (it->name == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->callback);
+            _onFrameHandlers.erase(it);
             return true;
         }
     }
@@ -396,15 +396,22 @@ bool ScriptHost::onFrame()
 {
     bool res = autoTrack();
 
-    for (size_t i=0; i<_onFrameCallbacks.size(); i++) {
-        auto name = _onFrameCallbacks[i].first;
+    for (size_t i=0; i<_onFrameHandlers.size(); i++) {
+        auto name = _onFrameHandlers[i].name;
+        auto now = Ui::getMicroTicks();
+        auto elapsedUs = now - _onFrameHandlers[i].lastTimestamp;
+        double elapsed = (double)elapsedUs / 1000000.0;
+        _onFrameHandlers[i].lastTimestamp = now;
 
         // For now we use the same exec limit as in Tracker, which is 3-4ms for pure Lua on a fast PC.
-        runLuaFunction(_onFrameCallbacks[i].second.ref, name, nullptr, Tracker::getExecLimit());
+        runLuaFunction(_onFrameHandlers[i].callback, name, [elapsed](lua_State *L) {
+            Lua(L).Push(elapsed);
+            return 1;
+        }, Tracker::getExecLimit());
 
-        if (_onFrameCallbacks.size() <= i)
+        if (_onFrameHandlers.size() <= i)
             break; // callback does not exist anymore
-        if (_onFrameCallbacks[i].first != name)
+        if (_onFrameHandlers[i].name != name)
             i--; // callback was modified in callback
     }
 
