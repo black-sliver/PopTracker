@@ -20,6 +20,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
     LUA_METHOD(ScriptHost, AddVariableWatch, const char*, json, LuaRef, int),
     LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
+    LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
+    LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
 };
 
 
@@ -95,7 +97,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             }
             if (!watchVars.empty()) {
                 lua_rawgeti(_L, LUA_REGISTRYINDEX, pair.second.callback);
-                _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
+                _autoTracker->Lua_Push(_L); // arg1: autotracker ("store")
                 json j = watchVars;
                 json_to_lua(_L, j); // args2: variable names
                 if (lua_pcall(_L, 2, 0, 0)) {
@@ -355,6 +357,27 @@ bool ScriptHost::RemoveVariableWatch(const std::string& name)
     return true;
 }
 
+std::string ScriptHost::AddOnFrameHandler(const std::string& name, LuaRef callback)
+{
+    RemoveOnFrameHandler(name);
+    if (!callback.valid())
+        luaL_error(_L, "Invalid callback");
+    _onFrameCallbacks.push_back({name, callback});
+    return name;
+}
+
+bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
+{
+    for (auto it = _onFrameCallbacks.begin(); it != _onFrameCallbacks.end(); it++) {
+        if (it->first == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->second.ref);
+            _onFrameCallbacks.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 void ScriptHost::resetWatches()
 {
     bool changed = false;
@@ -367,6 +390,25 @@ void ScriptHost::resetWatches()
     if (changed && _autoTracker) {
         _autoTracker->onDataChange.emit(_autoTracker);
     }
+}
+
+bool ScriptHost::onFrame()
+{
+    bool res = autoTrack();
+
+    for (size_t i=0; i<_onFrameCallbacks.size(); i++) {
+        auto name = _onFrameCallbacks[i].first;
+
+        // For now we use the same exec limit as in Tracker, which is 3-4ms for pure Lua on a fast PC.
+        runLuaFunction(_onFrameCallbacks[i].second.ref, name, nullptr, Tracker::getExecLimit());
+
+        if (_onFrameCallbacks.size() <= i)
+            break; // callback does not exist anymore
+        if (_onFrameCallbacks[i].first != name)
+            i--; // callback was modified in callback
+    }
+
+    return res;
 }
 
 bool ScriptHost::autoTrack()
@@ -399,19 +441,11 @@ void ScriptHost::runMemoryWatchCallbacks()
         auto name = w.name;
 
         // run memory watch callback
-        lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
-        _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
-        bool res;
-        if (lua_pcall(_L, 1, 1, 0)) {
-            res = true; // "complete" on error
-            printf("Error calling Memory Watch Callback for %s: %s\n",
-                name.c_str(), lua_tostring(_L, -1));
-            lua_pop(_L, 1);
-        } else {
-            assert(lua_gettop(_L) == 1);
-            res = lua_isboolean(_L, -1) ? lua_toboolean(_L, -1) : true;
-            lua_pop(_L, 1);
-        }
+        bool res = true; // on error: don't rerun
+        runLuaFunction(w.callback, "Memory Watch Callback for " + name, res, [this](lua_State* L){
+            _autoTracker->Lua_Push(L); // arg1: autotracker ("segment")
+            return 1;
+        });
 
         if (_memoryWatches.size() <= i)
             break; // watch does not exist anymore
