@@ -10,6 +10,7 @@
 #include "luaitem.h"
 #include <string>
 #include <vector> // TODO: replace by new[] uint8_t?
+#include "../uilib/timer.h"
 
 class ScriptHost;
 
@@ -59,7 +60,14 @@ public:
         int callback;
         std::set<std::string> names;
     };
-    
+
+    struct OnFrameHandler
+    {
+        int callback;
+        std::string name;
+        Ui::microtick_t lastTimestamp;
+    };
+
 protected:
     lua_State *_L;
     Pack *_pack;
@@ -67,7 +75,7 @@ protected:
     std::vector<MemoryWatch> _memoryWatches;
     std::vector<std::pair<std::string, CodeWatch> > _codeWatches;
     std::vector<std::pair<std::string, VarWatch> > _varWatches;
-    std::vector<std::pair<std::string, LuaRef> > _onFrameCallbacks;
+    std::vector<OnFrameHandler> _onFrameHandlers;
     AutoTracker *_autoTracker = nullptr;
 
 private:
