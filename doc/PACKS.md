@@ -125,6 +125,8 @@ The following interfaces are provided:
 * `ref :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
 * `bool :RemoveWatchForCode(name)`: remove watch by name
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
+* `ref :AddOnFrameHandler(name,callback)`: callback(elapsed) will be called every frame, available since 0.25.9
+* `bool :RemoveOnFrameHandler(name)`: remove a frame callback
 
 
 ### global AutoTracker

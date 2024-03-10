@@ -27,6 +27,9 @@ public:
     
     Tracker(Pack* pack, lua_State *L);
     virtual ~Tracker();
+
+    static int luaErrorHandler(lua_State *L);
+    static void luaTimeoutHook(lua_State *L, lua_Debug *);
     
     // TODO: Use a helper to access Lua. This code doesn't belong in tracker
     // Attempt to call a lua func and return an integer value
@@ -102,6 +105,7 @@ public:
     bool changeItemState(const std::string& id, BaseItem::Action action);
 
     static void setExecLimit(int execLimit);
+    static int getExecLimit();
 
 protected:
     Pack* _pack;

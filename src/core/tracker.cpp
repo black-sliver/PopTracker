@@ -35,7 +35,7 @@ Tracker::~Tracker()
 
 static const char* timeout_error_message = "Execution aborted. Limit reached.";
 
-static int lua_error_handler(lua_State *L)
+int Tracker::luaErrorHandler(lua_State *L)
 {
     // skip trace for certain errors unless running in debug mode (DEBUG == true)
     if (lua_isstring(L, -1) && strstr(lua_tostring(L, -1), timeout_error_message)) {
@@ -56,7 +56,7 @@ static int lua_error_handler(lua_State *L)
 }
 
 /// when used as count hook, aborts execution of user function after count instructions
-static void lua_timeout_hook(lua_State *L, lua_Debug *)
+void Tracker::luaTimeoutHook(lua_State *L, lua_Debug *)
 {
     luaL_error(L, timeout_error_message);
 }
@@ -65,7 +65,7 @@ static void lua_timeout_hook(lua_State *L, lua_Debug *)
 // Use carefully; the return value(s) and error handler will still be on the lua stack
 static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLimit)
 {
-    lua_pushcfunction(L, lua_error_handler);
+    lua_pushcfunction(L, Tracker::luaErrorHandler);
 
     // Trim excess characters (such as $) and extract function name
     std::string workingString = name;
@@ -79,7 +79,7 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLi
     int t = lua_getglobal(L, funcName.c_str());
     if (t != LUA_TFUNCTION) {
         fprintf(stderr, "Missing Lua function for %s\n", name.c_str());
-        lua_pop(L, 2); // non-function variable or nil, lua_error_handler
+        lua_pop(L, 2); // non-function variable or nil, luaErrorHandler
         return -1;
     }
 
@@ -98,7 +98,7 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLi
     }
 
     if (execLimit > 0)
-        lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, execLimit);
+        lua_sethook(L, Tracker::luaTimeoutHook, LUA_MASKCOUNT, execLimit);
     auto res = lua_pcall(L, argc, 1, -argc-2);
     if (execLimit > 0)
         lua_sethook(L, nullptr, 0, 0);
@@ -1050,4 +1050,9 @@ bool Tracker::loadState(nlohmann::json& state)
 void Tracker::setExecLimit(int execLimit)
 {
     _execLimit = execLimit;
+}
+
+int Tracker::getExecLimit()
+{
+    return _execLimit;
 }
