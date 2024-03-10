@@ -46,6 +46,7 @@ static int lua_error_handler(lua_State *L)
             lua_pop(L, 2);
             return 1;
         }
+        lua_pop(L, 2);
     }
     // generate and print trace, then return original error
     luaL_traceback(L, L, NULL, 1);
