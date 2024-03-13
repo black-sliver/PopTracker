@@ -125,6 +125,8 @@ The following interfaces are provided:
 * `ref :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
 * `bool :RemoveWatchForCode(name)`: remove watch by name
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
+* `ThreadProxy :RunScriptAsync(luaFilename, arg, callback)`: Load and run script in a separate thread. `arg` is passed as global arg. Most other things are not available in the new context. Use `return` to return a value from the script, that will be passed to `callback(result)`. (ThreadProxy has no function yet)
+* `ThreadProxy :RunStringAsync(script, arg, callback)`: same as RunScriptAsync, but script is a string instead of a filename.
 
 
 ### global AutoTracker
