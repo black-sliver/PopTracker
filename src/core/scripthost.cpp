@@ -550,6 +550,7 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
                 ScriptHost::ThreadContext* self = static_cast<ScriptHost::ThreadContext*>(
                     lua_touserdata(L, -1)
                 );
+                lua_pop(L, 1);
                 if (self->_stop)
                     luaL_error(L, "Pack unloaded");
             };
