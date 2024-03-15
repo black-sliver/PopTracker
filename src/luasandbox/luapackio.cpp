@@ -4,7 +4,7 @@
 const LuaInterface<LuaPackIO>::MethodMap LuaPackIO::Lua_Methods = {};
 const LuaInterface<LuaPackIO::File>::MethodMap LuaPackIO::File::Lua_Methods = {};
 
-LuaPackIO::LuaPackIO(Pack* pack)
+LuaPackIO::LuaPackIO(const Pack* pack)
     : _pack(pack), _input(nullptr)
 {
 }

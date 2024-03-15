@@ -19,15 +19,10 @@ static inline int luasandbox_require(lua_State *L)
     }
     lua_pop(L, 1); // pop empty cache entry, keep _LOADED
 
-    // get Pack for file from Tracker
-    lua_getglobal(L, "Tracker");
-    const Tracker* tracker = Tracker::luaL_checkthis(L, -1);
-    if (!tracker) {
-        lua_pop(L, 2); // pop Tracker and _LOADED
-        luaL_error(L, "Wrong type for global 'Tracker'");
-        return 0;
-    }
-    const Pack* pack = tracker->getPack();
+    // get Pack for file from registry
+    lua_pushstring(L, "Pack");
+    lua_gettable(L, LUA_REGISTRYINDEX); // retrieve stored pointer
+    const Pack* pack = static_cast<const Pack*>(lua_touserdata(L, -1));
     if (!pack) {
         lua_pop(L, 2); // pop Tracker and _LOADED
         luaL_error(L, "No pack loaded");

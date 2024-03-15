@@ -1,0 +1,13 @@
+{
+    "name": "Async Example",
+	"game_name": "Demo",
+	"platform": "pc",
+	"package_version": "1.0.0",
+	"package_uid": "async-example",
+	"author": "black_sliver",
+	"variants": {
+		"standard": {
+			"display_name": "Example"
+		}
+	}
+}

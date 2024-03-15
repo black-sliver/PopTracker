@@ -8,7 +8,7 @@ class LuaPackIO  final : public LuaInterface<LuaPackIO> {
     friend class LuaInterface;
 
 public:
-    LuaPackIO(Pack* pack);
+    LuaPackIO(const Pack* pack);
     virtual ~LuaPackIO();
 
     class File final : public LuaInterface<LuaPackIO::File> {
@@ -42,7 +42,7 @@ public:
 
 
 protected:
-    Pack* _pack;
+    const Pack* _pack;
     File* _input;
     LuaRef _inputRef;
 

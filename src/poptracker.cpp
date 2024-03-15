@@ -722,7 +722,8 @@ bool PopTracker::frame()
         // when all tasks are done, poll() will stop(). Reset for next request.
         if (_asio->stopped()) _asio->restart();
     }
-    if (_scriptHost) _scriptHost->autoTrack();
+    if (_scriptHost)
+        _scriptHost->onFrame();
 
     auto now = std::chrono::steady_clock::now();
 
@@ -1021,6 +1022,10 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     Tracker::Lua_Register(_L);
     _tracker->Lua_Push(_L);
     lua_setglobal(_L, "Tracker");
+    // store pack in registry for "private" use (in require)
+    lua_pushstring(_L, "Pack");
+    lua_pushlightuserdata(_L, _pack);
+    lua_settable(_L, LUA_REGISTRYINDEX);
     
     printf("Creating Script Host...\n");
     _scriptHost = new ScriptHost(_pack, _L, _tracker);

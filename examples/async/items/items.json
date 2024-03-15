@@ -1,0 +1,28 @@
+[
+	{
+		"name": "A",
+		"type": "toggle",
+		"img": "images/a.png",
+		"codes": "a"
+    },
+    {
+		"name": "B",
+		"type": "consumable",
+		"img": "images/b.png",
+		"codes": "b"
+    },
+    {
+		"name": "C",
+		"type": "progressive_toggle",
+		"stages": [
+            {
+                "img": "images/c1.png",
+                "codes": "c"
+            },
+            {
+                "img": "images/c2.png",
+                "codes": "c2"
+            }
+        ]
+    }
+]
