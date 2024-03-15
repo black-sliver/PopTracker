@@ -535,6 +535,10 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
     LuaPackIO::File::Lua_Register(_L);
     _luaio.Lua_Push(_L);
     lua_setglobal(_L, LUA_IOLIBNAME);
+    // store pack in registry for "private" use (in require)
+    lua_pushstring(_L, "Pack");
+    lua_pushlightuserdata(_L, (void*)pack);
+    lua_settable(_L, LUA_REGISTRYINDEX);
     // arg
     json_to_lua(_L, arg);
     lua_setglobal(_L, "arg");
