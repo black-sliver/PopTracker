@@ -34,6 +34,7 @@ public:
     virtual void setOverlay(const std::string& s);
     virtual void setOverlayColor(Widget::Color color);
     virtual void setOverlayBackgroundColor(Widget::Color color);
+    virtual void setOverlayAlignment(Label::HAlign halign);
     virtual std::string getOverlay() const { return _overlay; }
     virtual Widget::Color getOverlayColor() const { return _overlayColor; }
     virtual int getMinX() const override { return _renderPos.left; }
@@ -60,6 +61,7 @@ protected:
     std::string _overlay;
     Widget::Color _overlayColor = {255,255,255};
     Widget::Color _overlayBackgroundColor = {};
+    Label::HAlign _overlayAlign = Label::HAlign::RIGHT;
     SDL_Texture *_overlayTex = nullptr;
     Label::HAlign _halign = Label::HAlign::LEFT;
     Label::VAlign _valign = Label::VAlign::TOP;

@@ -6,6 +6,7 @@ using nlohmann::json;
 const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {
     LUA_METHOD(JsonItem, SetOverlay, const char*),
     LUA_METHOD(JsonItem, SetOverlayBackground, const char*),
+    LUA_METHOD(JsonItem, SetOverlayAlign, const char*),
     LUA_METHOD(JsonItem, SetOverlayFontSize, int),
 };
 
@@ -70,6 +71,7 @@ JsonItem JsonItem::FromJSON(json& j)
     }
 
     item._overlayBackground = to_string(j["overlay_background"], "");
+    item._overlayAlign = to_string(j["overlay_align"], "");
     item._overlayFontSize = to_int(j["overlay_font_size"], to_int(j["badge_font_size"], 0));
 
     commasplit(to_string(j["codes"], ""), item._codes);
@@ -476,6 +478,8 @@ json JsonItem::save() const
         data["max_count"] = _maxCount;
     if (_overlayBackgroundChanged)
         data["overlay_background"] = _overlayBackground;
+    if (_overlayAlignChanged)
+        data["overlay_align"] = _overlayAlign;
     if (_overlayFontSizeChanged)
         data["overlay_font_size"] = _overlayFontSize;
     if (_incrementChanged)
@@ -492,6 +496,7 @@ bool JsonItem::load(json& j)
     if (j.type() == json::value_t::object) {
         std::string overlay = to_string(j["overlay"], _overlay);
         std::string overlayBackground = to_string(j["overlay_background"], _overlayBackground);
+        std::string overlayAlign = to_string(j["overlay_align"], _overlayAlign);
         int overlayFontSize = to_int(j["overlay_font_size"], _overlayFontSize);
         int increment = to_int(j["increment"], _increment);
         int decrement = to_int(j["decrement"], _decrement);
@@ -509,6 +514,7 @@ bool JsonItem::load(json& j)
                 || _stage1 != stage1 || _stage2 != stage2
                 || _overlay != overlay
                 || _overlayBackground != overlayBackground
+                || _overlayAlign != overlayAlign
                 || _overlayFontSize != overlayFontSize
                 || _increment != increment
                 || _decrement != decrement
@@ -524,6 +530,8 @@ bool JsonItem::load(json& j)
             _overlay = overlay;
             _overlayBackgroundChanged = _overlayBackground != overlayBackground;
             _overlayBackground = overlayBackground;
+            _overlayAlignChanged = _overlayAlign != overlayAlign;
+            _overlayAlign = overlayAlign;
             _overlayFontSizeChanged = _overlayFontSize != overlayFontSize;
             _overlayFontSize = overlayFontSize;
             _incrementChanged = _increment != increment;

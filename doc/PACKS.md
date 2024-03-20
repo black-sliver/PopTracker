@@ -178,6 +178,7 @@ a table representing an enum with the following constants: \
 * `:SetOverlay(string)`: set overlay text (see JsonItem), only available in PopTracker
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
+* `:SetOverlayAlign(string)`: set overlay alignment to "left", "center" or "right", only available in PopTracker, since 0.25.9
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Type`: gets the type of the item as string (always "custom"), since 0.23.0
 
@@ -194,6 +195,7 @@ a table representing an enum with the following constants: \
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
 * `:SetOverlayBackground(string)`: set background: "#000000" is (A)RGB, "" is transparent, only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
+* `:SetOverlayAlign(string)`: set overlay alignment to "left", "center" or "right", only available in PopTracker, since 0.25.9
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Increment`: sets or gets the increment (left-click) value of consumables
 * `.Decrement`: sets or gets the decrement (right-click) value of consumables
@@ -279,6 +281,7 @@ a table representing an enum with the following constants: \
   + adds optional `"initial_quantity": 0`
   + adds optional `"overlay_background": ""` set text background color with "#000000" (A)RGB notation
   + adds optional `"overlay_font_size": 0` set font size of overlay text
+  + adds optional `"overlay_align": "right"` set text alignment of overlay text
   + adds alias `badge_font_size` for `overlay_font_size`
   
 * `"progressive_toggle"`:
