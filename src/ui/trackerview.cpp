@@ -159,7 +159,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         w->setOverlayColor({220,220,220});
     }
     w->setOverlayBackgroundColor(item->getOverlayBackground());
-    
+    w->setOverlayAlignment(str2itemHalign(item->getOverlayAlign(), Label::HAlign::RIGHT));
+
     std::string id = origItem.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
         printf("Item %s clicked w/ btn %d!\n", id.c_str(), btn);
@@ -464,6 +465,8 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         w->setOverlay(std::to_string(item.getCount()));
         w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
                 FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+        w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
+        w->setOverlayBackgroundColor(item.getOverlayBackground());
     } else {
         auto s = item.getOverlay();
         w->setOverlay(s);
@@ -471,6 +474,8 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
             w->setOverlayColor({220,220,220});
             w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
                     FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+            w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
+            w->setOverlayBackgroundColor(item.getOverlayBackground());
         }
     }
 }

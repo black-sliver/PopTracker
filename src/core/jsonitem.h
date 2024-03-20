@@ -60,6 +60,7 @@ protected:
     bool _minCountChanged = false;
     bool _maxCountChanged = false;
     bool _overlayBackgroundChanged = false;
+    bool _overlayAlignChanged = false;
     bool _overlayFontSizeChanged = false;
     bool _incrementChanged = false;
     bool _decrementChanged = false;
@@ -164,6 +165,13 @@ public:
         if (_overlayBackground == text) return;
         _overlayBackgroundChanged = true;
         _overlayBackground = text;
+        onChange.emit(this);
+    }
+
+    virtual void SetOverlayAlign(const char* align) override {
+        if (_overlayAlign == align) return;
+        _overlayAlignChanged = true;
+        _overlayAlign = align;
         onChange.emit(this);
     }
 
