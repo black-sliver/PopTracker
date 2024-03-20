@@ -240,10 +240,18 @@ void Item::render(Renderer renderer, int offX, int offY)
         if (SDL_QueryTexture(_overlayTex, NULL, NULL, &ow, &oh) == 0) {
             SDL_Rect dest;
             int bottom = offY+_pos.top+_size.height-1;
-            if (ow>_size.width) {
+            if (ow>_size.width || _overlayAlign == Label::HAlign::CENTER) {
                 int center = offX+_pos.left+_size.width/2;
                 dest = {
                     .x = center-ow/2,
+                    .y = bottom-oh,
+                    .w = ow,
+                    .h = oh
+                };
+            } else if (_overlayAlign == Label::HAlign::LEFT) {
+                int left = offX+_pos.left;
+                dest = {
+                    .x = left,
                     .y = bottom-oh,
                     .w = ow,
                     .h = oh
@@ -297,6 +305,14 @@ void Item::setOverlayBackgroundColor(Widget::Color c)
     if (_overlayTex) SDL_DestroyTexture(_overlayTex);
     _overlayTex = nullptr;
     _overlayBackgroundColor = c;
+}
+
+void Item::setOverlayAlignment(Label::HAlign halign)
+{
+    if (halign == _overlayAlign) return;
+    if (_overlayTex) SDL_DestroyTexture(_overlayTex);
+    _overlayTex = nullptr;
+    _overlayAlign = halign;
 }
 
 } // namespace

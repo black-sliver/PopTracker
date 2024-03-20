@@ -74,6 +74,7 @@ protected:
     std::list<std::string> _disabledImgMods;
     std::string _overlay;
     std::string _overlayBackground;
+    std::string _overlayAlign;
     int _overlayFontSize = 0;
     
     // saving the item's state as part of the item is complete crap,
@@ -142,6 +143,7 @@ public:
     int getMaxCount() const { return _maxCount; }
     const std::string& getOverlay() const { return _overlay; }
     const std::string& getOverlayBackground() const { return _overlayBackground; }
+    const std::string& getOverlayAlign() const { return _overlayAlign; }
     int getOverlayFontSize() const { return _overlayFontSize; }
 
     // NOTE: firing events from BaseItem causes trouble with promotion from
@@ -149,6 +151,7 @@ public:
     virtual bool setState(int state, int stage=-1) = 0;
     virtual void SetOverlay(const char* text) = 0;
     virtual void SetOverlayBackground(const char* text) = 0;
+    virtual void SetOverlayAlign(const char* align) = 0;
     virtual void SetOverlayFontSize(int fontSize) = 0;
 };
 

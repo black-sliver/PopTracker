@@ -35,6 +35,12 @@ public:
         onChange.emit(this);
     }
 
+    virtual void SetOverlayAlign(const char* align) override {
+        if (_overlayAlign == align) return;
+        _overlayAlign = align;
+        onChange.emit(this);
+    }
+
     virtual void SetOverlayFontSize(int fontSize) override {
         if (_overlayFontSize == fontSize) return;
         _overlayFontSize = fontSize;
