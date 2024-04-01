@@ -23,8 +23,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
     LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
-    LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef),
-    LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef),
+    LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef, LuaRef),
+    LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef, LuaRef),
 };
 
 
@@ -382,28 +382,35 @@ bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
     return false;
 }
 
-json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef callback)
+json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
 {
     std::string script;
     if (!_tracker || !_tracker->getPack() || !_tracker->getPack()->ReadFile(file, script)) {
         luaL_error(_L, "Could not load script!");
     }
-    return runAsync(file, script, arg, callback);
+    return runAsync(file, script, arg, completeCallback, progressCallback);
 }
 
-json ScriptHost::RunStringAsync(const std::string& script, const json& arg, LuaRef callback)
+json ScriptHost::RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
 {
-    return runAsync("", script, arg, callback);
+    return runAsync("", script, arg, completeCallback, progressCallback);
 }
 
-json ScriptHost::runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef callback)
+json ScriptHost::runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
 {
+    // if progress callback is nil, we free the ref and store a NOREF instead to avoid  unnecessary locking on onFrame
+    lua_rawgeti(_L, LUA_REGISTRYINDEX, progressCallback.ref);
+    if (lua_isnil(_L, -1)) {
+        luaL_unref(_L, LUA_REGISTRYINDEX, progressCallback.ref);
+        progressCallback.ref = LUA_NOREF;
+    }
+    lua_pop(_L, 1);
     try {
         _asyncTasks.emplace_back(
-            name, script, arg, callback, _tracker->getPack()
+            name, script, arg, completeCallback, progressCallback, _tracker->getPack()
         );
     } catch (std::exception& e) {
-        luaL_unref(_L, LUA_REGISTRYINDEX, callback.ref);
+        luaL_unref(_L, LUA_REGISTRYINDEX, completeCallback.ref);
         throw e;
     }
     return json::object();
@@ -416,9 +423,23 @@ bool ScriptHost::onFrame()
     auto it = _asyncTasks.begin();
     while (it != _asyncTasks.end()) {
         auto& task = *it;
+        {
+            auto ref = task.getProgressCallbackRef();
+            if (ref != LUA_NOREF) {
+                json j;
+                while (task.getProgress(j)) {
+                    lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+                    json_to_lua(_L, j);
+                    if (lua_pcall(_L, 1, 0, 0)) {
+                        printf("Error calling callback for async: %s\n", lua_tostring(_L, -1));
+                        lua_pop(_L, 1);
+                    }
+                }
+            }
+        }
         if (!task.running()) {
             std::string msg;
-            auto ref = task.getCallbackRef();
+            auto ref = task.getCompleteCallbackRef();
             if (task.error(msg)) {
                 fprintf(stderr, "Async error: %s\n", msg.c_str());
             } else {
@@ -430,6 +451,10 @@ bool ScriptHost::onFrame()
                 }
             }
             luaL_unref(_L, LUA_REGISTRYINDEX, ref);
+            auto progressRef = task.getProgressCallbackRef();
+            if (progressRef != LUA_NOREF) {
+                luaL_unref(_L, LUA_REGISTRYINDEX, progressRef);
+            }
             _asyncTasks.erase(it++);
         } else {
             it++;
@@ -518,8 +543,8 @@ void ScriptHost::runMemoryWatchCallbacks()
 }
 
 
-ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::string& script, const json& arg, LuaRef callback, const Pack* pack)
-        : _state(State::Running), _callback(callback), _luaio(pack), _stop(false)
+ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback, const Pack* pack)
+        : _state(State::Running), _completeCallback(completeCallback), _progressCallback(progressCallback), _luaio(pack), _stop(false)
 {
     printf("Starting Thread...\n");
     _L = luaL_newstate();
@@ -569,6 +594,11 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
     LuaPackIO::File::Lua_Register(_L);
     _luaio.Lua_Push(_L);
     lua_setglobal(_L, LUA_IOLIBNAME);
+    // "fake" ScriptHost for async context
+    _scriptHost.reset(new AsyncScriptHost(this));
+    AsyncScriptHost::Lua_Register(_L);
+    _scriptHost->Lua_Push(_L);
+    lua_setglobal(_L, "ScriptHost");
     // store pack in registry for "private" use (in require)
     lua_pushstring(_L, "Pack");
     lua_pushlightuserdata(_L, (void*)pack);
@@ -657,12 +687,54 @@ bool ScriptHost::ThreadContext::error(std::string& message)
     return _state == State::Error;
 }
 
-int ScriptHost::ThreadContext::getCallbackRef() const
+int ScriptHost::ThreadContext::getCompleteCallbackRef() const
 {
-    return _callback.ref;
+    return _completeCallback.ref;
+}
+
+int ScriptHost::ThreadContext::getProgressCallbackRef() const
+{
+    return _progressCallback.ref;
 }
 
 const json& ScriptHost::ThreadContext::getResult() const
 {
     return _result;
+}
+
+bool ScriptHost::ThreadContext::getProgress(json& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    if (_progressData.empty())
+        return false;
+    progress = _progressData.front();
+    _progressData.pop();
+    return true;
+}
+
+void ScriptHost::ThreadContext::addProgress(const json& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    _progressData.push(progress);
+}
+
+void ScriptHost::ThreadContext::addProgress(json&& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    _progressData.push(progress);
+}
+
+
+const LuaInterface<AsyncScriptHost>::MethodMap AsyncScriptHost::Lua_Methods = {
+    LUA_METHOD(AsyncScriptHost, AsyncProgress, json),
+};
+
+AsyncScriptHost::AsyncScriptHost(ScriptHost::ThreadContext* context)
+    : _context(context)
+{
+}
+
+void AsyncScriptHost::AsyncProgress(const json& progress)
+{
+    _context->addProgress(progress);
 }

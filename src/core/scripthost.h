@@ -18,6 +18,8 @@
 
 
 class ScriptHost;
+class AsyncScriptHost;
+
 
 class ScriptHost : public LuaInterface<ScriptHost> {
     friend class LuaInterface;
@@ -38,22 +40,31 @@ public:
         State _state;
         lua_State* _L;
         std::thread _thread;
-        LuaRef _callback;
+        LuaRef _completeCallback;
+        LuaRef _progressCallback;
         LuaPackIO _luaio;
         json _result;
         bool _stop;
         std::string _errorMessage;
+        std::queue<json> _progressData;
+        std::mutex _progressMutex;
+        std::unique_ptr<AsyncScriptHost> _scriptHost;  // has to be pointer unless we pull out ThreadContext and reorder
 
     public:
         ThreadContext(const ThreadContext&) = delete;
-        ThreadContext(const std::string& name, const std::string& script, const json& arg, LuaRef callback,
+        ThreadContext(const std::string& name, const std::string& script, const json& arg,
+                      LuaRef completeCallback, LuaRef progressCallback,
                       const Pack* pack);
         virtual ~ThreadContext();
 
         bool running();
         bool error(std::string& message);
-        int getCallbackRef() const;
+        int getCompleteCallbackRef() const;
+        int getProgressCallbackRef() const;
         const json& getResult() const;
+        bool getProgress(json& progress);
+        void addProgress(const json& progress);
+        void addProgress(json&& progress);
     };
 
     bool LoadScript(const std::string& file);
@@ -66,8 +77,8 @@ public:
     bool RemoveVariableWatch(const std::string& name);
     std::string AddOnFrameHandler(const std::string& name, LuaRef callback);
     bool RemoveOnFrameHandler(const std::string& name);
-    json RunScriptAsync(const std::string& file, const json& arg, LuaRef callback);
-    json RunStringAsync(const std::string& script, const json& arg, LuaRef callback);
+    json RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
+    json RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     void resetWatches();
 
     // This is called every frame. Returns true if state was changed by auto-tracking.
@@ -119,7 +130,7 @@ protected:
 private:
     // This will be called every frame to run auto-tracking
     bool autoTrack();
-    json runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef callback);
+    json runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     // Run a Lua function defined in ref, return its result as boolean.
     // ArgsHook can push arguments to the stack and return the number of pushed arguments.
     template <class T>
@@ -159,6 +170,23 @@ private:
         bool ignore;
         return runLuaFunction<bool>(ref, name, ignore, argsHook, execLimit);
     }
+
+protected: // Lua interface implementation
+    static constexpr const char Lua_Name[] = "ScriptHost";
+    static const LuaInterface::MethodMap Lua_Methods;
+};
+
+
+class AsyncScriptHost : public LuaInterface<AsyncScriptHost> {
+    friend class LuaInterface;
+
+public:
+    AsyncScriptHost(ScriptHost::ThreadContext* context);
+
+    void AsyncProgress(const json& progress);
+
+private:
+    ScriptHost::ThreadContext *_context;
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ScriptHost";
