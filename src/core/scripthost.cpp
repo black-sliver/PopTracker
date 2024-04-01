@@ -413,6 +413,29 @@ bool ScriptHost::onFrame()
 {
     bool res = autoTrack();
 
+    auto it = _asyncTasks.begin();
+    while (it != _asyncTasks.end()) {
+        auto& task = *it;
+        if (!task.running()) {
+            std::string msg;
+            auto ref = task.getCallbackRef();
+            if (task.error(msg)) {
+                fprintf(stderr, "Async error: %s\n", msg.c_str());
+            } else {
+                lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+                json_to_lua(_L, task.getResult());
+                if (lua_pcall(_L, 1, 0, 0)) {
+                    printf("Error calling callback for async: %s\n", lua_tostring(_L, -1));
+                    lua_pop(_L, 1);
+                }
+            }
+            luaL_unref(_L, LUA_REGISTRYINDEX, ref);
+            _asyncTasks.erase(it++);
+        } else {
+            it++;
+        }
+    }
+
     for (size_t i=0; i<_onFrameHandlers.size(); i++) {
         auto name = _onFrameHandlers[i].name;
         auto now = Ui::getMicroTicks();
@@ -462,36 +485,6 @@ void ScriptHost::resetWatches()
     if (changed && _autoTracker) {
         _autoTracker->onDataChange.emit(_autoTracker);
     }
-}
-
-bool ScriptHost::onFrame()
-{
-    bool res = autoTrack();
-
-    auto it = _asyncTasks.begin();
-    while (it != _asyncTasks.end()) {
-        auto& task = *it;
-        if (!task.running()) {
-            std::string msg;
-            auto ref = task.getCallbackRef();
-            if (task.error(msg)) {
-                fprintf(stderr, "Async error: %s\n", msg.c_str());
-            } else {
-                lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-                json_to_lua(_L, task.getResult());
-                if (lua_pcall(_L, 1, 0, 0)) {
-                    printf("Error calling callback for async: %s\n", lua_tostring(_L, -1));
-                    lua_pop(_L, 1);
-                }
-            }
-            luaL_unref(_L, LUA_REGISTRYINDEX, ref);
-            _asyncTasks.erase(it++);
-        } else {
-            it++;
-        }
-    }
-
-    return res;
 }
 
 void ScriptHost::runMemoryWatchCallbacks()

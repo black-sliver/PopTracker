@@ -120,11 +120,7 @@ private:
     // This will be called every frame to run auto-tracking
     bool autoTrack();
     json runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef callback);
-
-private:
-    // This will be called every frame to run auto-tracking
-    bool autoTrack();
-    // Run a Lua function defined in ref, return bool its result as boolean.
+    // Run a Lua function defined in ref, return its result as boolean.
     // ArgsHook can push arguments to the stack and return the number of pushed arguments.
     template <class T>
     int runLuaFunction(int ref, const std::string& name, T& res, std::function<int(lua_State*)> argsHook=nullptr, int execLimit=0)
