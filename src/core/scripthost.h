@@ -3,6 +3,7 @@
 
 #include <luaglue/luainterface.h>
 #include <luaglue/lua_json.h>
+#include <luaglue/luapp.h>
 #include "pack.h"
 #include "autotracker.h"
 #include "tracker.h"
@@ -13,6 +14,7 @@
 #include <thread>
 #include "../luasandbox/luapackio.h"
 #include "../luasandbox/require.h"
+#include "../uilib/timer.h"
 
 
 class ScriptHost;
@@ -62,6 +64,8 @@ public:
     bool RemoveWatchForCode(const std::string& name);
     std::string AddVariableWatch(const std::string& name, const json& variables, LuaRef callback, int interval);
     bool RemoveVariableWatch(const std::string& name);
+    std::string AddOnFrameHandler(const std::string& name, LuaRef callback);
+    bool RemoveOnFrameHandler(const std::string& name);
     json RunScriptAsync(const std::string& file, const json& arg, LuaRef callback);
     json RunStringAsync(const std::string& script, const json& arg, LuaRef callback);
     void resetWatches();
@@ -93,7 +97,14 @@ public:
         int callback;
         std::set<std::string> names;
     };
-    
+
+    struct OnFrameHandler
+    {
+        int callback;
+        std::string name;
+        Ui::microtick_t lastTimestamp;
+    };
+
 protected:
     lua_State *_L;
     Pack *_pack;
@@ -101,6 +112,7 @@ protected:
     std::vector<MemoryWatch> _memoryWatches;
     std::vector<std::pair<std::string, CodeWatch> > _codeWatches;
     std::vector<std::pair<std::string, VarWatch> > _varWatches;
+    std::vector<OnFrameHandler> _onFrameHandlers;
     AutoTracker *_autoTracker = nullptr;
     std::list<ThreadContext> _asyncTasks;
 
@@ -108,6 +120,49 @@ private:
     // This will be called every frame to run auto-tracking
     bool autoTrack();
     json runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef callback);
+
+private:
+    // This will be called every frame to run auto-tracking
+    bool autoTrack();
+    // Run a Lua function defined in ref, return bool its result as boolean.
+    // ArgsHook can push arguments to the stack and return the number of pushed arguments.
+    template <class T>
+    int runLuaFunction(int ref, const std::string& name, T& res, std::function<int(lua_State*)> argsHook=nullptr, int execLimit=0)
+    {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+        int nargs = argsHook ? argsHook(_L) : 0;
+        if (execLimit > 0)
+            lua_sethook(_L, Tracker::luaTimeoutHook, LUA_MASKCOUNT, execLimit);
+        int status = lua_pcall(_L, nargs, 1, -nargs-2);
+        if (execLimit > 0)
+            lua_sethook(_L, nullptr, 0, 0);
+
+        if (status) {
+            auto err = lua_tostring(_L, -1);
+            if (err)
+                printf("Error calling %s: %s\n", name.c_str(), err);
+            else
+                printf("Error calling %s (%d)\n", name.c_str(), status);
+            lua_pop(_L, 2); // error + error func
+            return status;
+        } else {
+            try {
+                res = Lua(_L).Get<T>(-1);
+            } catch (std::invalid_argument&) {
+                lua_pop(_L, 2); // result + error func
+                return -1;
+            }
+            lua_pop(_L, 2); // result + error func
+            return LUA_OK;
+        }
+    }
+
+    int runLuaFunction(int ref, const std::string& name, std::function<int(lua_State*)> argsHook=nullptr, int execLimit=0)
+    {
+        bool ignore;
+        return runLuaFunction<bool>(ref, name, ignore, argsHook, execLimit);
+    }
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ScriptHost";

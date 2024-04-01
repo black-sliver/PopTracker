@@ -21,6 +21,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, CreateLuaItem, void),
     LUA_METHOD(ScriptHost, AddVariableWatch, const char*, json, LuaRef, int),
     LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
+    LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
+    LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
     LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef),
     LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef),
 };
@@ -98,7 +100,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             }
             if (!watchVars.empty()) {
                 lua_rawgeti(_L, LUA_REGISTRYINDEX, pair.second.callback);
-                _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
+                _autoTracker->Lua_Push(_L); // arg1: autotracker ("store")
                 json j = watchVars;
                 json_to_lua(_L, j); // args2: variable names
                 if (lua_pcall(_L, 2, 0, 0)) {
@@ -359,6 +361,27 @@ bool ScriptHost::RemoveVariableWatch(const std::string& name)
     return true;
 }
 
+std::string ScriptHost::AddOnFrameHandler(const std::string& name, LuaRef callback)
+{
+    RemoveOnFrameHandler(name);
+    if (!callback.valid())
+        luaL_error(_L, "Invalid callback");
+    _onFrameHandlers.push_back(OnFrameHandler{callback.ref, name, Ui::getMicroTicks()});
+    return name;
+}
+
+bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
+{
+    for (auto it = _onFrameHandlers.begin(); it != _onFrameHandlers.end(); it++) {
+        if (it->name == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->callback);
+            _onFrameHandlers.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef callback)
 {
     std::string script;
@@ -384,6 +407,32 @@ json ScriptHost::runAsync(const std::string& name, const std::string& script, co
         throw e;
     }
     return json::object();
+}
+
+bool ScriptHost::onFrame()
+{
+    bool res = autoTrack();
+
+    for (size_t i=0; i<_onFrameHandlers.size(); i++) {
+        auto name = _onFrameHandlers[i].name;
+        auto now = Ui::getMicroTicks();
+        auto elapsedUs = now - _onFrameHandlers[i].lastTimestamp;
+        double elapsed = (double)elapsedUs / 1000000.0;
+        _onFrameHandlers[i].lastTimestamp = now;
+
+        // For now we use the same exec limit as in Tracker, which is 3-4ms for pure Lua on a fast PC.
+        runLuaFunction(_onFrameHandlers[i].callback, name, [elapsed](lua_State *L) {
+            Lua(L).Push(elapsed);
+            return 1;
+        }, Tracker::getExecLimit());
+
+        if (_onFrameHandlers.size() <= i)
+            break; // callback does not exist anymore
+        if (_onFrameHandlers[i].name != name)
+            i--; // callback was modified in callback
+    }
+
+    return res;
 }
 
 bool ScriptHost::autoTrack()
@@ -460,19 +509,11 @@ void ScriptHost::runMemoryWatchCallbacks()
         auto name = w.name;
 
         // run memory watch callback
-        lua_rawgeti(_L, LUA_REGISTRYINDEX, w.callback);
-        _autoTracker->Lua_Push(_L); // arg1: autotracker ("segment")
-        bool res;
-        if (lua_pcall(_L, 1, 1, 0)) {
-            res = true; // "complete" on error
-            printf("Error calling Memory Watch Callback for %s: %s\n",
-                name.c_str(), lua_tostring(_L, -1));
-            lua_pop(_L, 1);
-        } else {
-            assert(lua_gettop(_L) == 1);
-            res = lua_isboolean(_L, -1) ? lua_toboolean(_L, -1) : true;
-            lua_pop(_L, 1);
-        }
+        bool res = true; // on error: don't rerun
+        runLuaFunction(w.callback, "Memory Watch Callback for " + name, res, [this](lua_State* L){
+            _autoTracker->Lua_Push(L); // arg1: autotracker ("segment")
+            return 1;
+        });
 
         if (_memoryWatches.size() <= i)
             break; // watch does not exist anymore
