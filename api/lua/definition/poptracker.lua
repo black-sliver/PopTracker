@@ -467,6 +467,13 @@ function LuaItem:SetOverlayBackground(background) end
 ---@param fontSize integer
 function LuaItem:SetOverlayFontSize(fontSize) end
 
+---@alias HAlign "left" | "center" | "right"
+
+---Set item overlay text alignment (default right).
+---PopTracker, since 0.25.9
+---@param align HAlign "horizontal alignment of overlay text"
+function LuaItem:SetOverlayAlign(align) end
+
 
 ---- JsonItem ----
 
@@ -531,6 +538,11 @@ function JsonItem:SetOverlayBackground(background) end
 ---PopTracker, since 0.17.2
 ---@param fontSize integer
 function JsonItem:SetOverlayFontSize(fontSize) end
+
+---Set item overlay text / consumable amount alignment (default right).
+---PopTracker, since 0.25.9
+---@param align HAlign "horizontal alignment of overlay text"
+function JsonItem:SetOverlayAlign(align) end
 
 
 ---- Location ----
