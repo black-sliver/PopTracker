@@ -15,6 +15,7 @@ const LuaInterface<LuaItem>::MethodMap LuaItem::Lua_Methods = {
     LUA_METHOD(LuaItem, Set, const char*, LuaVariant),
     LUA_METHOD(LuaItem, SetOverlay, const char*),
     LUA_METHOD(LuaItem, SetOverlayBackground, const char*),
+    LUA_METHOD(LuaItem, SetOverlayAlign, const char*),
     LUA_METHOD(LuaItem, SetOverlayFontSize, int),
 };
 
