@@ -31,7 +31,6 @@
             },
             "overlay_align": {
                 "description": "Set alignment of consumable number overlay or overlay text set from Lua.",
-                "type": "string",
                 "default": "right",
                 "enum": ["left", "center", "right"]
             }
@@ -176,7 +175,8 @@
                     "name": true,
                     "type": true,
                     "codes": true,
-                    "capturable": true
+                    "capturable": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -213,7 +213,8 @@
                     "name": true,
                     "type": true,
                     "codes": true,
-                    "capturable": true
+                    "capturable": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -250,7 +251,8 @@
                     "name": true,
                     "type": true,
                     "codes": true,
-                    "capturable": true
+                    "capturable": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -290,7 +292,8 @@
                     "name": true,
                     "type": true,
                     "codes": true,
-                    "capturable": true
+                    "capturable": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -317,7 +320,8 @@
                     "capturable": true,
                     "item_left": true,
                     "item_right": true,
-                    "images": true
+                    "images": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -427,7 +431,8 @@
                     "name": true,
                     "type": true,
                     "codes": true,
-                    "capturable": true
+                    "capturable": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "required": [
@@ -491,7 +496,8 @@
                     "codes": true,
                     "capturable": true,
                     "overlay_font_size": true,
-                    "badge_font_size": true
+                    "badge_font_size": true,
+                    "overlay_align": true
                 },
                 "additionalProperties": false,
                 "patternProperties": {
