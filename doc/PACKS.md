@@ -281,7 +281,7 @@ a table representing an enum with the following constants: \
   + adds optional `"initial_quantity": 0`
   + adds optional `"overlay_background": ""` set text background color with "#000000" (A)RGB notation
   + adds optional `"overlay_font_size": 0` set font size of overlay text
-  + adds optional `"overlay_align": "right"` set text alignment of overlay text
+  + adds optional `"overlay_align": "right"` set text alignment of overlay text to "left", "right" or "center", since 0.25.9
   + adds alias `badge_font_size` for `overlay_font_size`
   
 * `"progressive_toggle"`:

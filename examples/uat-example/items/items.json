@@ -9,7 +9,8 @@
 		"name": "B",
 		"type": "consumable",
 		"img": "images/b.png",
-		"codes": "b"
+		"codes": "b",
+		"overlay_align": "left"
     },
     {
 		"name": "C",
