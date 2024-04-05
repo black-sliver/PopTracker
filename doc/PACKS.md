@@ -215,7 +215,7 @@ a table representing an enum with the following constants: \
 
 
 ### type Location
-* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants (will not give CLEARED at the moment), since 0.25.5
+* `.AccessibilityLevel`: read-only, giving one of the AccessibilityLevel constants (will not give CLEARED at the moment), since 0.25.5
 
 
 ## JSON
