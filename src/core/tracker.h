@@ -117,10 +117,11 @@ protected:
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
     std::map<std::string, Map> _maps;
-    std::map<std::string, AccessibilityLevel> _reachableCache;
+    std::map<std::string, AccessibilityLevel> _accessibilityCache;
     std::map<std::string, int> _providerCountCache;
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
+    bool _accessibilityStale = true;
 
     std::map<std::string, std::vector<std::string>> _sectionNameRefs;
     std::map<std::reference_wrapper<const LocationSection>,
@@ -139,6 +140,7 @@ protected:
     AccessibilityLevel isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents);
 
     void rebuildSectionRefs();
+    void cacheAccessibility();
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
