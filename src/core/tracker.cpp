@@ -152,8 +152,8 @@ bool Tracker::AddItems(const std::string& file) {
         return false;
     }
     
-    _reachableCache.clear();
     _providerCountCache.clear();
+    _accessibilityStale = true;
     for (auto& v : j) {
         if (v.type() != json::value_t::object) {
             fprintf(stderr, "Bad item\n");
@@ -163,9 +163,8 @@ bool Tracker::AddItems(const std::string& file) {
         auto& item = _jsonItems.back();
         item.setID(++_lastItemID);
         item.onChange += {this, [this](void* sender) {
-            if (!_bulkUpdate)
-                _reachableCache.clear();
             _providerCountCache.clear();
+            _accessibilityStale = true;
             JsonItem* i = (JsonItem*)sender;
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
                 // update part items when changing composite
@@ -281,9 +280,9 @@ bool Tracker::AddLocations(const std::string& file) {
         return false;
     }
     
-    _reachableCache.clear();
     _providerCountCache.clear();
     _sectionRefs.clear();
+    _accessibilityStale = true;
     for (auto& loc : Location::FromJSON(j, _locations)) {
         // find duplicate, warn and merge
 #ifdef MERGE_DUPLICATE_LOCATIONS // this should be default in the future
@@ -721,9 +720,6 @@ bool Tracker::isVisible(const Location::MapLocation& mapLoc)
 
 AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents)
 {
-    // TODO: return enum instead of int
-    // returns 0 for unreachable, 1 for reachable, 2 for glitches required
-
     bool glitchedReachable = false;
     bool inspectOnlyReachable = false;
     if (rules.empty()) return AccessibilityLevel::NORMAL;
@@ -770,44 +766,22 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                 }
                 s = s.substr(1);
             }
-            // check cache for '@' rules
-            auto it = _reachableCache.find(s);
-            if (it != _reachableCache.end()) {
-                { // value is glitched/not glitched
-                    auto sub = it->second;
-                    if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
-                        sub = AccessibilityLevel::NONE; // or set inspectOnly = true?
-                    else if (optional && sub == AccessibilityLevel::NONE)
-                        sub = AccessibilityLevel::SEQUENCE_BREAK;
-                    else if (sub == AccessibilityLevel::NONE)
-                        reachable = AccessibilityLevel::NONE;
-                    if (sub == AccessibilityLevel::SEQUENCE_BREAK && reachable != AccessibilityLevel::NONE)
-                        reachable = AccessibilityLevel::SEQUENCE_BREAK;
-                    if (reachable == AccessibilityLevel::NONE)
-                        break;
-                }
-            }
-            // '@' references other locations
-            else if (s[0] == '@') {
+            if (s[0] == '@') {
                 const char* start = s.c_str()+1;
                 const char* t = strrchr(s.c_str()+1, '/');
                 std::string locid = s.substr(1);
                 auto& loc = getLocation(locid, true);
                 bool match = false;
                 AccessibilityLevel sub = AccessibilityLevel::NONE;
-                if (!t && loc.getID().empty()) {
-                    printf("Invalid location %s for access rule!\n",
-                            sanitize_print(s).c_str());
-                    continue; // invalid location
-                } else if (!loc.getID().empty()) {
+                if (!loc.getID().empty()) {
                     // @-Rule for location, not a section
                     if (visibilityRules)
                         sub = isVisible(loc, parents) ? AccessibilityLevel::NORMAL : AccessibilityLevel::NONE;
                     else
                         sub = isReachable(loc, parents);
                     match = true;
-                } else {
-                    // @-Rule for a section (also run for missing location)
+                } else if (t) {
+                    // @-Rule for a section (also run for missing location with '/')
                     std::string sublocid = locid.substr(0, t-start);
                     std::string subsecname = t+1;
                     auto& subloc = getLocation(sublocid, true);
@@ -823,8 +797,6 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
                     }
                 }
                 if (match) {
-                    if (!visibilityRules)
-                        _reachableCache[s] = sub; // only cache isReachable (not isVisible) for @
                     // combine current state with sub-result
                     if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
                         sub = AccessibilityLevel::NONE; // or set checkable = true?
@@ -843,8 +815,8 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
             // '$' calls into Lua, now also supported by ProviderCountForCode
             // other: references codes (with or without count)
             else {
-                // NOTE: we don't use _reachableCache here, instead ProvideCountForCode has a cache
-                _parents = &parents;
+                // NOTE: ProvideCountForCode has a cache
+                _parents = &parents; // used to detect recursion for $-rules checking locations.
                 int n = ProviderCountForCode(s);
                 _parents = nullptr;
                 if (isAccessibilitLevel) { // TODO: merge this with '@' code path
@@ -885,24 +857,18 @@ AccessibilityLevel Tracker::isReachable(const std::list< std::list<std::string> 
 
 AccessibilityLevel Tracker::isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
+    cacheAccessibility();
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
     std::string id = realSection.getParentID() + "/" + realSection.getName();
-    if (std::count(parents.begin(), parents.end(), id) > 1) {
-        printf("access_rule recursion detected: %s!\n", id.c_str());
-        // returning 0 here should mean this path is unreachable, other paths that are logical "or" should be resolved
-        return AccessibilityLevel::NONE;
-    }
-    parents.push_back(id);
-    auto res = isReachable(realSection.getAccessRules(), false, parents);
-    parents.pop_back();
-    return res;
+    return _accessibilityCache[id];
 }
 
 bool Tracker::isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents)
 {
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
     std::string id = realSection.getParentID() + "/" + realSection.getName();
-    if (std::count(parents.begin(), parents.end(), id) > 1) {
+    //if (std::count(parents.begin(), parents.end(), id) > 1) {
+    if (std::find(parents.begin(), parents.end(), id) != parents.end()) {
         printf("visibility_rule recursion detected: %s!\n", id.c_str());
         return 0;
     }
@@ -914,14 +880,8 @@ bool Tracker::isVisible(const Location& location, const LocationSection& section
 
 AccessibilityLevel Tracker::isReachable(const Location& location, std::list<std::string>& parents)
 {
-    if (std::count(parents.begin(), parents.end(), location.getID()) > 1) {
-        printf("access_rule recursion detected: %s!\n", location.getID().c_str());
-        return AccessibilityLevel::NONE;
-    }
-    parents.push_back(location.getID());
-    auto res = isReachable(location.getAccessRules(), false, parents);
-    parents.pop_back();
-    return res;
+    cacheAccessibility();
+    return _accessibilityCache[location.getID()];
 }
 
 bool Tracker::isVisible(const Location& location, std::list<std::string>& parents)
@@ -943,8 +903,8 @@ LuaItem * Tracker::CreateLuaItem()
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
         if (!_bulkUpdate)
-            _reachableCache.clear();
         _providerCountCache.clear();
+        _accessibilityStale = true;
         LuaItem* i = (LuaItem*)sender;
         if (_bulkUpdate)
             _bulkItemUpdates.push_back(i->getID());
@@ -952,6 +912,49 @@ LuaItem * Tracker::CreateLuaItem()
             onStateChanged.emit(this, i->getID());
     }};
     return &i;
+}
+
+void Tracker::cacheAccessibility()
+{
+    if (!_accessibilityStale)
+        return;
+    _accessibilityCache.clear();
+    _accessibilityStale = false;
+
+    bool done = false;
+    while (!done) {
+        done = true;
+        for (const auto& location: _locations) {
+            std::list<std::string> parents;
+            auto it = _accessibilityCache.find(location.getID());
+            if (it->second == AccessibilityLevel::NORMAL)
+                continue; // nothing to do
+            auto res = isReachable(location.getAccessRules(), false, parents);
+            if (it == _accessibilityCache.end()) {
+                _accessibilityCache[location.getID()] = res;
+                done = false;
+            }
+            else if (it->second != res) {
+                it->second = res;
+                done = false;
+            }
+            for (const auto& section: location.getSections()) {
+                const std::string id = location.getID() + "/" + section.getName();
+                it = _accessibilityCache.find(id);
+                if (it->second == AccessibilityLevel::NORMAL)
+                    continue; // nothing to do
+                parents.clear();
+                res = isReachable(section.getAccessRules(), false, parents);
+                if (it == _accessibilityCache.end()) {
+                    _accessibilityCache[id] = res;
+                    done = false;
+                } else if (it->second != res) {
+                    it->second = res;
+                    done = false;
+                }
+            }
+        }
+    }
 }
 
 
@@ -1000,9 +1003,9 @@ json Tracker::saveState() const
 
 bool Tracker::loadState(nlohmann::json& state)
 {
-    _reachableCache.clear();
     _providerCountCache.clear();
     _bulkItemUpdates.clear();
+    _accessibilityStale = true;
     if (state.type() != json::value_t::object) return false;
     auto& j = state["tracker"]; // state's tracker data
     if (j["format_version"] != 1) return false; // incompatible state format
