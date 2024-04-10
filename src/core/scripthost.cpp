@@ -423,6 +423,7 @@ bool ScriptHost::onFrame()
     auto it = _asyncTasks.begin();
     while (it != _asyncTasks.end()) {
         auto& task = *it;
+        bool running = task.running();
         {
             auto ref = task.getProgressCallbackRef();
             if (ref != LUA_NOREF) {
@@ -437,7 +438,7 @@ bool ScriptHost::onFrame()
                 }
             }
         }
-        if (!task.running()) {
+        if (!running) {
             std::string msg;
             auto ref = task.getCompleteCallbackRef();
             if (task.error(msg)) {
