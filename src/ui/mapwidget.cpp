@@ -119,10 +119,10 @@ void MapWidget::connectSignals()
         bool match = false;
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
-            if (loc.state == -1) continue; // hidden
-            if (loc.state == 0 && _hideClearedLocations) continue;
-            if (loc.state == 2 && _hideUnreachableLocations) continue;
             for (const auto& pos: loc.pos) {
+                if (pos.state == -1) continue; // hidden
+                if (pos.state == 0 && _hideClearedLocations) continue;
+                if (pos.state == 2 && _hideUnreachableLocations) continue;
                 int locsize = pos.size + 2 * pos.borderThickness; // or without border?
                 int locleft = pos.x - locsize/2;
                 int loctop = pos.y - locsize/2;
@@ -210,7 +210,7 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
                 .x = outer.x + outer.w - borderScreenSize, .y = outer.y, .w = borderScreenSize, .h = outer.h
             };
 
-            int state = (int)loc.state;
+            int state = (int)pos.state;
             if (state == -1) continue; // hidden
             if (state == 0 && _hideClearedLocations) continue;
             if (state == 2 && _hideUnreachableLocations) continue;
@@ -336,16 +336,17 @@ void MapWidget::addLocation(const std::string& id, int x, int y, int size, int b
 {
     auto it = _locations.find(id);
     if (it != _locations.end()) {
-        it->second.pos.push_back( {x, y, size, borderThickness} );
+        it->second.pos.push_back( {x, y, size, borderThickness, state} );
     } else {
-        _locations[id] = { { {x, y, size, borderThickness} }, state};
+        _locations[id] = { { {x, y, size, borderThickness, state} } };
     }
 }
-void MapWidget::setLocationState(const std::string& id, int state)
+
+void MapWidget::setLocationState(const std::string& id, int state, size_t n)
 {
     auto it = _locations.find(id);
-    if (it != _locations.end()) {
-        it->second.state = state;
+    if (it != _locations.end() && it->second.pos.size() >= n) {
+        it->second.pos[n].state = state;
     }
 }
 

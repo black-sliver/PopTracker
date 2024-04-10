@@ -372,16 +372,23 @@ void TrackerView::updateLocation(const std::string& location, bool all)
 {
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
+            std::string lastLocation;
+            size_t n = 0; // nth map location of the same location on the same map
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
                 if (!all && pair.first != location)
                     continue;
+                if (all && lastLocation != pair.first) {
+                    lastLocation = pair.first;
+                    n = 0;
+                }
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.size()<1) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     fprintf(stderr, "cybuuuuuu!!\n");
                     return;
                 }
-                w->setLocationState(pair.first, state);
+                w->setLocationState(pair.first, state, n);
+                n++;
             }
         }
     }
@@ -1008,6 +1015,7 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
                   (hasReachable?(1<<0):0);
     return res;
 }
+
 int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& locid, const Location::MapLocation& mapLoc)
 {
     // TODO: move to a common place

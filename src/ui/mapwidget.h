@@ -3,7 +3,7 @@
 
 #include "../uilib/image.h"
 #include <map>
-#include <list>
+#include <vector>
 
 namespace Ui {
 
@@ -17,16 +17,16 @@ public:
         int y=0;
         int size=0;
         int borderThickness=0;
-    };
-    
-    struct Location {
-        std::list<Point> pos;
         int state=1;
     };
-    
+
+    struct Location {
+        std::vector<Point> pos;
+    };
+
     // TODO: enum location state
     void addLocation(const std::string& name, int x, int y, int size, int borderThickness, int state=1);
-    void setLocationState(const std::string& name, int state);
+    void setLocationState(const std::string& name, int state, size_t n);
     
     // FIXME: this does not work if name is not unique
     Signal<const std::string&,int,int> onLocationHover; // FIXME: we should provide absolute AND relative mouse position through the Event stack
