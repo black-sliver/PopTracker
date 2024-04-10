@@ -927,7 +927,7 @@ void Tracker::cacheAccessibility()
         for (const auto& location: _locations) {
             std::list<std::string> parents;
             auto it = _accessibilityCache.find(location.getID());
-            if (it->second == AccessibilityLevel::NORMAL)
+            if (it != _accessibilityCache.end() && it->second == AccessibilityLevel::NORMAL)
                 continue; // nothing to do
             auto res = isReachable(location.getAccessRules(), false, parents);
             if (it == _accessibilityCache.end()) {
