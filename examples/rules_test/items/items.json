@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Item A",
+        "type": "toggle",
+        "capturable": true,
+        "img": "images/items/a.png",
+        "codes": "a"
+    },
+    {
+        "name": "Item B",
+        "type": "toggle",
+        "capturable": true,
+        "img": "images/items/b.png",
+        "codes": "b"
+    },
+    {
+        "name": "Item C",
+        "type": "toggle",
+        "capturable": true,
+        "img": "images/items/c.png",
+        "codes": "c"
+    },
+    {
+        "name": "Dummy",
+        "type": "toggle",
+        "capturable": true,
+        "img": "images/items/dummy.png",
+        "codes": "dummy"
+    },
+    {
+        "name": "Item E",
+        "type": "toggle",
+        "capturable": true,
+        "img": "images/items/e.png",
+        "codes": "e"
+    }
+]

@@ -1,0 +1,99 @@
+[
+    {
+        "name": "Example Area",
+        "children": [
+            {
+                "name": "Start",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 100,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "A",
+                "access_rules": [
+                    "@B",
+                    "@D",
+                    "@Start"
+                ],
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 200,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "B",
+                "access_rules": [
+                    "@A"
+                ],
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 300,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "C",
+                "access_rules": [
+                    "@D",
+                    "@A"
+                ],
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 400,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "D",
+                "access_rules": [
+                    //"@X", //uncomment this for oddness
+                    "@A,a",
+                    "@C"
+                ],
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 500,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            }
+        ]
+    }
+]

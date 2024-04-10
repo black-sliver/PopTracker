@@ -1,0 +1,10 @@
+--scripts
+ScriptHost:LoadScript("scripts/logic.lua")
+--items
+Tracker:AddItems("items/items.json")
+--maps
+Tracker:AddMaps("maps/maps.json")
+--locations
+Tracker:AddLocations("locations/locations.jsonc")
+--layouts
+Tracker:AddLayouts("layouts/tracker.json")
