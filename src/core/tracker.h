@@ -12,6 +12,7 @@
 #include "signal.h"
 #include <string>
 #include <list>
+#include <set>
 #include <functional>
 #include <cstddef> // nullptr_t
 #include <nlohmann/json.hpp>
@@ -125,6 +126,8 @@ protected:
     bool _accessibilityStale = false;
     bool _visibilityStale = false;
     bool _isIndirectConnection = false; /// flag to skip cache for codes that depend on locations
+    bool _updatingCache = false; /// true while cache*() is running
+    std::set<std::string> _itemChangesDuringCacheUpdate;
 
     std::map<std::string, std::vector<std::string>> _sectionNameRefs;
     std::map<std::reference_wrapper<const LocationSection>,
