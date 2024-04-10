@@ -164,10 +164,16 @@ bool Tracker::AddItems(const std::string& file) {
         auto& item = _jsonItems.back();
         item.setID(++_lastItemID);
         item.onChange += {this, [this](void* sender) {
-            _providerCountCache.clear();
-            _accessibilityStale = true;
-            _visibilityStale = true;
             JsonItem* i = (JsonItem*)sender;
+            if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
+                _providerCountCache.clear();
+                _accessibilityStale = true;
+                _visibilityStale = true;
+                if (_updatingCache)
+                    _itemChangesDuringCacheUpdate.insert(i->getID());
+            } else {
+                fprintf(stderr, "WARNING: item toggled multiple times in access rule. Ignoring.\n");
+            }
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
                 // update part items when changing composite
                 unsigned n = (unsigned)i->getActiveStage();
@@ -867,11 +873,17 @@ LuaItem * Tracker::CreateLuaItem()
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
-        if (!_bulkUpdate)
-        _providerCountCache.clear();
-        _accessibilityStale = true;
-        _visibilityStale = true;
         LuaItem* i = (LuaItem*)sender;
+        if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
+            if (!_bulkUpdate)
+                _providerCountCache.clear();
+            _accessibilityStale = true;
+            _visibilityStale = true;
+            if (_updatingCache)
+                _itemChangesDuringCacheUpdate.insert(i->getID());
+        } else {
+            fprintf(stderr, "WARNING: item toggled multiple times in access rule. Ignoring.\n");
+        }
         if (_bulkUpdate)
             _bulkItemUpdates.push_back(i->getID());
         else
@@ -884,6 +896,7 @@ void Tracker::cacheAccessibility()
 {
     if (!_accessibilityStale)
         return;
+    _updatingCache = true;
     _accessibilityCache.clear();
     _accessibilityStale = false;
 
@@ -919,12 +932,16 @@ void Tracker::cacheAccessibility()
             }
         }
     }
+
+    _updatingCache = false;
+    _itemChangesDuringCacheUpdate.clear();
 }
 
 void Tracker::cacheVisibility()
 {
     if (!_visibilityStale)
         return;
+    _updatingCache = true;
     _visibilityCache.clear();
     _visibilityStale = false;
 
@@ -964,6 +981,9 @@ void Tracker::cacheVisibility()
             }
         }
     }
+
+    _updatingCache = false;
+    _itemChangesDuringCacheUpdate.clear();
 }
 
 json Tracker::saveState() const
