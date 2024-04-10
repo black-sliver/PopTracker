@@ -68,7 +68,7 @@ static const int triangleValues[16][4] = {
 
 Widget::Color MapWidget::StateColors[] = _DEFAULT_STATE_COLORS;
 
-bool MapWidget::SplitRects = false;
+bool MapWidget::SplitRects = true;
 
 
 MapWidget::MapWidget(int x, int y, int w, int h, const char* path)
