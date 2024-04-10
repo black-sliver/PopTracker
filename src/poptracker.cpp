@@ -479,7 +479,7 @@ bool PopTracker::start()
                         return;
                     }
                     if (!Dlg::InputBox("PopTracker", "Enter slot",
-                            (_atUri==uri) ? _atSlot.c_str() : "Player", slot))
+                            _atSlot.length() ? _atSlot.c_str() : "Player", slot))
                         return;
                     if (!Dlg::InputBox("PopTracker", "Enter password", "", password, true))
                         return;
