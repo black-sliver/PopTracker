@@ -905,23 +905,23 @@ void Tracker::cacheAccessibility()
         done = true;
         for (const auto& location: _locations) {
             auto it = _accessibilityCache.find(location.getID());
-            if (it != _accessibilityCache.end() && it->second == AccessibilityLevel::NORMAL)
-                continue; // nothing to do
-            auto res = resolveRules(location.getAccessRules(), false);
-            if (it == _accessibilityCache.end()) {
-                _accessibilityCache[location.getID()] = res;
-                done = false;
-            }
-            else if (it->second != res) {
-                it->second = res;
-                done = false;
+            if (it == _accessibilityCache.end() || it->second != AccessibilityLevel::NORMAL) {
+                auto res = resolveRules(location.getAccessRules(), false);
+                if (it == _accessibilityCache.end()) {
+                    _accessibilityCache[location.getID()] = res;
+                    done = false;
+                }
+                else if (it->second != res) {
+                    it->second = res;
+                    done = false;
+                }
             }
             for (const auto& section: location.getSections()) {
                 const std::string id = location.getID() + "/" + section.getName();
                 it = _accessibilityCache.find(id);
                 if (it != _accessibilityCache.end() && it->second == AccessibilityLevel::NORMAL)
                     continue; // nothing to do
-                res = resolveRules(section.getAccessRules(), false);
+                auto res = resolveRules(section.getAccessRules(), false);
                 if (it == _accessibilityCache.end()) {
                     _accessibilityCache[id] = res;
                     done = false;
@@ -951,16 +951,16 @@ void Tracker::cacheVisibility()
         for (const auto& location: _locations) {
             if (!location.getVisibilityRules().empty()) { // no need to pre-cache empty
                 auto it = _visibilityCache.find(location.getID());
-                if (it != _visibilityCache.end() && it->second)
-                    continue; // nothing to do
-                bool res = resolveRules(location.getVisibilityRules(), true) != AccessibilityLevel::NONE;
-                if (it == _visibilityCache.end()) {
-                    _visibilityCache[location.getID()] = res;
-                    done = false;
-                }
-                else if (it->second != res) {
-                    it->second = res;
-                    done = false;
+                if (it == _visibilityCache.end() || !it->second) {
+                    bool res = resolveRules(location.getVisibilityRules(), true) != AccessibilityLevel::NONE;
+                    if (it == _visibilityCache.end()) {
+                        _visibilityCache[location.getID()] = res;
+                        done = false;
+                    }
+                    else if (it->second != res) {
+                        it->second = res;
+                        done = false;
+                    }
                 }
             }
             for (const auto& section: location.getSections()) {
