@@ -1,5 +1,23 @@
 # PopTracker Changelog
 
+## v0.26.0
+
+* App Features
+  * Default to split colors for map locations - press Ctrl+P to toggle
+  * Archipelago: suggest last used slot name even if server changed
+* Pack Features
+  * Lua: OnFrame event (via ScriptHost:AddOnFrameHandler)
+  * Lua: ScriptHost:RunScriptAsync and ScriptHost:RunStringAsync to run longer computations without blocking the UI
+  * overlay_align and SetOverlayAlign for overlay text alignment
+  * Rework how access and visibility rules work
+    * Fixes complex @-Rules not resolving correctly
+    * Allows to use Item.AccessibilityLevel from Lua rules
+  * Doc improvements
+  * Error message improvements
+* Fixes
+  * Fix some access and visibility rules that were being used by packs
+  * Fix per-map-location visibility rules not working if multiple are on the same map
+
 ## v0.25.8
 
 * App Features
