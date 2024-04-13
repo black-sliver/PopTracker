@@ -127,6 +127,9 @@ The following interfaces are provided:
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 * `ref :AddOnFrameHandler(name,callback)`: callback(elapsed) will be called every frame, available since 0.25.9
 * `bool :RemoveOnFrameHandler(name)`: remove a frame callback
+* `ThreadProxy :RunScriptAsync(luaFilename, arg, completeCallback, progressCallback)`: Load and run script in a separate thread. `arg` is passed as global arg. Most other things are not available in the new context. Use `return` to return a value from the script, that will be passed to `callback(result)`. (ThreadProxy has no function yet)
+* `ThreadProxy :RunStringAsync(script, arg, completeCallback, progressCallback)`: same as RunScriptAsync, but script is a string instead of a filename.
+* `void :AsyncProgress(arg)`: call progressCallback in main context on next frame. Arg is passed to callback.
 
 
 ### global AutoTracker

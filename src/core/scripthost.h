@@ -9,10 +9,17 @@
 #include "tracker.h"
 #include "luaitem.h"
 #include <string>
-#include <vector> // TODO: replace by new[] uint8_t?
+#include <vector>
+#include <list>
+#include <thread>
+#include "../luasandbox/luapackio.h"
+#include "../luasandbox/require.h"
 #include "../uilib/timer.h"
 
+
 class ScriptHost;
+class AsyncScriptHost;
+
 
 class ScriptHost : public LuaInterface<ScriptHost> {
     friend class LuaInterface;
@@ -20,7 +27,46 @@ class ScriptHost : public LuaInterface<ScriptHost> {
 public:
     ScriptHost(Pack *pack, lua_State *L, Tracker* tracker);
     virtual ~ScriptHost();
-    
+
+    class ThreadContext {
+    public:
+        enum class State {
+            Running = 0,
+            Done = 1,
+            Error = -1,
+        };
+
+    private:
+        State _state;
+        lua_State* _L;
+        std::thread _thread;
+        LuaRef _completeCallback;
+        LuaRef _progressCallback;
+        LuaPackIO _luaio;
+        json _result;
+        bool _stop;
+        std::string _errorMessage;
+        std::queue<json> _progressData;
+        std::mutex _progressMutex;
+        std::unique_ptr<AsyncScriptHost> _scriptHost;  // has to be pointer unless we pull out ThreadContext and reorder
+
+    public:
+        ThreadContext(const ThreadContext&) = delete;
+        ThreadContext(const std::string& name, const std::string& script, const json& arg,
+                      LuaRef completeCallback, LuaRef progressCallback,
+                      const Pack* pack);
+        virtual ~ThreadContext();
+
+        bool running();
+        bool error(std::string& message);
+        int getCompleteCallbackRef() const;
+        int getProgressCallbackRef() const;
+        const json& getResult() const;
+        bool getProgress(json& progress);
+        void addProgress(const json& progress);
+        void addProgress(json&& progress);
+    };
+
     bool LoadScript(const std::string& file);
     LuaItem *CreateLuaItem();
     std::string AddMemoryWatch(const std::string& name, unsigned int addr, int len, LuaRef callback, int interval);
@@ -31,8 +77,10 @@ public:
     bool RemoveVariableWatch(const std::string& name);
     std::string AddOnFrameHandler(const std::string& name, LuaRef callback);
     bool RemoveOnFrameHandler(const std::string& name);
+    json RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
+    json RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     void resetWatches();
-    
+
     // This is called every frame. Returns true if state was changed by auto-tracking.
     bool onFrame();
 
@@ -77,11 +125,13 @@ protected:
     std::vector<std::pair<std::string, VarWatch> > _varWatches;
     std::vector<OnFrameHandler> _onFrameHandlers;
     AutoTracker *_autoTracker = nullptr;
+    std::list<ThreadContext> _asyncTasks;
 
 private:
     // This will be called every frame to run auto-tracking
     bool autoTrack();
-    // Run a Lua function defined in ref, return bool its result as boolean.
+    json runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
+    // Run a Lua function defined in ref, return its result as boolean.
     // ArgsHook can push arguments to the stack and return the number of pushed arguments.
     template <class T>
     int runLuaFunction(int ref, const std::string& name, T& res, std::function<int(lua_State*)> argsHook=nullptr, int execLimit=0)
@@ -120,6 +170,23 @@ private:
         bool ignore;
         return runLuaFunction<bool>(ref, name, ignore, argsHook, execLimit);
     }
+
+protected: // Lua interface implementation
+    static constexpr const char Lua_Name[] = "ScriptHost";
+    static const LuaInterface::MethodMap Lua_Methods;
+};
+
+
+class AsyncScriptHost : public LuaInterface<AsyncScriptHost> {
+    friend class LuaInterface;
+
+public:
+    AsyncScriptHost(ScriptHost::ThreadContext* context);
+
+    void AsyncProgress(const json& progress);
+
+private:
+    ScriptHost::ThreadContext *_context;
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "ScriptHost";

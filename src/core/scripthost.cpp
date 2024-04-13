@@ -1,5 +1,6 @@
 #include "scripthost.h"
 #include <luaglue/luamethod.h>
+#include <luaglue/lua_json.h>
 #include <stdio.h>
 #include "gameinfo.h"
 
@@ -22,6 +23,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
     LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
+    LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef, LuaRef),
+    LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef, LuaRef),
 };
 
 
@@ -150,6 +153,7 @@ ScriptHost::~ScriptHost()
     if (_autoTracker) delete _autoTracker;
     _autoTracker = nullptr;
     _tracker->onStateChanged -= this;
+    // NOTE: we leak callback lua refs here
 }
 
 bool ScriptHost::LoadScript(const std::string& file) 
@@ -378,23 +382,85 @@ bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
     return false;
 }
 
-void ScriptHost::resetWatches()
+json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
 {
-    bool changed = false;
-    for (auto& watch : _memoryWatches) {
-        if (watch.data.empty()) continue;
-        changed = true;
-        watch.data.clear();
+    std::string script;
+    if (!_tracker || !_tracker->getPack() || !_tracker->getPack()->ReadFile(file, script)) {
+        luaL_error(_L, "Could not load script!");
     }
-    _autoTracker->clearCache();
-    if (changed && _autoTracker) {
-        _autoTracker->onDataChange.emit(_autoTracker);
+    return runAsync(file, script, arg, completeCallback, progressCallback);
+}
+
+json ScriptHost::RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
+{
+    return runAsync("", script, arg, completeCallback, progressCallback);
+}
+
+json ScriptHost::runAsync(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback)
+{
+    // if progress callback is nil, we free the ref and store a NOREF instead to avoid  unnecessary locking on onFrame
+    lua_rawgeti(_L, LUA_REGISTRYINDEX, progressCallback.ref);
+    if (lua_isnil(_L, -1)) {
+        luaL_unref(_L, LUA_REGISTRYINDEX, progressCallback.ref);
+        progressCallback.ref = LUA_NOREF;
     }
+    lua_pop(_L, 1);
+    try {
+        _asyncTasks.emplace_back(
+            name, script, arg, completeCallback, progressCallback, _tracker->getPack()
+        );
+    } catch (std::exception& e) {
+        luaL_unref(_L, LUA_REGISTRYINDEX, completeCallback.ref);
+        throw e;
+    }
+    return json::object();
 }
 
 bool ScriptHost::onFrame()
 {
     bool res = autoTrack();
+
+    auto it = _asyncTasks.begin();
+    while (it != _asyncTasks.end()) {
+        auto& task = *it;
+        bool running = task.running();
+        {
+            auto ref = task.getProgressCallbackRef();
+            if (ref != LUA_NOREF) {
+                json j;
+                while (task.getProgress(j)) {
+                    lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+                    json_to_lua(_L, j);
+                    if (lua_pcall(_L, 1, 0, 0)) {
+                        printf("Error calling callback for async: %s\n", lua_tostring(_L, -1));
+                        lua_pop(_L, 1);
+                    }
+                }
+            }
+        }
+        if (!running) {
+            std::string msg;
+            auto ref = task.getCompleteCallbackRef();
+            if (task.error(msg)) {
+                fprintf(stderr, "Async error: %s\n", msg.c_str());
+            } else {
+                lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
+                json_to_lua(_L, task.getResult());
+                if (lua_pcall(_L, 1, 0, 0)) {
+                    printf("Error calling callback for async: %s\n", lua_tostring(_L, -1));
+                    lua_pop(_L, 1);
+                }
+            }
+            luaL_unref(_L, LUA_REGISTRYINDEX, ref);
+            auto progressRef = task.getProgressCallbackRef();
+            if (progressRef != LUA_NOREF) {
+                luaL_unref(_L, LUA_REGISTRYINDEX, progressRef);
+            }
+            _asyncTasks.erase(it++);
+        } else {
+            it++;
+        }
+    }
 
     for (size_t i=0; i<_onFrameHandlers.size(); i++) {
         auto name = _onFrameHandlers[i].name;
@@ -433,6 +499,20 @@ bool ScriptHost::autoTrack()
     return false;
 }
 
+void ScriptHost::resetWatches()
+{
+    bool changed = false;
+    for (auto& watch : _memoryWatches) {
+        if (watch.data.empty()) continue;
+        changed = true;
+        watch.data.clear();
+    }
+    _autoTracker->clearCache();
+    if (changed && _autoTracker) {
+        _autoTracker->onDataChange.emit(_autoTracker);
+    }
+}
+
 void ScriptHost::runMemoryWatchCallbacks()
 {
     // we need to run callbacks because the autotracker changed some cache
@@ -461,4 +541,201 @@ void ScriptHost::runMemoryWatchCallbacks()
         else if (res != false)
             _memoryWatches[i].dirty = false; // watch returned non-false
     }
+}
+
+
+ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback, const Pack* pack)
+        : _state(State::Running), _completeCallback(completeCallback), _progressCallback(progressCallback), _luaio(pack), _stop(false)
+{
+    printf("Starting Thread...\n");
+    _L = luaL_newstate();
+    if (!_L) {
+        fprintf(stderr, "Error creating Lua State!\n");
+        _state = State::Error;
+        throw std::runtime_error("Error creating ThreadContext Lua State");
+    }
+    // TODO: merge with poptracker.cpp
+    std::initializer_list<const luaL_Reg> luaLibs = {
+      {LUA_GNAME, luaopen_base},
+      {LUA_TABLIBNAME, luaopen_table},
+      {LUA_OSLIBNAME, luaopen_os}, // this has to be reduced in functionality
+      {LUA_STRLIBNAME, luaopen_string},
+      {LUA_MATHLIBNAME, luaopen_math},
+      {LUA_UTF8LIBNAME, luaopen_utf8},
+    };
+    for (const auto& lib: luaLibs) {
+        luaL_requiref(_L, lib.name, lib.func, 1);
+        lua_pop(_L, 1);
+    }
+    // load lua debugger if enabled during compile AND run time
+#ifdef WITH_LUA_DEBUG
+    if (_config.value<bool>("lua_debug", false)) {
+        luaL_requiref(_L, LUA_DBLIBNAME, luaopen_debug, 1);
+        lua_pop(_L, 1);
+    }
+#endif
+    // block some global function until we decide what to allow
+    for (const auto& blocked: { "load", "loadfile", "loadstring" }) {
+        lua_pushnil(_L);
+        lua_setglobal(_L, blocked);
+    }
+    // implement require
+    lua_pushcfunction(_L, luasandbox_require);
+    lua_setglobal(_L, "require");
+    // reduce os
+    lua_getglobal(_L, LUA_OSLIBNAME); // get full os
+    lua_createtable(_L, 0, 3); // create new os
+    for (const auto& field : { "clock", "date", "difftime", "time" }) {
+        lua_getfield(_L, -2, field);
+        lua_setfield(_L, -2, field);
+    }
+    lua_setglobal(_L, LUA_OSLIBNAME); // store new os, deref old os
+    // custom IO
+    LuaPackIO::Lua_Register(_L);
+    LuaPackIO::File::Lua_Register(_L);
+    _luaio.Lua_Push(_L);
+    lua_setglobal(_L, LUA_IOLIBNAME);
+    // "fake" ScriptHost for async context
+    _scriptHost.reset(new AsyncScriptHost(this));
+    AsyncScriptHost::Lua_Register(_L);
+    _scriptHost->Lua_Push(_L);
+    lua_setglobal(_L, "ScriptHost");
+    // store pack in registry for "private" use (in require)
+    lua_pushstring(_L, "Pack");
+    lua_pushlightuserdata(_L, (void*)pack);
+    lua_settable(_L, LUA_REGISTRYINDEX);
+    // arg
+    json_to_lua(_L, arg);
+    lua_setglobal(_L, "arg");
+
+    _thread = std::thread(
+        [this, script, name]() {
+            static const char this_key = 'k';
+
+            // hook to be able to check the _stop flag
+            auto hook = [](lua_State *L, lua_Debug *ar) {
+                lua_pushlightuserdata(L, (void *)&this_key); // static address value as key
+                lua_gettable(L, LUA_REGISTRYINDEX);  // retrieve stored this
+                ScriptHost::ThreadContext* self = static_cast<ScriptHost::ThreadContext*>(
+                    lua_touserdata(L, -1)
+                );
+                lua_pop(L, 1);
+                if (self->_stop)
+                    luaL_error(L, "Pack unloaded");
+            };
+
+            // store this into Lua state
+            lua_pushlightuserdata(_L, (void *)&this_key); // static address value as key
+            lua_pushlightuserdata(_L, (void *)this); // this as value
+            lua_settable(_L, LUA_REGISTRYINDEX);
+
+            // set hook to be able to abort execution when closing pack
+            lua_sethook(_L, hook, LUA_MASKCOUNT, 500000);
+
+            // TODO: merge with LoadScript
+            const char* buf = script.c_str();
+            size_t len = script.length();
+            if (len>=3 && memcmp(buf, "\xEF\xBB\xBF", 3) == 0) {
+                fprintf(stderr, "WARNING: skipping BOM of %s\n", sanitize_print(name).c_str());
+                buf += 3;
+                len -= 3;
+            }
+            if (luaL_loadbufferx(_L, buf, len, name.c_str(), "t") == LUA_OK) {
+                std::string modname = name;
+                if (strncasecmp(modname.c_str(), "scripts/", 8) == 0)
+                    modname = modname.substr(8);
+                if (modname.length() > 4 && strcasecmp(modname.c_str() + modname.length() - 4, ".lua") == 0)
+                    modname = modname.substr(0, modname.length() - 4);
+                std::replace(modname.begin(), modname.end(), '/', '.');
+                lua_pushstring(_L, modname.c_str());
+                if (lua_pcall(_L, 1, 1, 0) == LUA_OK) {
+                    // if it was executed successfully, pop everything from stack
+                    _result = lua_to_json(_L);
+                    lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ?
+                    _state = State::Done;
+                } else {
+                    _errorMessage = "Error running script async: ";
+                    _errorMessage += lua_tostring(_L, -1);
+                    lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ?
+                    _state = State::Error;
+                }
+            } else {
+                _errorMessage = "Error running script async: ";
+                _errorMessage += lua_tostring(_L, -1);
+                lua_pop(_L, 1);
+                _state = State::Error;
+            }
+            printf("Thread Done\n");
+        }
+    );
+}
+
+ScriptHost::ThreadContext::~ThreadContext() {
+    _stop = true;
+    if (_thread.joinable())
+        _thread.join();
+    lua_close(_L);
+}
+
+bool ScriptHost::ThreadContext::running()
+{
+    return _state == State::Running;
+}
+
+bool ScriptHost::ThreadContext::error(std::string& message)
+{
+    message = _errorMessage;
+    return _state == State::Error;
+}
+
+int ScriptHost::ThreadContext::getCompleteCallbackRef() const
+{
+    return _completeCallback.ref;
+}
+
+int ScriptHost::ThreadContext::getProgressCallbackRef() const
+{
+    return _progressCallback.ref;
+}
+
+const json& ScriptHost::ThreadContext::getResult() const
+{
+    return _result;
+}
+
+bool ScriptHost::ThreadContext::getProgress(json& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    if (_progressData.empty())
+        return false;
+    progress = _progressData.front();
+    _progressData.pop();
+    return true;
+}
+
+void ScriptHost::ThreadContext::addProgress(const json& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    _progressData.push(progress);
+}
+
+void ScriptHost::ThreadContext::addProgress(json&& progress)
+{
+    std::lock_guard<std::mutex> lock(_progressMutex);
+    _progressData.push(progress);
+}
+
+
+const LuaInterface<AsyncScriptHost>::MethodMap AsyncScriptHost::Lua_Methods = {
+    LUA_METHOD(AsyncScriptHost, AsyncProgress, json),
+};
+
+AsyncScriptHost::AsyncScriptHost(ScriptHost::ThreadContext* context)
+    : _context(context)
+{
+}
+
+void AsyncScriptHost::AsyncProgress(const json& progress)
+{
+    _context->addProgress(progress);
 }

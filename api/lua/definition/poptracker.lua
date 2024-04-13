@@ -101,6 +101,32 @@ ScriptHost = {}
 ---@return boolean true on success
 function ScriptHost:LoadScript(luaFilename) end
 
+---@alias ThreadProxy table  -- to be defined
+
+---Execute a Lua script in a separate thread.
+---Arg passed here has to be json serializable and will be made available as global arg to the script.
+---Once the script finishes, callback will be called on the next frame in the host context with the return value of the script as argument.
+---@param luaFilename string file to run, relative to variant folder or root of the pack (will try both)
+---@param arg any passed as global arg to the new script
+---@param completePallback fun(result:any):nil called when the script finishes
+---@param progressCallback fun(progress:any)? optional, called when the script calls ScriptHost:AsyncProgress
+---@return ThreadProxy TBD
+function ScriptHost:RunScriptAsync(luaFilename, arg, completePallback, progressCallback) end
+
+---Same as RunScriptAsync, but run string instead of file.
+---@see ScriptHost.RunScriptAsync
+---@param arg any passed as global arg to the new script
+---@param completePallback fun(result:any):nil called when the script finishes
+---@param progressCallback fun(progress:any)? optional, called when the script calls ScriptHost:AsyncProgress
+---@return ThreadProxy TBD
+function ScriptHost:RunStringAsync(script, arg, completePallback, progressCallback) end
+
+
+---Queue call to main Lua's progressCallback with arg on next frame. Can only be used in async context/thread.
+---@param arg any passed to progressCallback, has to be json serializable
+function ScriptHost:AsyncProgress(arg) end
+
+
 ---add a memory watch for auto-tracking, see [AUTOTRACKING.md](https://github.com/black-sliver/PopTracker/blob/master/doc/AUTOTRACKING.md)
 ---@param name string identifier/name of this watch
 ---@param addr integer start address of memory block to watch
