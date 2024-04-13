@@ -1,6 +1,16 @@
 name: Build binaries
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  # also test this workflow and build scripts in CI when changed
+  push:
+    paths:
+      - '.github/workflows/binaries.yaml'
+      - 'macosx/*.sh'
+  pull_request:
+    paths:
+      - '.github/workflows/binaries.yaml'
+      - 'macosx/*.sh'
 
 jobs:
 
