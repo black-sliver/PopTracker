@@ -39,6 +39,11 @@
             },
             "codes": {
                 "$ref": "#/$defs/codes"
+            },
+            "overlay_align": {
+                "description": "Set alignment of consumable number overlay or overlay text set from Lua.",
+                "default": "right",
+                "enum": ["left", "center", "right"]
             }
         },
         "required": [

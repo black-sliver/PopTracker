@@ -159,7 +159,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         w->setOverlayColor({220,220,220});
     }
     w->setOverlayBackgroundColor(item->getOverlayBackground());
-    
+    w->setOverlayAlignment(str2itemHalign(item->getOverlayAlign(), Label::HAlign::RIGHT));
+
     std::string id = origItem.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
         printf("Item %s clicked w/ btn %d!\n", id.c_str(), btn);
@@ -371,16 +372,23 @@ void TrackerView::updateLocation(const std::string& location, bool all)
 {
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
+            std::string lastLocation;
+            size_t n = 0; // nth map location of the same location on the same map
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
                 if (!all && pair.first != location)
                     continue;
+                if (all && lastLocation != pair.first) {
+                    lastLocation = pair.first;
+                    n = 0;
+                }
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.size()<1) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     fprintf(stderr, "cybuuuuuu!!\n");
                     return;
                 }
-                w->setLocationState(pair.first, state);
+                w->setLocationState(pair.first, state, n);
+                n++;
             }
         }
     }
@@ -464,6 +472,8 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         w->setOverlay(std::to_string(item.getCount()));
         w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
                 FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+        w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
+        w->setOverlayBackgroundColor(item.getOverlayBackground());
     } else {
         auto s = item.getOverlay();
         w->setOverlay(s);
@@ -471,6 +481,8 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
             w->setOverlayColor({220,220,220});
             w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
                     FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
+            w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
+            w->setOverlayBackgroundColor(item.getOverlayBackground());
         }
     }
 }
@@ -1003,6 +1015,7 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
                   (hasReachable?(1<<0):0);
     return res;
 }
+
 int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& locid, const Location::MapLocation& mapLoc)
 {
     // TODO: move to a common place

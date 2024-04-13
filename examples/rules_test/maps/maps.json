@@ -1,0 +1,14 @@
+[
+    {
+        "name": "example",
+        "location_size": 24,
+        "location_border_thickness": 2,
+        "img": "images/maps/example.png"
+    },
+    {
+        "name": "example2",
+        "location_size": 24,
+        "location_border_thickness": 2,
+        "img": "images/maps/example.png"
+    }
+]

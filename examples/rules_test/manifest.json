@@ -1,0 +1,19 @@
+{
+    "name": "rules_test Example",
+	"game_name": "Demo",
+	"platform": "pc",
+	"package_version": "1.0.0",
+	"package_uid": "rules_test-example",
+	"author": "black_sliver",
+	"variants": {
+		"var_at": {
+			"display_name": "@ Example"
+		},
+		"var_visibility": {
+			"display_name": "Visibility Example"
+		},
+		"var_indirect": {
+			"display_name": "Indirect Connection Example"
+		}
+	}
+}

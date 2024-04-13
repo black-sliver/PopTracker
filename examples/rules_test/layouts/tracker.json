@@ -1,0 +1,41 @@
+{
+	"tracker_default": {
+		"type": "container",
+		"content": {
+			"type": "dock",
+			"dropshadow": true,
+			"content": [
+				{
+					"type": "dock",
+					"dock": "bottom",
+					"v_alignment": "stretch",
+					"margin": "0,0,0,0",
+					"content": [
+					    {
+                            "type": "itemgrid",
+                            "h_alignment": "center",
+                            "item_margin": "1,2",
+                            "rows": [
+                                [
+                                    "a",
+                                    "b"
+                                ],
+                                [
+                                    "c",
+                                    "e"
+                                ]
+                            ]
+					    }
+					]
+				},
+				{
+					"type": "map",
+					"maps": [
+						"example",
+						"example2"
+					]
+				}
+			]
+		}
+	}
+}

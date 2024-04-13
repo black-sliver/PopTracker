@@ -12,6 +12,7 @@
 #include "signal.h"
 #include <string>
 #include <list>
+#include <set>
 #include <functional>
 #include <cstddef> // nullptr_t
 #include <nlohmann/json.hpp>
@@ -117,10 +118,16 @@ protected:
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
     std::map<std::string, Map> _maps;
-    std::map<std::string, AccessibilityLevel> _reachableCache;
+    std::map<std::string, AccessibilityLevel> _accessibilityCache;
+    std::map<std::string, bool> _visibilityCache;
     std::map<std::string, int> _providerCountCache;
     std::list<std::string> _bulkItemUpdates;
     bool _bulkUpdate = false;
+    bool _accessibilityStale = false;
+    bool _visibilityStale = false;
+    bool _isIndirectConnection = false; /// flag to skip cache for codes that depend on locations
+    bool _updatingCache = false; /// true while cache*() is running
+    std::set<std::string> _itemChangesDuringCacheUpdate;
 
     std::map<std::string, std::vector<std::string>> _sectionNameRefs;
     std::map<std::reference_wrapper<const LocationSection>,
@@ -128,17 +135,13 @@ protected:
                                    std::reference_wrapper<const LocationSection>>>,
              std::less<const LocationSection&>> _sectionRefs;
 
-    std::list<std::string>* _parents = nullptr;
-
     static int _execLimit;
 
-    AccessibilityLevel isReachable(const Location& location, const LocationSection& section, std::list<std::string>& parents);
-    bool isVisible(const Location& location, const LocationSection& section, std::list<std::string>& parents);
-    AccessibilityLevel isReachable(const Location& location, std::list<std::string>& parents);
-    bool isVisible(const Location& location, std::list<std::string>& parents);
-    AccessibilityLevel isReachable(const std::list< std::list<std::string> >& rules, bool visibilityRules, std::list<std::string>& parents);
+    AccessibilityLevel resolveRules(const std::list< std::list<std::string> >& rules, bool visibilityRules);
 
     void rebuildSectionRefs();
+    void cacheAccessibility();
+    void cacheVisibility();
 
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";

@@ -1,0 +1,91 @@
+[
+    {
+        "name": "Example Area",
+        "children": [
+            {
+                "name": "One",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 100,
+                        "y": 300,
+                        "restrict_visibility_rules": [
+                            "a"
+                        ]
+                    },
+                    {
+                        "map": "example",
+                        "x": 200,
+                        "y": 300,
+                        "restrict_visibility_rules": [
+                            "b"
+                        ]
+                    },
+                    {
+                        "map": "example",
+                        "x": 300,
+                        "y": 300,
+                        "force_invisibility_rules": [
+                            "c"
+                        ]
+                    },
+                    {
+                        "map": "example2",
+                        "x": 100,
+                        "y": 300,
+                        "restrict_visibility_rules": [
+                            "e"
+                        ]
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "Another",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 100,
+                        "y": 400,
+                        "restrict_visibility_rules": [
+                            "a"
+                        ]
+                    },
+                    {
+                        "map": "example",
+                        "x": 200,
+                        "y": 400,
+                        "restrict_visibility_rules": [
+                            "b"
+                        ]
+                    },
+                    {
+                        "map": "example",
+                        "x": 300,
+                        "y": 400,
+                        "force_invisibility_rules": [
+                            "c"
+                        ]
+                    },
+                    {
+                        "map": "example2",
+                        "x": 100,
+                        "y": 400
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ],
+                "visibility_rules": [
+                    "e"
+                ]
+            }
+        ]
+    }
+]
