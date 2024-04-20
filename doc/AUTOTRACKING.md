@@ -3,7 +3,7 @@
 ## Supported Interfaces
 
 * Memory
-  * [USB2SNES websocket protocol](https://github.com/Skarsnik/QUsb2snes/blob/master/docs/Procotol.md)
+  * [USB2SNES websocket protocol](https://github.com/Skarsnik/QUsb2snes/blob/master/docs/Protocol.md)
     as provided by QUsb2Snes, Usb2Snes and SNI
   * Lua connector provided by the [CrowdControl SDK](https://developer.crowdcontrol.live/sdk/)
 * Variables
