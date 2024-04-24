@@ -335,12 +335,14 @@ bool Tracker::AddLocations(const std::string& file) {
             fprintf(stderr, "WARNING: renaming duplicate location \"%s\" to \"%s\"!\n"
                     "  This behavior will change in the future!\n",
                     sanitize_print(oldID).c_str(), sanitize_print(newID).c_str());
+            for (auto& sec: loc.getSections())
+                sec.setParentID(newID);
         }
 #endif
         _locations.push_back(std::move(loc)); // TODO: move constructor
         for (auto& sec : _locations.back().getSections()) {
             if (!sec.getRef().empty())
-                _sectionNameRefs[sec.getRef()].push_back(_locations.back().getID() + "/" + sec.getName());
+                _sectionNameRefs[sec.getRef()].push_back(sec.getFullID());
             sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};
         }
     }
@@ -839,14 +841,14 @@ AccessibilityLevel Tracker::isReachable(const Location& location, const Location
 {
     cacheAccessibility();
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
-    std::string id = realSection.getParentID() + "/" + realSection.getName();
+    std::string id = realSection.getFullID();
     return _accessibilityCache[id];
 }
 
 bool Tracker::isVisible(const Location& location, const LocationSection& section)
 {
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
-    std::string id = realSection.getParentID() + "/" + realSection.getName();
+    std::string id = realSection.getFullID();
     if (realSection.getVisibilityRules().empty())
         return true; // We skip cache for those. Most visibility rules will be empty, so this is a win.
     cacheVisibility();
@@ -1008,7 +1010,7 @@ json Tracker::saveState() const
     json jSections = {};
     for (auto& loc: _locations) {
         for (auto& sec: loc.getSections()) {
-            std::string id = loc.getID() + "/" + sec.getName();
+            std::string id = sec.getFullID();
             if (jSections.find(id) != jSections.end()) {
                 fprintf(stderr, "WARNING: duplicate location section: \"%s\"!\n",
                         sanitize_print(id).c_str());
@@ -1065,7 +1067,8 @@ bool Tracker::loadState(nlohmann::json& state)
             for (auto& loc: _locations) {
                 if (key.rfind(loc.getID(), 0) != 0) continue;
                 for (auto& sec: loc.getSections()) {
-                    if (key != loc.getID() + "/" + sec.getName()) continue;
+                    if (key != sec.getFullID())
+                        continue;
                     sec.load(it.value());
                 }
             }
