@@ -100,6 +100,42 @@
                         "item_count": 1
                     }
                 ]
+            },
+            {
+                "name": "X: Y",
+                "access_rules": [
+                    ["@X: Z", "a"]
+                ],
+                "map_locations": [
+                    {
+                        "map": "example2",
+                        "x": 300,
+                        "y": 250
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
+            },
+            {
+                "name": "X: Z",
+                "access_rules": [
+                    "b"
+                ],
+                "map_locations": [
+                    {
+                        "map": "example2",
+                        "x": 300,
+                        "y": 350
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ]
             }
         ]
     }
