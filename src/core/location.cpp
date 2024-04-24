@@ -191,7 +191,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         }
     } else {
         accessRules = parentAccessRules; // TODO: avoid copy
-        if (!j["access_rules"].is_null()) {
+        if (!j["access_rules"].is_null() && !j["access_rules"].is_array()) {
             fprintf(stderr, "Location: invalid access rules in \"%s\"\n",
                     sanitize_print(name).c_str());
         }
@@ -225,7 +225,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         }
     } else {
         visibilityRules = parentVisibilityRules; // TODO: avoid copy
-        if (!j["visibility_rules"].is_null()) {
+        if (!j["visibility_rules"].is_null() && !j["visibility_rules"].is_array()) {
             fprintf(stderr, "Location: invalid visibility rules in \"%s\"\n",
                     sanitize_print(name).c_str());
         }
@@ -382,7 +382,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
         }
     } else {
         sec._accessRules = parentAccessRules;
-        if (!j["access_rules"].is_null()) {
+        if (!j["access_rules"].is_null() && !j["access_rules"].is_array()) {
             fprintf(stderr, "Location: Section: invalid access rules in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
         }
@@ -416,7 +416,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::string parentId, c
         }
     } else {
         sec._visibilityRules = parentVisibilityRules;
-        if (!j["visibility_rules"].is_null()) {
+        if (!j["visibility_rules"].is_null() && !j["visibility_rules"].is_array()) {
             fprintf(stderr, "Location: Section: invalid visibility rules in \"%s\"\n",
                     sanitize_print(sec._name).c_str());
         }
