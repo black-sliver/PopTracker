@@ -730,15 +730,17 @@ AccessibilityLevel Tracker::resolveRules(const std::list< std::list<std::string>
                 inspectOnlyReachable = true;
                 continue;
             }
+            // '^$func' gives direct accessibility level rather than an integer code count
+            bool isAccessibilitLevel = s[0] == '^'; // use value as level instead of count
+            // '@...' references another location or section
+            bool isLocationReference = s[0] == '@';
             // '<rule>:<count>' checks count (e.g. consumables) instead of bool
             int count = 1;
             auto p = s.find(':');
-            if (p != s.npos) {
+            if (!isAccessibilitLevel && !isLocationReference && p != s.npos) {
                 count = atoi(s.c_str()+p+1);
                 s = s.substr(0,p);
             }
-            // '^$func' gives direct accessibility level rather than an integer code count
-            bool isAccessibilitLevel = s[0] == '^'; // use value as level instead of count
             if (isAccessibilitLevel) {
                 if (s.length() < 3 || s[1] != '$') { // only ^$ supported
                     fprintf(stderr, "Warning: invalid rule \"%s\"",
