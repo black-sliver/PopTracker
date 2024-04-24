@@ -56,7 +56,10 @@ public:
     const std::list<std::string>& getHostedItems() const { return _hostedItems; }
     const std::string& getOverlayBackground() const { return _overlayBackground; }
     const std::string& getParentID() const { return _parentId; }
+    std::string getFullID() const { return _parentId + "/" + _name; }
     const std::string& getRef() const { return _ref; }
+
+    void setParentID(const std::string& id) { _parentId = id; }
 
     virtual nlohmann::json save() const;
     virtual bool load(nlohmann::json& j);
