@@ -165,10 +165,10 @@ NIX_LUA_C_FLAGS = $(LUA_C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
 DEPLOYMENT_TARGET=10.12
-NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
-NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib
-NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
-NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include
+NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
+NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib -L$(BREW_PREFIX)/lib
+NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
+NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
 endif
 ifeq ($(CONF), DEBUG) # DEBUG
 WINDRES_FLAGS =
