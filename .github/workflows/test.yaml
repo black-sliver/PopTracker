@@ -26,45 +26,35 @@ on:
 
 jobs:
 
-  test-ubuntu:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-latest]
+        shell: [bash]
+        include:
+          - os: windows-latest
+            shell: msys2 {0}
 
-    runs-on: ubuntu-latest
-    
+    name: Test ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
     steps:
-    - name: Install dependencies
+    - name: Install dependencies (apt)
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Build DEBUG
-      run: make native CONF=DEBUG -j2
-    - name: Run tests
-      run: make test CONF=DEBUG
-
-  test-macos:
-
-    runs-on: macos-13
-    
-    steps:
-    - name: Install dependencies
+    - name: Install dependencies (brew)
+      if: ${{ startsWith(matrix.os, 'macos') }}
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Build DEBUG
-      run: make native CONF=DEBUG -j2
-    - name: Run tests
-      run: make test CONF=DEBUG
-
-  test-win64:
-
-    runs-on: windows-latest
-    
-    steps:
-    - uses: msys2/setup-msys2@v2
+    - name: Install dependencies (msys2)
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      uses: msys2/setup-msys2@v2
       with:
         release: false
         update: true
@@ -83,8 +73,6 @@ jobs:
       with:
         submodules: recursive
     - name: Build DEBUG
-      shell: msys2 {0}
-      run: make native CONF=DEBUG -j2
+      run: make native CONF=DEBUG -j4
     - name: Run tests
-      shell: msys2 {0}
       run: make test CONF=DEBUG
