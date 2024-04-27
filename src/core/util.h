@@ -60,4 +60,17 @@ unsigned upercent(T divident, T divisor)
     return 100U * divident / divisor;
 }
 
+static void strip(std::string& s, const char* whitespace = " \t\r\n")
+{
+    if (!s.empty()) {
+        auto start = s.find_first_not_of(whitespace);
+        if (start == s.npos) {
+            s.clear();
+        } else {
+            auto end = s.find_last_not_of(whitespace);
+            s = s.substr(start, end - start + 1);
+        }
+    }
+}
+
 #endif // _CORE_UTIL_H
