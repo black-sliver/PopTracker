@@ -464,8 +464,8 @@ bool PopTracker::start()
                         return;
                     // strip leading and trailing white space
                     strip(uri);
-                    // leading slash and leading " is probably a copy & paste error
-                    bool badUri = uri.empty() || uri[0] == '/' || uri[0] == '\'';
+                    // leading slash and quote is probably a copy & paste error
+                    bool badUri = uri.empty() || uri[0] == '/' || uri[0] == '\'' || uri[0] == '"';
                     if (!badUri) {
                         // check if URI is all digits, which is not fine
                         badUri = true;
