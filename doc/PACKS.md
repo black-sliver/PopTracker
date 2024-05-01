@@ -157,7 +157,12 @@ a table representing an enum with the following constants: \
 
 ### other globals
 
-* `DEBUG` set to true to get more error or debug output
+* `DEBUG` set to true or an array of strings to get more error or debug output
+  * `false` or `nil`: disable everything
+  * `true`: enable everything
+  * `{'fps'}`: enable FPS output in console
+  * `{'errors'}`: enable more detailed error reporting
+  * `{'fps', 'errors', ...}`: enable multiple
 * `require` function, see [ScriptHost:LoadScript](#global-scripthost)
 
 

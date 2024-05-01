@@ -48,6 +48,8 @@ private:
     std::string _exportDir;
     std::string _homePackDir;
     std::string _appPackDir;
+    std::set<std::string> _debugFlags;
+    std::set<std::string> _defaultDebugFlags;
 
     unsigned _frames = 0;
     unsigned _maxFrameTime = 0;
@@ -75,12 +77,18 @@ private:
 
     bool saveConfig();
 
+    static int global_index(lua_State* L);
+    static int global_newindex(lua_State* L);
+    static void global_wrap(lua_State* L, PopTracker* self);
+
 public:
     PopTracker(int argc, char** argv, bool cli=false, const json& args=nullptr);
     virtual ~PopTracker();
 
     bool ListPacks(PackManager::confirmation_callback confirm = nullptr, bool installable = true);
     bool InstallPack(const std::string& uid, PackManager::confirmation_callback confirm = nullptr);
+
+    static constexpr std::initializer_list<const char*> ALL_DEBUG_FLAGS = {"errors", "fps"};
 
     static constexpr const char APPNAME[] = "PopTracker";
     static constexpr const char VERSION_STRING[] = APP_VERSION_STRING;
