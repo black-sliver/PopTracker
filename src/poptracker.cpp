@@ -36,6 +36,81 @@ enum HotkeyID {
     HOTKEY_SHOW_HELP,
 };
 
+static char _globalStoreKey = 'k';
+static const uintptr_t globalStoreIndex = (uintptr_t)&_globalStoreKey;
+static char _globalPopKey = 'k';
+static const uintptr_t globalPopIndex = (uintptr_t)&_globalPopKey;
+
+int PopTracker::global_index(lua_State *L)
+{
+    lua_rawgeti(L, LUA_REGISTRYINDEX, (lua_Integer)globalStoreIndex);
+    lua_pushvalue(L, -2);
+    lua_rawget(L, -2);
+    return 1;
+}
+
+int PopTracker::global_newindex(lua_State *L)
+{
+    bool toStore = false;
+    if (lua_isstring(L, -2)) {
+        // filter out special keys
+        const char* key = lua_tostring(L, -2);
+        if (strcmp(key, "DEBUG") == 0) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, (lua_Integer)globalPopIndex);
+            PopTracker* pop = static_cast<PopTracker*>(lua_touserdata(L, -1));
+            lua_pop(L, 1); // pop
+            if (!pop) {
+                luaL_error(L, "Lua state not initialized correctly!");
+            } else if (lua_isboolean(L, -1) || lua_isnil(L, -1)) {
+                if (lua_toboolean(L, -1)) {
+                    for (const char* flag: PopTracker::ALL_DEBUG_FLAGS)
+                        pop->_debugFlags.insert(flag);
+                } else {
+                    pop->_debugFlags.clear();
+                }
+            } else if (lua_istable(L, -1)) {
+                pop->_debugFlags.clear();
+                lua_pushnil(L);
+                while (lua_next(L, -2) != 0) {
+                    pop->_debugFlags.insert(lua_tostring(L, -1));
+                    lua_pop(L, 1); // value
+                }
+            } else if (lua_isstring(L, -1)) {
+                pop->_debugFlags.clear();
+                pop->_debugFlags.insert(lua_tostring(L, -1));
+            } else {
+                luaL_error(L, "Invalid assignment to global DEBUG");
+            }
+            toStore = true;
+        }
+    }
+    if (toStore) {
+        // store into separate store so we receive updates
+        lua_rawgeti(L, LUA_REGISTRYINDEX, (lua_Integer)globalStoreIndex);
+        lua_insert(L, -3);
+        lua_rawset(L, -3);
+    } else {
+        // store into global object for speed optimization
+        lua_rawset(L, -3);
+    }
+    return 0;
+}
+
+void PopTracker::global_wrap(lua_State *L, PopTracker* self)
+{
+    lua_pushglobaltable(L);
+    lua_createtable(L, 0, 2);
+    lua_pushcfunction(L, global_index);
+    lua_setfield(L, -2, "__index");
+    lua_pushcfunction(L, global_newindex);
+    lua_setfield(L,-2, "__newindex");
+    lua_setmetatable(L, -2);
+    lua_pop(L,1);
+    lua_newtable(L);
+    lua_rawseti(L, LUA_REGISTRYINDEX, (lua_Integer)globalStoreIndex);
+    lua_pushlightuserdata(L, self);
+    lua_rawseti(L, LUA_REGISTRYINDEX, (lua_Integer)globalPopIndex);
+}
 
 PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
@@ -171,6 +246,21 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         Tracker::setExecLimit(_config["override_rule_exec_limit"]);
     } else if (!_config["override_rule_exec_limit"].is_null())
         _config["override_rule_exec_limit"] = nullptr; // clear invalid value
+
+    auto debugIt = _config.find("debug");
+    if (debugIt == _config.end()) {
+        _config["debug"] = nullptr;
+    } else if (debugIt.value().is_boolean()) {
+        if (debugIt.value().get<bool>()) {
+            for (const char* flag: ALL_DEBUG_FLAGS)
+                _defaultDebugFlags.insert(flag);
+        }
+    } else if (debugIt.value().is_array()) {
+        try {
+            _defaultDebugFlags = debugIt.value().get<std::set<std::string>>();
+        } catch (...) {}
+    }
+    _debugFlags = _defaultDebugFlags;
 
     saveConfig();
 
@@ -737,7 +827,8 @@ bool PopTracker::frame()
     td = std::chrono::duration_cast<std::chrono::milliseconds>(now - _fpsTimer).count();
     if (td >= 5000) {
         unsigned f = _frames*1000; f/=td;
-        printf("FPS:%4u (max %2dms)\n", f, _maxFrameTime);
+        if (_debugFlags.count("fps") || _maxFrameTime > 1000)
+            printf("FPS:%4u (max %2dms)\n", f, _maxFrameTime);
         _frames = 0;
         _fpsTimer = now;
         _maxFrameTime = 0;
@@ -937,6 +1028,8 @@ void PopTracker::unloadTracker()
     _scriptHost = nullptr;
     _pack = nullptr;
     _archipelago = nullptr;
+
+    _debugFlags = _defaultDebugFlags;
 }
 
 bool PopTracker::loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
@@ -1026,7 +1119,12 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     lua_pushstring(_L, "Pack");
     lua_pushlightuserdata(_L, _pack);
     lua_settable(_L, LUA_REGISTRYINDEX);
-    
+
+    // store native debug flags set in registry
+    lua_pushstring(_L, "DebugFlags");
+    lua_pushlightuserdata(_L, &_debugFlags);
+    lua_settable(_L, LUA_REGISTRYINDEX);
+
     printf("Creating Script Host...\n");
     _scriptHost = new ScriptHost(_pack, _L, _tracker);
     printf("Registering in Lua...\n");
@@ -1091,6 +1189,14 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
         {"Normal", AccessibilityLevel::NORMAL},
         {"Cleared", AccessibilityLevel::CLEARED},
     }).Lua_SetGlobal(_L, "AccessibilityLevel");
+
+    printf("Hooking Lua globals...\n");
+    global_wrap(_L, this);
+    if (_debugFlags.empty())
+        lua_pushnil(_L);
+    else
+        json_to_lua(_L, _debugFlags);
+    lua_setglobal(_L, "DEBUG");
 
     printf("Updating UI\n");
     _win->setTracker(_tracker);
