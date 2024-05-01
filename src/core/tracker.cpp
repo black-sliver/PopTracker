@@ -37,16 +37,36 @@ static const char* timeout_error_message = "Execution aborted. Limit reached.";
 
 int Tracker::luaErrorHandler(lua_State *L)
 {
-    // skip trace for certain errors unless running in debug mode (DEBUG == true)
+    // skip trace for certain errors unless running in debug mode (DEBUG == true or "errors" in DEBUG)
     if (lua_isstring(L, -1) && strstr(lua_tostring(L, -1), timeout_error_message)) {
-        lua_getglobal(L, "DEBUG");
-        lua_pushboolean(L, true);
-        if (!lua_compare(L, -1, -2, LUA_OPEQ)) {
-            // return original error
-            lua_pop(L, 2);
-            return 1;
+        bool skip_trace;
+        int t = lua_getglobal(L, "DEBUG");
+        if (t == LUA_TNIL) {
+            skip_trace = true;
+        } else if (t == LUA_TTABLE) {
+            lua_pushnil(L);
+            skip_trace = true;
+            while (lua_next(L, -2) != 0) {
+                if (strcmp(lua_tostring(L, -1), "errors") == 0) {
+                    skip_trace = false;
+                    lua_pop(L, 2); // key, value
+                    break;
+                }
+                lua_pop(L, 1); // value
+            }
+        } else if (t == LUA_TBOOLEAN) {
+            lua_pushboolean(L, false);
+            if (lua_compare(L, -1, -2, LUA_OPEQ))
+                skip_trace = true;
+            else
+                skip_trace = false;
+            lua_pop(L, 1); // true
+        } else {
+            skip_trace = false;
         }
-        lua_pop(L, 2);
+        lua_pop(L, 1); // DEBUG
+        if (skip_trace)
+            return 1; // original error
     }
     // generate and print trace, then return original error
     luaL_traceback(L, L, NULL, 1);
