@@ -17,6 +17,9 @@ public:
     static bool loadState(Tracker* tracker, ScriptHost* scripthost, json& extra_out,
             bool file=false, const std::string& name="autosave",
             bool external=false);
+    static json getStateExtra(Tracker* tracker,
+            bool file=false, const std::string& name="autosave",
+            bool external=false);
     static void setDir(const std::string& dir);
     
 private:

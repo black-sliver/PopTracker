@@ -89,6 +89,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
         return true;
     }    
 }
+
 bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, json& extra_out,
         bool fromfile, const std::string& name, bool external)
 {
@@ -133,4 +134,33 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, json& ext
     }
     printf("%s\n", res ? "ok" : "error");
     return res;
+}
+
+json StateManager::getStateExtra(Tracker* tracker,
+        bool fromfile, const std::string& name, bool external)
+{
+    if (!tracker)
+        return false;
+    auto pack = tracker->getPack();
+    if (!pack)
+        return false;
+
+    if (!fromfile) {
+        auto it = _states.find({ pack->getUID(), pack->getVersion(), pack->getVariant(), name });
+        if (it != _states.end()) {
+            return it->second["extra"];
+        }
+    } else {
+        std::string s;
+        std::string filename = external ? name : os_pathcat(_dir,
+                sanitize_dir(pack->getUID()),
+                sanitize_dir(pack->getVersion()),
+                sanitize_dir(pack->getVariant()), name+".json");
+        if (readFile(filename, s)) {
+            auto j = parse_jsonc(s);
+            if (j.is_object())
+                return j["extra"];
+        }
+    }
+    return nullptr;
 }
