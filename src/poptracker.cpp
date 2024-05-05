@@ -466,10 +466,7 @@ bool PopTracker::start()
                 size.height = std::max(96, std::min(4096, to_int(jSize[1],size.height)));
             }
             // fix invalid positioning
-            if (pos.left <= -1 * size.width)
-                pos.left = 0;
-            if (pos.top <= -1 * size.height)
-                pos.top = 0;
+            _ui->makeWindowVisible(pos, size);
         }
         auto& jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
@@ -845,15 +842,13 @@ bool PopTracker::frame()
         auto pos = _win->getPlacementPosition();
         auto size = _win->getSize();
         auto disppos = _win->getPositionOnDisplay();
-        // fix invalid positioning
-        if (pos.left <= -1 * size.width) {
-            disppos.left -= pos.left;
-            pos.left = 0;
-        }
-        if (pos.top <= -1 * size.height) {
-            disppos.top -= pos.top;
-            pos.top = 0;
-        }
+
+        // detect invalid positioning and size
+        if (pos.left <= -32768 || pos.left >= 32767 ||
+                pos.top <= -32768 || pos.top >= 32767)
+            pos = Ui::Position::UNDEFINED;
+        if (size.width < 1 || size.height < 1)
+            size = Ui::Size::UNDEFINED;
 
         // save to config
         _config["format_version"] = 1;
@@ -864,7 +859,7 @@ bool PopTracker::frame()
                 {"uid",_pack->getUID()},
                 {"version",_pack->getVersion()}
             };
-        if (size.width > 0 && size.height > 0)
+        if (pos != Ui::Position::UNDEFINED && size != Ui::Size::UNDEFINED)
             _config["window"] = {
                 {"pos", {pos.left,pos.top}},
                 {"size",{size.width,size.height}},
@@ -872,6 +867,8 @@ bool PopTracker::frame()
                 {"display_name", _win->getDisplayName()},
                 {"display_pos", {disppos.left,disppos.top}}
             };
+        else
+            _config.erase("window");
         _config["export_file"] = pathToUTF8(_exportFile);
         _config["export_uid"] = _exportUID;
         _config["export_dir"] = pathToUTF8(_exportDir);

@@ -62,6 +62,9 @@ public:
     void addHotkey(const Hotkey&);
     void addHotkey(Hotkey&&);
 
+    /// Change pos so that window is visible and can be moved (title bar on Windows or alt+drag on Linux)
+    void makeWindowVisible(Position& pos, const Size& size) const;
+
     Signal<Window*> onWindowDestroyed;
     Signal<const Hotkey&> onHotkey;
 };
