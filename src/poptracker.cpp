@@ -112,6 +112,28 @@ void PopTracker::global_wrap(lua_State *L, PopTracker* self)
     lua_rawseti(L, LUA_REGISTRYINDEX, (lua_Integer)globalPopIndex);
 }
 
+static json windowToJson(Ui::Window* win)
+{
+    auto pos = win->getPlacementPosition();
+    auto size = win->getSize();
+    auto disppos = win->getPositionOnDisplay();
+
+    // detect invalid positioning and size
+    if (pos.left <= -32768 || pos.left >= 32767 ||
+            pos.top <= -32768 || pos.top >= 32767)
+        return nullptr;
+    if (size.width < 1 || size.height < 1)
+        return nullptr;
+
+    return {
+        {"pos", {pos.left,pos.top}},
+        {"size",{size.width,size.height}},
+        {"display", win->getDisplay()},
+        {"display_name", win->getDisplayName()},
+        {"display_pos", {disppos.left,disppos.top}}
+    };
+}
+
 PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
     _args = args;
@@ -621,8 +643,15 @@ bool PopTracker::start()
             }
 
             std::string filename;
-            if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
-            json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+            if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename))
+                return;
+            auto jWindow = windowToJson(_win);
+            json extra = {
+                {"at_uri", _atUri},
+                {"at_slot", _atSlot}
+            };
+            if (!jWindow.is_null())
+                extra["window"] = jWindow;
             if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename, true))
             {
                 _exportFile = filename; // this is local encoding for fopen
@@ -839,16 +868,7 @@ bool PopTracker::frame()
     
     if (!res) {
         // application is going to exit
-        auto pos = _win->getPlacementPosition();
-        auto size = _win->getSize();
-        auto disppos = _win->getPositionOnDisplay();
-
-        // detect invalid positioning and size
-        if (pos.left <= -32768 || pos.left >= 32767 ||
-                pos.top <= -32768 || pos.top >= 32767)
-            pos = Ui::Position::UNDEFINED;
-        if (size.width < 1 || size.height < 1)
-            size = Ui::Size::UNDEFINED;
+        auto jWindow = windowToJson(_win);
 
         // save to config
         _config["format_version"] = 1;
@@ -859,14 +879,8 @@ bool PopTracker::frame()
                 {"uid",_pack->getUID()},
                 {"version",_pack->getVersion()}
             };
-        if (pos != Ui::Position::UNDEFINED && size != Ui::Size::UNDEFINED)
-            _config["window"] = {
-                {"pos", {pos.left,pos.top}},
-                {"size",{size.width,size.height}},
-                {"display", _win->getDisplay()},
-                {"display_name", _win->getDisplayName()},
-                {"display_pos", {disppos.left,disppos.top}}
-            };
+        if (!jWindow.is_null())
+            _config["window"] = jWindow;
         else
             _config.erase("window");
         _config["export_file"] = pathToUTF8(_exportFile);
@@ -897,7 +911,13 @@ bool PopTracker::frame()
     if (res && _tracker && AUTOSAVE_INTERVAL>0 &&
             std::chrono::duration_cast<std::chrono::seconds>(now - _autosaveTimer).count() >= AUTOSAVE_INTERVAL)
     {
-        json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+        auto jWindow = windowToJson(_win);
+        json extra = {
+            {"at_uri", _atUri},
+            {"at_slot", _atSlot}
+        };
+        if (!jWindow.is_null())
+            extra["window"] = jWindow;
         StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true);
         _autosaveTimer = std::chrono::steady_clock::now();
     }
@@ -998,7 +1018,13 @@ const std::string& PopTracker::getPackInstallDir() const
 void PopTracker::unloadTracker()
 {
     if (_tracker) {
-            json extra = { { "at_uri", _atUri }, {"at_slot", _atSlot } };
+        auto jWindow = windowToJson(_win);
+        json extra = {
+            {"at_uri", _atUri},
+            {"at_slot", _atSlot}
+        };
+        if (!jWindow.is_null())
+            extra["window"] = jWindow;
         StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true);
     }
 
@@ -1197,6 +1223,26 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     else
         json_to_lua(_L, _debugFlags);
     lua_setglobal(_L, "DEBUG");
+
+    if (loadAutosave) {
+        // restore window size before loading any layout
+        json extra = StateManager::getStateExtra(_tracker, true);
+        if (extra.is_object()) {
+            auto& jWindow = extra["window"];
+            if (jWindow.is_object()) {
+                auto& jSize = jWindow["size"];
+                if (jSize.is_array() && jSize[0].is_number_integer() && jSize[1].is_number_integer()) {
+                    printf("Restoring window size %dx%d\n", jSize[0].get<int>(), jSize[1].get<int>());
+                    Ui::Size size = {std::max(96, jSize[0].get<int>()),
+                                     std::max(96, jSize[1].get<int>())};
+                    _win->setMinSize(size);
+                    _win->resize(size);
+                    // when making the window bigger, make sure it doesn't display garbage
+                    _ui->render();
+                }
+            }
+        }
+    }
 
     printf("Updating UI\n");
     _win->setTracker(_tracker);
