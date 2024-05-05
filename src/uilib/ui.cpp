@@ -433,4 +433,43 @@ bool Ui::render()
     return true;
 }
 
+void Ui::makeWindowVisible(Position& pos, const Size& size) const
+{
+    int numDisplays = SDL_GetNumVideoDisplays();
+    Position closest;
+    for (int i=0; i<numDisplays; i++) {
+        SDL_Rect rect;
+        if (SDL_GetDisplayBounds(i, &rect) != 0)
+            continue;
+        // detect if title bar is visible
+        auto left = pos.left;
+        auto right = pos.left + size.width;
+        auto top = pos.top;
+#ifndef __LINUX__
+        // only care about (guesstimated) title bar
+        auto bottom = pos.top + 32;
+#else
+        // any corner is fine (alt+drag)
+        auto bottom = pos.top + size.height;
+#endif
+        bool xOK = left < rect.x + rect.w && right > rect.x;
+        bool yOK = top < rect.y + rect.h && bottom > rect.y;
+        if (xOK && yOK)
+            return; // visible
+        Position possiblePos = { xOK ? pos.left : rect.x, yOK ? pos.top : rect.y };
+        if (closest == Position::UNDEFINED)
+            closest = possiblePos;
+        else {
+            auto dPrev = abs(closest.left - pos.left) + abs(closest.top - pos.top);
+            auto dNew = abs(possiblePos.left - pos.left) + abs(possiblePos.top - pos.top);
+            if (dNew < dPrev)
+                closest = possiblePos;
+        }
+    }
+    if (closest != Position::UNDEFINED) {
+        pos.left = closest.left;
+        pos.top = closest.top;
+    }
+}
+
 } // namespace
