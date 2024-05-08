@@ -47,11 +47,11 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev
     - name: Install dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 googletest
     - name: Install dependencies (msys2)
       if: ${{ startsWith(matrix.os, 'windows') }}
       uses: msys2/setup-msys2@v2
@@ -68,6 +68,7 @@ jobs:
           mingw64/mingw-w64-x86_64-SDL2_ttf
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
+          mingw64/mingw-w64-x86_64-gtest
           p7zip
     - uses: actions/checkout@v4
       with:

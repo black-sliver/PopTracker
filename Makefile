@@ -3,6 +3,7 @@
 #       for now we use SDL2_image GIF support only
 CONF ?= RELEASE # make CONF=DEBUG for debug, CONF=DIST for .zip
 SRC_DIR = src
+TEST_DIR = test
 LIB_DIR = lib
 SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
@@ -28,6 +29,8 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/http/*.h) \
       $(wildcard $(SRC_DIR)/packmanager/*.h) \
       $(wildcard $(LIB_DIR)/tinyfiledialogs/*)
+TEST_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
+      $(wildcard $(TEST_DIR)/*/*.cpp)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
@@ -74,13 +77,17 @@ UNAME = $(shell uname -sm | tr -s ' ' '-' | tr A-Z a-z )
 DIST_DIR ?= dist
 BUILD_DIR ?= build
 EXE_NAME = poptracker
+TEST_EXE_NAME = poptracker-test
 NIX_BUILD_DIR = $(BUILD_DIR)/$(UNAME)
 WIN32_BUILD_DIR = $(BUILD_DIR)/win32
 WIN64_BUILD_DIR = $(BUILD_DIR)/win64
 WASM_BUILD_DIR = $(BUILD_DIR)/wasm
 WIN32_EXE = $(WIN32_BUILD_DIR)/$(EXE_NAME).exe
+WIN32_TEST_EXE = $(WIN32_BUILD_DIR)/$(TEST_EXE_NAME).exe
 WIN64_EXE = $(WIN64_BUILD_DIR)/$(EXE_NAME).exe
+WIN64_TEST_EXE = $(WIN64_BUILD_DIR)/$(TEST_EXE_NAME).exe
 NIX_EXE = $(NIX_BUILD_DIR)/$(EXE_NAME)
+NIX_TEST_EXE = $(NIX_BUILD_DIR)/$(TEST_EXE_NAME)
 HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 
 # dist/zip
@@ -99,11 +106,14 @@ endif
 
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
-NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)))
+NIX_TEST_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(TEST_SRC))
+NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)) $(dir $(NIX_TEST_OBJ)))
 WIN32_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC))
-WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)))
+WIN32_TEST_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(TEST_SRC))
+WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)) $(dir $(WIN32_TEST_OBJ)))
 WIN64_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC))
-WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)))
+WIN64_TEST_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC))
+WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)))
 
 # tools
 CC = gcc # TODO: use ?=
@@ -179,6 +189,7 @@ endif
 # default target: "native"
 ifdef IS_WIN32
   EXE = $(WIN32_EXE)
+  TEST_EXE = $(WIN32_TEST_EXE)
   WIN32CC = $(CC)
   WIN32CPP = $(CPP)
   WIN32AR = $(AR)
@@ -193,6 +204,7 @@ ifdef IS_WIN32
   endif
 else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
+  TEST_EXE = $(WIN64_TEST_EXE)
   WIN64CC = $(CC)
   WIN64CPP = $(CPP)
   WIN64AR = $(AR)
@@ -207,6 +219,7 @@ else ifdef IS_WIN64
   endif
 else ifdef IS_OSX
   EXE = $(NIX_EXE)
+  TEST_EXE = $(NIX_TEST_EXE)
   ifeq ($(CONF), DIST) # TODO dmg?
     native: $(OSX_APP) $(OSX_ZIP) test_osx_app
   else
@@ -216,6 +229,7 @@ else
   WIN32_LIBS += -lbrotlidec-static -lbrotlicommon-static # brotli is a mess
   WIN64_LIBS +=  -lbrotlidec-static -lbrotlicommon-static
   EXE = $(NIX_EXE)
+  TEST_EXE = $(NIX_TEST_EXE)
   ifeq ($(CONF), DIST) # TODO deb?
     native: $(NIX_XZ)
   else
@@ -232,6 +246,8 @@ cross: $(WIN32_ZIP) $(WIN64_ZIP)
 else
 cross: $(WIN32_EXE) $(WIN64_EXE)
 endif
+cross-test: $(WIN32_TEST_EXE) $(WIN64_TEST_EXE)
+	# TODO: run tests with wine
 
 # Project Targets
 $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
@@ -243,6 +259,9 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
+$(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
+	$(CPP) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
 	$(WIN32CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
@@ -250,11 +269,17 @@ ifneq ($(CONF), DEBUG)
 	$(WIN32STRIP) $@
 endif
 
+$(WIN32_TEST_EXE): $(WIN32_TEST_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
+	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_TEST_OBJ) -l gtest -l gtest_main $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+
 $(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN64STRIP) $@
 endif
+
+$(WIN64_TEST_EXE): $(WIN64_TEST_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
+	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_TEST_OBJ) -l gtest -l gtest_main $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 
 $(WIN32_ZIP): $(WIN32_EXE) | $(DIST_DIR)
 $(WIN64_ZIP): $(WIN64_EXE) | $(DIST_DIR)
@@ -369,12 +394,16 @@ $(WIN64_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN64_OBJ_DIRS)
 # Avoid detection/auto-cleanup of intermediates
 .OBJ_DIRS: $(NIX_OBJ_DIRS) $(WIN32_OBJ_DIRS) $(WIN64_OBJ_DIRS)
 
-test: $(EXE)
-# TODO: implement and run actual tests
-	@echo "Testing $(EXE)"
+test: $(EXE) ${TEST_EXE}
+	@echo "Running $(TEST_EXE)"
+	@$(TEST_EXE)
+	@echo "Checking $(EXE)"
+	@echo -n "Size: "
 	@du -h $(EXE) | cut -f -1
+	@echo -n "Version: "
 	@timeout 5 $(EXE) --version
-	@timeout 9 $(EXE) --list-packs
+	@echo "HTTP Test ..."
+	@timeout 9 $(EXE) --list-packs > /dev/null
 
 clean:
 	(cd lib/lua && make -f makefile clean)
