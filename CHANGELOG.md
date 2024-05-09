@@ -1,5 +1,25 @@
 # PopTracker Changelog
 
+## v0.26.1
+
+* App Features
+  * Properly detect visibility and fix window position on start
+  * Save and restore window size when loading a pack
+  * AP: detect common copy & paste mistakes in server:port
+* Pack Features
+  * Don't warn for empty (`[]`) rules
+  * Switch DEBUG to flags and initialize DEBUG from config's "debug"
+    * default to none (`nil`)
+    * disabling FPS logging by default
+    * see docs/PACKS.md for more info
+* Dev Features
+  * Add unit testing framework
+  * Fix building on M1
+* Fixes
+  * Fix rules not working correctly for renamed duplicate locations
+  * Fix ':' breaking '@' and '^' rules
+  * Fix build on M1 with homebrew
+
 ## v0.26.0
 
 * App Features
