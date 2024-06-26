@@ -8,6 +8,7 @@
 #include <chrono>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 class USB2SNES {
     public:
@@ -20,11 +21,17 @@ class USB2SNES {
             SA1,
         };
 
+        enum class Change : unsigned {
+            NONE = 0,
+            STATE = 1,
+            DATA = 2,
+        };
+
         USB2SNES(const std::string& appname);
         ~USB2SNES();
         bool connect(std::vector<std::string> uris = {QUSB2SNES_URI,LEGACY_URI});
         bool disconnect();
-        bool dostuff();
+        Change poll();
         static constexpr auto QUSB2SNES_URI = "ws://localhost:23074";
         static constexpr auto LEGACY_URI = "ws://localhost:8080";
         bool wsConnected();
@@ -158,6 +165,32 @@ T USB2SNES::readInt(uint32_t addr)
     }
     return res;
 }
+
+static inline USB2SNES::Change operator|(USB2SNES::Change lhs, USB2SNES::Change rhs)
+{
+    return static_cast<USB2SNES::Change>(
+            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(lhs) |
+            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(rhs)
+    );
+}
+
+static inline USB2SNES::Change& operator|=(USB2SNES::Change& lhs, USB2SNES::Change rhs)
+{
+    return lhs = lhs | rhs;
+}
+
+static inline USB2SNES::Change operator&(USB2SNES::Change lhs, USB2SNES::Change rhs)
+{
+    return static_cast<USB2SNES::Change>(
+            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(lhs) &
+            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(rhs)
+    );
+}
+
+static inline bool operator!(USB2SNES::Change e) {
+    return e == static_cast<USB2SNES::Change>(0);
+}
+
 
 #endif // _USB2SNES_H_INCLUDED
 
