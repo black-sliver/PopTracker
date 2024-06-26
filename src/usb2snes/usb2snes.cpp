@@ -448,17 +448,20 @@ bool USB2SNES::disconnect()
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return true;
 }
-bool USB2SNES::dostuff()
+
+USB2SNES::Change USB2SNES::poll()
 {
-    bool res = false;
+    USB2SNES::Change res = USB2SNES::Change::NONE;
     {
         std::lock_guard<std::mutex> datalock(datamutex);
-        res |= data_changed;
+        if (data_changed)
+            res |= Change::DATA;
         data_changed = false;
     }
     {
         std::lock_guard<std::mutex> statelock(statemutex);
-        res |= state_changed;
+        if (state_changed)
+            res |= Change::STATE;
         state_changed = false;
     }
     return res;

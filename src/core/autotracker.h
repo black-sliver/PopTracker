@@ -215,11 +215,18 @@ public:
                 _snes->connect();
             else
                 _snes->connect(_snesAddresses);
-            if (_snes->dostuff()) {
+
+            USB2SNES::Change changed = _snes->poll();
+            if (!!changed) {
                 int index = _backendIndex[_snes];
                 State oldState = _state[index];
                 bool wsConnected = _snes->wsConnected();
                 bool snesConnected = wsConnected ? _snes->snesConnected() : false;
+
+                if (!snesConnected && !!(changed & USB2SNES::Change::DATA)) {
+                    // fire data change before firing disconnect
+                    onDataChange.emit(this);
+                }
 
                 if (snesConnected) {
                     _state[index] = State::ConsoleConnected;
@@ -231,7 +238,10 @@ public:
 
                 if (_state[index] != oldState) {
                     onStateChange.emit(this, index, _state[index]);
-                } else if (_state[index] == State::ConsoleConnected) {
+                }
+
+                if (snesConnected && !!(changed & USB2SNES::Change::DATA)) {
+                    // fire data change after firing connect
                     onDataChange.emit(this);
                 }
 
