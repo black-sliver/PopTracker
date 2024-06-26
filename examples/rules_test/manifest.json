@@ -14,6 +14,9 @@
 		},
 		"var_indirect": {
 			"display_name": "Indirect Connection Example"
+		},
+		"var_scoutable_and_glitched": {
+			"display_name": "Scoutable and Glitched Example"
 		}
 	}
 }
