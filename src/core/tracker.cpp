@@ -854,8 +854,8 @@ AccessibilityLevel Tracker::resolveRules(const std::list< std::list<std::string>
         if (reachable == AccessibilityLevel::SEQUENCE_BREAK)
             glitchedReachable = true;
     }
-    return (glitchedReachable && !inspectOnlyReachable) ? AccessibilityLevel::SEQUENCE_BREAK :
-           (inspectOnlyReachable && !glitchedReachable) ? AccessibilityLevel::INSPECT :
+    return glitchedReachable ? AccessibilityLevel::SEQUENCE_BREAK :
+           inspectOnlyReachable ? AccessibilityLevel::INSPECT :
                AccessibilityLevel::NONE;
 }
 
