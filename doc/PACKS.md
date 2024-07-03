@@ -519,7 +519,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "orientation": "{horizontal,vertical}", // how to orient children
         "max_height":  integer, // maximum height in px
         "max_width":   integer, // maximum width in px
-        "margin":      "left,top,right,bootom",
+        "margin":      "left,top,right,bottom",
         "item_margin": "<horizontal>,<vertical>", // margin in px
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
         "item_h_alignment": "{left,right,center,stretch}", // align image inside item; PopTracker since 0.19.1
