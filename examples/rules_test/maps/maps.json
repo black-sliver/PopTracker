@@ -9,6 +9,7 @@
         "name": "example2",
         "location_size": 24,
         "location_border_thickness": 2,
+        "location_shape": "diamond",
         "img": "images/maps/example.png"
     }
 ]

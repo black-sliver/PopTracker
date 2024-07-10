@@ -2,6 +2,7 @@
 #define _UI_MAPWIDGET_H
 
 #include "../uilib/image.h"
+#include "../core/location.h"
 #include <map>
 #include <vector>
 
@@ -9,15 +10,18 @@ namespace Ui {
 
 class MapWidget final : public Image {
 public:
+    typedef ::Location::MapLocation::Shape Shape;
+
     MapWidget(int x, int y, int w, int h, const char* filename);
     MapWidget(int x, int y, int w, int h, const void* data, size_t len);
     
     struct Point {
-        int x=0;
-        int y=0;
-        int size=0;
-        int borderThickness=0;
-        int state=1;
+        int x = 0;
+        int y = 0;
+        int size = 0;
+        int borderThickness = 0;
+        Shape shape = Shape::UNSPECIFIED;
+        int state = 1;
     };
 
     struct Location {
@@ -25,7 +29,7 @@ public:
     };
 
     // TODO: enum location state
-    void addLocation(const std::string& name, int x, int y, int size, int borderThickness, int state=1);
+    void addLocation(const std::string& name, int x, int y, int size, int borderThickness, Shape shape, int state=1);
     void setLocationState(const std::string& name, int state, size_t n);
     
     // FIXME: this does not work if name is not unique
