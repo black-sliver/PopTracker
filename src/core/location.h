@@ -79,6 +79,21 @@ public:
     class MapLocation final {
     public:
         static MapLocation FromJSON(nlohmann::json& j);
+
+        enum class Shape {
+            UNSPECIFIED,
+            RECT,
+            DIAMOND,
+        };
+
+        static Shape ShapeFromString(const std::string& s) {
+            if (s == "rect")
+                return Shape::RECT;
+            if (s == "diamond")
+                return Shape::DIAMOND;
+            return Shape::UNSPECIFIED;
+        }
+
     protected:
         std::string _mapName;
         int _x = 0; // TODO: point ?
@@ -87,6 +102,8 @@ public:
         int _borderThickness = -1;
         std::list<std::list<std::string> > _visibilityRules;
         std::list<std::list<std::string> > _invisibilityRules;
+        Shape _shape = Shape::UNSPECIFIED;
+
     public:
         // getters
         const std::string& getMap() const { return _mapName; }
@@ -94,6 +111,11 @@ public:
         int getY() const { return _y; }
         int getSize(int parent) const { return _size < 1 ? parent : _size; }
         int getBorderThickness(int parent) const { return _borderThickness < 0 ? parent : _borderThickness; }
+        Shape getShape(Shape parent) const
+        {
+            return _shape == Shape::UNSPECIFIED ? parent : _shape;
+        }
+
         const std::list<std::list<std::string>>& getVisibilityRules() const { return _visibilityRules; }
         const std::list<std::list<std::string>>& getInvisibilityRules() const { return _invisibilityRules; }
     };

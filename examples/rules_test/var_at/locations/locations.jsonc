@@ -8,7 +8,8 @@
                     {
                         "map": "example",
                         "x": 100,
-                        "y": 300
+                        "y": 300,
+                        "shape": "diamond"
                     }
                 ],
                 "sections": [
@@ -110,7 +111,8 @@
                     {
                         "map": "example2",
                         "x": 300,
-                        "y": 250
+                        "y": 250,
+                        "shape": "rect"
                     }
                 ],
                 "sections": [

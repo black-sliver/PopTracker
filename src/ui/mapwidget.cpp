@@ -198,32 +198,40 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
             if (state == 0 && _hideClearedLocations) continue;
             if (state == 2 && _hideUnreachableLocations) continue;
 
-
             if (!SplitRects || state<0 || state>=countOf(triangleValues)) {
                 const Widget::Color& c = (state<0 || state>=countOf(StateColors)) ?
                         StateColors[countOf(StateColors)-1] : StateColors[state];
-                drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                        c, c, c, c);
+                if (pos.shape == Shape::DIAMOND)
+                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            c, c, c, c);
+                else
+                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            c, c, c, c);
             } else {
                 const int* values = triangleValues[state];
                 const Widget::Color& topC = StateColors[values[0]];
                 const Widget::Color& leftC = StateColors[values[1]];
                 const Widget::Color& botC = StateColors[values[2]];
                 const Widget::Color& rightC = StateColors[values[3]];
-                drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                        topC, leftC, botC, rightC);
+
+                if (pos.shape == Shape::DIAMOND)
+                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            topC, leftC, botC, rightC);
+                else
+                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            topC, leftC, botC, rightC);
             }
         }
     }
 }
 
-void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, int state)
+void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, Shape shape, int state)
 {
     auto it = _locations.find(id);
     if (it != _locations.end()) {
-        it->second.pos.push_back( {x, y, size, borderThickness, state} );
+        it->second.pos.push_back( {x, y, size, borderThickness, shape, state} );
     } else {
-        _locations[id] = { { {x, y, size, borderThickness, state} } };
+        _locations[id] = { { {x, y, size, borderThickness, shape, state} } };
     }
 }
 

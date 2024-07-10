@@ -106,4 +106,113 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
     }
 }
 
+void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
+        Widget::Color tlC, Widget::Color blC, Widget::Color brC, Widget::Color trC)
+{
+    bool hasAlpha = tlC.a != 0xff || blC.a != 0xff || brC.a != 0xff || trC.a != 0xff;
+
+    float il = pos.left;
+    float it = pos.top;
+    float iw = size.width;
+    float ih = size.height;
+
+    float ol = il - borderWidth;
+    float ot = it - borderWidth;
+    float ow = iw + 2 * borderWidth;
+    float oh = ih + 2 * borderWidth;
+
+    if (hasAlpha) {
+        // we have to draw 4 individual lines for border
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        float x1 = ol, x2 = ol + borderWidth, x3 = ol + ow/2, x4 = ol + ow - borderWidth, x5 = ol + ow;
+        float y1 = ot, y2 = ot + borderWidth, y3 = ot + oh/2, y4 = ot + oh - borderWidth, y5 = ot + oh;
+        SDL_Color borderColor = {0, 0, 0, 255};
+        SDL_Vertex verts[] = {
+            {{x1, y3}, borderColor, {0, 0}},
+            {{x2, y3}, borderColor, {0, 0}},
+            {{x3, y2}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x4, y3}, borderColor, {0, 0}},
+            {{x5, y3}, borderColor, {0, 0}},
+            {{x3, y4}, borderColor, {0, 0}},
+            {{x3, y5}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+            0, 2, 3,
+            2, 4, 3,
+            3, 4, 5,
+            4, 6, 5,
+            5, 6, 7,
+            1, 7, 6,
+            7, 1, 0,
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 8, indices, 24);
+    } else {
+        // border as bigger background rect
+        float x1 = ol, x2 = ol + ow/2, x3 = ol + ow;
+        float y1 = ot, y2 = ot + oh/2, y3 = ot + oh;
+        SDL_Color borderColor = {0, 0, 0, 255};
+        SDL_Vertex verts[] = {
+            {{x1, y2}, borderColor, {0, 0}},
+            {{x2, y3}, borderColor, {0, 0}},
+            {{x2, y1}, borderColor, {0, 0}},
+            {{x3, y2}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+            2, 1, 3
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 4, indices, 6);
+    }
+
+    {
+        float x1 = il, x2 = il + iw/2, x3 = il + iw;
+        float y1 = it, y2 = it + ih/2, y3 = it + ih;
+        if (tlC == blC) {
+            SDL_Color leftColor = {tlC.r, tlC.g, tlC.b, tlC.a};
+            SDL_Vertex verts[] = {
+                {{x1, y2}, leftColor, {0, 0}},
+                {{x2, y3}, leftColor, {0, 0}},
+                {{x2, y1}, leftColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 3, nullptr, 0);
+        } else {
+            SDL_Color tlColor = {tlC.r, tlC.g, tlC.b, tlC.a};
+            SDL_Color blColor = {blC.r, blC.g, blC.b, blC.a};
+            SDL_Vertex verts[] = {
+                {{x2, y2}, tlColor, {0, 0}},
+                {{x2, y1}, tlColor, {0, 0}},
+                {{x1, y2}, tlColor, {0, 0}},
+                {{x1, y2}, blColor, {0, 0}},
+                {{x2, y3}, blColor, {0, 0}},
+                {{x2, y2}, blColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+        }
+
+        if (brC == trC) {
+            SDL_Color rightColor = {trC.r, trC.g, trC.b, trC.a};
+            SDL_Vertex verts[] = {
+                {{x2, y1}, rightColor, {0, 0}},
+                {{x2, y3}, rightColor, {0, 0}},
+                {{x3, y2}, rightColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 3, nullptr, 0);
+        } else {
+            SDL_Color trColor = {trC.r, trC.g, trC.b, trC.a};
+            SDL_Color brColor = {brC.r, brC.g, brC.b, brC.a};
+            SDL_Vertex verts[] = {
+                {{x2, y1}, trColor, {0, 0}},
+                {{x2, y2}, trColor, {0, 0}},
+                {{x3, y2}, trColor, {0, 0}},
+                {{x3, y2}, brColor, {0, 0}},
+                {{x2, y2}, brColor, {0, 0}},
+                {{x2, y3}, brColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+        }
+    }
+}
+
 } // namespace Ui

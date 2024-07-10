@@ -348,6 +348,7 @@ Maps are referenced by name in layouts.
             "name": "map_identifier",
             "location_size": 24, // size of locations on the map, unit is pixels of img
             "location_border_thickness": 2, // border around the locations
+            "location_shape": "rect", // or "diamond", since 0.26.2
             "img": "path/to/img.png"
         },
         ...
@@ -393,6 +394,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                             "y": 234,
                             "size": 24, // override map default, since 0.21.1
                             "border_thickness": 2, // override map default, since 0.21.1
+                            "shape": "rect", // override map default, since 0.26.2
                             "restrict_visibility_rules": [
                                 ...  // additional visibility rules for individual map locations, since 0.26
                             ],
