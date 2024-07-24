@@ -26,11 +26,12 @@ class AutoTracker final : public LuaInterface<AutoTracker>{
     friend class LuaInterface;
     
 public:
-    AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& name="PopTracker")
+    AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& gameName="", const std::string& name="PopTracker")
             : _name(name)
     {
-        if (flags.find("ap") != flags.end()) {
-            _ap = new APTracker(_name);
+        bool isAPClient = flags.find("apmanual") != flags.end();
+        if (isAPClient || flags.find("ap") != flags.end()) {
+            _ap = new APTracker(_name, isAPClient ? gameName : "", isAPClient);
             _lastBackendIndex++;
             int apIndex = _lastBackendIndex;
             _backendIndex[_ap] = apIndex;

@@ -77,6 +77,8 @@ public:
     bool RemoveVariableWatch(const std::string& name);
     std::string AddOnFrameHandler(const std::string& name, LuaRef callback);
     bool RemoveOnFrameHandler(const std::string& name);
+    const std::string& AddOnLocationSectionChangedHandler(const std::string& name, LuaRef callback);
+    bool RemoveOnLocationSectionHandler(const std::string& name);
     json RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     json RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     void resetWatches();
@@ -116,6 +118,12 @@ public:
         Ui::microtick_t lastTimestamp;
     };
 
+    struct OnLocationSectionChangedHandler
+    {
+        int callback;
+        std::string name;
+    };
+
 protected:
     lua_State *_L;
     Pack *_pack;
@@ -124,6 +132,7 @@ protected:
     std::vector<std::pair<std::string, CodeWatch> > _codeWatches;
     std::vector<std::pair<std::string, VarWatch> > _varWatches;
     std::vector<OnFrameHandler> _onFrameHandlers;
+    std::vector<OnLocationSectionChangedHandler> _onLocationSectionChangedHandlers;
     AutoTracker *_autoTracker = nullptr;
     std::list<ThreadContext> _asyncTasks;
 

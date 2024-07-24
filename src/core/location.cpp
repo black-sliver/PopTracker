@@ -19,6 +19,9 @@ int LocationSection::Lua_Index(lua_State *L, const char *key)
     } else if (strcmp(key, "ChestCount")==0) {
         lua_pushinteger(L, _itemCount);
         return 1;
+    } else if (strcmp(key, "FullID") == 0) {
+        lua_pushstring(L, getFullID().c_str());
+        return 1;
     } else if (strcmp(key, "AccessibilityLevel") == 0) {
         lua_getglobal(L, "Tracker");
         Tracker* tracker = Tracker::luaL_testthis(L, -1);

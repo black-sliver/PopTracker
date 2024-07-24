@@ -22,8 +22,8 @@
 class APTracker final {
     typedef nlohmann::json json;
 public:
-    APTracker(const std::string& appname, const std::string& game="")
-            : _appname(appname), _game(game)
+    APTracker(const std::string& appname, const std::string& game="", bool allowSend=false)
+            : _appname(appname), _game(game), _allowSend(allowSend)
     {
         // AP uses an UUID to detect reconnects (replace old connection). If
         // stored UUID is older than 60min, the connection should already be
@@ -84,9 +84,12 @@ public:
         _ap->set_data_package(_datapackage);
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
-            std::list<std::string> tags = {"Tracker"};
-            if (_game.empty()) tags.push_back("IgnoreGame");
-            return _ap->ConnectSlot(slot, pw, 0b111, tags);
+            std::list<std::string> tags = {"PopTracker"};
+            if (!_allowSend)
+                tags.push_back("Tracker");
+            if (_game.empty())
+                tags.push_back("IgnoreGame");
+            return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 0});
         });
         _ap->set_slot_refused_handler([this](const std::list<std::string>& errs) {
             auto lock = EventLock(_event);
@@ -249,6 +252,28 @@ public:
         return true;
     }
 
+    /// returns true if this instance is allowed to send Locations
+    bool allowSend() const
+    {
+        return _allowSend;
+    }
+
+    /// returns true if locations were queued to be sent
+    bool LocationChecks(const std::list<int64_t>& locations)
+    {
+        if (!_allowSend || !_ap)
+            return false;
+        return _ap->LocationChecks(locations);
+    }
+
+    /// returns true if locations were queued to be scouted
+    bool LocationScouts(const std::list<int64_t>& locations, int createAsHint)
+    {
+        if (!_allowSend || !_ap)
+            return false;
+        return _ap->LocationScouts(locations, createAsHint);
+    }
+
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
@@ -263,6 +288,7 @@ private:
     APClient* _ap = nullptr;
     std::string _appname;
     std::string _game;
+    bool _allowSend;
     std::string _uuid;
     json _datapackage;
     int _itemIndex = 0;

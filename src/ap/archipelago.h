@@ -26,6 +26,8 @@ public:
     bool AddSetReplyHandler(const std::string& name, LuaRef callback);
     bool SetNotify(const json& keys);
     bool Get(const json& keys);
+    bool LocationChecks(const json& locations);
+    bool LocationScouts(const json& locations, int sendAsHint);
 
 protected:
     lua_State *_L;

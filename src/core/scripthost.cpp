@@ -23,6 +23,8 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, RemoveVariableWatch, const char*),
     LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
+    LUA_METHOD(ScriptHost, AddOnLocationSectionChangedHandler, const char*, LuaRef),
+    LUA_METHOD(ScriptHost, RemoveOnLocationSectionHandler, const char*),
     LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef, LuaRef),
     LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef, LuaRef),
 };
@@ -34,7 +36,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     auto flags = _pack->getVariantFlags();
     auto gameFlags = GameInfo::Find(_pack->getGameName()).flags;
     flags.insert(gameFlags.begin(), gameFlags.end());
-    _autoTracker = new AutoTracker(_pack->getPlatform(), flags);
+    _autoTracker = new AutoTracker(_pack->getPlatform(), flags, _pack->getGameName());
     _autoTracker->onStateChange += {this, [this](void*, int index, AutoTracker::State state)
     {
         const auto backend = _autoTracker ? _autoTracker->getName(index) : "";
@@ -136,7 +138,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                     lua_pushstring(_L, pair.second.code.c_str()); // arg1: watched code
                 if (lua_pcall(_L, 1, 0, 0)) {
                     printf("Error calling Memory Watch Callback for %s: %s\n",
-                            pair.first.c_str(), lua_tostring(_L, -1));
+                            name.c_str(), lua_tostring(_L, -1));
                     lua_pop(_L, 1);
                     return;
                 }
@@ -144,6 +146,27 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             if (_codeWatches.size() <= i) break;
             if (_codeWatches[i].first != name) // current item not unchanged
                 i--;
+        }
+    }};
+
+    _tracker->onLocationSectionChanged += { this, [this](void*, const LocationSection& section) {
+        for (size_t i=0; i<_onLocationSectionChangedHandlers.size(); i++) {
+            const auto& handler =  _onLocationSectionChangedHandlers[i];
+            auto name = handler.name;
+            printf("LocationSection %s changed, for watch \"%s\"\n",
+                    section.getFullID().c_str(), handler.name.c_str());
+            lua_rawgeti(_L, LUA_REGISTRYINDEX, handler.callback);
+            section.Lua_Push(_L);
+            if (lua_pcall(_L, 1, 0, 0)) {
+                printf("Error calling LocationSection handler for %s: %s\n",
+                        name.c_str(), lua_tostring(_L, -1));
+                lua_pop(_L, 1);
+                return;
+            }
+            if (_onLocationSectionChangedHandlers.size() <= i) // current item removed
+                break;
+            if (_onLocationSectionChangedHandlers[i].name != name) // current item changed
+                --i;
         }
     }};
 }
@@ -376,6 +399,27 @@ bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
         if (it->name == name) {
             luaL_unref(_L, LUA_REGISTRYINDEX, it->callback);
             _onFrameHandlers.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
+const std::string& ScriptHost::AddOnLocationSectionChangedHandler(const std::string& name, LuaRef callback)
+{
+    RemoveOnLocationSectionHandler(name);
+    if (!callback.valid())
+        luaL_error(_L, "Invalid callback");
+    _onLocationSectionChangedHandlers.push_back({callback.ref, name});
+    return _onLocationSectionChangedHandlers.back().name;
+}
+
+bool ScriptHost::RemoveOnLocationSectionHandler(const std::string &name)
+{
+    for (auto it = _onLocationSectionChangedHandlers.begin(); it != _onLocationSectionChangedHandlers.end(); ++it) {
+        if (it->name == name) {
+            luaL_unref(_L, LUA_REGISTRYINDEX, it->callback);
+            _onLocationSectionChangedHandlers.erase(it);
             return true;
         }
     }

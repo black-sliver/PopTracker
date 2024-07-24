@@ -3,7 +3,7 @@
 --
 -- PopTracker API definition file.
 -- Do NOT load this into your pack.
--- Read docs/PACKS.md#lua-interface for instructions.
+-- Read doc/PACKS.md#lua-interface for instructions.
 --
 
 ---- Helpers ----
@@ -15,7 +15,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.26.0"
+PopVersion = "0.26.2"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true to get more error or debug output.
@@ -186,6 +186,19 @@ function ScriptHost:AddOnFrameHandler(name, callback) end
 ---@return boolean true on success
 function ScriptHost:RemoveOnFrameHandler(name) end
 
+---Add a handler/callback that runs when a location section changed (checks checked/unchecked).
+---Any kind of filtering and detection what changed has to be done inside the callback.
+---Available since 0.26.2.
+---@param name string identifier/name of this callback
+---@param callback func(section:LocationSection):nil called when any location section changed
+---@return string reference for RemoveOnLocationSectionChangedHandler
+function ScriptHost:AddOnLocationSectionChangedHandler(name, callback) end
+
+---Remove a handler/callback added by RemoveOnLocationSectionChangedHandler.
+---Available since 0.26.2.
+---@param name string identifier/name of the handler to remove
+---@return boolean true on success
+function ScriptHost:RemoveOnLocationSectionChangedHandler(name) end
 
 ---- AutoTracker ----
 
@@ -361,6 +374,19 @@ function Archipelago:Get(keys) end
 ---@param keys string[] keys to watch
 ---@return boolean true on success
 function Archipelago:SetNotify(keys) end
+
+---Send locations as checked to the server.
+---Supported since 0.26.2, only allowed if "apmanual" flag is set in manifest.
+---@param locations integer[] locations to check
+---@return boolean true on success
+function Archipelago:LocationChecks(locations) end
+
+---Send locations as scouted to the server.
+---Supported since 0.26.2, only allowed if "apmanual" flag is set in manifest.
+---@param locations integer[]
+---@param sendAsHint integer
+---@return boolean true on success
+function Archipelago:LocationScouts(locations, sendAsHint) end
 
 
 ---- ImageRef ----
@@ -602,3 +628,7 @@ LocationSection.AvailableChestCount = 1
 ---Read-only, giving one of the `AccessibilityLevel` constants.
 ---@type accessibilityLevel
 LocationSection.AccessibilityLevel = 0
+
+---Read-only, returning the full id as string such as "Location/Section"
+---@type string
+LocationSection.FullID = ""
