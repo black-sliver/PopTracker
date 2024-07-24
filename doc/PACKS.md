@@ -143,7 +143,7 @@ The following interfaces are provided:
 ### global ImageReference
 
 `use ImageRef = string`
-* `ImageRef :FromPackRelativePath(filename)`: for now this will just return filename and path resoltuion is done later.
+* `ImageRef :FromPackRelativePath(filename)`: for now this will just return filename and path resolution is done later.
 * `ImageRef :FromImageReference(original, mod)`: return ImageRef that is original ImageRef + mod string.
 
 
