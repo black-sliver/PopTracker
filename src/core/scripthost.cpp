@@ -135,8 +135,8 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
                 else
                     lua_pushstring(_L, pair.second.code.c_str()); // arg1: watched code
                 if (lua_pcall(_L, 1, 0, 0)) {
-                    printf("Error calling Memory Watch Callback for %s: %s\n",
-                            pair.first.c_str(), lua_tostring(_L, -1));
+                    printf("Error calling WatchForCode Callback for %s: %s\n",
+                            name.c_str(), lua_tostring(_L, -1));
                     lua_pop(_L, 1);
                     return;
                 }
