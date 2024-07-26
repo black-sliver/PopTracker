@@ -508,8 +508,7 @@ JsonItem = {}
 
 ---Get or set the item's image. Use `ImageReference:FromPackRelativePath` to create an `ImageRef`.
 ---For performance reasons, using a staged item is recommended.
----Currently only works for items of type toggle and static.
--- Available since 0.26.0.
+-- Available since 0.26.0. Changed to include mods and reset on change in 0.26.2.
 ---@type ImageRef?
 JsonItem.Icon = nil
 

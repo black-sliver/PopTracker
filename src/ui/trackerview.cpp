@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "../core/jsonutil.h"
+
 namespace Ui {
 
 
@@ -160,6 +162,24 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     }
     w->setOverlayBackgroundColor(item->getOverlayBackground());
     w->setOverlayAlignment(str2itemHalign(item->getOverlayAlign(), Label::HAlign::RIGHT));
+    if (origItem.getType() != BaseItem::Type::CUSTOM) {
+        auto j = dynamic_cast<const JsonItem *>(&origItem);
+        if (j && j->isImageOverridden()) {
+            const auto& img = j->getImageOverride();
+            auto p = img.find(":");
+            std::string f;
+            std::list<ImageFilter> filters;
+            if (p == img.npos) {
+                f = img;
+            } else {
+                f = img.substr(0, p);
+                filters = imageModsToFilters(_tracker, commasplit(img.substr(p + 1)));
+            }
+            std::string s;
+            _tracker->getPack()->ReadFile(f, s);
+            w->setImageOverride(s.c_str(), s.length(), f, filters);
+        }
+    }
 
     std::string id = origItem.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
@@ -413,18 +433,27 @@ void TrackerView::updateDisplay(const std::string& itemid)
     const auto& item = _tracker->getItemById(itemid);
     printf("update display of %s: \"%s\"\n", itemid.c_str(), item.getName().c_str());
     for (auto w: _items[itemid]) {
-        if (item.getType() == ::BaseItem::Type::TOGGLE
-                || item.getType() == ::BaseItem::Type::STATIC) {
-            int st = item.getActiveStage();
-            auto f = item.getImage(st);
-            auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
+        if (item.getType() == ::BaseItem::Type::CUSTOM)
+            continue; // Lua items handled in updateItem
+        const JsonItem* j = dynamic_cast<const JsonItem*>(&item);
+        if (!j)
+            continue;
+        if (j->isImageOverridden()) {
+            const auto& img = j->getImageOverride();
+            auto p = img.find(":");
+            std::string f;
+            std::list<ImageFilter> filters;
+            if (p == img.npos) {
+                f = img;
+            } else {
+                f = img.substr(0, p);
+                filters = imageModsToFilters(_tracker, commasplit(img.substr(p + 1)));
+            }
             std::string s;
             _tracker->getPack()->ReadFile(f, s);
-            w->addStage(1,1, s.c_str(), s.length(), f, filters);
-            f = item.getDisabledImage(st);
-            filters = imageModsToFilters(_tracker, item.getDisabledImageMods(st));
-            _tracker->getPack()->ReadFile(f, s);
-            w->addStage(0,1, s.c_str(), s.length(), f, filters);
+            w->setImageOverride(s.c_str(), s.length(), f, filters);
+        } else {
+            w->clearImageOverride();
         }
     }
 }

@@ -45,6 +45,8 @@ public:
         _halign = halign;
         _valign = valign;
     }
+    void setImageOverride(const void *data, size_t len, const std::string& name, const std::list<ImageFilter>& filters);
+    void clearImageOverride();
 
 protected:
     std::vector< std::vector<SDL_Surface*> > _surfs; // TODO: put surf, name and filters in a struct
@@ -65,6 +67,10 @@ protected:
     SDL_Texture *_overlayTex = nullptr;
     Label::HAlign _halign = Label::HAlign::LEFT;
     Label::VAlign _valign = Label::VAlign::TOP;
+    SDL_Surface *_overrideSurf = nullptr;
+    SDL_Texture *_overrideTex = nullptr;
+    std::string _overrideName;
+    std::list<ImageFilter> _overrideFilters;
 
     virtual void addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name,
                           std::list<ImageFilter> filters={});
