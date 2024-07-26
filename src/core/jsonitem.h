@@ -67,6 +67,7 @@ protected:
     bool _incrementChanged = false;
     bool _decrementChanged = false;
     bool _imgChanged = false;
+    bool _ignoreUserInput = false;
 
 public:    
     virtual size_t getStageCount() const override { return _stages.size(); }
@@ -138,6 +139,8 @@ public:
     virtual const std::list<std::string>& getCodes(int stage) const;
     
     virtual bool changeState(BaseItem::Action action) override {
+        if (_ignoreUserInput)
+            return false;
         if (_changeStateImpl(action)) {
             if (_imgOverridden) {
                 _imgOverridden = false;

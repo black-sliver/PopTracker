@@ -549,6 +549,11 @@ JsonItem.Owner = {}
 ---Available since 0.23.0.
 JsonItem.Type = ""
 
+---Disables state/stage changes when clicking the item.
+---Available since 0.26.2.
+---@type boolean
+JsonItem.IgnoreUserInput = false
+
 ---Set item overlay text (like count, but also for non-consumables).
 ---Only available in PopTracker.
 ---@param text string

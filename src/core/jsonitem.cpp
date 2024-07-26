@@ -370,6 +370,9 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
             }
         }
         return 1;
+    } else if (strcmp(key, "IgnoreUserInput") == 0) {
+        lua_pushboolean(L, _ignoreUserInput);
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
@@ -483,6 +486,11 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
             onDisplayChange.emit(this);
         }
         return true;
+    } else if (strcmp(key, "IgnoreUserInput") == 0) {
+        auto t = lua_type(L, -1);
+        _ignoreUserInput = (t == LUA_TBOOLEAN && lua_toboolean(L, -1))
+                        || (t == LUA_TINTEGER && lua_tointeger(L, -1) > 0);
+        return true;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return false;
@@ -511,6 +519,8 @@ json JsonItem::save() const
         data["decrement"] = _decrement;
     if (_imgOverridden)
         data["img"] = _imgOverride;
+    if (_ignoreUserInput)
+        data["ignore_user_input"] = true;
     return data;
 }
 
@@ -535,6 +545,7 @@ bool JsonItem::load(json& j)
         auto itImg = j.find("img");
         bool imgOverridden = itImg != j.end() && itImg->type() == json::value_t::string;
         std::string imgOverride = imgOverridden ? itImg->get<std::string>() : _imgOverride;
+        bool ignoreUserInput = to_bool(j["ignore_user_input"], _ignoreUserInput);
         bool changed = false;
         bool displayChanged = false;
         if (_count != count || _minCount != minCount || _maxCount != maxCount
@@ -544,8 +555,8 @@ bool JsonItem::load(json& j)
                 || _overlayAlign != overlayAlign
                 || _overlayFontSize != overlayFontSize
                 || _increment != increment
-                || _decrement != decrement)
-        {
+                || _decrement != decrement
+                || _ignoreUserInput != ignoreUserInput) {
             _count = count;
             _minCountChanged = _minCount != minCount;
             _minCount = minCount;
@@ -564,6 +575,7 @@ bool JsonItem::load(json& j)
             _increment = increment;
             _decrementChanged = _decrement != decrement;
             _decrement = decrement;
+            _ignoreUserInput = ignoreUserInput;
             changed = true;
         }
         if (_imgOverridden != imgOverridden
