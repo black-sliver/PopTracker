@@ -168,12 +168,14 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
     if (_type == Type::TOGGLE) {
         // left,fwd = on, right,back = off, middle = toggle
         if (action == Action::Primary || action == Action::Next) {
-            if (_stage1 > 0) return false;
+            if (_stage1 > 0)
+                return false;
             _stage1 = 1;
         } else if (action == Action::Secondary || action == Action::Prev) {
-            if (_stage1 < 1) return false;
+            if (_stage1 < 1 || !_allowDisabled)
+                return false;
             _stage1 = 0;
-        } else { // middle mouse = toggle
+        } else if (_allowDisabled) { // middle mouse = toggle
             _stage1 = !_stage1;
         }
     } else if (_type == Type::PROGRESSIVE && !_allowDisabled) {
@@ -309,7 +311,7 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         _stage2 = (int)n;
     } else if (_type == Type::TOGGLE_BADGED) {
         // only handle right-click here
-        if (action == Action::Secondary)
+        if (action == Action::Secondary && _allowDisabled)
             _stage1 = !_stage1;
         else
             return false;
@@ -326,7 +328,7 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
         lua_pushinteger(L, _count);
         return 1;
     } else if (strcmp(key, "Active")==0) {
-        if (_type == Type::PROGRESSIVE && !_allowDisabled)
+        if (!_allowDisabled)
             lua_pushboolean(L, 1);  // always Active
         lua_pushboolean(L, _stage1);
         return 1;
@@ -397,7 +399,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         bool val = lua_isinteger(L, -1) ? (lua_tointeger(L, -1)>0) : (bool)lua_toboolean(L, -1);
         if (_type == Type::PROGRESSIVE && _allowDisabled && !val)
             _stage2 = 0;
-        else if (_type == Type::PROGRESSIVE && !_allowDisabled)
+        else if (!_allowDisabled)
             val = true;  // always Active
         if (_stage1 != val) {
             _stage1 = val;
