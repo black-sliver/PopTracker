@@ -76,8 +76,13 @@ JsonItem JsonItem::FromJSON(json& j)
 
     commasplit(to_string(j["codes"], ""), item._codes);
     commasplit(to_string(j["img_mods"], ""), item._imgMods);
-    commasplit(to_string(j["disabled_img_mods"], to_string(j["img_mods"], "")+",@disabled"), item._disabledImgMods);
-    
+    std::string defaultDisabledImgMods = to_string(j["img_mods"], "");
+    if (defaultDisabledImgMods.empty())
+        defaultDisabledImgMods = "@disabled";
+    else
+        defaultDisabledImgMods += ",@disabled";
+    commasplit(to_string(j["disabled_img_mods"], defaultDisabledImgMods), item._disabledImgMods);
+
     if (j["stages"].type() == json::value_t::array) {
         for (auto& v: j["stages"]) {
             item._stages.push_back(Stage::FromJSON(v));
