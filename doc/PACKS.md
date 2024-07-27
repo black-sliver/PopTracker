@@ -287,6 +287,9 @@ a table representing an enum with the following constants: \
   + adds `disabled_img_mods`: like `img_mods` but for off. Defaults to `img_mods` + `"@disabled"`). Any value (e.g. `"none"`) disables defaults.
   + adds `initial_active_state`: precollected if true, since 0.25.4
 
++ `"static"`:
+  + behaves like a toggle that is always on
+
 * `"consumable"`:
   + has AcquiredCount (0 = grey/disabled)
   + adds `"min_quantity": 0`, since 0.21.0
