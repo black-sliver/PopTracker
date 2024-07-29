@@ -1,5 +1,25 @@
 # PopTracker Changelog
 
+## v0.27.0
+
+* App Features
+  * Add Archipelago "Manual" support: packs can opt in and send locations to a MultiServer
+  * Always append .json to export state filename on Windows
+* Pack Features
+  * Add "location_shape" to maps and "shape" to map locations, supporting
+    * "rect" (default)
+    * "diamond" (new, 45° rotated rect)
+  * Lua: AddOnLocationSectionChangedHandler to react to changed locations sections
+  * Lua: Archipelago:LocationChecks and :LocationScouts for "apmanual"
+  * Lua: Added LocationSection.FullID to get the full location/section string
+  * Added flag "apmanual" to enable sending in Archipelago
+* Fixes
+  * Fix map tooltip placement being wrong under certain cirumstances
+  * Fix sections with sequence break + inspect not showing up correctly
+  * Fix a race condition in snes autotracking
+  * Ignore "allow_disabled" for items where behavior wasn't documented: toggle, static, toggle_badged
+  * Fixes some typos in docs and error messages
+
 ## v0.26.1
 
 * App Features
