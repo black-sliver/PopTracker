@@ -779,6 +779,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 w->addLocation(pair.first, pair.second.getX(), pair.second.getY(),
                         pair.second.getSize(map.getLocationSize()),
                         pair.second.getBorderThickness(map.getLocationBorderThickness()),
+                        pair.second.getShape(map.getLocationShape()),
                         state);
             }
 #ifndef NDEBUG
@@ -844,6 +845,9 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         _mapTooltip->setTop(absY-_absY-_mapTooltip->getHeight()+off);
                         if (_mapTooltip->getTop() < mapTop)
                             _mapTooltip->setTop(mapTop);
+                        // if that doesn't fit, move it to the middle
+                        if (_mapTooltip->getTop() + _mapTooltip->getHeight() > _size.height)
+                            _mapTooltip->setTop((_size.height - _mapTooltip->getHeight())/2);
                     }
                 }
                 // restore scroll position

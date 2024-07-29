@@ -66,7 +66,9 @@ public:
                 r = 0; g = 0; b = 0; a = 0;
             }
         }
-        bool operator==(Color& other) const { return other.r==r && other.g==g && other.b==b && other.a==a; }
+        bool operator==(const Color& other) const { return other.r==r && other.g==g && other.b==b && other.a==a; }
+        bool operator!=(const Color& other) const { return ! (*this == other); }
+
     private:
         uint8_t hex(char c) {
             if (c>='0' && c<='9') return (uint8_t)(c-'0');

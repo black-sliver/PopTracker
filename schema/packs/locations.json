@@ -282,6 +282,10 @@
                                     }
                                 ]
                             },
+                            "shape": {
+                                "description": "Overrides the location shape defined on the map.",
+                                "enum": [null, "rect", "diamond"]
+                            },
                             "restrict_visibility_rules": {
                                 "example": [
                                     "rule1,rule2",

@@ -26,11 +26,12 @@ class AutoTracker final : public LuaInterface<AutoTracker>{
     friend class LuaInterface;
     
 public:
-    AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& name="PopTracker")
+    AutoTracker(const std::string& platform, const std::set<std::string>& flags, const std::string& gameName="", const std::string& name="PopTracker")
             : _name(name)
     {
-        if (flags.find("ap") != flags.end()) {
-            _ap = new APTracker(_name);
+        bool isAPClient = flags.find("apmanual") != flags.end();
+        if (isAPClient || flags.find("ap") != flags.end()) {
+            _ap = new APTracker(_name, isAPClient ? gameName : "", isAPClient);
             _lastBackendIndex++;
             int apIndex = _lastBackendIndex;
             _backendIndex[_ap] = apIndex;
@@ -215,11 +216,18 @@ public:
                 _snes->connect();
             else
                 _snes->connect(_snesAddresses);
-            if (_snes->dostuff()) {
+
+            USB2SNES::Change changed = _snes->poll();
+            if (!!changed) {
                 int index = _backendIndex[_snes];
                 State oldState = _state[index];
                 bool wsConnected = _snes->wsConnected();
                 bool snesConnected = wsConnected ? _snes->snesConnected() : false;
+
+                if (!snesConnected && !!(changed & USB2SNES::Change::DATA)) {
+                    // fire data change before firing disconnect
+                    onDataChange.emit(this);
+                }
 
                 if (snesConnected) {
                     _state[index] = State::ConsoleConnected;
@@ -231,7 +239,10 @@ public:
 
                 if (_state[index] != oldState) {
                     onStateChange.emit(this, index, _state[index]);
-                } else if (_state[index] == State::ConsoleConnected) {
+                }
+
+                if (snesConnected && !!(changed & USB2SNES::Change::DATA)) {
+                    // fire data change after firing connect
                     onDataChange.emit(this);
                 }
 

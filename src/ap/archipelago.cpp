@@ -15,6 +15,8 @@ const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
     LUA_METHOD(Archipelago, AddSetReplyHandler, const char*, LuaRef),
     LUA_METHOD(Archipelago, SetNotify, json),
     LUA_METHOD(Archipelago, Get, json),
+    LUA_METHOD(Archipelago, LocationChecks, json),
+    LUA_METHOD(Archipelago, LocationScouts, json, int),
 };
 
 Archipelago::Archipelago(lua_State *L, APTracker *ap)
@@ -194,6 +196,46 @@ bool Archipelago::Get(const json& jKeys)
         }
     }
     return _ap->Get(keys);
+}
+
+bool Archipelago::LocationChecks(const json &jLocations)
+{
+    if (!_ap)
+        return false; //throw std::runtime_error("Not connected");
+    if (!_ap->allowSend())
+        return false; //throw std::runtime_error("Tracker-only");
+    if ((!jLocations.is_array() && !jLocations.is_object()))
+        return false; //throw std::runtime_error("argument locations to LocationChecks must be array/table");
+
+    std::list<std::int64_t> locations;
+    for (auto& el: jLocations.items()) {
+        if (el.value().is_number_integer()) {
+            locations.push_back(el.value());
+        } else {
+            return false;
+        }
+    }
+    return _ap->LocationChecks(locations);
+}
+
+bool Archipelago::LocationScouts(const json &jLocations, int sendAsHint)
+{
+    if (!_ap)
+        return false; //throw std::runtime_error("Not connected");
+    if (!_ap->allowSend())
+        return false; //throw std::runtime_error("Tracker-only");
+    if ((!jLocations.is_array() && !jLocations.is_object()))
+        return false; //throw std::runtime_error("argument locations to LocationScouts must be array/table");
+
+    std::list<std::int64_t> locations;
+    for (auto& el: jLocations.items()) {
+        if (el.value().is_number_integer()) {
+            locations.push_back(el.value());
+        } else {
+            return false;
+        }
+    }
+    return _ap->LocationScouts(locations, sendAsHint);
 }
 
 int Archipelago::Lua_Index(lua_State *L, const char* key) {

@@ -18,6 +18,7 @@
                         "type": "number",
                         "minimum": 0
                     },
+                    "location_shape": true,
                     "img": true
                 },
                 "additionalProperties": false

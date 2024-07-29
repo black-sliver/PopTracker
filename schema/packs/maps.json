@@ -36,6 +36,11 @@
                     }
                 ]
             },
+            "location_shape": {
+                "description": "Shape of the map locations.",
+                "enum": ["rect", "diamond"],
+                "default": "rect"
+            },
             "img": {
                 "description": "Image of the map.",
                 "type": "string"

@@ -15,6 +15,7 @@ The only things of consequence right now are:
     
     {
         "name": "<Readable Name>",
+        "game_name": "<Readable Name>",
         "package_uid": "<unique string for saves>",
         "package_version": "<unique string for open and saves>",
         "platform": "<platform>",
@@ -35,7 +36,6 @@ The only things of consequence right now are:
 Other fields:
 
     {
-        "game_name": "<Readable Name>",
         "author": "<Readbale Names>"
     }
 
@@ -47,6 +47,7 @@ If platform is "n64", the LuaConnector autotracker is to be enabled.
 
 Currently supported flags:
 * `"ap"`: pack supports Archipelago autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
+* `"apmanual"`: pack supports sending locations to Archipelago. Uses `game_name` as `game`.
 * `"uat"`: pack supports UAT autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
 * `"lorom"`: (SNES) game has LoROM mapping - if not listed in gameinfo.cpp
 * `"hirom"`: (SNES) game has HiROM mapping
@@ -127,6 +128,8 @@ The following interfaces are provided:
 * `LuaItem :CreateLuaItem()`: create a LuaItem (custom item) instance
 * `ref :AddOnFrameHandler(name,callback)`: callback(elapsed) will be called every frame, available since 0.25.9
 * `bool :RemoveOnFrameHandler(name)`: remove a frame callback
+* `ref :AddOnLocationSectionChangedHandler(name, callback)`: callback (LocationSection) will be called whenever any location section changes, available since 0.26.2
+* `bool :RemoveOnLocationSectionChangedHandler(name)`: removes a previously added LocationSectionChanged callback, available since 0.26.2
 * `ThreadProxy :RunScriptAsync(luaFilename, arg, completeCallback, progressCallback)`: Load and run script in a separate thread. `arg` is passed as global arg. Most other things are not available in the new context. Use `return` to return a value from the script, that will be passed to `callback(result)`. (ThreadProxy has no function yet)
 * `ThreadProxy :RunStringAsync(script, arg, completeCallback, progressCallback)`: same as RunScriptAsync, but script is a string instead of a filename.
 * `void :AsyncProgress(arg)`: call progressCallback in main context on next frame. Arg is passed to callback.
@@ -140,7 +143,7 @@ The following interfaces are provided:
 ### global ImageReference
 
 `use ImageRef = string`
-* `ImageRef :FromPackRelativePath(filename)`: for now this will just return filename and path resoltuion is done later.
+* `ImageRef :FromPackRelativePath(filename)`: for now this will just return filename and path resolution is done later.
 * `ImageRef :FromImageReference(original, mod)`: return ImageRef that is original ImageRef + mod string.
 
 
@@ -221,6 +224,7 @@ a table representing an enum with the following constants: \
 * `.ChestCount`: how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
 * `.AccessibilityLevel`: read-only, giving one of the AccessibilityLevel constants
+* `.FullID`: read-only, full id such as "location/section"
 
 
 ### type Location
@@ -349,6 +353,7 @@ Maps are referenced by name in layouts.
             "name": "map_identifier",
             "location_size": 24, // size of locations on the map, unit is pixels of img
             "location_border_thickness": 2, // border around the locations
+            "location_shape": "rect", // or "diamond", since 0.26.2
             "img": "path/to/img.png"
         },
         ...
@@ -394,6 +399,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                             "y": 234,
                             "size": 24, // override map default, since 0.21.1
                             "border_thickness": 2, // override map default, since 0.21.1
+                            "shape": "rect", // override map default, since 0.26.2
                             "restrict_visibility_rules": [
                                 ...  // additional visibility rules for individual map locations, since 0.26
                             ],
@@ -520,7 +526,7 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "orientation": "{horizontal,vertical}", // how to orient children
         "max_height":  integer, // maximum height in px
         "max_width":   integer, // maximum width in px
-        "margin":      "left,top,right,bootom",
+        "margin":      "left,top,right,bottom",
         "item_margin": "<horizontal>,<vertical>", // margin in px
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
         "item_h_alignment": "{left,right,center,stretch}", // align image inside item; PopTracker since 0.19.1

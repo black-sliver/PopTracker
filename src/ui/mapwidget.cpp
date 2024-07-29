@@ -1,5 +1,7 @@
 #include "mapwidget.h"
 #include "../core/util.h" // countOf
+#include "../uilib/drawhelper.h"
+
 
 namespace Ui {
 
@@ -191,154 +193,45 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
             int outerx = innerx-borderScreenSize;
             int outery = innery-borderScreenSize;
 
-            SDL_Rect inner = {
-                .x = innerx, .y = innery, .w = locScreenInnerW, .h = locScreenInnerH
-            };
-            SDL_Rect outer = {
-                .x = outerx, .y = outery, .w = locScreenOuterW, .h = locScreenOuterH
-            };
-            SDL_Rect outerTop = {
-                .x = outer.x, .y = outer.y, .w = outer.w, .h = borderScreenSize
-            };
-            SDL_Rect outerBot = {
-                .x = outer.x, .y = outer.y + outer.h - borderScreenSize, .w = outer.w, .h = borderScreenSize
-            };
-            SDL_Rect outerLeft = {
-                .x = outer.x, .y = outer.y, .w = borderScreenSize, .h = outer.h
-            };
-            SDL_Rect outerRight = {
-                .x = outer.x + outer.w - borderScreenSize, .y = outer.y, .w = borderScreenSize, .h = outer.h
-            };
-
             int state = (int)pos.state;
             if (state == -1) continue; // hidden
             if (state == 0 && _hideClearedLocations) continue;
             if (state == 2 && _hideUnreachableLocations) continue;
 
-            bool hasAlpha;
-
             if (!SplitRects || state<0 || state>=countOf(triangleValues)) {
                 const Widget::Color& c = (state<0 || state>=countOf(StateColors)) ?
                         StateColors[countOf(StateColors)-1] : StateColors[state];
-                hasAlpha = c.a < 0xff;
-                if (hasAlpha) {
-                    // we have to draw 4 individual lines for border
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                    SDL_RenderFillRect(renderer, &outerTop);
-                    SDL_RenderFillRect(renderer, &outerBot);
-                    SDL_RenderFillRect(renderer, &outerLeft);
-                    SDL_RenderFillRect(renderer, &outerRight);
-                } else {
-                    // border as bigger background rect (optimized for sw rendering)
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                    SDL_RenderFillRect(renderer, &outer);
-                }
-                SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-                SDL_RenderFillRect(renderer, &inner);
-
-                continue;
-            }
-
-            const int* values = triangleValues[state];
-            const Widget::Color& topC = StateColors[values[0]];
-            const Widget::Color& leftC = StateColors[values[1]];
-            const Widget::Color& botC = StateColors[values[2]];
-            const Widget::Color& rightC = StateColors[values[3]];
-
-            hasAlpha = (topC.a < 0xff) ||
-                       (leftC.a < 0xff) ||
-                       (botC.a < 0xff) ||
-                       (rightC.a < 0xff);
-
-            float fx = innerx;
-            float fy = innery;
-            float fw = locScreenInnerW;
-            float fh = locScreenInnerH;
-
-            if (hasAlpha) {
-                // we have to draw 4 individual lines for border
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                SDL_RenderFillRect(renderer, &outerTop);
-                SDL_RenderFillRect(renderer, &outerBot);
-                SDL_RenderFillRect(renderer, &outerLeft);
-                SDL_RenderFillRect(renderer, &outerRight);
+                if (pos.shape == Shape::DIAMOND)
+                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            c, c, c, c);
+                else
+                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            c, c, c, c);
             } else {
-                // border as bigger background rect
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                SDL_RenderFillRect(renderer, &outer);
-            }
+                const int* values = triangleValues[state];
+                const Widget::Color& topC = StateColors[values[0]];
+                const Widget::Color& leftC = StateColors[values[1]];
+                const Widget::Color& botC = StateColors[values[2]];
+                const Widget::Color& rightC = StateColors[values[3]];
 
-            if (!hasAlpha || (values[0] == values[1] && values[1] == values[2] && values[2] == values[3])) {
-                SDL_SetRenderDrawColor(renderer, botC.r, botC.g, botC.b, botC.a);
-                SDL_RenderFillRect(renderer, &inner);
-            } else if (values[2] == values[3]) {
-                SDL_Color botRightColor = {botC.r, botC.g, botC.b, botC.a};
-                SDL_Vertex botRightVerts[] = {
-                    {{fx + fw, fy}, botRightColor, {0, 0}},
-                    {{fx, fy + fh}, botRightColor, {0, 0}},
-                    {{fx + fw, fy + fh}, botRightColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, botRightVerts, 3, nullptr, 0);
-            } else {
-                SDL_Color botColor = {botC.r, botC.g, botC.b, botC.a};
-                SDL_Vertex botVerts[] = {
-                    {{fx, fy + fh}, botColor, {0, 0}},
-                    {{fx + fw, fy + fw}, botColor, {0, 0}},
-                    {{fx + fw/2, fy + fh/2}, botColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, botVerts, 3, nullptr, 0);
-            }
-
-            if (values[2] != values[3]) {
-                SDL_Color rightColor = {rightC.r, rightC.g, rightC.b, rightC.a};
-                SDL_Vertex rightVerts[] = {
-                    {{fx + fw, fy}, rightColor, {0, 0}},
-                    {{fx + fw/2, fy + fh/2}, rightColor, {0, 0}},
-                    {{fx + fw, fy + fh}, rightColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, rightVerts, 3, nullptr, 0);
-            }
-
-            if (values[0] == values[1] && values[0] != values[2]) {
-                SDL_Color topLeftColor = {topC.r, topC.g, topC.b, topC.a};
-                SDL_Vertex topLeftVerts[] = {
-                    {{fx, fy}, topLeftColor, {0, 0}},
-                    {{fx, fy + fh}, topLeftColor, {0, 0}},
-                    {{fx + fw, fy}, topLeftColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, topLeftVerts, 3, nullptr, 0);
-            }
-
-            if (values[0] != values[1] && values[0] != values[2]) {
-                SDL_Color topColor = {topC.r, topC.g, topC.b, topC.a};
-                SDL_Vertex topVerts[] = {
-                    {{fx, fy}, topColor, {0, 0}},
-                    {{fx + fw/2, fy + fh/2}, topColor, {0, 0}},
-                    {{fx + fw, fy}, topColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, topVerts, 3, nullptr, 0);
-            }
-
-            if (values[1] != values[0] && values[1] != values[2]) {
-                SDL_Color leftColor = {leftC.r, leftC.g, leftC.b, leftC.a};
-                SDL_Vertex leftVerts[] = {
-                    {{fx, fy}, leftColor, {0, 0}},
-                    {{fx, fy + fh}, leftColor, {0, 0}},
-                    {{fx + fw/2, fy + fh/2}, leftColor, {0, 0}},
-                };
-                SDL_RenderGeometry(renderer, nullptr, leftVerts, 3, nullptr, 0);
+                if (pos.shape == Shape::DIAMOND)
+                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            topC, leftC, botC, rightC);
+                else
+                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            topC, leftC, botC, rightC);
             }
         }
     }
 }
 
-void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, int state)
+void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, Shape shape, int state)
 {
     auto it = _locations.find(id);
     if (it != _locations.end()) {
-        it->second.pos.push_back( {x, y, size, borderThickness, state} );
+        it->second.pos.push_back( {x, y, size, borderThickness, shape, state} );
     } else {
-        _locations[id] = { { {x, y, size, borderThickness, state} } };
+        _locations[id] = { { {x, y, size, borderThickness, shape, state} } };
     }
 }
 

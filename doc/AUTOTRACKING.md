@@ -153,6 +153,8 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `:AddSetReplyHandler(name, callback)` called when a watched data storage value is changed; args: key, value, old_value
 * `:Get(keys)` ask the server for values from data storage, run this from a ClearHandler, keys is an array of strings
 * `:SetNotify(keys)` ask the server to notify when a data storage value is changed, run this from a ClearHandler, keys is an array of strings
+* `:LocationChecks(locations)` Send locations as checked to the server, since 0.26.2, only allowed if "apmanual" flag is set in manifest.
+* `:LocationScouts(locations, sendAsHint)` Send locations as scouted to the server, since 0.26.2, only allowed if "apmanual" flag is set in manifest.
 
 
 ## Other Stuff

@@ -232,6 +232,7 @@
                                 "type": "number",
                                 "minimum": -1
                             },
+                            "shape": true,
                             "restrict_visibility_rules": {
                                 "example": [
                                     "rule1,rule2",
