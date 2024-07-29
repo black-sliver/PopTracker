@@ -645,6 +645,10 @@ bool PopTracker::start()
             std::string filename;
             if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename))
                 return;
+#ifdef _WIN32 // windows does not add *.* filter, so we can be sure json was selected
+            if (filename.length() < 5 || strcasecmp(filename.c_str() + filename.length() - 5, ".JSON") != 0)
+                filename += ".json";
+#endif
             auto jWindow = windowToJson(_win);
             json extra = {
                 {"at_uri", _atUri},
