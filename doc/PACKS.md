@@ -194,6 +194,7 @@ a table representing an enum with the following constants: \
 * `:SetOverlayAlign(string)`: set overlay alignment to "left", "center" or "right", only available in PopTracker, since 0.25.9
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Type`: gets the type of the item as string (always "custom"), since 0.23.0
+* `.IgnoreUserInput`: disables state/stage changes when clicking the item, since 0.26.2
 
 *Probably more to come.*
 
@@ -213,7 +214,7 @@ a table representing an enum with the following constants: \
 * `.Increment`: sets or gets the increment (left-click) value of consumables
 * `.Decrement`: sets or gets the decrement (right-click) value of consumables
 * `.Type`: gets the type of the item as string ("toggle", ...), since 0.23.0
-* `.Icon`: like LuaItem.Icon, since 0.26.0. Prefer stages instead. Only implemented for toggles and static and exact behavior may change in the future.
+* `.Icon`: override displayed image, including mods, until state changes, since 0.26.2. Prefer stages instead.
 
 *Probably more to come.*
 

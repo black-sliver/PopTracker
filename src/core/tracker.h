@@ -122,6 +122,7 @@ protected:
     std::map<std::string, bool> _visibilityCache;
     std::map<std::string, int> _providerCountCache;
     std::list<std::string> _bulkItemUpdates;
+    std::list<std::string> _bulkItemDisplayUpdates;
     bool _bulkUpdate = false;
     bool _accessibilityStale = false;
     bool _visibilityStale = false;

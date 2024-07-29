@@ -57,6 +57,8 @@ public:
     
 protected:
     std::vector<Stage> _stages;
+    bool _imgOverridden = false;
+    std::string _imgOverride;
     bool _minCountChanged = false;
     bool _maxCountChanged = false;
     bool _overlayBackgroundChanged = false;
@@ -65,6 +67,7 @@ protected:
     bool _incrementChanged = false;
     bool _decrementChanged = false;
     bool _imgChanged = false;
+    bool _ignoreUserInput = false;
 
 public:    
     virtual size_t getStageCount() const override { return _stages.size(); }
@@ -136,8 +139,17 @@ public:
     virtual const std::list<std::string>& getCodes(int stage) const;
     
     virtual bool changeState(BaseItem::Action action) override {
+        if (_ignoreUserInput)
+            return false;
         if (_changeStateImpl(action)) {
-            onChange.emit(this);
+            if (_imgOverridden) {
+                _imgOverridden = false;
+                _imgOverride.clear();
+                onChange.emit(this);
+                onDisplayChange.emit(this);
+            } else {
+                onChange.emit(this);
+            }
             return true;
         }
         return false;
@@ -149,6 +161,8 @@ public:
         if (_stage1 != state || _stage2 != stage) {
             _stage1 = state;
             _stage2 = stage;
+            _imgOverride.clear();
+            _imgOverridden = false;
             onChange.emit(this);
             return true;
         }
@@ -180,6 +194,16 @@ public:
         _overlayFontSizeChanged = true;
         _overlayFontSize = fontSize;
         onChange.emit(this);
+    }
+
+    bool isImageOverridden() const
+    {
+        return _imgOverridden;
+    }
+
+    const std::string& getImageOverride() const
+    {
+        return _imgOverride;
     }
 
     virtual nlohmann::json save() const;

@@ -76,8 +76,13 @@ JsonItem JsonItem::FromJSON(json& j)
 
     commasplit(to_string(j["codes"], ""), item._codes);
     commasplit(to_string(j["img_mods"], ""), item._imgMods);
-    commasplit(to_string(j["disabled_img_mods"], to_string(j["img_mods"], "")+",@disabled"), item._disabledImgMods);
-    
+    std::string defaultDisabledImgMods = to_string(j["img_mods"], "");
+    if (defaultDisabledImgMods.empty())
+        defaultDisabledImgMods = "@disabled";
+    else
+        defaultDisabledImgMods += ",@disabled";
+    commasplit(to_string(j["disabled_img_mods"], defaultDisabledImgMods), item._disabledImgMods);
+
     if (j["stages"].type() == json::value_t::array) {
         for (auto& v: j["stages"]) {
             item._stages.push_back(Stage::FromJSON(v));
@@ -353,7 +358,25 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
         lua_pushstring(L, Type2Str(_type).c_str());
         return 1;
     } else if (strcmp(key, "Icon") == 0) {
-        lua_pushstring(L, _img.c_str());
+        if (_imgOverridden)
+            lua_pushstring(L, _imgOverride.c_str());
+        else {
+            const auto& mods = _stage1 ? getImageMods(_stage2) : getDisabledImageMods(_stage2);
+            if (mods.empty()) {
+                lua_pushstring(L, (_stage1 ? getImage(_stage2) : getDisabledImage(_stage2)).c_str());
+            } else {
+                std::string s = _stage1 ? getImage(_stage2) : getDisabledImage(_stage2);
+                bool first = true;
+                for (const auto& mod: mods) {
+                    s += (first ? ":" : ",") + mod;
+                    first = false;
+                }
+                lua_pushstring(L, s.c_str());
+            }
+        }
+        return 1;
+    } else if (strcmp(key, "IgnoreUserInput") == 0) {
+        lua_pushboolean(L, _ignoreUserInput);
         return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
@@ -378,7 +401,14 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
             val = true;  // always Active
         if (_stage1 != val) {
             _stage1 = val;
-            onChange.emit(this);
+            if (_imgOverridden) {
+                _imgOverridden = false;
+                _imgOverride.clear();
+                onChange.emit(this);
+                onDisplayChange.emit(this);
+            } else {
+                onChange.emit(this);
+            }
         }
         return true;
     } else if (strcmp(key, "CurrentStage")==0) {
@@ -400,7 +430,14 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         if (_stage2 != val || _stage1 != en) {
             _stage1 = en;
             _stage2 = val;
-            onChange.emit(this);
+            if (_imgOverridden) {
+                _imgOverridden = false;
+                _imgOverride.clear();
+                onChange.emit(this);
+                onDisplayChange.emit(this);
+            } else {
+                onChange.emit(this);
+            }
         }
         return true;
     } else if (strcmp(key, "MinCount")==0) {
@@ -440,25 +477,24 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key, "Icon") == 0) {
         // NOTE: this is a fake ImageRef, but only path is implemented yet
         if (lua_type(L, -1) == LUA_TNIL) {
-            if (!_img.empty()) {
-                if (_disabledImg == _img) {
-                    _disabledImg.clear();
-                }
-                _img.clear();
-                _imgChanged = true;
+            if (!_imgOverridden || !_imgOverride.empty()) {
+                _imgOverridden = true;
+                _imgOverride.clear();
+                onDisplayChange.emit(this);
             }
-            onDisplayChange.emit(this);
             return true;
         }
-        std::string s = luaL_checkstring(L,-1);
-        if (_img != s) {
-            if (_disabledImg == _img) {
-                _disabledImg = s;
-            }
-            _img = s;
-            _imgChanged = true;
+        std::string s = luaL_checkstring(L, -1);
+        if (!_imgOverridden || _imgOverride != s) { // TODO: also compare to current non-overriden image
+            _imgOverridden = true;
+            _imgOverride = s;
+            onDisplayChange.emit(this);
         }
-        onDisplayChange.emit(this);
+        return true;
+    } else if (strcmp(key, "IgnoreUserInput") == 0) {
+        auto t = lua_type(L, -1);
+        _ignoreUserInput = (t == LUA_TBOOLEAN && lua_toboolean(L, -1))
+                        || (t == LUA_TINTEGER && lua_tointeger(L, -1) > 0);
         return true;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
@@ -486,8 +522,10 @@ json JsonItem::save() const
         data["increment"] = _increment;
     if (_decrementChanged)
         data["decrement"] = _decrement;
-    if (_imgChanged)
-        data["img"] = _img;
+    if (_imgOverridden)
+        data["img"] = _imgOverride;
+    if (_ignoreUserInput)
+        data["ignore_user_input"] = true;
     return data;
 }
 
@@ -509,7 +547,12 @@ bool JsonItem::load(json& j)
         int count = to_int(j["count"],_count);
         int minCount = to_int(j["min_count"], _minCount);
         int maxCount = to_int(j["max_count"], _maxCount);
-        std::string img = to_string(j["img"], _img);
+        auto itImg = j.find("img");
+        bool imgOverridden = itImg != j.end() && itImg->type() == json::value_t::string;
+        std::string imgOverride = imgOverridden ? itImg->get<std::string>() : _imgOverride;
+        bool ignoreUserInput = to_bool(j["ignore_user_input"], _ignoreUserInput);
+        bool changed = false;
+        bool displayChanged = false;
         if (_count != count || _minCount != minCount || _maxCount != maxCount
                 || _stage1 != stage1 || _stage2 != stage2
                 || _overlay != overlay
@@ -518,8 +561,7 @@ bool JsonItem::load(json& j)
                 || _overlayFontSize != overlayFontSize
                 || _increment != increment
                 || _decrement != decrement
-                || _img != img)
-        {
+                || _ignoreUserInput != ignoreUserInput) {
             _count = count;
             _minCountChanged = _minCount != minCount;
             _minCount = minCount;
@@ -538,12 +580,19 @@ bool JsonItem::load(json& j)
             _increment = increment;
             _decrementChanged = _decrement != decrement;
             _decrement = decrement;
-            if (_disabledImg == _img) {
-                _disabledImg = img;
-            }
-            _img = img;
-            onChange.emit(this);
+            _ignoreUserInput = ignoreUserInput;
+            changed = true;
         }
+        if (_imgOverridden != imgOverridden
+                || _imgOverride != imgOverride) {
+            _imgOverridden = imgOverridden;
+            _imgOverride = imgOverride;
+            displayChanged = true;
+        }
+        if (changed)
+            onChange.emit(this);
+        if (displayChanged)
+            onDisplayChange.emit(this);
         return true;
     }
     return false;

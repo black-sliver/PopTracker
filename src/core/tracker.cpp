@@ -221,7 +221,10 @@ bool Tracker::AddItems(const std::string& file) {
         }};
         item.onDisplayChange += {this, [this](void* sender) {
             JsonItem* i = (JsonItem*)sender;
-            onDisplayChanged.emit(this, i->getID());
+            if (_bulkUpdate)
+                _bulkItemDisplayUpdates.push_back(i->getID());
+            else
+                onDisplayChanged.emit(this, i->getID());
         }};
         if (item.getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
             // update composite when changing part items (and get initial state)
@@ -519,9 +522,12 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
     } else if (strcmp(key, "BulkUpdate") == 0) {
         bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
         if (!val) {
-            for (const auto& id: _bulkItemUpdates)
+            for (const auto& id: _bulkItemUpdates) // TODO: erase dusplicates
                 onStateChanged.emit(this, id);
             _bulkItemUpdates.clear();
+            for (const auto& id: _bulkItemDisplayUpdates) // TODO: erase dusplicates
+                onDisplayChanged.emit(this, id);
+            _bulkItemDisplayUpdates.clear();
         }
         _bulkUpdate = val;
         return true;
@@ -1057,6 +1063,7 @@ bool Tracker::loadState(nlohmann::json& state)
 {
     _providerCountCache.clear();
     _bulkItemUpdates.clear();
+    _bulkItemDisplayUpdates.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
     if (state.type() != json::value_t::object) return false;
@@ -1096,9 +1103,12 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
-    for (const auto& id: _bulkItemUpdates)
+    for (const auto& id: _bulkItemUpdates) // TODO: erase dusplicates
         onStateChanged.emit(this, id);
     _bulkItemUpdates.clear();
+    for (const auto& id: _bulkItemDisplayUpdates) // TODO: erase dusplicates
+        onDisplayChanged.emit(this, id);
+    _bulkItemDisplayUpdates.clear();
     _bulkUpdate = false;
 
     return true;

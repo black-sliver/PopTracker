@@ -534,8 +534,7 @@ JsonItem = {}
 
 ---Get or set the item's image. Use `ImageReference:FromPackRelativePath` to create an `ImageRef`.
 ---For performance reasons, using a staged item is recommended.
----Currently only works for items of type toggle and static.
--- Available since 0.26.0.
+-- Available since 0.26.0. Changed to include mods and reset on change in 0.26.2.
 ---@type ImageRef?
 JsonItem.Icon = nil
 
@@ -575,6 +574,11 @@ JsonItem.Owner = {}
 ---Gets the type of the item as string ("toggle, ...").
 ---Available since 0.23.0.
 JsonItem.Type = ""
+
+---Disables state/stage changes when clicking the item.
+---Available since 0.26.2.
+---@type boolean
+JsonItem.IgnoreUserInput = false
 
 ---Set item overlay text (like count, but also for non-consumables).
 ---Only available in PopTracker.

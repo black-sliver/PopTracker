@@ -141,8 +141,13 @@ void Item::render(Renderer renderer, int offX, int offY)
         };
         SDL_RenderFillRect(renderer, &r);
     }
-    auto tex  = (_stage1<(int)_texs.size() && _stage2<(int)_texs[_stage1].size()) ? _texs[_stage1][_stage2] : nullptr;
-    auto surf = (!tex && _stage1<(int)_surfs.size() && _stage2<(int)_surfs[_stage1].size()) ? _surfs[_stage1][_stage2] : nullptr;
+    auto tex  = (_overrideTex || _overrideSurf) ? _overrideTex
+            : (_stage1<(int)_texs.size() && _stage2<(int)_texs[_stage1].size()) ? _texs[_stage1][_stage2]
+            : nullptr;
+    auto surf = tex ? nullptr
+            : _overrideSurf ? _overrideSurf
+            : (_stage1<(int)_surfs.size() && _stage2<(int)_surfs[_stage1].size()) ? _surfs[_stage1][_stage2]
+            : nullptr;
     if (!tex && surf) {
         if (_quality >= 0) {
             // set Texture filter/quality when creating the texture
@@ -153,15 +158,23 @@ void Item::render(Renderer renderer, int offX, int offY)
         }
         tex = SDL_CreateTextureFromSurface(renderer, surf);
         SDL_FreeSurface (surf);
-        _surfs[_stage1][_stage2] = nullptr;
+        if (_overrideSurf) {
+            _overrideTex = tex;
+            _overrideSurf = nullptr;
+            surf = nullptr;
+        } else {
+            _surfs[_stage1][_stage2] = nullptr;
+            surf = nullptr;
+            while ((int)_texs.size() <= _stage1)
+                _texs.push_back({});
+            while ((int)_texs[_stage1].size() <= _stage2)
+                _texs[_stage1].push_back(nullptr);
+            _texs[_stage1][_stage2] = tex;
+        }
         if (_quality >= 0) {
             // TODO: have the default somewhere accessible?
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
         }
-        surf = nullptr;
-        while ((int)_texs.size() <= _stage1) _texs.push_back({});
-        while ((int)_texs[_stage1].size() <= _stage2) _texs[_stage1].push_back(nullptr);
-        _texs[_stage1][_stage2] = tex;
     }
     if (!tex) return;
     if (_fixedAspect) {
@@ -313,6 +326,75 @@ void Item::setOverlayAlignment(Label::HAlign halign)
     if (_overlayTex) SDL_DestroyTexture(_overlayTex);
     _overlayTex = nullptr;
     _overlayAlign = halign;
+}
+
+void Item::setImageOverride(const void *data, size_t len, const std::string& name, const std::list<ImageFilter>& filters)
+{
+    bool overridden = _overrideSurf || _overrideTex;
+    if (overridden && (name == _overrideName && filters == _overrideFilters))
+        return;
+
+    if (_overrideTex) {
+        SDL_DestroyTexture(_overrideTex);
+        _overrideTex = nullptr;
+    }
+    if (_overrideSurf) {
+        SDL_FreeSurface(_overrideSurf);
+        _overrideSurf = nullptr;
+    }
+
+    if (!data || !len) {
+        _overrideName.clear();
+        _overrideFilters.clear();
+        static const uint32_t zero = 0;
+        _overrideSurf = SDL_CreateRGBSurfaceWithFormatFrom((void*)&zero, 1, 1, 32, 4, SDL_PIXELFORMAT_ARGB8888);
+        return;
+    }
+
+    _overrideName = name;
+    _overrideFilters = filters;
+
+    auto surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
+    if (!surf)
+        return;
+
+    // if any corner pixel is #ff00ff, make that color transparent
+    surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
+    // if filters have an overlay, we need an RGB(A) surface
+    bool needsRGB = false;
+    for (auto& filter: filters) {
+        if (filter.name == "overlay") {
+            needsRGB = true;
+            break;
+        }
+    }
+    if (needsRGB && surf->format->BitsPerPixel < 32) {
+        auto old = surf;
+        surf = SDL_ConvertSurfaceFormat(old, SDL_PIXELFORMAT_ARGB8888, 0);
+        SDL_FreeSurface(old);
+        if (!surf)
+            return;
+    }
+
+    // apply filters
+    for (auto& filter: filters)
+        surf = filter.apply(surf);
+
+    _overrideSurf = surf;
+}
+
+void Item::clearImageOverride()
+{
+    if (_overrideTex) {
+        SDL_DestroyTexture(_overrideTex);
+        _overrideTex = nullptr;
+    }
+    if (_overrideSurf) {
+        SDL_FreeSurface(_overrideSurf);
+        _overrideSurf = nullptr;
+    }
+    _overrideName.clear();
+    _overrideFilters.clear();
 }
 
 } // namespace
