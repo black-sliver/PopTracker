@@ -7,6 +7,7 @@ supports auto-tracking.
 This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
+Nix users can install [`poptracker`](https://search.nixos.org/packages?show=poptracker&type=packages&query=poptracker) from nixpkgs.
 
 Drag & drop downloaded packs into the PopTracker window to install them without unpacking.\
 Alternatively copy or unpack tracker packs into one of the search paths
