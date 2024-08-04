@@ -91,8 +91,13 @@ bool PackManager::checkForUpdate(const std::string& uid, const std::string& vers
         // 2. determine which versions_url to use
         std::string url = versions_url;
         auto it = _packs.find(uid);
-        if (it != _packs.end() && it.value()["versions_url"].is_string())
+        if (it != _packs.end() && it.value()["versions_url"].is_string()) {
             url = it.value()["versions_url"].get<std::string>();
+            if (!HTTP::is_uri(url)) {
+                fprintf(stderr, "WARNING: invalid versions_url in pack!");
+                url = versions_url;
+            }
+        }
         if (url.empty()) {
             printf("Nowhere to check for updates of %s\n", uid.c_str());
             if (ncb) ncb(uid);
