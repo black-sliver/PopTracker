@@ -733,8 +733,13 @@ bool PopTracker::start()
             }
         } else if (type == Ui::DropType::TEXT && strncasecmp(data.c_str(), "https://", 8)==0 && strcasecmp(data.c_str()+data.length()-4, ".zip") == 0) {
             // ask user to download and "install" pack
+            if (!HTTP::is_uri(data)) {
+                fprintf(stderr, "Dropped URI is not valid!\n");
+                return;
+            }
             const char* zipname = strrchr(data.c_str() + 8, '/');
-            if (!zipname) return;
+            if (!zipname)
+                return;
             zipname += 1;
             std::string msg = "Download pack from " + data + " ?";
             if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) != Dlg::Result::Yes)
