@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 #include <functional>
-#include <string.h>
+#include <cstring>
 #include <list>
 #include <set>
 #include <map>
@@ -219,10 +219,21 @@ public:
         return true;
     }
 
+    static bool is_uri(const std::string& uri)
+    {
+        std::string proto, host, port, path;
+        return parse_uri(uri, proto, host, port, path);
+    }
+
     static bool parse_uri(const std::string& uri, std::string& proto, std::string& host, std::string& port, std::string& path)
     {
+        auto allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+        for (const auto c: uri)
+            if (!strchr(allowed, c))
+                return false;
         std::string::size_type pos = uri.find("://");
-        if (pos == uri.npos) return false;
+        if (pos == uri.npos)
+            return false;
         proto = uri.substr(0, pos);
         std::string::size_type pos2 = uri.find("/", pos+3);
         std::string::size_type pos3 = uri.find(":", pos+3);
