@@ -1,7 +1,10 @@
 #ifndef _CORE_UTIL_H
 #define _CORE_UTIL_H
 
-#include <stddef.h>
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+
 
 template< class Type, ptrdiff_t n >
 static ptrdiff_t countOf( Type (&)[n] ) { return n; }
@@ -12,10 +15,25 @@ static std::string sanitize_print(const std::string& s) {
     return res;
 }
 
-static std::string sanitize_filename(const std::string& s) {
-    std::string res = s;
-    for (auto& c: res) if (c<0x20 || c=='/' || c=='\\' || c==':') c = '_';
-    return res;
+/// Replaces reserved/non-portable symbols by '_'.
+static std::string sanitize_filename(std::string s) {
+    auto exclude = "<>:\"/\\|?*$'`";
+    auto sanitize = [&](char c) { return strchr(exclude, c) || c == 0; };
+    std::replace_if(s.begin(), s.end(), sanitize, '_');
+    return s;
+}
+
+/// Replaces non-ASCII and reserved/non-portable symbols by '_'. Returns "_" for empty and resrved folder names.
+static std::string sanitize_dir(std::string s)
+{
+    if (s.empty())
+        return "_";
+    if ((size_t)std::count(s.begin(), s.end(), '.') == s.length())
+        return "_";
+    auto exclude = "<>:\"/\\|?*$'`";
+    auto sanitize = [&](char c) { return c<0x20 || strchr(exclude, c); };
+    std::replace_if(s.begin(), s.end(), sanitize, '_');
+    return s;
 }
 
 template<typename T>
