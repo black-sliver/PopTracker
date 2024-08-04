@@ -1,21 +1,12 @@
 #include "statemanager.h"
 #include "jsonutil.h"
 #include "fileutil.h"
+#include "util.h"
 #include <nlohmann/json.hpp>
 using nlohmann::json;
 
 std::map<StateManager::StateID, json> StateManager::_states;
 std::string StateManager::_dir;
-
-static std::string sanitize_dir(std::string s)
-{
-    if (s.empty()) return "_";
-    if ((size_t)std::count(s.begin(), s.end(), '.') == s.length()) return "_";
-    std::replace(s.begin(), s.end(), '/', '_');
-    std::replace(s.begin(), s.end(), '\\', '_');
-    std::replace(s.begin(), s.end(), ':', '_');
-    return s;
-}
 
 void StateManager::setDir(const std::string& dir)
 {
