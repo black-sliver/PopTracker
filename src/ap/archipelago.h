@@ -28,6 +28,7 @@ public:
     bool Get(const json& keys);
     bool LocationChecks(const json& locations);
     bool LocationScouts(const json& locations, int sendAsHint);
+    bool StatusUpdate(int status);
 
 protected:
     lua_State *_L;
