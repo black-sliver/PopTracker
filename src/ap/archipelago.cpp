@@ -3,6 +3,7 @@
 #include <luaglue/luamethod.h>
 #include <luaglue/luapp.h>
 #include <luaglue/lua_json.h>
+#include <luaglue/luaenum.h>
 
 
 const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
@@ -17,6 +18,7 @@ const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
     LUA_METHOD(Archipelago, Get, json),
     LUA_METHOD(Archipelago, LocationChecks, json),
     LUA_METHOD(Archipelago, LocationScouts, json, int),
+    LUA_METHOD(Archipelago, StatusUpdate, int),
 };
 
 Archipelago::Archipelago(lua_State *L, APTracker *ap)
@@ -238,6 +240,15 @@ bool Archipelago::LocationScouts(const json &jLocations, int sendAsHint)
     return _ap->LocationScouts(locations, sendAsHint);
 }
 
+bool Archipelago::StatusUpdate(int status)
+{
+    if (!_ap)
+        return false;
+    if (!_ap->allowSend())
+        return false;
+    return _ap->StatusUpdate((APClient::ClientStatus)status);
+}
+
 int Archipelago::Lua_Index(lua_State *L, const char* key) {
     if (strcmp(key, "PlayerNumber") == 0) {
         lua_pushinteger(L, _ap ? _ap->getPlayerNumber() : -1);
@@ -277,6 +288,15 @@ int Archipelago::Lua_Index(lua_State *L, const char* key) {
                 lua_settable(L, -3);
             }
         }
+        return 1;
+    }
+    if (strcmp(key, "ClientStatus") == 0) {
+        LuaEnum<APClient::ClientStatus>({
+            {"UNKNOWN", APClient::ClientStatus::UNKNOWN},
+            {"READY", APClient::ClientStatus::READY},
+            {"PLAYING", APClient::ClientStatus::PLAYING},
+            {"GOAL", APClient::ClientStatus::GOAL},
+        }).Lua_Push(_L);
         return 1;
     }
     printf("Get Archipelago.%s unknown\n", key);

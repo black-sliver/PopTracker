@@ -15,7 +15,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.26.2"
+PopVersion = "0.27.1"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true to get more error or debug output.
@@ -302,6 +302,14 @@ function VariableStore:ReadVariable(variableName) end
 ---@class Archipelago
 Archipelago = {}
 
+---@enum archipelagoCientStatus
+Archipelago.ClientStatus = {
+    UNKNOWN = 0,
+    READY = 10,
+    PLAYING = 20,
+    GOAL = 30,
+}
+
 ---The slot number of the connected player or -1 if not connected.
 ---@type integer
 Archipelago.PlayerNumber = -1
@@ -387,6 +395,12 @@ function Archipelago:LocationChecks(locations) end
 ---@param sendAsHint integer
 ---@return boolean true on success
 function Archipelago:LocationScouts(locations, sendAsHint) end
+
+---Send client status to the server. This is used to send the goal / win condition.
+---Supported since 0.27.1, only allowed if "apmanual" flag is set in manifest.
+---@param status archipelagoCientStatus
+---@return boolean true on success
+function Archipelago:StatusUpdate(status) end
 
 
 ---- ImageRef ----

@@ -274,6 +274,15 @@ public:
         return _ap->LocationScouts(locations, createAsHint);
     }
 
+    /// Returns true if sending a client status update to the server.
+    /// This is used to send the goal / win condition.
+    bool StatusUpdate(APClient::ClientStatus status)
+    {
+        if (!_allowSend || !_ap)
+            return false;
+        return _ap->StatusUpdate(status);
+    }
+
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
