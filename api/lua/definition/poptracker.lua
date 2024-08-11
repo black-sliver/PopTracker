@@ -190,7 +190,7 @@ function ScriptHost:RemoveOnFrameHandler(name) end
 ---Any kind of filtering and detection what changed has to be done inside the callback.
 ---Available since 0.26.2.
 ---@param name string identifier/name of this callback
----@param callback func(section:LocationSection):nil called when any location section changed
+---@param callback fun(section:LocationSection):nil called when any location section changed
 ---@return string reference for RemoveOnLocationSectionChangedHandler
 function ScriptHost:AddOnLocationSectionChangedHandler(name, callback) end
 
