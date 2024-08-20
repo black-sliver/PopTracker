@@ -293,6 +293,7 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 	cp LICENSE README.md CHANGELOG.md CREDITS.md $(TMP_DIR)/poptracker/
 	cp $(dir $<)*.exe $(TMP_DIR)/poptracker/
 	cp $(dir $<)*.dll $(TMP_DIR)/poptracker/ || true
+	rm $(TMP_DIR)/poptracker/*test.exe || true
 	rm -f $@
 	(cd $(TMP_DIR) && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \

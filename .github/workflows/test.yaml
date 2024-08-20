@@ -51,7 +51,7 @@ jobs:
     - name: Install dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 googletest
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1 googletest || true
     - name: Install dependencies (msys2)
       if: ${{ startsWith(matrix.os, 'windows') }}
       uses: msys2/setup-msys2@v2
