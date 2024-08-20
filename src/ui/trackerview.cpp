@@ -267,6 +267,7 @@ TrackerView::~TrackerView()
 {
     _tracker->onLayoutChanged -= this;
     _tracker->onStateChanged -= this;
+    _tracker->onDisplayChanged -= this;
     _tracker->onLocationSectionChanged -= this;
     _tracker->onUiHint -= this;
     _tracker = nullptr;
