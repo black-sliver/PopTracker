@@ -19,15 +19,32 @@ void SettingsWindow::setTracker(Tracker* tracker)
     TrackerWindow::setTracker(tracker, "settings_popup");
     if (_view && tracker) {
         // Future improvement: widgets could store a ref to the parent and create the tooltips themselves
-        _view->onItemTooltip += {this, [this, tracker](void*, const std::string& id) {
-            if (id.empty()) {
+        _view->onItemTooltip += {this, [this, tracker](void*, const std::string& itemid) {
+            if (itemid.empty()) {
                 showTooltip(nullptr);
+                auto& item = tracker->getItemById(_tooltipItemId);
+                item.onChange -= this;
+                _tooltipItemId.clear();
             } else {
-                auto& item = tracker->getItemById(id);
-                if (item.getName().empty())
+                auto& item = tracker->getItemById(itemid);
+                const auto& text = (item.getBaseItem().empty() || item.getState()) ?
+                    item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
+                if (text.empty()) {
                     showTooltip(nullptr);
-                else
-                    showTooltip(item.getName());
+                    _tooltipItemId.clear();
+                } else {
+                    showTooltip(text);
+                    _tooltipItemId = itemid;
+                    item.onChange += {this, [this, tracker, itemid](void* sender) {
+                        const auto& item = tracker->getItemById(itemid);
+                        const auto& text = (item.getBaseItem().empty() || item.getState()) ?
+                            item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
+                        if (auto tooltip = dynamic_cast<Tooltip*>(_tooltip)) {
+                            tooltip->setText(text);
+                            tooltip->setSize(tooltip->getMinSize());
+                        }
+                    }};
+                }
             }
         }};
     }
