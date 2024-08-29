@@ -24,6 +24,8 @@ public:
     static constexpr int PADDING=8;
     static constexpr int OFFSET=2;
     static constexpr tick_t delay = DEFAULT_TOOLTIP_DELAY;
+
+    void setText(const std::string& text);
 private:
 
 };

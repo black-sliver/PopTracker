@@ -14,6 +14,9 @@ public:
     
     virtual void setTracker(Tracker *tracker) override;
     virtual void render(Renderer renderer, int offX, int offY) override;
+
+private:
+    std::string _tooltipItemId;
 };
 
 } // namespace Ui

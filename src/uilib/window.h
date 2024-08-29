@@ -25,11 +25,9 @@ protected:
     FontStore *_fontStore = nullptr; // TODO; pass as argument to window constructor?
     FONT _font = nullptr;
 
-private:
     Position _lastMousePos;
     Widget* _tooltip = nullptr;
 
-protected:
     void clear();
     void present();
     virtual void render(Renderer renderer, int offX, int offY) override;

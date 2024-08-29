@@ -23,4 +23,13 @@ Tooltip::Tooltip(FONT font, const std::string& text)
     addChild(label);
 }
 
+void Tooltip::setText(const std::string &text)
+{
+    if (auto label = dynamic_cast<Label*>(_children.front())) {
+        label->setText(text);
+        label->setSize(label->getAutoSize());
+        relayout();
+    }
+}
+
 } // namespace Ui
