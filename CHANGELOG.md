@@ -1,5 +1,16 @@
 # PopTracker Changelog
 
+## v0.27.1
+
+* Fixes
+  * Lua: add missing Archipelago:StatusUpdate for Manual
+  * Fix crash when switching packs/variants that assign to .Icon
+  * Ignore invalid URL for text drag&drop (Linux only)
+  * Make auto-save path and default export filename portable
+  * Fix version comparison in some cases (for update notifications)
+  * Show correct text in settings window tooltip for progressive items
+  * Fall back to generic versions_url for invalid pack versions_url
+
 ## v0.27.0
 
 * App Features
