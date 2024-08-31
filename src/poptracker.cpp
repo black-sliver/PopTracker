@@ -187,6 +187,8 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         _config["log"] = false;
     if (_config["software_renderer"].type() != json::value_t::boolean)
         _config["software_renderer"] = false;
+	if (_config["enable_screensaver"].type() != json::value_t::boolean)
+        _config["enable_screensaver"] = true;
 
     if (!cli) {
         // enable logging
@@ -515,6 +517,10 @@ bool PopTracker::start()
     auto icon = IMG_Load(asset("icon.png").c_str());
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
     SDL_FreeSurface(icon);
+	
+	// SDL2 default is to disable screensaver, enable it if preferred
+	if (_config.value<bool>("enable_screensaver", true))
+		SDL_EnableScreenSaver();
 
     // set user preferences for visibility of uncleared and unreachable locations
     auto itHideCleared = _config.find("hide_cleared_locations");
