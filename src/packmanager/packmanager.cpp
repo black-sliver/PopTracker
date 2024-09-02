@@ -164,20 +164,18 @@ void PackManager::checkForUpdateFrom(const std::string& uid, const std::string& 
                 Version current = Version(version);
 
                 for (auto& section: j["versions"]) {
-                    if (!section["download_url"].is_string()) continue; // skip "null"
+                    if (!section["download_url"].is_string())
+                        continue; // skip "null"
                     std::string v = section["package_version"].get<std::string>();
-                    if (v.empty()) continue; // skip bad version names
+                    if (v.empty())
+                        continue; // skip bad version names
                     auto ignoreIt = _ignoredSHA256.find(uid);
                     if (ignoreIt != _ignoredSHA256.end() &&
                             ignoreIt->second.count(section["sha256"].get<std::string>())) {
                         break;
                     }
                     Version check = Version(v);
-                    if (check > current || (check.Major == current.Major &&
-                            check.Minor == current.Minor &&
-                            check.Revision == current.Revision &&
-                            check.Extra != current.Extra))
-                    {
+                    if (check > current) {
                         hasUpdate = true;
                         onUpdateAvailable.emit(this,
                                 uid, v,
