@@ -45,6 +45,7 @@ TEST(VersionTest, CompareNumericBuild) {
     EXPECT_FALSE(Version(1, 0, 0) < Version(1, 0, 0, 0));
     EXPECT_FALSE(Version("1.0.0.0") < Version(1, 0, 0));
     EXPECT_FALSE(Version(1, 0, 0) < Version("1.0.0.0"));
+    EXPECT_TRUE(Version("1.4.3.0") < Version("1.4.3.1"));
     EXPECT_FALSE(Version("1.2.3.5") < Version(1, 2, 3, 4));
     EXPECT_TRUE(Version("1.2.3.4") < Version(1, 2, 3, 5));
     EXPECT_TRUE(Version(1, 2, 3) < Version("1.2.3.4"));
