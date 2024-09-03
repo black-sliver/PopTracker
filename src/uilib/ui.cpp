@@ -250,11 +250,16 @@ bool Ui::render()
                     EVENT_LOCK(this);
                     if (!ev.key.repeat) {
                         int key = (int)ev.key.keysym.sym;
-                        int mod = (int)(ev.key.keysym.mod & ~(KMOD_NUM | KMOD_CAPS));
+                        const uint16_t mask = KMOD_CTRL | KMOD_SHIFT | KMOD_GUI;
+                        int mod = (int)(ev.key.keysym.mod & mask);
                         for (const auto& hotkey: _hotkeys) {
                             if (key == hotkey.key && mod == hotkey.mod) {
                                 onHotkey.emit(this, hotkey);
                                 break;
+                            }
+                            if (hotkey.mod & ~mask) {
+                                fprintf(stderr, "Invalid hotkey %d+%d: modifier masked out\n",
+                                    hotkey.key, hotkey.mod);
                             }
                         }
                     }
