@@ -52,12 +52,6 @@ public:
             // update mtime of uuid file
             utime(uuidFilename.c_str(), nullptr);
         }
-        std::string s;
-        if (readFile(getConfigPath(_appname, DATAPACKAGE_FILENAME), s)) {
-            try {
-                _datapackage = json::parse(s);
-            } catch (...) { }
-        }
     }
 
     virtual ~APTracker()
@@ -81,7 +75,6 @@ public:
         }
 
         _ap = new APClient(_uuid, _game, uri, asset("cacert.pem"));
-        _ap->set_data_package(_datapackage);
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
             std::list<std::string> tags = {"PopTracker"};
@@ -126,10 +119,6 @@ public:
             auto lock = EventLock(_event);
             onStateChanged.emit(this, _ap->get_state());
         });
-        _ap->set_data_package_changed_handler([this](const json& datapackage) {
-            _datapackage = datapackage;
-            writeFile(getConfigPath(_appname, DATAPACKAGE_FILENAME), _datapackage.dump());
-        });
         _ap->set_bounced_handler([this](const json& packet) {
             auto lock = EventLock(_event);
             onBounced.emit(this, packet);
@@ -139,7 +128,7 @@ public:
             for (const auto& item: items) {
                 if (item.index != _itemIndex) continue;
                 // TODO: Sync if item.index > _itemIndex
-                onItem.emit(this, item.index, item.item, _ap->get_item_name(item.item), item.player);
+                onItem.emit(this, item.index, item.item, _ap->get_item_name(item.item, _ap->get_game()), item.player);
                 _itemIndex++;
             }
         });
@@ -148,14 +137,14 @@ public:
             for (int64_t location: locations) {
                 _checkedLocations.insert(location);
                 _uncheckedLocations.erase(location);
-                onLocationChecked.emit(this, location, _ap->get_location_name(location));
+                onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
             }
         });
         _ap->set_location_info_handler([this](const std::list<APClient::NetworkItem>& scouts) {
             auto lock = EventLock(_event);
             for (const auto& scout: scouts) {
-                onScout.emit(this, scout.location, _ap->get_location_name(scout.location),
-                        scout.item, _ap->get_item_name(scout.item), scout.player);
+                onScout.emit(this, scout.location, _ap->get_location_name(scout.location, _ap->get_game()),
+                        scout.item, _ap->get_item_name(scout.item, _ap->get_game()), scout.player);
             }
         });
         _ap->set_retrieved_handler([this](const std::map<std::string, json>& keys) {
@@ -247,7 +236,7 @@ public:
         onClear.emit(this, _slotData);
         for (int64_t location: _checkedLocations) {
             _uncheckedLocations.erase(location);
-            onLocationChecked.emit(this, location, _ap->get_location_name(location));
+            onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
         }
         return true;
     }
@@ -299,7 +288,6 @@ private:
     std::string _game;
     bool _allowSend;
     std::string _uuid;
-    json _datapackage;
     int _itemIndex = 0;
     std::set<int64_t> _checkedLocations;
     std::set<int64_t> _uncheckedLocations;
