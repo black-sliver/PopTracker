@@ -188,7 +188,7 @@ bool LuaItem::canProvideCode(const std::string& code) const
     return res;
 }
 
-int LuaItem::providesCode(const std::string code) const
+int LuaItem::providesCode(const std::string& code) const
 {
     if (!_providesCodeFunc.valid()) return false;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _providesCodeFunc.ref);

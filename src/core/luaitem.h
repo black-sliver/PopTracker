@@ -20,7 +20,7 @@ public:
     LuaVariant Get(const char* key);
     
     virtual bool canProvideCode(const std::string& code) const override;
-    virtual int providesCode(const std::string code) const override;
+    int providesCode(const std::string& code) const override;
     virtual bool changeState(Action action) override;
     
     virtual void SetOverlay(const char* text) override {

@@ -24,7 +24,7 @@ std::string JsonItem::getCodesString() const {
     return s;
 }
 
-const std::list<std::string>& JsonItem::getCodes(int stage) const {
+const std::vector<std::string>& JsonItem::getCodes(int stage) const {
     if (_type == Type::TOGGLE) return _codes;
     if (stage>=0 && (size_t)stage<_stages.size()) return _stages[stage].getCodes();
     return _codes;
@@ -117,7 +117,15 @@ JsonItem JsonItem::FromJSON(json& j)
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
     item._count  = std::max(item._minCount, std::min(to_int(j["initial_quantity"],0), item._maxCount));
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;
-    
+
+#ifdef JSONITEM_CI_QUIRK
+    for (const auto& code : item._codes)
+        item._ciAllCodes.emplace(toLower(code));
+    for (const auto& stage : item._stages)
+        for (const auto& code : stage.getCodes())
+            item._ciAllCodes.emplace(toLower(code));
+#endif
+
     return item;
 }
 

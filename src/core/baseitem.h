@@ -64,7 +64,7 @@ protected:
     std::string _id;
     std::string _name;
     Type _type = Type::NONE;
-    std::list<std::string> _codes;
+    std::vector<std::string> _codes;
     bool _capturable = false;
     bool _loop = false;
     bool _allowDisabled = false;
@@ -122,9 +122,10 @@ public:
     }
     
     
-    virtual int providesCode(const std::string code) const { // FIXME: make this pure?
-        if (_count && canProvideCode(code)) return _count;
-        return (_stage1 && canProvideCode(code));
+    virtual int providesCode(const std::string& code) const { // FIXME: make this pure?
+        if (_count && canProvideCode(code))
+            return _count;
+        return _stage1 && canProvideCode(code);
     }
     
     virtual bool canProvideCode(const std::string& code) const { // FIXME: make this pure?

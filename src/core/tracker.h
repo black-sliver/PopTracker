@@ -121,6 +121,7 @@ protected:
     std::map<std::string, AccessibilityLevel> _accessibilityCache;
     std::map<std::string, bool> _visibilityCache;
     std::map<std::string, int> _providerCountCache;
+    std::map<const std::string, Object, std::less<>> _objectCache;
     std::list<std::string> _bulkItemUpdates;
     std::list<std::string> _bulkItemDisplayUpdates;
     bool _bulkUpdate = false;

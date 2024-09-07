@@ -12,6 +12,7 @@ dist/
 *~
 .DS_Store
 thumbs.db
+gmon.out
 
 # exclude unused and scratch pad files
 .trash

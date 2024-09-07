@@ -36,7 +36,8 @@ static nlohmann::json parse_jsonc(std::string& s)
     return j;
 }
 
-static void commasplit(const std::string& s, std::list<std::string>& l)
+template <template <class> class T>
+static void commasplit(const std::string& s, T<std::string>& l)
 {
     auto sta = s.find_first_not_of(' '); // ltrim
     auto end = s.find(',');
@@ -55,17 +56,19 @@ static void commasplit(const std::string& s, std::list<std::string>& l)
         l.push_back(s.substr(sta, end - sta));
 }
 
-static std::list<std::string> commasplit(const std::string& s)
+template <template <class> class T = std::list>
+static T<std::string> commasplit(const std::string& s)
 {
-    std::list<std::string> lst;
-    commasplit(s, lst);
+    T<std::string> lst;
+    commasplit<T>(s, lst);
     return lst;
 }
 
-static std::list<std::string> commasplit(std::string&& s)
+template <template <class> class T = std::list>
+static T<std::string> commasplit(std::string&& s)
 {
     std::string tmp = s;
-    return commasplit(tmp);
+    return commasplit<T>(tmp);
 }
 
 
