@@ -173,6 +173,7 @@ bool Tracker::AddItems(const std::string& file) {
     }
     
     _providerCountCache.clear();
+    _objectCache.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
     for (auto& v : j) {
@@ -312,6 +313,7 @@ bool Tracker::AddLocations(const std::string& file) {
     }
     
     _providerCountCache.clear();
+    _objectCache.clear();
     _sectionRefs.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
@@ -441,11 +443,23 @@ int Tracker::ProviderCountForCode(const std::string& code)
         res = Tracker::runLuaFunction(_L, code);
         goto done;
     }
+
     // other codes count items
+#ifdef JSONITEM_CI_QUIRK
+    {
+        const auto lower = JsonItem::toLower(code);
+        for (const auto& item : _jsonItems)
+        {
+            res += item.providesCodeLower(lower);
+        }
+    }
+#else
     for (const auto& item : _jsonItems)
     {
         res += item.providesCode(code);
     }
+#endif
+
     for (const auto& item : _luaItems)
     {
         res += item.providesCode(code);
@@ -459,6 +473,9 @@ done:
 
 Tracker::Object Tracker::FindObjectForCode(const char* code)
 {
+    const auto it = _objectCache.find(std::string_view(code));
+    if (it != _objectCache.end())
+        return it->second;
     if (*code == '@') { // location section
         const char *start = code+1;
         const char *t = strrchr(start, '/');
@@ -471,7 +488,7 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
                 if (sec.getName() != secname)
                     continue;
                 _isIndirectConnection = true; // if called during rule resolution, this skips the cache
-                return &sec;
+                return _objectCache.emplace(code, &sec).first->second;
             }
         }
     }
@@ -480,17 +497,25 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
         auto& loc = getLocation(start, true);
         if (!loc.getID().empty()) {
             _isIndirectConnection = true;
-            return &loc;
+            return _objectCache.emplace(code, &loc).first->second;
         }
     } else {
+#ifdef JSONITEM_CI_QUIRK
+        const auto lower = JsonItem::toLower(code);
         for (auto& item : _jsonItems) {
-            if (item.canProvideCode(code)) {
-                return &item;
-            }
+            if (item.canProvideCodeLower(lower))
+                return _objectCache.emplace(code, &item).first->second;
         }
+#else
+        for (auto& item : _jsonItems) {
+            if (item.canProvideCode(code))
+                return _objectCache.emplace(code, &item).first->second;
+        }
+#endif
+
         for (auto& item : _luaItems) {
             if (item.canProvideCode(code)) {
-                return &item;
+                return _objectCache.emplace(code, &item).first->second;
             }
         }
     }
@@ -501,6 +526,19 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
 void Tracker::UiHint(const std::string& name, const std::string& value)
 {
     onUiHint.emit(this, name, value);
+}
+
+template <typename T>
+static void eraseDuplicates(std::list<T>& list)
+{
+    // This keeps the last occurence.
+    // FIXME: Complexity is awful.
+    auto it = list.begin();
+    while (it != list.end()) {
+        auto cur = it++;
+        if (std::find(it, list.end(), *cur) != list.end())
+            list.erase(cur);
+    }
 }
 
 int Tracker::Lua_Index(lua_State *L, const char* key) {
@@ -522,10 +560,12 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
     } else if (strcmp(key, "BulkUpdate") == 0) {
         bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
         if (!val) {
-            for (const auto& id: _bulkItemUpdates) // TODO: erase dusplicates
+            eraseDuplicates(_bulkItemUpdates);
+            for (const auto& id: _bulkItemUpdates)
                 onStateChanged.emit(this, id);
             _bulkItemUpdates.clear();
-            for (const auto& id: _bulkItemDisplayUpdates) // TODO: erase dusplicates
+            eraseDuplicates(_bulkItemDisplayUpdates);
+            for (const auto& id: _bulkItemDisplayUpdates)
                 onDisplayChanged.emit(this, id);
             _bulkItemDisplayUpdates.clear();
         }
@@ -559,14 +599,24 @@ bool Tracker::hasLayout(const std::string& name) const
 }
 const BaseItem& Tracker::getItemByCode(const std::string& code) const
 {
+#ifdef JSONITEM_CI_QUIRK
+    const auto lower = JsonItem::toLower(code);
     for (const auto& item: _jsonItems) {
-        if (item.canProvideCode(code)) return item;
+        if (item.canProvideCodeLower(lower))
+            return item;
     }
-    
+#else
+    for (const auto& item: _jsonItems) {
+        if (item.canProvideCode(code))
+            return item;
+    }
+#endif
+
     for (const auto& item: _luaItems) {
-        if (item.canProvideCode(code)) return item;
+        if (item.canProvideCode(code))
+            return item;
     }
-    
+
     return blankItem;
 }
 BaseItem& Tracker::getItemById(const std::string& id)
@@ -900,6 +950,7 @@ bool Tracker::isVisible(const Location& location)
 LuaItem * Tracker::CreateLuaItem()
 {
     _luaItems.push_back({});
+    _objectCache.clear();
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
@@ -1103,10 +1154,12 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
-    for (const auto& id: _bulkItemUpdates) // TODO: erase dusplicates
+    eraseDuplicates(_bulkItemUpdates);
+    for (const auto& id: _bulkItemUpdates)
         onStateChanged.emit(this, id);
     _bulkItemUpdates.clear();
-    for (const auto& id: _bulkItemDisplayUpdates) // TODO: erase dusplicates
+    eraseDuplicates(_bulkItemDisplayUpdates);
+    for (const auto& id: _bulkItemDisplayUpdates)
         onDisplayChanged.emit(this, id);
     _bulkItemDisplayUpdates.clear();
     _bulkUpdate = false;

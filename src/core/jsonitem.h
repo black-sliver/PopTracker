@@ -5,6 +5,8 @@
 #include <luaglue/luainterface.h>
 #include <algorithm>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <unordered_set>
 #ifdef _MSC_VER
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
@@ -24,7 +26,7 @@ public:
     
     class Stage final {
     protected:
-        std::list<std::string> _codes;
+        std::vector<std::string> _codes;
         std::list<std::string> _secondaryCodes;
         std::string _img;
         std::string _disabledImg;
@@ -42,11 +44,18 @@ public:
         const std::string& getDisabledImage() const { return _disabledImg; }
         const std::list<std::string>& getImageMods() const { return _imgMods; }
         const std::list<std::string>& getDisabledImageMods() const { return _disabledImgMods; }
-        const std::list<std::string>& getCodes() const { return _codes; }
+        const std::vector<std::string>& getCodes() const { return _codes; }
         const std::list<std::string>& getSecondaryCodes() const { return _secondaryCodes; }
         std::string getCodesString() const;
         bool hasCode(const std::string& code) const { // NOTE: this is called canProvideCode in lua
+#ifdef JSONITEM_CI_QUIRK
+            const auto cmp = [&code](const std::string& s) {
+                return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
+            };
+            return std::find_if(_codes.begin(), _codes.end(), cmp) != _codes.end();
+#else
             return std::find(_codes.begin(), _codes.end(), code) != _codes.end();
+#endif
         }
         bool hasSecondaryCode(const std::string& code) const {
             return std::find(_secondaryCodes.begin(), _secondaryCodes.end(), code) != _secondaryCodes.end();
@@ -54,7 +63,7 @@ public:
         const bool getInheritCodes() const { return _inheritCodes; }
         const std::string& getName() const { return _name; }
     };
-    
+
 protected:
     std::vector<Stage> _stages;
     bool _imgOverridden = false;
@@ -69,7 +78,23 @@ protected:
     bool _imgChanged = false;
     bool _ignoreUserInput = false;
 
-public:    
+#ifdef JSONITEM_CI_QUIRK
+    // CI comparison in list is way too expensive, so we create a lowercase set instead
+    std::unordered_set<std::string> _ciAllCodes; // includes codes for stages
+#endif
+
+public:
+    static void toLowerInPlace(std::string& s)
+    {
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    }
+
+    static std::string toLower(std::string s)
+    {
+        toLowerInPlace(s);
+        return s;
+    }
+
     virtual size_t getStageCount() const override { return _stages.size(); }
     
     virtual const std::string& getImage(size_t stage) const override {
@@ -100,9 +125,16 @@ public:
         return _name;
     }
 
+#ifdef JSONITEM_CI_QUIRK
+    bool canProvideCodeLower(const std::string& code) const
+    {
+        return _ciAllCodes.count(code);
+    }
+#endif
+
     virtual bool canProvideCode(const std::string& code) const override {
 #ifdef JSONITEM_CI_QUIRK
-        auto cmp = [&code](const std::string& s) {
+        const auto cmp = [&code](const std::string& s) {
             return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
         };
         if (std::find_if(_codes.begin(), _codes.end(), cmp) != _codes.end()) return true;
@@ -115,28 +147,58 @@ public:
         return false;
     }
 
-    virtual int providesCode(const std::string code) const override {
-        // TODO: split at ':' for consumables to be able to check for a specific amount?
+private:
+    int providesCodeImpl(const std::string& code, bool assumeCanProvide) const
+    {
         if (_type == Type::COMPOSITE_TOGGLE) {
             // composites do not provide left/right codes since that would duplicate numbers
+#ifdef JSONITEM_CI_QUIRK
+            const auto cmp = [&code](const std::string& s) {
+                return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
+            };
+            if (std::find_if(_codes.begin(), _codes.end(), cmp) != _codes.end())
+#else
             if (std::find(_codes.begin(), _codes.end(), code) != _codes.end())
+#endif
                 return ((_stage2&1) ? 1 : 0) + ((_stage2&2) ? 1 : 0);
-            else
-                return 0;
+            return 0;
         }
-        if ((int)_stages.size()>_stage2) {
-            if (_allowDisabled && !_stage1) return 0;
+
+        if ((int)_stages.size() > _stage2) {
+            if (_allowDisabled && !_stage1)
+                return 0;
             for (int i=_stage2; i>=0; i--) {
-                if (_stages[i].hasCode(code)) return 1;
-                if (!_stages[i].getInheritCodes()) break;
+                if (_stages[i].hasCode(code))
+                    return 1;
+                if (!_stages[i].getInheritCodes())
+                    break;
             }
             return false;
         }
-        if (_count && canProvideCode(code)) return _count;
-        return (_stage1 && canProvideCode(code));
+
+        if (_count && (assumeCanProvide || canProvideCode(code)))
+            return _count;
+        return _stage1 && (assumeCanProvide || canProvideCode(code));
     }
-    virtual std::string getCodesString() const override;
-    virtual const std::list<std::string>& getCodes(int stage) const;
+
+public:
+#ifdef JSONITEM_CI_QUIRK
+    int providesCodeLower(const std::string& code) const
+    {
+        if (!canProvideCodeLower(code))
+            return 0;
+        return providesCodeImpl(code, true);
+    }
+#endif
+
+    int providesCode(const std::string& code) const override
+    {
+        // TODO: split at ':' for consumables to be able to check for a specific amount?
+        return providesCodeImpl(code, false);
+    }
+
+    std::string getCodesString() const override;
+    const std::vector<std::string>& getCodes(int stage) const;
     
     virtual bool changeState(BaseItem::Action action) override {
         if (_ignoreUserInput)
