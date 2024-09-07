@@ -11,30 +11,30 @@ using namespace std;
 // only trailing empty fields should be dropped
 
 TEST(CommaSplitTest, Empty) {
-    EXPECT_EQ(commasplit(""),
+    EXPECT_EQ(commasplit<list>(""),
               list<string>({}));
 }
 
 TEST(CommaSplitTest, TrailingComma) {
     // Trailing empty values should be dropped
-    EXPECT_EQ(commasplit("a,"),
+    EXPECT_EQ(commasplit<list>("a,"),
               list<string>({"a"}));
 }
 
 TEST(CommaSplitTest, LeadingEmpty) {
     // Leading empty values should be kept
-    EXPECT_EQ(commasplit(",b"),
+    EXPECT_EQ(commasplit<list>(",b"),
               list<string>({"", "b"}));
 }
 
 TEST(CommaSplitTest, MiddleEmpty) {
     // Empty values in the middle should be kept
-    EXPECT_EQ(commasplit("a,,b"),
+    EXPECT_EQ(commasplit<list>("a,,b"),
               list<string>({"a", "", "b"}));
 }
 
 TEST(CommaSplitTest, TrailingWhitespace) {
     // If trailing whitespace results in trailing comma, it should behave the same as TrailingComma
-    EXPECT_EQ(commasplit("a, "),
+    EXPECT_EQ(commasplit<list>("a, "),
               list<string>({"a"}));
 }

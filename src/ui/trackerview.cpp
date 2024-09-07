@@ -173,7 +173,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
                 f = img;
             } else {
                 f = img.substr(0, p);
-                filters = imageModsToFilters(_tracker, commasplit(img.substr(p + 1)));
+                filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
             _tracker->getPack()->ReadFile(f, s);
@@ -448,7 +448,7 @@ void TrackerView::updateDisplay(const std::string& itemid)
                 f = img;
             } else {
                 f = img.substr(0, p);
-                filters = imageModsToFilters(_tracker, commasplit(img.substr(p + 1)));
+                filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
             _tracker->getPack()->ReadFile(f, s);

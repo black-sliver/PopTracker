@@ -122,7 +122,7 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key,"IconMods")==0) {
         // NOTE: these are applied on top of .Icon ImageReference
         std::string s = luaL_checkstring(L,-1);
-        auto mods = commasplit(s);
+        auto mods = commasplit<std::list>(s);
         if (_extraImgMods != mods) {
             _extraImgMods = mods;
             parseFullImg();
@@ -353,7 +353,7 @@ void LuaItem::parseFullImg()
         _imgMods = _extraImgMods;
     } else {
         _img = _fullImg.substr(0, pos);
-        _imgMods = commasplit(_fullImg.substr(pos + 1));
+        _imgMods = commasplit<std::list>(_fullImg.substr(pos + 1));
         _imgMods.insert(_imgMods.end(), _extraImgMods.begin(), _extraImgMods.end());
     }
 }
