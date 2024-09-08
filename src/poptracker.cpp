@@ -189,6 +189,8 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
         _config["software_renderer"] = false;
     if (_config["enable_screensaver"].type() != json::value_t::boolean)
         _config["enable_screensaver"] = true;
+    if (_config["ignore_hidpi"].type() != json::value_t::boolean)
+        _config["ignore_hidpi"] = false;
 
     if (!cli) {
         // enable logging
@@ -199,6 +201,10 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
                 printf("%s %s\n", APPNAME, VERSION_STRING);
             }
         }
+#if defined _WIN32 || defined WIN32
+        if (_config["ignore_hidpi"] == true)
+            SetProcessDPIAware();
+#endif
 
 #ifndef WITHOUT_UPDATE_CHECK
         if (!Dlg::hasGUI()) {
