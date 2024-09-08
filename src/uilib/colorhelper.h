@@ -33,7 +33,8 @@ static Uint32 getPixel(SDL_Surface* surf, unsigned x, unsigned y)
 
 
 #if defined BW_LUMINOSITY
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
+static inline __attribute__((always_inline))
+uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = 0;
     v += (((uint16_t)r)*21);
@@ -49,7 +50,8 @@ static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
                       ((b)>=(a) && (b)>=(c)) ? (b) : (c) )
 #define MIN3(a,b,c) ( ((a)<=(b) && (a)<=(c)) ? (a) : \
                       ((b)<=(a) && (b)<=(c)) ? (b) : (c) )
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
+static inline __attribute__((always_inline))
+uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = MAX3(r, g, b);
     v += MIN3(r, g, b);
@@ -59,7 +61,8 @@ static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
     return (uint8_t)((v+1)/2);
 }
 #else // BW_AVERAGE
-static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
+static inline __attribute__((always_inline))
+uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
 {
     uint16_t v = r; v += g; v += b;
     if (darken) {
@@ -68,13 +71,15 @@ static uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b, bool darken)
     return (uint8_t)((2*v+3)/6);
 }
 #endif
+
 static SDL_Color makeGreyscale(SDL_Color c, bool darken)
 {
     uint8_t w = makeGreyscale(c.r,c.g,c.b, darken);
     return { w, w, w, c.a };
 }
 
-static inline uint32_t bytesToUint(const uint8_t* b, const uint8_t bytespp)
+static inline __attribute__((always_inline))
+uint32_t bytesToUint(const uint8_t* b, const uint8_t bytespp)
 {
     // this is basically like memcpy, but there is no actual 24bit uint
     uint32_t res = 0;
@@ -89,7 +94,8 @@ static inline uint32_t bytesToUint(const uint8_t* b, const uint8_t bytespp)
     return res;
 }
 
-static inline void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytespp)
+static inline __attribute__((always_inline))
+void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytespp)
 {
     // this is basically like memcpy, but there is no actual 24bit uint
     for (uint8_t i=0; i<bytespp; i++) {
@@ -102,7 +108,8 @@ static inline void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytespp)
     }
 }
 
-static inline void _makeGreyscaleRGB(SDL_Surface *surf, bool darken)
+static inline __attribute__((always_inline))
+void _makeGreyscaleRGB(SDL_Surface *surf, bool darken)
 {
     const uint8_t bytespp = surf->format->BytesPerPixel;
     uint8_t* data = (uint8_t*)surf->pixels;
@@ -124,13 +131,18 @@ static inline void _makeGreyscaleRGB(SDL_Surface *surf, bool darken)
     }
 }
 
-static inline SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
+static inline __attribute__((always_inline))
+SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
 {
     // inline since it should only be used in a few places
-    if (SDL_LockSurface(surf) != 0) {
-        fprintf(stderr, "makeGreyscale: Could not lock surface: %s\n",
-                SDL_GetError());
-        return surf;
+    // by inlining all of it, we get rid of 'darken' during runtime regardless of optimization level,
+    // but profiling output (gprof) will be less readable
+    if (SDL_MUSTLOCK(surf)) {
+        if (SDL_LockSurface(surf) != 0) {
+            fprintf(stderr, "makeGreyscale: Could not lock surface: %s\n",
+                    SDL_GetError());
+            return surf;
+        }
     }
     if (surf->format->BitsPerPixel <= 8 && surf->format->palette) {
         // convert palette to greyscale
@@ -139,22 +151,26 @@ static inline SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
         for (int i=0; i<ncolors; i++) {
             pal->colors[i] = makeGreyscale(surf->format->palette->colors[i], darken);
         }
-        SDL_UnlockSurface(surf);
-        
+        if (SDL_MUSTLOCK(surf))
+            SDL_UnlockSurface(surf);
+
         SDL_SetSurfacePalette(surf, pal); // refcount++
         SDL_FreePalette(pal); // refcount--, will not actually free it here
     }
     else if (surf->format->palette) {
         fprintf(stderr, "makeGreyscale: Unsupported palette: %hhubit\n",
                 surf->format->BitsPerPixel);
-        SDL_UnlockSurface(surf);
+        if (SDL_MUSTLOCK(surf))
+            SDL_UnlockSurface(surf);
     }
     else if (surf->format->BytesPerPixel > 0 && surf->format->BytesPerPixel < 5) {
         _makeGreyscaleRGB(surf, darken);
-        SDL_UnlockSurface(surf);
+        if (SDL_MUSTLOCK(surf))
+            SDL_UnlockSurface(surf);
     }
     else {
-        SDL_UnlockSurface(surf);
+        if (SDL_MUSTLOCK(surf))
+            SDL_UnlockSurface(surf);
         fprintf(stderr, "makeGreyscale: Unsupported pixel format\n");
     }
     return surf;
@@ -164,14 +180,15 @@ static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uin
 {
     // if any corner pixel is [r,g,b], make that color transparent
     bool doColorKey = false;
-    if (SDL_LockSurface(surf) == 0) {
+    if (!SDL_MUSTLOCK(surf) || SDL_LockSurface(surf) == 0) {
         for (uint8_t n=0; !doColorKey && n<4; n++) {
             uint8_t r1,g1,b1,a1;
             uint32_t px = getPixel(surf, (n&1) ? surf->w-1 : 0, (n&2) ? surf-> h-1 : 0);
             SDL_GetRGBA(px, surf->format, &r1, &g1, &b1, &a1);
             doColorKey = (r1==r && g1==g && b1==b && a1==0xff);
         }
-        SDL_UnlockSurface(surf);
+        if (SDL_MUSTLOCK(surf))
+            SDL_UnlockSurface(surf);
     } else {
         fprintf(stderr, "Could not lock surface to check corners: %s\n",
                 SDL_GetError());
@@ -196,7 +213,7 @@ static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uin
                 surf = newSurf;
             }
             SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
-            if (SDL_LockSurface(surf) == 0) {
+            if (!SDL_MUSTLOCK(surf) || SDL_LockSurface(surf) == 0) {
                 uint32_t key = SDL_MapRGB(surf->format, r, g, b);
                 for (int y=0; y<surf->h; y++) {
                     uint32_t* vals = (uint32_t*)((uint8_t*)surf->pixels + y*surf->pitch);
@@ -204,7 +221,8 @@ static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uin
                         if (vals[x] == key) vals[x] = 0;
                     }
                 }
-                SDL_UnlockSurface(surf);
+                if (SDL_MUSTLOCK(surf))
+                    SDL_UnlockSurface(surf);
             } else {
                 fprintf(stderr, "Could not lock surface to make transparent: %s\n",
                         SDL_GetError());
