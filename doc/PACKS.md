@@ -88,9 +88,11 @@ NOTE: User overrides for settings are merged with the pack, replacing individual
   you can have global items in `items/items.json` OR per-variant items in `[variant]/items/item.json`
 
 * To get proper auto-complete, type hints and warnings for the PopTracker API, you can use
-  [LuaLS](https://github.com/LuaLS/lua-language-server?tab=readme-ov-file#lua-language-server)
-  (VSCode/ium extension: search for `sumneko.lua`)
-  with our [Definition File](../api/lua/definition/poptracker.lua).\
+  [LuaLS](https://github.com/LuaLS/lua-language-server?tab=readme-ov-file#lua-language-server) with our
+  [Definition File](../api/lua/definition/poptracker.lua).
+  * VSCode/ium extension: search for `sumneko.lua`
+  * JetBrains (IntelliJ/PyCharm/CLion/...): [SumnekoLua](https://luals.github.io/#jetbrains-install)
+
   You have to add a `.luarc.json` [(example)](../examples/uat-example/.luarc.json)
   with the correct path (typically `../../api/lua/definition`) to your project and restart the Language Server or IDE.\
   It is recommended to check that file into Git, but exclude it from the final pack when zipping.
