@@ -258,6 +258,7 @@ The result will be an ready to use base-tracker that can connetect to Archipelag
 
 
 #### Things you still need to manually do after using the script:
+
 - providing images for all the items, settings and maps
 - placing the locations at the correct spots on the map
 - writing logic
