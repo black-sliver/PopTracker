@@ -77,7 +77,8 @@ public:
     Signal<const std::string&> onStateChanged;
     Signal<const std::string&> onDisplayChanged; // changed display of an item
     Signal<const std::string&, const std::string&> onUiHint;
-    
+    Signal<> onBulkUpdateDone;
+
     const LayoutNode& getLayout(const std::string& name) const;
     bool hasLayout(const std::string& name) const;
     const BaseItem& getItemByCode(const std::string& code) const;
@@ -100,6 +101,9 @@ public:
     AccessibilityLevel isReachable(const LocationSection& location);
     bool isVisible(const Location& location);
     bool isVisible(const Location::MapLocation& mapLoc);
+
+    bool isBulkUpdate() const;
+    bool allowDeferredLogicUpdate() const;
 
     const Pack* getPack() const;
 
@@ -125,6 +129,7 @@ protected:
     std::list<std::string> _bulkItemUpdates;
     std::list<std::string> _bulkItemDisplayUpdates;
     bool _bulkUpdate = false;
+    bool _allowDeferredLogicUpdate = false; /// opt-in flag to use onBulkUpdate to update state just once at the end
     bool _accessibilityStale = false;
     bool _visibilityStale = false;
     bool _isIndirectConnection = false; /// flag to skip cache for codes that depend on locations

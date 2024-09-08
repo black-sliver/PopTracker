@@ -253,6 +253,10 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
     _tracker->onDisplayChanged += {this, [this](void *s, const std::string& check) {
         updateDisplay(check);
     }};
+    _tracker->onBulkUpdateDone += { this, [this](void *s) {
+        if (_tracker->allowDeferredLogicUpdate())
+            updateLocations();
+    }};
     _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
         updateLocation(sec.getParentID());
         for (const auto& pair: _tracker->getReferencingSections(sec))
@@ -268,6 +272,7 @@ TrackerView::~TrackerView()
     _tracker->onLayoutChanged -= this;
     _tracker->onStateChanged -= this;
     _tracker->onDisplayChanged -= this;
+    _tracker->onBulkUpdateDone -= this;
     _tracker->onLocationSectionChanged -= this;
     _tracker->onUiHint -= this;
     _tracker = nullptr;
@@ -524,7 +529,8 @@ void TrackerView::updateState(const std::string& itemid)
     for (auto w: _items[itemid]) {
         updateItem(w, item);
     }
-    updateLocations();
+    if (!_tracker->isBulkUpdate() || !_tracker->allowDeferredLogicUpdate())
+        updateLocations();
 }
 
 size_t TrackerView::addLayoutNodes(Container* container, const std::list<LayoutNode>& nodes, size_t depth)
