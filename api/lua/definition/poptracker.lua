@@ -83,6 +83,12 @@ function Tracker:UiHint(name, value) end
 ---@type boolean
 Tracker.BulkUpdate = false
 
+---Allow to evaluate logic rules fewer times than items are updated.
+---Only available in PopTracker, since 0.27.1.
+---Use as: `if Tracker.AllowDeferredLogicUpdate == false then Tracker.AllowDeferredLogicUpdate = true end`
+---@type boolean
+Tracker.AllowDeferredLogicUpdate = false
+
 
 ---- ScriptHost ----
 

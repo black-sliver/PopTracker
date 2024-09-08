@@ -548,6 +548,9 @@ int Tracker::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "BulkUpdate") == 0) {
         lua_pushboolean(L, _bulkUpdate);
         return 1;
+    } else if (strcmp(key, "AllowDefferedLogicUpdate") == 0) {
+        lua_pushboolean(L, _allowDeferredLogicUpdate);
+        return 1;
     } else {
         printf("Tracker::Lua_Index(\"%s\") unknown\n", key);
     }
@@ -559,7 +562,7 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
         luaL_error(L, "Tried to write read-only property Tracker.%s", key);
     } else if (strcmp(key, "BulkUpdate") == 0) {
         bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
-        if (!val) {
+        if (_bulkUpdate && !val) {
             eraseDuplicates(_bulkItemUpdates);
             for (const auto& id: _bulkItemUpdates)
                 onStateChanged.emit(this, id);
@@ -568,9 +571,15 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
             for (const auto& id: _bulkItemDisplayUpdates)
                 onDisplayChanged.emit(this, id);
             _bulkItemDisplayUpdates.clear();
+            _bulkUpdate = false;
+            onBulkUpdateDone.emit(this);
+        } else {
+            _bulkUpdate = val;
         }
-        _bulkUpdate = val;
         return true;
+    } else if (strcmp(key, "AllowDefferedLogicUpdate") == 0) {
+        bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
+        _allowDeferredLogicUpdate = val;
     }
     return false;
 }
@@ -718,6 +727,16 @@ void Tracker::rebuildSectionRefs()
             _sectionRefs[target].push_back(source);
         }
     }
+}
+
+bool Tracker::isBulkUpdate() const
+{
+    return _bulkUpdate;
+}
+
+bool Tracker::allowDeferredLogicUpdate() const
+{
+    return _allowDeferredLogicUpdate;
 }
 
 const Pack* Tracker::getPack() const
@@ -1163,6 +1182,7 @@ bool Tracker::loadState(nlohmann::json& state)
         onDisplayChanged.emit(this, id);
     _bulkItemDisplayUpdates.clear();
     _bulkUpdate = false;
+    onBulkUpdateDone.emit(this);
 
     return true;
 }
