@@ -168,6 +168,15 @@ public:
         return State::Unavailable;
     }
 
+    bool isAnyConnected()
+    {
+        for (int index = 0; index < (int)_state.size(); ++index) {
+            if (getState(index) >= State::ConsoleConnected)
+                return true;
+        }
+        return false;
+    }
+
     const std::string& getName(int index)
     {
         if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;

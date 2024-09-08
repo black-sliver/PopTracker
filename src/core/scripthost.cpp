@@ -559,6 +559,9 @@ void ScriptHost::resetWatches()
 
 void ScriptHost::runMemoryWatchCallbacks()
 {
+    if (!_autoTracker || !_autoTracker->isAnyConnected())
+        return;
+
     // we need to run callbacks because the autotracker changed some cache
     // but really we only need to run the ones that are marked dirty
     for (size_t i = 0; i < _memoryWatches.size(); i++) {
