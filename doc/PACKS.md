@@ -110,6 +110,7 @@ The following interfaces are provided:
 * `mixed :FindObjectForCode(string)`: returns items for `code` or location section for `@location/section`
 * `void :UiHint(name, value)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0
 * `bool .BulkUpdate`: can be set to true from Lua to pause running logic rules.
+* `bool .AllowDeferredLogicUpdate`: can be set to true from Lua to allow evaluating logic rules fewer times than items are updated.
 
 
 ### global ScriptHost
