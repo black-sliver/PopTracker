@@ -230,3 +230,47 @@ And what it looks like back in tracker.json to include that tab group of groups.
 ### **Finishing up**
 And now’s the point where you get to put your pieces into action, and see what’s broken. Copy your whole repository folder into poptracker’s Packs folder, open up Poptracker, and see how it looks. You can make changes to the files in the packs folder with Poptracker open and press the Refresh button to load your changes. From here, double-check that logic functions the way you expect it to when items are added / removed, confirm that your maps are readable, and make sure the layouts don’t waste a bunch of space – not everyone has a nice monitor to see tiny pixels.  
 If you created a variant (way back in the Manifest.json), then you’re going to need to create the files that get loaded in place of the default JSON files – but that’s really just more of what you’ve already been doing. Read the documentation in the example pack, and you’ll be good to go.
+
+
+
+# Poptracker Builder-Script
+
+After getting to do your first steps towards create your own tracker you most likely will have noticed that there are 2 major hurdles to overcome before even starting to see anything in Poptracker or having autotracking with Archipelago working.
+
+- man this is tedious to write all that JSON for each and every item and location
+- where do I get the Archipelago Item- and Location-IDs from for Autotracking?
+
+
+### What's the purpose of this script?
+
+Having touched a couple of packs to help get them started and doing a couple myself i noticed some "pain points" when getting started with packs. To mitigate at least some of these pain points the urge to automate the starting steps grew in me. With this script the following things are now automated and cut down the initial time investement quiet a bit:
+- creating the basic folder structure of the pack
+- creating every always needed file
+- gathering the Item- and Location-ID's and writing them into an already poptracker-usable way
+- creating all the JSON for items and locations gathered previously
+- __optional:__ creates textbased images for settings, etc. that are not easily represented as icons
+
+You can get the Script [here](https://github.com/StripesOO7/poptracker-pack-builder)
+**The Readme in this repo will take a deeper dive into how to use the script**
+
+**This does not mean you can skip on learning how everything works! It only cuts down the inital time to build those structres.**
+
+The result will be an ready to use base-tracker that can connetect to Archipelago as well as display, and autotrack all items and locations (after providing at least the needed images for items and maps)
+
+
+#### Things you still need to manually do after using the script:
+- providing images for all the items, settings and maps
+- placing the locations at the correct spots on the map
+- writing logic
+- add extra behavious specific for your usecase
+
+
+#### Where do I get the Archipelago Item- and Location-IDs from?
+
+If the Game is on the "Supported Games" list just look at the [Datapackage](https://archipelago.gg/) on the Main Website
+
+If its an unsupported game you can skim through the specific woulds code or launch a local copy of the Webhost with the unsupported game in the `custom_worlds`-folder and visit http://localhost/datapackage 
+For this resort to the guide on how to run the [Archipealgo Webhost locally from source](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/running%20from%20source.md#running-from-source)
+
+
+Any Issues with the Builder Script should be reportet as Issues in the [Script's repo](https://github.com/StripesOO7/poptracker-pack-builder/issues) NOT in the Poptracker repo

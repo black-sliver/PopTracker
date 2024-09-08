@@ -5,6 +5,7 @@
 * [Pack Creation Guide](PackCreation.md) by MisterIbis
 * [Pack Specification and Interfaces](PACKS.md)
 * [Auto-Tracking](AUTOTRACKING.md)
+* [Pack Builder Script](https://github.com/StripesOO7/poptracker-pack-builder) by Stripes
 
 
 ## Internal API
@@ -17,3 +18,4 @@
 
 * [Project Overview](OUTLINE.md)
 * [TODO](TODO.md)
+
