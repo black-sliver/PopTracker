@@ -232,8 +232,7 @@ And now’s the point where you get to put your pieces into action, and see what
 If you created a variant (way back in the Manifest.json), then you’re going to need to create the files that get loaded in place of the default JSON files – but that’s really just more of what you’ve already been doing. Read the documentation in the example pack, and you’ll be good to go.
 
 
-
-# Poptracker Builder-Script
+## Poptracker Builder-Script
 
 After getting to do your first steps towards create your own tracker you most likely will have noticed that there are 2 major hurdles to overcome before even starting to see anything in Poptracker or having autotracking with Archipelago working.
 
