@@ -474,8 +474,11 @@ done:
 Tracker::Object Tracker::FindObjectForCode(const char* code)
 {
     const auto it = _objectCache.find(std::string_view(code));
-    if (it != _objectCache.end())
+    if (it != _objectCache.end()) {
+        if (*code == '@')
+            _isIndirectConnection = true; // if called during rule resolution, this skips the cache
         return it->second;
+    }
     if (*code == '@') { // location section
         const char *start = code+1;
         const char *t = strrchr(start, '/');
