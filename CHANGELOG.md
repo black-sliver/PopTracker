@@ -1,5 +1,22 @@
 # PopTracker Changelog
 
+## v0.28.0
+
+* App Features
+  * Add option to disable/ignore High DPI scaling on Windows (for testing; enable in poptracker.json)
+  * Don't disable screensaver (old behavior can be restored in poptracker.json)
+  * Major performance improvement resolving logic (~4x as fast)
+  * Minor other performance improvements
+  * Update bundled SSL certificates
+* Pack Features
+  * Lua: add `Tracker.AllowDeferredLogicUpdate` to making bulk update even faster; see docs or PopTracker.lua
+* Fixes
+  * Fix memory watches triggering even if no console is connected
+  * Update apclientpp, to filter out duplicate Archipelago locations (during `!collect`)
+  * Don't detect some pack downgrades as upgrades
+  * Ignore scroll lock when checking for hotkeys
+  * Update Lua to 5.4.7+2 fixing a few bugs
+
 ## v0.27.1
 
 * Fixes
