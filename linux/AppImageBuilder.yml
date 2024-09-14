@@ -131,3 +131,7 @@ script: |
   install -D "assets/icon.png" "$TARGET_APPDIR/usr/share/icons/poptracker.png"
 
   cp -r assets "$TARGET_APPDIR/usr/bin/."
+
+  mkdir -p "$TARGET_APPDIR/usr/share/poptracker"
+  cp -r api schema "$TARGET_APPDIR/usr/share/poptracker/."
+  rm "$TARGET_APPDIR/usr/share/poptracker/"*/README.md
