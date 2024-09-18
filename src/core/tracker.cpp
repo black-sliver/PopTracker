@@ -551,7 +551,7 @@ int Tracker::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "BulkUpdate") == 0) {
         lua_pushboolean(L, _bulkUpdate);
         return 1;
-    } else if (strcmp(key, "AllowDefferedLogicUpdate") == 0) {
+    } else if (strcmp(key, "AllowDeferredLogicUpdate") == 0) {
         lua_pushboolean(L, _allowDeferredLogicUpdate);
         return 1;
     } else {
@@ -580,9 +580,10 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
             _bulkUpdate = val;
         }
         return true;
-    } else if (strcmp(key, "AllowDefferedLogicUpdate") == 0) {
+    } else if (strcmp(key, "AllowDeferredLogicUpdate") == 0) {
         bool val = lua_isnumber(L, -1) ? (lua_tonumber(L, -1) != 0) : lua_toboolean(L, -1);
         _allowDeferredLogicUpdate = val;
+        return true;
     }
     return false;
 }

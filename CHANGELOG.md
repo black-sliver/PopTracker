@@ -1,5 +1,11 @@
 # PopTracker Changelog
 
+## next
+
+* Pack Features
+  * Lua: add `Tracker.AllowDeferredLogicUpdate` to make bulk update faster; see docs or PopTracker.lua
+
+
 ## v0.28.0
 
 * App Features
@@ -9,7 +15,7 @@
   * Minor other performance improvements
   * Update bundled SSL certificates
 * Pack Features
-  * Lua: add `Tracker.AllowDeferredLogicUpdate` to making bulk update even faster; see docs or PopTracker.lua
+  * ~~Lua: add `Tracker.AllowDeferredLogicUpdate` to make bulk update even faster; see docs or PopTracker.lua~~
 * Fixes
   * Fix memory watches triggering even if no console is connected
   * Update apclientpp, to filter out duplicate Archipelago locations (during `!collect`)
