@@ -1,4 +1,4 @@
--- UAT example pack by black_sliver
+-- Async example pack by black_sliver
 -- init.lua
 
 Tracker:AddItems("items/items.json")
