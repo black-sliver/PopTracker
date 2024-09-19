@@ -224,7 +224,7 @@ bool Archipelago::LocationScouts(const json &jLocations, int sendAsHint)
 {
     if (!_ap)
         return false; //throw std::runtime_error("Not connected");
-    if (!_ap->allowSend())
+    if (!_ap->allowScout())
         return false; //throw std::runtime_error("Tracker-only");
     if ((!jLocations.is_array() && !jLocations.is_object()))
         return false; //throw std::runtime_error("argument locations to LocationScouts must be array/table");

@@ -30,8 +30,10 @@ public:
             : _name(name)
     {
         bool isAPClient = flags.find("apmanual") != flags.end();
+        bool isAPHintGame = flags.find("aphintgame") != flags.end();
         if (isAPClient || flags.find("ap") != flags.end()) {
-            _ap = new APTracker(_name, isAPClient ? gameName : "", isAPClient);
+            _ap = new APTracker(_name, isAPClient ? gameName : "",
+                    isAPClient, isAPClient || isAPHintGame);
             _lastBackendIndex++;
             int apIndex = _lastBackendIndex;
             _backendIndex[_ap] = apIndex;

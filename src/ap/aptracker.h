@@ -22,8 +22,8 @@
 class APTracker final {
     typedef nlohmann::json json;
 public:
-    APTracker(const std::string& appname, const std::string& game="", bool allowSend=false)
-            : _appname(appname), _game(game), _allowSend(allowSend)
+    APTracker(const std::string& appname, const std::string& game="", bool allowSend=false, bool allowScout=false)
+            : _appname(appname), _game(game), _allowSend(allowSend), _allowScout(allowScout)
     {
         // AP uses an UUID to detect reconnects (replace old connection). If
         // stored UUID is older than 60min, the connection should already be
@@ -78,7 +78,9 @@ public:
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
             std::list<std::string> tags = {"PopTracker"};
-            if (!_allowSend)
+            if (_allowScout && !_allowSend)
+                tags.push_back("HintGame");
+            else if (!_allowSend)
                 tags.push_back("Tracker");
             if (_game.empty())
                 tags.push_back("IgnoreGame");
@@ -242,9 +244,17 @@ public:
     }
 
     /// returns true if this instance is allowed to send Locations
+    [[nodiscard]]
     bool allowSend() const
     {
         return _allowSend;
+    }
+
+    /// returns true if this instance is allowed to scout Locations
+    [[nodiscard]]
+    bool allowScout() const
+    {
+        return _allowScout;
     }
 
     /// returns true if locations were queued to be sent
@@ -258,7 +268,7 @@ public:
     /// returns true if locations were queued to be scouted
     bool LocationScouts(const std::list<int64_t>& locations, int createAsHint)
     {
-        if (!_allowSend || !_ap)
+        if (!_allowScout || !_ap)
             return false;
         return _ap->LocationScouts(locations, createAsHint);
     }
@@ -287,6 +297,7 @@ private:
     std::string _appname;
     std::string _game;
     bool _allowSend;
+    bool _allowScout;
     std::string _uuid;
     int _itemIndex = 0;
     std::set<int64_t> _checkedLocations;
