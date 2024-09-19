@@ -30,6 +30,11 @@ public:
     bool LocationScouts(const json& locations, int sendAsHint);
     bool StatusUpdate(int status);
 
+    std::string GetPlayerAlias(int slot);
+    std::string GetPlayerGame(int slot);
+    std::string GetItemName(int id, const std::string& game);
+    std::string GetLocationName(int id, const std::string& game);
+
 protected:
     lua_State *_L;
     APTracker *_ap;

@@ -408,6 +408,32 @@ function Archipelago:LocationScouts(locations, sendAsHint) end
 ---@return boolean true on success
 function Archipelago:StatusUpdate(status) end
 
+---Get alias/name of a player.
+---Supported since 0.28.1.
+---@param slot integer
+---@return string alias of the player or "Unknown" if not found
+function Archipelago:GetPlayerAlias(slot) end
+
+---Get game name of a player.
+---Supported since 0.28.1.
+---@param slot integer
+---@return string name of the game or "Unknown" if not found
+function Archipelago:GetPlayerGame(slot) end
+
+---Get item name for a specific game.
+---Supported since 0.28.1.
+---@param id integer item id
+---@param game string name of the game
+---@return string name of the item or "Unknown" if not found
+function Archipelago:GetItemName(id, game) end
+
+---Get item name for a specific game.
+---Supported since 0.28.1.
+---@param id integer item id
+---@param game string name of the game
+---@return string name of the location or "Unknown" if not found
+function Archipelago:GetLocationName(id, game) end
+
 
 ---- ImageRef ----
 

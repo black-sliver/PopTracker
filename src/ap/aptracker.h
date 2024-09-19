@@ -218,6 +218,30 @@ public:
         return _uncheckedLocations;
     }
 
+    [[nodiscard]]
+    std::string getPlayerAlias(int slot)
+    {
+        return _ap ? _ap->get_player_alias(slot) : "Unknown";
+    }
+
+    [[nodiscard]]
+    std::string getPlayerGame(int slot)
+    {
+        return _ap ? _ap->get_player_game(slot) : "Unknown";
+    }
+
+    [[nodiscard]]
+    std::string getItemName(int id, const std::string& game)
+    {
+        return _ap ? _ap->get_item_name(id, game) : "Unknown";
+    }
+
+    [[nodiscard]]
+    std::string getLocationName(int id, const std::string& game)
+    {
+        return _ap ? _ap->get_location_name(id, game) : "Unknown";
+    }
+
     bool SetNotify(const std::list<std::string>& keys)
     {
         return _ap ? _ap->SetNotify(keys) : false;
