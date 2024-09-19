@@ -19,6 +19,11 @@ const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
     LUA_METHOD(Archipelago, LocationChecks, json),
     LUA_METHOD(Archipelago, LocationScouts, json, int),
     LUA_METHOD(Archipelago, StatusUpdate, int),
+
+    LUA_METHOD(Archipelago, GetPlayerAlias, int),
+    LUA_METHOD(Archipelago, GetPlayerGame, int),
+    LUA_METHOD(Archipelago, GetItemName, int, const char*),
+    LUA_METHOD(Archipelago, GetLocationName, int, const char*),
 };
 
 Archipelago::Archipelago(lua_State *L, APTracker *ap)
@@ -248,6 +253,43 @@ bool Archipelago::StatusUpdate(int status)
         return false;
     return _ap->StatusUpdate((APClient::ClientStatus)status);
 }
+
+std::string Archipelago::GetPlayerAlias(int slot)
+{
+    if (!_ap) {
+        luaL_error(_L, "Not connected");
+        return ""; // TODO: unreachable() instead;
+    }
+    return _ap->getPlayerAlias(slot);
+}
+
+std::string Archipelago::GetPlayerGame(int slot)
+{
+    if (!_ap) {
+        luaL_error(_L, "Not connected");
+        return ""; // TODO: unreachable() instead;
+    }
+    return _ap->getPlayerGame(slot);
+}
+
+std::string Archipelago::GetItemName(int id, const std::string& game)
+{
+    if (!_ap) {
+        luaL_error(_L, "Not connected");
+        return ""; // TODO: unreachable() instead;
+    }
+    return _ap->getItemName(id, game);
+}
+
+std::string Archipelago::GetLocationName(int id, const std::string& game)
+{
+    if (!_ap) {
+        luaL_error(_L, "Not connected");
+        return ""; // TODO: unreachable() instead;
+    }
+    return _ap->getLocationName(id, game);
+}
+
 
 int Archipelago::Lua_Index(lua_State *L, const char* key) {
     if (strcmp(key, "PlayerNumber") == 0) {

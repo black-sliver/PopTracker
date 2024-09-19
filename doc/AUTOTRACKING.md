@@ -144,6 +144,7 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `.TeamNumber` the team number of the connected player, -1 if not connected or `nil` if unsupported (before 0.25.2)
 * `.CheckedLocations` array of already checked location ids or `nil` if unsupported (before 0.25.2)
 * `.MissingLocations` array of unchecked/missing location ids or `nil` if unsupported (before 0.25.2)
+* `.ClientStatus` enum for StatusUpdate containing `UNKNOWN`, `READY`, `PLAYING`, `GOAL`.
 * `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared; args: slot_data
 * `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name\[, player_number since 0.20.2\]
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name
@@ -155,6 +156,11 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `:SetNotify(keys)` ask the server to notify when a data storage value is changed, run this from a ClearHandler, keys is an array of strings
 * `:LocationChecks(locations)` Send locations as checked to the server, since 0.26.2, only allowed if "apmanual" flag is set in manifest.
 * `:LocationScouts(locations, sendAsHint)` Send locations as scouted to the server, since 0.26.2, only allowed if "apmanual" or "aphintgame" flag is set in manifest.
+* `:StatusUpdate(statusCode)` Send client status (Archipelago.ClientStatus enum) to the server. This is used to send the goal / win condition for apmanual, since 0.27.1.
+* `:GetPlayerAlias(slot)` gets the player display name for a slot number, since 0.28.1.
+* `:GetPlayerGame(slot)` gets the game name a player is playing from slot number, since 0.28.1.
+* `:GetItemName(id, game)` gets the item name for a given id and game name, since 0.28.1.
+* `:GetLocationName(id, game)` gets the location name for a given id and game name, since 0.28.1.
 
 
 ## Other Stuff
