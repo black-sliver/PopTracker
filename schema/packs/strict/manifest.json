@@ -65,6 +65,7 @@
                                         "type": "string",
                                         "enum": [
                                             "ap",
+                                            "apmanual",
                                             "hirom",
                                             "lorom",
                                             "uat"
