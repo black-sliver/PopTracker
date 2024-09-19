@@ -48,6 +48,7 @@ If platform is "n64", the LuaConnector autotracker is to be enabled.
 Currently supported flags:
 * `"ap"`: pack supports Archipelago autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
 * `"apmanual"`: pack supports sending locations to Archipelago. Uses `game_name` as `game`.
+* `"aphintgame"`: pack supports scouting locations in Archipelago.
 * `"uat"`: pack supports UAT autotracking. See [AUTOTRACKING.md](AUTOTRACKING.md).
 * `"lorom"`: (SNES) game has LoROM mapping - if not listed in gameinfo.cpp
 * `"hirom"`: (SNES) game has HiROM mapping

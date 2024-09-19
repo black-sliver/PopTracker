@@ -396,7 +396,7 @@ function Archipelago:SetNotify(keys) end
 function Archipelago:LocationChecks(locations) end
 
 ---Send locations as scouted to the server.
----Supported since 0.26.2, only allowed if "apmanual" flag is set in manifest.
+---Supported since 0.26.2, only allowed if "apmanual" or "aphintgame" flag is set in manifest.
 ---@param locations integer[]
 ---@param sendAsHint integer
 ---@return boolean true on success
