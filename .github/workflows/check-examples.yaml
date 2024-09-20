@@ -24,42 +24,42 @@ jobs:
           submodules: recursive
 
       - name: Check ap-storage-example
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/ap-storage-example
           strict: true
 
       - name: Check hosted_item
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/hosted_item
           strict: true
 
       - name: Check luminosity-test
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/luminosity-test
           strict: true
 
       - name: Check margin-test
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/margin-test
           strict: true
 
       - name: Check template_pack
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/template_pack
           strict: true
 
       - name: Check uat-example
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
         with:
           schema: schema/packs/
           pack: examples/uat-example
