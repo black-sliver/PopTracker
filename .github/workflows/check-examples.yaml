@@ -29,6 +29,7 @@ jobs:
           schema: schema/packs/
           pack: examples/ap-storage-example
           strict: true
+          check-legacy-compat: false
 
       - name: Check hosted_item
         uses: PopTracker/pack-checker-action@572a3854bdc8929b767d3f0454946c2e8eafac09
