@@ -16,4 +16,4 @@ jobs:
         pip3 install -r util/requirements.txt
     - name: Validate community-packs.json
       run: |
-        python3 util/validate-packs.py community-packs.json
+        python3 util/validate-packs.py --follow-links community-packs.json
