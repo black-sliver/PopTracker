@@ -14,6 +14,10 @@ jobs:
       run: |
         sudo apt-get install -y python3-pip
         pip3 install -r util/requirements.txt
+    - name: Validate examples
+      run: |
+        python3 util/validate-packs.py examples/packs.json
+        python3 util/validate-versions.py examples/versions.json
     - name: Validate community-packs.json
       run: |
         python3 util/validate-packs.py --follow-links community-packs.json
