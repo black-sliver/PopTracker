@@ -1,8 +1,9 @@
 # PopTracker Pack List
 
-List of packs and their update URLs.
+List of packs and their update URLs provided by the community.
 
-Send PRs for `community-packs.json` on github to add your packs.
+Send PRs for `community-packs.json` on GitHub to add your pack or remove a pack with wrong or outdated authorship.
+You can use the pencil button to create a PR directly on GitHub.
 
 ## packs.json
 
