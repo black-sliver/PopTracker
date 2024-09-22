@@ -7,5 +7,59 @@
         "versions_url": "https://raw.githubusercontent.com/alwaysintreble/TheMessengerTrackPack/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/alwaysintreble/TheMessengerTrackPack/master/TheMessengerTrackPack/images/SaveIcon.png",
         "description":  "Map Tracker for The Messenger Randomizer."
+    },
+    "evermizer": {
+        "name": "Evermizer - Map and Item Tracker",
+        "author": "Cyb3R, black-sliver",
+        "platform": "snes",
+        "homepage": "https://github.com/Cyb3RGER/evermizer-tracker-package",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/evermizer-tracker-package/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/evermizer-tracker-package/main/images/locations/gourd.png",
+        "description":  "Evermizer Item and Map Tracker for PopTracker."
+    },
+    "bfbb_ap_pack": {
+        "name": "BfBB AP Tracker",
+        "author": "Cyb3R",
+        "platform": "ngc",
+        "homepage": "https://github.com/Cyb3RGER/bfbb_ap_pack",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/bfbb_ap_pack/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/bfbb_ap_pack/main/images/items/spat.png",
+        "description":  "PopTracker pack for BfBB Archipelago Integration."
+    },
+    "monster_sanctuary_ap": {
+        "name": "Monster Sanctuary AP",
+        "author": "Cyb3R",
+        "platform": "PC",
+        "homepage": "https://github.com/Cyb3RGER/monster_sanctuary_ap_pack",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/monster_sanctuary_ap_pack/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/monster_sanctuary_ap_pack/main/images/items/monsters/spectral_wolf.png",
+        "description":  "Monster Sanctuary AP PopTracker pack."
+    },
+    "minecraft_randomizer_emotracker-neomatamune": {
+        "name": "Minecraft Randomizer",
+        "author": "Neomatamune, Cyb3R, AkumaGath17#0725",
+        "platform": "PC",
+        "homepage": "https://github.com/Cyb3RGER/minecraft_rando_tracker",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/minecraft_rando_tracker/master/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/minecraft_rando_tracker/master/maps/Achievements/minecraft.png",
+        "description":  "PopTracker Pack for the Archipelago Minecraft Randomizer."
+    },
+    "smrando_ap_cyb3r": {
+        "name": "VARIA Randomizer (Super Metroid) AP",
+        "author": "Cyb3R",
+        "platform": "snes",
+        "homepage": "https://github.com/Cyb3RGER/sm_ap_tracker",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/sm_ap_tracker/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/sm_ap_tracker/main/images/items/morph.png",
+        "description":  "Archipelago Super Metroid autotracker pack for PopTracker."
+    },
+    "som_open_mode_map": {
+        "name": "Secret of Mana Randomizer - Open Mode - Map and Item Tracker",
+        "author": "Cyb3R",
+        "platform": "snes",
+        "homepage": "https://github.com/Cyb3RGER/SoM-Open-Mode-Tracker",
+        "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/SoM-Open-Mode-Tracker/master/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/SoM-Open-Mode-Tracker/master/images/chest.png",
+        "description":  "Secret of Mana Open Mode Package for PopTracker."
     }
 }
