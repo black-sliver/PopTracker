@@ -57,6 +57,13 @@ public:
                     onStateChange.emit(this, apIndex, _state[apIndex]);
                 }
             }};
+            _ap->onRoomUpdate += {this, [this, apIndex](void* sender) {
+                auto newAlias = _ap->getPlayerAlias(_ap->getPlayerNumber());
+                if (_apAlias != newAlias) {
+                    _apAlias = newAlias;
+                    onSubNameChange.emit(this, apIndex, _apAlias);
+                }
+            }};
         }
         if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(_name);
@@ -158,6 +165,7 @@ public:
     };
 
     Signal<int, State> onStateChange;
+    Signal<int, const std::string&> onSubNameChange;
     Signal<> onDataChange;
     Signal<const std::list<std::string>&> onVariablesChanged;
     Signal<const std::string&> onError;
@@ -190,7 +198,13 @@ public:
 
     std::string getSubName(int index)
     {
-        if (_snes && _backendIndex[_snes] == index) return _snes->getDeviceName();
+        if (_snes && _backendIndex[_snes] == index)
+            return _snes->getDeviceName();
+        if (_ap && _backendIndex[_ap] == index) {
+            auto player = _ap->getPlayerAlias(_ap->getPlayerNumber());
+            if (player != "Unknown")
+                return player;
+        }
         return "";
     }
 
@@ -619,6 +633,7 @@ protected:
     std::vector<std::string> _snesAddresses;
     unsigned _interval = INTERVAL_UNSET;
     USB2SNES::Mapping _snesMapping;
+    std::string _apAlias;
 
     static constexpr unsigned INTERVAL_UNSET = std::numeric_limits<unsigned>::max();
 
