@@ -276,7 +276,7 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
                                state == AutoTracker::State::Unavailable ? nullptr : "Unknown";
             std::string name = _autoTrackerNames[index];
             if (name.empty()) name = "Auto Tracker";
-            if (state == AutoTracker::State::ConsoleConnected && text) {
+            if (state == AutoTracker::State::ConsoleConnected) {
                 if (!_autoTrackerSubNames[index].empty())
                     name = _autoTrackerSubNames[index];
             }

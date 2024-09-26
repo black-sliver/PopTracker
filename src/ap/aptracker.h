@@ -159,6 +159,10 @@ public:
             auto lock = EventLock(_event);
             onSetReply.emit(this, key, value, old);
         });
+        _ap->set_room_update_handler([this]() {
+            auto lock = EventLock(_event);
+            onRoomUpdate.emit(this);
+        });
         return true;
     }
 
@@ -308,6 +312,7 @@ public:
 
     Signal<const std::string&> onError;
     Signal<APClient::State> onStateChanged;
+    Signal<> onRoomUpdate;
     Signal<const json&> onClear; // called when state has to be cleared, gives new slot_data
     Signal<int, int64_t, const std::string&, int> onItem; // index, item, item_name, player
     Signal<int64_t, const std::string&, int64_t, const std::string&, int> onScout; // location, location_name, item, item_name, target player

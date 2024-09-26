@@ -1270,8 +1270,14 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     if (auto at = _scriptHost->getAutoTracker()) {
         at->onStateChange += {this, [this](void* sender, int index, AutoTracker::State state)
         {
-            AutoTracker* at = (AutoTracker*)sender;
-            if (_win) _win->setAutoTrackerState(index, state, at->getName(index), at->getSubName(index));
+            auto* at = (AutoTracker*)sender;
+            if (_win)
+                _win->setAutoTrackerState(index, state, at->getName(index), at->getSubName(index));
+        }};
+        at->onSubNameChange += {this, [this](void* sender, int index, const std::string& subName) {
+            auto* at = (AutoTracker*)sender;
+            if (_win)
+                _win->setAutoTrackerState(index, at->getState(index), at->getName(index), subName);
         }};
     }
     
