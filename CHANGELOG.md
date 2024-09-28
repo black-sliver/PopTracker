@@ -1,10 +1,16 @@
 # PopTracker Changelog
 
-## next
+## v0.29.0
 
+* App Features
+  * Show Archipelago name/alias in tooltip on "AP" hover
+  * Update bundled SSL certificates
 * Pack Features
-  * Lua: add `Tracker.AllowDeferredLogicUpdate` to make bulk update faster; see docs or PopTracker.lua
-
+  * Lua: fix `Tracker.AllowDeferredLogicUpdate` to actually work and make bulk updates faster
+  * Lua: add Archipelago:GetPlayerAlias, :GetPlayerGame, :GetItemName, :GetLocationName
+  * Add "aphintgame" flag
+* Misc
+  * Include schema and api in distribution files
 
 ## v0.28.0
 
