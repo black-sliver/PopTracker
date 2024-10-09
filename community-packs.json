@@ -70,5 +70,14 @@
         "versions_url": "https://raw.githubusercontent.com/Cyb3RGER/popsnake_pack/main/versions.json",
         "icon_url": "https://raw.githubusercontent.com/Cyb3RGER/popsnake_pack/main/images/icon.png",
         "description":  "This is an implementation of the popular game \"Snake\" as a PopTracker pack that also doubles as a simple AP Hint Game."
+    },
+        "pokemonrb_ap": {
+        "name": "Pokemon Red/Blue Archipelago Poptracker",
+        "author": "Coveleski & palex00",
+        "platform": "poptracker",
+        "homepage": "https://github.com/coveleski/rb_tracker",
+        "versions_url": "https://raw.githubusercontent.com/coveleski/rb2/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/coveleski/rb2/main/images/items/itemicon.png",
+        "description":  "Pokemon Red/Blue autotracker pack for PopTracker"
     }
 }
