@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "git submodule"
+    directory: "/examples"
+    schedule:
+      interval: "daily"
