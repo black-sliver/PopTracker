@@ -3,6 +3,6 @@ updates:
   - package-ecosystem: "gitsubmodule"
     directory: "/"
     allow:
-      - "examples/template_pack"
+      - dependency-name: "examples/template_pack"
     schedule:
       interval: "daily"
