@@ -6,6 +6,8 @@
 #include <set>
 #include <chrono>
 #include <nlohmann/json.hpp>
+
+#include "fs.h"
 #include "zip.h"
 #include "version.h"
 
@@ -17,7 +19,7 @@ public:
         std::string name;
     };
     struct Info {
-        std::string path;
+        fs::path path;
         std::string uid;
         std::string version;
         std::string platform;
@@ -27,7 +29,7 @@ public:
         std::vector<VariantInfo> variants;
     };
     
-    Pack(const std::string& path);
+    Pack(const fs::path& path);
     virtual ~Pack();
 
     bool isValid() const
@@ -37,7 +39,7 @@ public:
     }
 
     void setVariant(const std::string& variant);
-    const std::string& getPath() const { return _path; }
+    const fs::path& getPath() const { return _path; }
     const std::string& getUID() const { return _uid; }
     const std::string& getVariant() const { return _variant; }
     const std::string& getName() const { return _name; }
@@ -63,28 +65,28 @@ public:
     
     static std::vector<Info> ListAvailable();
     static Info Find(const std::string& uid, const std::string& version="", const std::string& sha256="");
-    static void addSearchPath(const std::string& path);
-    static bool isInSearchPath(const std::string& path);
-    static const std::vector<std::string>& getSearchPaths();
+    static void addSearchPath(const fs::path& path);
+    static bool isInSearchPath(const fs::path& path);
+    static const std::vector<fs::path>& getSearchPaths();
 
-    static void addOverrideSearchPath(const std::string& path);
+    static void addOverrideSearchPath(const fs::path& path);
 
 private:
     class Override {
     public:
-        Override(const std::string& path);
+        Override(const fs::path& path);
         virtual ~Override();
 
         bool ReadFile(const std::string& file, std::string& out) const;
         bool hasFilesChanged(std::chrono::system_clock::time_point since) const;
-        const std::string& getPath() const { return _path; }
+        const fs::path& getPath() const { return _path; }
 
     private:
-        std::string _path;
+        fs::path _path;
     };
 
     Zip* _zip;
-    std::string _path;
+    fs::path _path;
     std::string _variant;
     std::string _uid;
     std::string _name;
@@ -99,8 +101,8 @@ private:
 
     std::chrono::system_clock::time_point _loaded;
 
-    static std::vector<std::string> _searchPaths;
-    static std::vector<std::string> _overrideSearchPaths;
+    static std::vector<fs::path> _searchPaths;
+    static std::vector<fs::path> _overrideSearchPaths;
 };
 
 #endif // _CORE_PACK_H

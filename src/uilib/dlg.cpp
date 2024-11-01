@@ -337,19 +337,23 @@ Dlg::Result Dlg::MsgBox(const std::string& title, const std::string& message, Dl
 #endif
 }
 
-bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out, bool multi)
+bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out, bool multi)
 {
 #ifdef __WIN32__
     using namespace std::string_literals;
 
     // TODO: implement multi-select
     assert(!multi);
-    // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
     bool res = false;
-    wchar_t buf[MAX_PATH]; *buf = 0;
+    wchar_t buf[MAX_PATH];
+    *buf = 0;
+
+    if (dflt.native().length() >= MAX_PATH)
+        return false;
 
     std::string filter; // "Name\0*.ext\0All Files\0*\0"s
-    if (types.empty()) filter = "All Files\0*\0"s;
+    if (types.empty())
+        filter = "All Files\0*\0"s;
     for (const auto& type: types) {
         std::string patterns;
         for(const auto& pat: type.patterns) {
@@ -361,11 +365,11 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
 
     LPWSTR lpwTitle = (LPWSTR)malloc(title.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, lpwTitle, title.length()+1);
-    LPWSTR lpwDflt = (LPWSTR)malloc(dflt.length()*2+2);
-    MultiByteToWideChar(CP_ACP, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
-    if (dflt.length()*2+2 <= sizeof(buf)) memcpy(buf, lpwDflt, dflt.length()*2+2);
     LPWSTR lpwFilter = (LPWSTR)malloc(filter.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), filter.length()+1, lpwFilter, filter.length()+1);
+
+    static_assert(sizeof(*buf) == sizeof(*dflt.c_str()));
+    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().size());
 
     OPENFILENAMEW ofn;
     memset(&ofn, 0, sizeof(ofn));
@@ -376,18 +380,10 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
     ofn.lpstrTitle = lpwTitle;
     ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     if (GetOpenFileNameW(&ofn)) {
-        // filenames are in local (ansi) encoding at the moment
-        int tmplen = WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, nullptr, 0, nullptr, nullptr);
-        if (tmplen > 0) {
-            char* tmp = (char*)malloc(tmplen);
-            WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, tmp, tmplen, nullptr, nullptr);
-            out = tmp;
-            free(tmp);
-            res = true;
-        }
+        out = ofn.lpstrFile;
+        res = true;
     }
     free(lpwTitle);
-    free(lpwDflt);
     free(lpwFilter);
     return res;
 #else
@@ -411,14 +407,18 @@ bool Dlg::OpenFile(const std::string& title, const std::string& dflt, const std:
 #endif
 }
 
-bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out)
+bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out)
 {
 #ifdef __WIN32__
     using namespace std::string_literals;
 
     // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
     bool res = false;
-    wchar_t buf[MAX_PATH]; *buf = 0;
+    wchar_t buf[MAX_PATH];
+    *buf = 0;
+
+    if (dflt.native().length() >= MAX_PATH)
+        return false;
 
     std::string filter; // "Name\0*.ext\0All Files\0*\0"s
     if (types.empty()) filter = "All Files\0*\0"s;
@@ -431,11 +431,11 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
         filter += type.name + "\0"s + patterns + "\0"s;
     }
 
+    static_assert(sizeof(*buf) == sizeof(*dflt.c_str()));
+    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().size());
+
     LPWSTR lpwTitle = (LPWSTR)malloc(title.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, lpwTitle, title.length()+1);
-    LPWSTR lpwDflt = (LPWSTR)malloc(dflt.length()*2+2);
-    MultiByteToWideChar(CP_ACP, 0, dflt.c_str(), -1, lpwDflt, dflt.length()+1);
-    if (dflt.length()*2+2 <= sizeof(buf)) memcpy(buf, lpwDflt, dflt.length()*2+2);
     LPWSTR lpwFilter = (LPWSTR)malloc(filter.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), filter.length()+1, lpwFilter, filter.length()+1);
 
@@ -448,18 +448,10 @@ bool Dlg::SaveFile(const std::string& title, const std::string& dflt, const std:
     ofn.lpstrTitle = lpwTitle;
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
     if (GetSaveFileNameW(&ofn)) {
-        // filenames are in local (ansi) encoding at the moment
-        int tmplen = WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, nullptr, 0, nullptr, nullptr);
-        if (tmplen > 0) {
-            char* tmp = (char*)malloc(tmplen);
-            WideCharToMultiByte(CP_ACP, 0, ofn.lpstrFile, -1, tmp, tmplen, nullptr, nullptr);
-            out = tmp;
-            free(tmp);
-            res = true;
-        }
+        out = ofn.lpstrFile;
+        res = true;
     }
     free(lpwTitle);
-    free(lpwDflt);
     free(lpwFilter);
     return res;
 #else

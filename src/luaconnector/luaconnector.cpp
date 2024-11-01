@@ -1,4 +1,5 @@
 #include "luaconnector.h"
+#include "server.h"
 #include "../core/autotrackprovider.h"
 #include <stdint.h>
 #include <string>
@@ -8,7 +9,6 @@
 #include <stdio.h>
 #include <cstring>
 #include "../core/util.h"
-#include "server.h"
 
 namespace LuaConnector {
 

@@ -16,13 +16,14 @@
 #include "ap/archipelago.h"
 #include <luaglue/luaenum.h>
 #include "luasandbox/require.h"
+#include "uilib/imghelper.h"
 #include "ui/maptooltip.h"
+#include "core/fs.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
 using nlohmann::json;
 using Ui::Dlg;
-
 
 const Version PopTracker::VERSION = Version(APP_VERSION_TUPLE);
 
@@ -138,22 +139,22 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
 {
     _args = args;
 
-    std::string appPath = getAppPath();
-    if (!appPath.empty() && fileExists(os_pathcat(appPath, "portable.txt"))) {
+    auto appPath = fs::app_path();
+    if (!appPath.empty() && fs::is_regular_file((appPath / "portable.txt"))) {
         _isPortable = true;
     } else {
         _isPortable = false;  // make sure
     }
 
     std::string config;
-    std::string configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json", _isPortable);
+    auto configFilename = getConfigPath(APPNAME, std::string(APPNAME)+".json", _isPortable);
     if (readFile(configFilename, config)) {
         _config = parse_jsonc(config);
         _oldConfig = _config;
     }
 
     std::string colorsData;
-    std::string colorsFilename = getConfigPath(APPNAME, "colors.json", _isPortable);
+    auto colorsFilename = getConfigPath(APPNAME, "colors.json", _isPortable);
     if (readFile(colorsFilename, colorsData)) {
         _colors = parse_jsonc(colorsData);
         if (_colors.is_object()) {
@@ -195,8 +196,8 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     if (!cli) {
         // enable logging
         if (_config["log"]) {
-            std::string logFilename = getConfigPath(APPNAME, "log.txt", _isPortable);
-            printf("Logging to %s\n", logFilename.c_str());
+            auto logFilename = getConfigPath(APPNAME, "log.txt", _isPortable);
+            printf("Logging to %s\n", sanitize_print(logFilename).c_str());
             if (Log::RedirectStdOut(logFilename)) {
                 printf("%s %s\n", APPNAME, VERSION_STRING);
             }
@@ -299,47 +300,47 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
     Pack::addSearchPath("packs"); // current directory
     Pack::addOverrideSearchPath("user-override");
 
-    std::string cwdPath = getCwd();
-    std::string documentsPath = getDocumentsPath();
-    std::string homePath = getHomePath();
+    auto cwdPath = fs::current_path();
+    auto documentsPath = fs::documents_path();
+    auto homePath = fs::home_path();
 
-    std::string homePopTrackerPath = os_pathcat(homePath, "PopTracker");
-    _homePackDir = os_pathcat(homePopTrackerPath, "packs");
-    _appPackDir = os_pathcat(appPath, "packs");
+    auto homePopTrackerPath = homePath / "PopTracker";
+    _homePackDir = homePopTrackerPath / "packs";
+    _appPackDir = appPath / "packs";
 
     if (!homePath.empty()) {
         Pack::addSearchPath(_homePackDir); // default user packs
         if (!_isPortable) {
             // default user overrides
-            std::string homeUserOverrides = os_pathcat(homePopTrackerPath, "user-override");
-            if (dirExists(homePopTrackerPath))
-                mkdir_recursive(homeUserOverrides);
+            auto homeUserOverrides = homePopTrackerPath / "user-override";
+            if (fs::is_directory(homePopTrackerPath))
+                fs::create_directories(homeUserOverrides);
             Pack::addOverrideSearchPath(homeUserOverrides);
-            Assets::addSearchPath(os_pathcat(homePopTrackerPath, "assets"));
+            Assets::addSearchPath(homePopTrackerPath / "assets");
         }
     }
     if (!documentsPath.empty() && documentsPath != ".") {
-        std::string documentsPopTrackerPath = os_pathcat(documentsPath, "PopTracker");
-        Pack::addSearchPath(os_pathcat(documentsPopTrackerPath, "packs")); // alternative user packs
+        auto documentsPopTrackerPath = documentsPath / "PopTracker";
+        Pack::addSearchPath(documentsPopTrackerPath / "packs"); // alternative user packs
         if (!_isPortable) {
-            std::string documentsUserOverrides = os_pathcat(documentsPopTrackerPath, "user-override");
+            auto documentsUserOverrides = documentsPopTrackerPath / "user-override";
             Pack::addOverrideSearchPath(documentsUserOverrides);
-            if (dirExists(documentsPopTrackerPath))
-                mkdir_recursive(documentsUserOverrides);
+            if (fs::is_directory(documentsPopTrackerPath))
+                fs::create_directories(documentsUserOverrides);
         }
         if (_config.value<bool>("add_emo_packs", false)) {
-            Pack::addSearchPath(os_pathcat(documentsPath, "EmoTracker", "packs")); // "old" packs
+            Pack::addSearchPath(documentsPath / "EmoTracker" / "packs"); // "old" packs
         }
     }
 
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
         Pack::addSearchPath(_appPackDir); // system packs
-        Pack::addOverrideSearchPath(os_pathcat(appPath, "user-override")); // portable/system overrides
-        Assets::addSearchPath(os_pathcat(appPath, "assets")); // system assets
+        Pack::addOverrideSearchPath(appPath / "user-override"); // portable/system overrides
+        Assets::addSearchPath(appPath / "assets"); // system assets
     }
 
     _asio = new asio::io_service();
-    HTTP::certfile = asset("cacert.pem"); // https://curl.se/docs/caextract.html
+    HTTP::certfile = asset("cacert.pem").u8string(); // https://curl.se/docs/caextract.html
 
     _packManager = new PackManager(_asio, getConfigPath(APPNAME, "", _isPortable), _httpDefaultHeaders);
     // TODO: move repositories to config?
@@ -500,27 +501,27 @@ bool PopTracker::start()
         }
         auto& jPack = _args.contains("pack") ? _args["pack"] : _config["pack"];
         if (jPack.type() == json::value_t::object) {
-            std::string path = pathFromUTF8(to_string(jPack["path"],""));
+            auto path = pathFromUTF8(to_string(jPack["path"],""));
             std::string variant = to_string(jPack["variant"],"");
             if (!scheduleLoadTracker(path,variant))
             {
-                printf("Could not load pack \"%s\"... fuzzy matching\n", path.c_str());
+                printf("Could not load pack \"%s\"... fuzzy matching\n", sanitize_print(path).c_str());
                 // try to fuzzy match by uid and version if path is missing
                 std::string uid = to_string(jPack["uid"],"");
                 std::string version = to_string(jPack["version"],"");
                 Pack::Info info = Pack::Find(uid, version);
                 if (info.path.empty()) info = Pack::Find(uid); // try without version
                 if (!scheduleLoadTracker(info.path, variant)) {
-                    printf("Could not load pack uid \"%s\" (\"%s\")\n", uid.c_str(), info.path.c_str());
+                    printf("Could not load pack uid \"%s\" (\"%s\")\n", uid.c_str(), sanitize_print(info.path).c_str());
                 } else {
-                    printf("found pack \"%s\"\n", info.path.c_str());
+                    printf("found pack \"%s\"\n", sanitize_print(info.path).c_str());
                 }
             }
         }
     }
     
     // create main window
-    auto icon = IMG_Load(asset("icon.png").c_str());
+    auto icon = Ui::LoadImage(asset("icon.png"));
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
     SDL_FreeSurface(icon);
 	
@@ -551,7 +552,8 @@ bool PopTracker::start()
             if (_settings) {
                 _settings->Raise();
             } else {
-                auto icon = IMG_Load(asset("icon.png").c_str());
+                // NOTE: IMG_Load uses SDL_iostream, which uses WIN_UTF8ToStringW
+                auto icon = Ui::LoadImage(asset("icon.png"));
                 Ui::Position pos = _win->getPosition() + Ui::Size{0,32};
                 _settings = _ui->createWindow<Ui::SettingsWindow>("Settings", icon, pos);
                 _settings->setBackground({255,0,255});
@@ -643,22 +645,22 @@ bool PopTracker::start()
         }
         if (item == Ui::TrackerWindow::MENU_SAVE_STATE)
         {
-            if (!_tracker) return;
-            if (!_pack) return;
-            std::string lastName;
+            if (!_tracker || !_pack)
+                return;
+            fs::path last;
             if (_exportFile.empty() || _exportUID != _pack->getUID()) {
-                lastName = sanitize_filename(_pack->getGameName()) + ".json";
+                last = sanitize_filename(_pack->getGameName()) + ".json";
                 if (!_exportDir.empty())
-                    lastName = os_pathcat(_exportDir, lastName);
+                    last = _exportDir / last;
             } else {
-                lastName = _exportFile;
+                last = _exportFile;
             }
 
-            std::string filename;
-            if (!Dlg::SaveFile("Save State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename))
+            fs::path filename;
+            if (!Dlg::SaveFile("Save State", last, {{"JSON Files",{"*.json"}}}, filename))
                 return;
 #ifdef _WIN32 // windows does not add *.* filter, so we can be sure json was selected
-            if (filename.length() < 5 || strcasecmp(filename.c_str() + filename.length() - 5, ".JSON") != 0)
+            if (strcasecmp(filename.extension().u8string().c_str(), ".JSON") != 0)
                 filename += ".json";
 #endif
             auto jWindow = windowToJson(_win);
@@ -668,11 +670,11 @@ bool PopTracker::start()
             };
             if (!jWindow.is_null())
                 extra["window"] = jWindow;
-            if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename, true))
+            if (StateManager::saveState(_tracker, _scriptHost, _win->getHints(), extra, true, filename.u8string(), true))
             {
                 _exportFile = filename; // this is local encoding for fopen
                 _exportUID = _pack->getUID();
-                _exportDir = os_dirname(_exportFile);
+                _exportDir = _exportFile.parent_path();
             }
             else
             {
@@ -682,20 +684,20 @@ bool PopTracker::start()
         }
         if (item == Ui::TrackerWindow::MENU_LOAD_STATE)
         {
-            std::string lastName = _exportFile.empty() ? (_exportDir + OS_DIR_SEP) : _exportFile;
-            std::string filename;
-            if (!Dlg::OpenFile("Load State", lastName.c_str(), {{"JSON Files",{"*.json"}}}, filename)) return;
+            auto last = _exportFile.empty() ? (_exportDir / "") : _exportFile;
+            fs::path filename;
+            if (!Dlg::OpenFile("Load State", last, {{"JSON Files",{"*.json"}}}, filename)) return;
             if (filename != _exportFile) {
                 _exportFile = filename; // this is local encoding for fopen
-                _exportDir = os_dirname(_exportFile);
+                _exportDir = _exportFile.parent_path();
                 _exportUID.clear();
             }
             loadState(filename);
         }
     }};
 
-    _win->onPackSelected += {this, [this](void *s, const std::string& pack, const std::string& variant) {
-        printf("Pack selected: %s:%s\n", pack.c_str(), variant.c_str());
+    _win->onPackSelected += {this, [this](void *s, const fs::path& pack, const std::string& variant) {
+        printf("Pack selected: %s:%s\n", sanitize_print(pack).c_str(), sanitize_print(variant).c_str());
         if (!scheduleLoadTracker(pack, variant)) {
             fprintf(stderr, "Error scheduling load of tracker/pack!");
             // TODO: show error
@@ -715,32 +717,41 @@ bool PopTracker::start()
                 filename.pop_back();
             const char* tmp = strrchr(filename.c_str(), OS_DIR_SEP);
             std::string packname = tmp ? (std::string)(tmp+1) : filename;
-            std::string path = filename;
-            if (!Pack::isInSearchPath(filename)) {
-                if (type == Ui::DropType::DIR && !fileExists(os_pathcat(filename, "manifest.json"))) return;
+#ifdef _WIN32
+            // on windows this is UTF8
+            fs::path path = fs::u8path(filename);
+#else
+            // on other platforms, it's probably local encoding
+            fs::path path = filename;
+#endif
+            auto newPath = path;
+            if (!Pack::isInSearchPath(path)) {
+                if (type == Ui::DropType::DIR && !fs::is_regular_file(path / "manifest.json"))
+                    return;
                 std::string msg = "Install pack " + packname + " ?";
                 if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) != Dlg::Result::Yes)
                     return;
                 // default to %HOME%/PopTracker/packs if that exist, otherwise
                 // default to %APPDIR%/packs and fall back to %HOME%
                 // TODO: go through PackManager?
-                path = os_pathcat(getPackInstallDir(), packname);
-                if (!copy_recursive(filename.c_str(), path.c_str())) {
+                newPath = getPackInstallDir() / packname;
+                fs::error_code ec;
+                if (!copy_recursive(path, newPath, ec)) {
                     std::string msg = "Error copying files:\n";
-                    msg += strerror(errno);
-                    path = os_pathcat(_homePackDir, packname);
-                    mkdir_recursive(_homePackDir.c_str());
+                    msg += ec.message();
+                    newPath = _homePackDir / packname;
+                    fs::create_directories(_homePackDir);
                     errno = 0;
-                    if (!copy_recursive(filename.c_str(), path.c_str())) {
-                        msg += "\n"; msg += strerror(errno);
+                    if (!copy_recursive(path, newPath, ec)) {
+                        msg += "\n"; msg += ec.message();
                         Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::OK, Dlg::Icon::Error);
                         return;
                     }
                 }
-                printf("Installed to %s\n", path.c_str());
+                printf("Installed to %s\n", sanitize_print(newPath).c_str());
             }
             // attempt to load pack
-            if (!loadTracker(path, "standard", false)) {
+            if (!loadTracker(newPath, "standard", false)) {
                 _win->showOpen();
             }
         } else if (type == Ui::DropType::TEXT && strncasecmp(data.c_str(), "https://", 8)==0 && strcasecmp(data.c_str()+data.length()-4, ".zip") == 0) {
@@ -766,10 +777,10 @@ bool PopTracker::start()
             // default to %HOME%/PopTracker/packs if that exist, otherwise
             // default to %APPDIR%/packs and fall back to %HOME%
             // TODO: use PackManager::downloadUpdate
-            std::string path = os_pathcat(getPackInstallDir(), zipname);
+            auto path = getPackInstallDir() / fs::u8path(zipname);
             if (!writeFile(path, s)) {
-                path = os_pathcat(_homePackDir, zipname);
-                mkdir_recursive(_homePackDir.c_str());
+                path = _homePackDir / fs::u8path(zipname);
+                fs::create_directories(_homePackDir);
                 errno = 0;
                 if (!writeFile(path, s)) {
                     std:: string msg = "Error saving file:\n";
@@ -778,7 +789,7 @@ bool PopTracker::start()
                     return;
                 }
             }
-            printf("Download saved to %s\n", path.c_str());
+            printf("Download saved to %s\n", sanitize_print(path).c_str());
             // attempt to load pack
             if (!loadTracker(path, "standard", false)) {
                 _win->showOpen();
@@ -804,7 +815,7 @@ bool PopTracker::start()
         if (Dlg::MsgBox("PopTracker", msg,
                 Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes) {
             const auto& installDir = getPackInstallDir();
-            mkdir_recursive(installDir);
+            fs::create_directories(installDir);
             _packManager->downloadUpdate(url, installDir, uid, version, sha256);
         } else if (Dlg::MsgBox("PopTracker", "Skip version " + version + "?",
                 Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes) {
@@ -824,27 +835,37 @@ bool PopTracker::start()
         _win->hideProgress();
         Dlg::MsgBox("PopTracker", "Update failed: " + reason);
     }};
-    _packManager->onUpdateComplete += {this, [this](void*, const std::string& url, const std::string& file, const std::string& uid) {
+    _packManager->onUpdateComplete += {this, [this](void*, const std::string& url, const fs::path& file, const std::string& uid) {
         (void)url;
         _win->hideProgress();
         std::string variant = _pack ? _pack->getVariant() : "";
         if (_pack && _pack->getUID() == uid) {
             // FIXME: probably should capture which pack started the update
-            std::string oldPath = _pack->getPath();
+            auto oldPath = _pack->getPath();
             unloadTracker();
-            std::string oldDir = os_dirname(oldPath);
-            std::string oldName = os_basename(oldPath);
-            std::string backupDir = os_pathcat(oldDir, "old");
-            mkdir_recursive(backupDir.c_str());
-            std::string backupPath = os_pathcat(backupDir, oldName);
-            if (pathExists(backupPath) && unlink(backupPath.c_str()) != 0) {
+            auto oldDir = oldPath.parent_path();
+            auto oldName = oldPath.filename();
+            auto backupDir = oldDir / "old";
+            fs::create_directories(backupDir);
+            auto backupPath = backupDir / oldName;
+            fs::error_code ec;
+            if (fs::exists(backupPath, ec) && !fs::remove(backupPath, ec)) {
                 fprintf(stderr, "Could not delete old backup %s: %s\n",
-                        backupPath.c_str(), strerror(errno));
-            } else if (rename(oldPath.c_str(), backupPath.c_str()) == 0) {
-                printf("Moved %s to %s\n", oldPath.c_str(), backupPath.c_str());
+                    sanitize_print(backupPath).c_str(),
+                    ec.message().c_str());
             } else {
-                fprintf(stderr, "Could not move %s to %s: %s\n",
-                        oldPath.c_str(), backupPath.c_str(), strerror(errno));
+                fs::error_code ec;
+                fs::rename(oldPath, backupPath, ec);
+                if (ec) {
+                    fprintf(stderr, "Could not move %s to %s: %s\n",
+                        sanitize_print(oldPath).c_str(),
+                        sanitize_print(backupPath).c_str(),
+                        ec.message().c_str());
+                } else {
+                    printf("Moved %s to %s\n",
+                        sanitize_print(oldPath).c_str(),
+                        sanitize_print(backupPath).c_str());
+                }
             }
         }
         loadTracker(file, variant);
@@ -895,7 +916,7 @@ bool PopTracker::frame()
         _config["format_version"] = 1;
         if (_pack)
             _config["pack"] = {
-                {"path",pathToUTF8(_pack->getPath())},
+                {"path",_pack->getPath().u8string()},
                 {"variant",_pack->getVariant()},
                 {"uid",_pack->getUID()},
                 {"version",_pack->getVersion()}
@@ -904,9 +925,9 @@ bool PopTracker::frame()
             _config["window"] = jWindow;
         else
             _config.erase("window");
-        _config["export_file"] = pathToUTF8(_exportFile);
+        _config["export_file"] = _exportFile.u8string();
         _config["export_uid"] = _exportUID;
-        _config["export_dir"] = pathToUTF8(_exportDir);
+        _config["export_dir"] = _exportDir.u8string();
         saveConfig();
     }
 
@@ -967,7 +988,7 @@ bool PopTracker::ListPacks(PackManager::confirmation_callback confirm, bool inst
 
     printf("Search paths:\n");
     for (const auto& path: Pack::getSearchPaths()) {
-        printf("%s\n", path.c_str());
+        printf("%s\n", sanitize_print(path).c_str());
     }
     printf("\n");
 
@@ -1005,7 +1026,7 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
         int percent = total>0 ? received*100/total : 0;
         printf("%3d%% [%s/%s]        \r", percent, format_bytes(received).c_str(), format_bytes(total).c_str());
     }};
-    _packManager->onUpdateComplete += {this, [&done, &res](void*, const std::string& url, const std::string& local, const std::string&) {
+    _packManager->onUpdateComplete += {this, [&done, &res](void*, const std::string& url, const fs::path& local, const std::string&) {
         printf("\nDownload complete.\n");
         printf("Pack installed as %s\n", sanitize_print(local).c_str());
         res = false;
@@ -1018,7 +1039,7 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
     }};
     _packManager->checkForUpdate(uid, "", "", [this](const std::string& uid, const std::string& version, const std::string& url, const std::string& sha256){
         const auto& installDir = getPackInstallDir();
-        mkdir_recursive(installDir);
+        fs::create_directories(installDir);
         _packManager->downloadUpdate(url, installDir, uid, version, sha256);
     }, [&done, &res](const std::string& uid) {
         printf("%s has no installation candidate\n", uid.c_str());
@@ -1031,9 +1052,11 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
     return res;
 }
 
-const std::string& PopTracker::getPackInstallDir() const
+const fs::path& PopTracker::getPackInstallDir() const
 {
-    return (!_isPortable && dirExists(_homePackDir)) || !isWritable(_appPackDir) ? _homePackDir : _appPackDir;
+    if ((!_isPortable && fs::is_directory(_homePackDir)) || !isWritable(_appPackDir))
+        return _homePackDir;
+    return _appPackDir;
 }
 
 void PopTracker::unloadTracker()
@@ -1079,7 +1102,7 @@ void PopTracker::unloadTracker()
     _debugFlags = _defaultDebugFlags;
 }
 
-bool PopTracker::loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
+bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave)
 {
     printf("Cleaning up...\n");
     unloadTracker();
@@ -1320,10 +1343,11 @@ bool PopTracker::loadTracker(const std::string& pack, const std::string& variant
     return res;
 }
 
-bool PopTracker::scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave)
+bool PopTracker::scheduleLoadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave)
 {
     // TODO: (load and) verify pack already?
-    if (! pathExists(pack)) return false;
+    if (!fs::exists(pack))
+        return false;
     _newPack = pack;
     _newVariant = variant;
     _newTrackerLoadAutosave = loadAutosave;
@@ -1342,11 +1366,11 @@ void PopTracker::reloadTracker(bool force)
     }
 }
 
-void PopTracker::loadState(const std::string& filename)
+void PopTracker::loadState(const fs::path& filename)
 {
     std::string s;
     if (!readFile(filename, s)) {
-        fprintf(stderr, "Error reading state file: %s\n", filename.c_str());
+        fprintf(stderr, "Error reading state file: %s\n", sanitize_print(filename).c_str());
         Dlg::MsgBox("PopTracker", "Could not read state file!",
                 Dlg::Buttons::OK, Dlg::Icon::Error);
         return;
@@ -1355,7 +1379,7 @@ void PopTracker::loadState(const std::string& filename)
     try {
         j = parse_jsonc(s);
     } catch (...) {
-        fprintf(stderr, "Error parsing state file: %s\n", filename.c_str());
+        fprintf(stderr, "Error parsing state file: %s\n", sanitize_print(filename).c_str());
         Dlg::MsgBox("PopTracker", "Selected file is not valid json!",
                 Dlg::Buttons::OK, Dlg::Icon::Error);
         return;
@@ -1363,7 +1387,7 @@ void PopTracker::loadState(const std::string& filename)
     auto jNull = json(nullptr);
     auto& jPack = j.is_object() ? j["pack"] : jNull;
     if (!jPack.is_object() || !jPack["uid"].is_string() || !jPack["variant"].is_string()) {
-        fprintf(stderr, "Json is not a state file: %s\n", filename.c_str());
+        fprintf(stderr, "Json is not a state file: %s\n", sanitize_print(filename).c_str());
         Dlg::MsgBox("PopTracker", "Selected file is not a state file!",
                 Dlg::Buttons::OK, Dlg::Icon::Error);
         return;
@@ -1371,7 +1395,7 @@ void PopTracker::loadState(const std::string& filename)
     if (_pack->getUID() != jPack["uid"] || _pack->getVariant() != jPack["variant"]) {
         auto packInfo = Pack::Find(jPack["uid"]);
         if (packInfo.uid != jPack["uid"]) {
-            std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"]) + "!";
+            std::string msg = "Could not find pack: " + sanitize_print(jPack["uid"].get<std::string>()) + "!";
             fprintf(stderr, "%s\n", msg.c_str());
             Dlg::MsgBox("PopTracker", msg,
                     Dlg::Buttons::OK, Dlg::Icon::Error);
@@ -1385,9 +1409,9 @@ void PopTracker::loadState(const std::string& filename)
             }
         }
         if (!variantMatch) {
-            std::string msg = "Pack " + sanitize_print(jPack["uid"]) +
+            std::string msg = "Pack " + sanitize_print(jPack["uid"].get<std::string>()) +
                     " does not have requested variant "
-                    + sanitize_print(jPack["variant"]);
+                    + sanitize_print(jPack["variant"].get<std::string>());
             fprintf(stderr, "%s\n", msg.c_str());
             Dlg::MsgBox("PopTracker", msg,
                     Dlg::Buttons::OK, Dlg::Icon::Error);
@@ -1403,7 +1427,7 @@ void PopTracker::loadState(const std::string& filename)
         }
     }
     json extra;
-    if (!StateManager::loadState(_tracker, _scriptHost, extra, true, filename, true)) {
+    if (!StateManager::loadState(_tracker, _scriptHost, extra, true, filename.u8string(), true)) {
         Dlg::MsgBox("PopTracker", "Error loading state!",
                 Dlg::Buttons::OK, Dlg::Icon::Error);
     }
@@ -1426,7 +1450,7 @@ void PopTracker::showBroadcast()
         _broadcast->Raise();
     } else if (_tracker->hasLayout("tracker_broadcast")) {
         // create window
-        auto icon = IMG_Load(asset("icon.png").c_str());
+        auto icon = Ui::LoadImage(asset("icon.png"));
         Ui::Position pos = _win->getPosition() + Ui::Size{0,32};
         _broadcast = _ui->createWindow<Ui::BroadcastWindow>("Broadcast", icon, pos);
         SDL_FreeSurface(icon);
@@ -1448,7 +1472,7 @@ void PopTracker::showBroadcast()
 void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)
 {
     std::string ignoreData;
-    std::string ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json", _isPortable);
+    auto ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json", _isPortable);
     json ignore;
     if (readFile(ignoreFilename, ignoreData)) {
         ignore = parse_jsonc(ignoreData);
@@ -1510,10 +1534,11 @@ bool PopTracker::saveConfig()
 {
     bool res = true;
     if (_oldConfig != _config) {
-        std::string configDir = getConfigPath(APPNAME, "", _isPortable);
-        mkdir_recursive(configDir.c_str());
-        res = writeFile(os_pathcat(configDir, std::string(APPNAME)+".json"), _config.dump(4)+"\n");
-        if (res) _oldConfig = _config;
+        auto configDir = getConfigPath(APPNAME, "", _isPortable);
+        fs::create_directories(configDir);
+        res = writeFile(configDir / (std::string(APPNAME)+".json"), _config.dump(4)+"\n");
+        if (res)
+            _oldConfig = _config;
     }
     return res;
 }

@@ -362,7 +362,7 @@ bool Ui::render()
                         EVENT_LOCK(this);
                         auto winit = _windows.find(ev.drop.windowID);
                         if (winit != _windows.end()) {
-                            bool isDir = dirExists(ev.drop.file);
+                            bool isDir = fs::is_directory(fs::u8path(ev.drop.file));
                             winit->second->onDrop.emit(winit->second, 0, 0,
                                     isDir ? DropType::DIR : DropType::FILE,
                                     ev.drop.file);

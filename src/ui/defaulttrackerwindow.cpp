@@ -16,28 +16,28 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _menu = hbox;
     addChild(_menu);
     
-    _btnLoad = new ImageButton(0,0,32-4,32-4, asset("load.png").c_str());
+    _btnLoad = new ImageButton(0,0,32-4,32-4, asset("load.png"));
     _btnLoad->setDarkenGreyscale(false);
     hbox->addChild(_btnLoad);
     _btnLoad->onClick += { this, [this](void*, int x, int y, int button) {
         onMenuPressed.emit(this, MENU_LOAD, 0);
     }};
     
-    _btnReload = new ImageButton(0,0,32-4,32-4, asset("reload.png").c_str());
+    _btnReload = new ImageButton(0,0,32-4,32-4, asset("reload.png"));
     _btnReload->setVisible(false);
     hbox->addChild(_btnReload);
     _btnReload->onClick += { this, [this](void*, int x, int y, int button) {
         onMenuPressed.emit(this, MENU_RELOAD, 0);
     }};
     
-    _btnImport = new ImageButton(0,0,32-4,32-4, asset("import.png").c_str());
+    _btnImport = new ImageButton(0,0,32-4,32-4, asset("import.png"));
     _btnImport->setVisible(false);
     hbox->addChild(_btnImport);
     _btnImport->onClick += { this, [this](void*, int x, int y, int button) {
         onMenuPressed.emit(this, MENU_LOAD_STATE, 0);
     }};
 
-    _btnExport = new ImageButton(0,0,32-4,32-4, asset("export.png").c_str());
+    _btnExport = new ImageButton(0,0,32-4,32-4, asset("export.png"));
     _btnExport->setVisible(false);
     hbox->addChild(_btnExport);
     _btnExport->onClick += { this, [this](void*, int x, int y, int button) {
@@ -45,7 +45,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     }};
 
 #ifndef __EMSCRIPTEN__ // no multi-window support (yet)
-    _btnBroadcast = new ImageButton(0,0,32-4,32-4, asset("broadcast.png").c_str());
+    _btnBroadcast = new ImageButton(0,0,32-4,32-4, asset("broadcast.png"));
     _btnBroadcast->setVisible(false);
     hbox->addChild(_btnBroadcast);
     _btnBroadcast->onClick += { this, [this](void*, int x, int y, int button) {
@@ -53,7 +53,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     }};
 #endif
     
-    _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png").c_str());
+    _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png"));
     _btnPackSettings->setVisible(false);
     hbox->addChild(_btnPackSettings);
     _btnPackSettings->onClick += { this, [this](void*, int x, int y, int button) {
@@ -89,7 +89,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _loadPackWidget->setVisible(false);
     addChild(_loadPackWidget);
     
-    _loadPackWidget->onPackSelected += {this,[this](void *s, const std::string& pack, const std::string& variant) {
+    _loadPackWidget->onPackSelected += {this,[this](void *s, const fs::path& pack, const std::string& variant) {
         onPackSelected.emit(this,pack,variant);
     }};
     

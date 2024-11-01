@@ -2,6 +2,7 @@
 # NOTE: we may use gifdec in the future to support animations
 #       for now we use SDL2_image GIF support only
 CONF ?= RELEASE # make CONF=DEBUG for debug, CONF=DIST for .zip
+MACOS_DEPLOYMENT_TARGET ?= 10.15
 SRC_DIR = src
 TEST_DIR = test
 LIB_DIR = lib
@@ -172,14 +173,31 @@ WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 NIX_LUA_C_FLAGS = $(LUA_C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
+
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
-DEPLOYMENT_TARGET=10.12
+DEPLOYMENT_TARGET = $(MACOS_DEPLOYMENT_TARGET)
+DEPLOYMENT_TARGET_MAJOR := $(shell echo $(DEPLOYMENT_TARGET) | cut -f1 -d.)
+DEPLOYMENT_TARGET_MINOR := $(shell echo $(DEPLOYMENT_TARGET) | cut -f2 -d.)
+# NOTE: on macos before 10.15 we have to use boost::filesystem instead of std::filesystem
+#       This is currently not built automatically. Please open an issue if you really need a build for macos<10.15.
+HAS_STD_FILESYSTEM := $(shell [ $(DEPLOYMENT_TARGET_MAJOR) -gt 10 -o \( $(DEPLOYMENT_TARGET_MAJOR) -eq 10 -a $(DEPLOYMENT_TARGET_MINOR) -ge 15 \) ] && echo true)
 NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
 NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib -L$(BREW_PREFIX)/lib
 NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
 NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
+else
+HAS_STD_FILESYSTEM ?= true
 endif
+
+ifeq ($(HAS_STD_FILESYSTEM), true)
+$(info using std::filesystem)
+else
+$(info using boost::filesystem)
+NIX_LD_FLAGS += -lboost_filesystem
+NIX_CPP_FLAGS += -DNO_STD_FILESYSTEM
+endif
+
 ifeq ($(CONF), DEBUG) # DEBUG
 WINDRES_FLAGS =
 else
