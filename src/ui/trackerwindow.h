@@ -2,13 +2,13 @@
 #define _UI_TRACKERWINDOW_H
 
 #include <string>
+#include "../core/autotracker.h"
 #include "../uilib/window.h"
 #include "../uilib/label.h"
 #include "../uilib/image.h"
 #include "../uilib/imagebutton.h"
 #include "trackerview.h"
 #include "../core/tracker.h"
-#include "../core/autotracker.h"
 
 namespace Ui {
 

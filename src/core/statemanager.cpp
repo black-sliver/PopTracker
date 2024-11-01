@@ -6,9 +6,9 @@
 using nlohmann::json;
 
 std::map<StateManager::StateID, json> StateManager::_states;
-std::string StateManager::_dir;
+fs::path StateManager::_dir;
 
-void StateManager::setDir(const std::string& dir)
+void StateManager::setDir(const fs::path& dir)
 {
     _dir = dir;
 }
@@ -42,7 +42,7 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
     }
     state["ui_hints"] = jUiHints;
     state["pack"] = {
-        { "path", pathToUTF8(pack->getPath()) },
+        { "path", pack->getPath().u8string() },
         { "uid", pack->getUID() },
         { "variant", pack->getVariant() },
         { "version", pack->getVersion() },
@@ -55,19 +55,19 @@ bool StateManager::saveState(Tracker* tracker, ScriptHost*,
                   pack->getVariant(), name }] = state;
         return true;
     } else {
-        std::string filename;
+        fs::path filename;
         if (external) {
             filename = name;
         } else {
-            auto dirname = os_pathcat(_dir,
-                    sanitize_dir(pack->getUID()),
-                    sanitize_dir(pack->getVersion()),
-                    sanitize_dir(pack->getVariant()));
-            mkdir_recursive(dirname.c_str());
-            filename = os_pathcat(dirname, name+".json");
+            auto dirname = _dir /
+                    sanitize_dir(pack->getUID()) /
+                    sanitize_dir(pack->getVersion()) /
+                    sanitize_dir(pack->getVariant());
+            fs::create_directories(dirname);
+            filename = dirname / (name + ".json");
         }
         printf("Saving state \"%s\" to file %s...\n",
-                external ? "export" : name.c_str(), filename.c_str());
+                external ? "export" : name.c_str(), sanitize_print(filename).c_str());
         try {
             std::string new_state = state.dump();
             std::string old_state;
@@ -102,12 +102,12 @@ bool StateManager::loadState(Tracker* tracker, ScriptHost* scripthost, json& ext
         extra_out = it->second["extra"];
     } else {
         std::string s;
-        std::string filename = external ? name : os_pathcat(_dir,
-                sanitize_dir(pack->getUID()),
-                sanitize_dir(pack->getVersion()),
-                sanitize_dir(pack->getVariant()), name+".json");
+        fs::path filename = external ? fs::u8path(name) : (_dir /
+                sanitize_dir(pack->getUID()) /
+                sanitize_dir(pack->getVersion()) /
+                sanitize_dir(pack->getVariant()) / (name + ".json"));
         printf("Loading state \"%s\" from file %s...",
-                external ? "import" : name.c_str(), filename.c_str());
+                external ? "import" : name.c_str(), sanitize_print(filename).c_str());
         if (!readFile(filename, s)) {
             printf(" missing\n");
             return false;
@@ -143,10 +143,10 @@ json StateManager::getStateExtra(Tracker* tracker,
         }
     } else {
         std::string s;
-        std::string filename = external ? name : os_pathcat(_dir,
-                sanitize_dir(pack->getUID()),
-                sanitize_dir(pack->getVersion()),
-                sanitize_dir(pack->getVariant()), name+".json");
+        fs::path filename = external ? fs::path(name) : _dir /
+                sanitize_dir(pack->getUID()) /
+                sanitize_dir(pack->getVersion()) /
+                sanitize_dir(pack->getVariant()) / (name+".json");
         if (readFile(filename, s)) {
             auto j = parse_jsonc(s);
             if (j.is_object())

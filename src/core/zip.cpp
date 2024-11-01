@@ -1,19 +1,21 @@
 #include "zip.h"
 
 // as long as we only use miniz here, we can just #include it
-extern "C" {
+//extern "C" {
 #include <miniz.c>
-}
+//}
 
 #include <algorithm>
+
+#include "fs.h"
 #include "string.h"
 
 
-Zip::Zip(const std::string& filename)
+Zip::Zip(const fs::path& filename)
 {
     _slashes = Slashes::UNKNOWN;
     mz_zip_zero_struct(&_zip);
-    if (!mz_zip_reader_init_file(&_zip, filename.c_str(), 0)) {
+    if (!mz_zip_reader_init_file(&_zip, filename.u8string().c_str(), 0)) {
         _valid = false;
         return;
     }

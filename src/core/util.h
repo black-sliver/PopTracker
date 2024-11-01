@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include "fs.h"
 
 
 template< class Type, ptrdiff_t n >
@@ -13,6 +14,16 @@ static std::string sanitize_print(const std::string& s) {
     std::string res = s;
     for (auto& c: res) if (c < 0x20) c = '?';
     return res;
+}
+
+static std::string sanitize_print(const char* s)
+{
+    return sanitize_print(std::string(s));
+}
+
+static std::string sanitize_print(const fs::path& path)
+{
+    return sanitize_print(path.u8string());
 }
 
 /// Replaces reserved/non-portable symbols by '_'.

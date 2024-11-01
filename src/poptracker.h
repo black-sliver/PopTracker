@@ -43,11 +43,11 @@ private:
     asio::io_service *_asio = nullptr;
     std::list<std::string> _httpDefaultHeaders;
     PackManager *_packManager = nullptr;
-    std::string _exportFile;
+    fs::path _exportFile;
     std::string _exportUID;
-    std::string _exportDir;
-    std::string _homePackDir;
-    std::string _appPackDir;
+    fs::path _exportDir;
+    fs::path _homePackDir;
+    fs::path _appPackDir;
     std::set<std::string> _debugFlags;
     std::set<std::string> _defaultDebugFlags;
 
@@ -56,24 +56,24 @@ private:
     std::chrono::steady_clock::time_point _fpsTimer;
     std::chrono::steady_clock::time_point _frameTimer;
     
-    std::string _newPack;
+    fs::path _newPack;
     std::string _newVariant;
     bool _newTrackerLoadAutosave = false;
     std::chrono::steady_clock::time_point _autosaveTimer;
 
     std::string _atUri, _atSlot, _atPassword;
 
-    bool loadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
-    bool scheduleLoadTracker(const std::string& pack, const std::string& variant, bool loadAutosave=true);
+    bool loadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave=true);
+    bool scheduleLoadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave=true);
     void unloadTracker();
     void reloadTracker(bool force=false);
-    void loadState(const std::string& filename);
+    void loadState(const fs::path& filename);
     void showBroadcast();
     
     void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
     static bool isNewer(const Version& v);
 
-    const std::string& getPackInstallDir() const;
+    const fs::path& getPackInstallDir() const;
 
     bool saveConfig();
 

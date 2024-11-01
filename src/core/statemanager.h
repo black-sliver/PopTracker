@@ -3,8 +3,8 @@
 
 #include <string>
 #include <map>
-#include "tracker.h"
 #include "scripthost.h"
+#include "tracker.h"
 #include <nlohmann/json.hpp>
 
 class StateManager {
@@ -20,7 +20,7 @@ public:
     static json getStateExtra(Tracker* tracker,
             bool file=false, const std::string& name="autosave",
             bool external=false);
-    static void setDir(const std::string& dir);
+    static void setDir(const fs::path& dir);
     
 private:
     struct StateID {
@@ -43,7 +43,7 @@ private:
     };
     
     static std::map<StateID, nlohmann::json> _states;
-    static std::string _dir;
+    static fs::path _dir;
 };
 
 #endif /* _CORE_STATEMANAGER_H */

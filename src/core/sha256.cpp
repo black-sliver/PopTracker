@@ -4,7 +4,7 @@
 #include <openssl/evp.h>
 
 
-std::string SHA256_File(const std::string& file)
+std::string SHA256_File(const fs::path& file)
 {
     std::string res = "";
     EVP_MD_CTX* context = nullptr;
@@ -13,7 +13,11 @@ std::string SHA256_File(const std::string& file)
     uint8_t hash[EVP_MAX_MD_SIZE];
     unsigned int hashLen = 0;
 
+#ifdef _WIN32
+    FILE* f = _wfopen(file.c_str(), L"rb");
+#else
     FILE* f = fopen(file.c_str(), "rb");
+#endif
     if (!f) goto err_fopen;
     context = EVP_MD_CTX_new();
     if(context == NULL) goto err_alloc;

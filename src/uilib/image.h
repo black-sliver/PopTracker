@@ -2,6 +2,7 @@
 #define _UILIB_IMAGE_H
 
 #include "widget.h"
+#include "../core/fs.h"
 #include <string>
 
 namespace Ui {
@@ -9,7 +10,7 @@ namespace Ui {
 class Image : public Widget
 {
 public:
-    Image(int x, int y, int w, int h, const char* path);
+    Image(int x, int y, int w, int h, const fs::path& path);
     Image(int x, int y, int w, int h, const void* data, size_t len);
     ~Image();
     virtual void render(Renderer renderer, int offX, int offY) override;
@@ -18,11 +19,14 @@ public:
     // NOTE: this has to be set before the image is rendered for the first time
     virtual void setQuality(int q) { _quality = q; }
     virtual void setDarkenGreyscale(bool value);
+    void setImage(const fs::path& path);
+    void setImage(const void* data, size_t len);
+
 protected:
     SDL_Surface *_surf = nullptr;
     SDL_Texture *_tex = nullptr;
     SDL_Texture *_texBw = nullptr;
-    std::string _path;
+    fs::path _path;
     bool _fixedAspect=true;
     int _quality=-1;
     bool _darkenGreyscale = true; // makes greyscale version look "disabled"
