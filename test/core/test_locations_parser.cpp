@@ -43,7 +43,7 @@ TEST(LocationsParserTest, SectionRulesInheritAndEmpty) {
         }
     )"_json;
 
-    auto section = Location::FromJSON(locationNode, {}, {}, {}).front().getSections().front();
+    auto section = Location::FromJSON(locationNode, {}).front().getSections().front();
     EXPECT_EQ(section.getAccessRules(),
               list<list<string>>({{"a"}}));
     EXPECT_EQ(section.getVisibilityRules(),
