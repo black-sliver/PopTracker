@@ -55,6 +55,13 @@ Send PRs on github.
 - use private (not protected) where possible to avoid going through vtables
 - implement small functions inline in header files for platforms where LTO does not work correctly
 
+### Static Analysis
+
+We run [scan-build](https://clang.llvm.org/docs/analyzer/user-docs/CommandLineUsage.html#scan-build)
+in CI to catch some mistakes, excluding some libs.
+
+See [scan-build.yaml](../.github/workflows/scan-build.yaml).
+
 ## Documentation Style
 
 Markdown per [Google Markdown style guide](https://google.github.io/styleguide/docguide/style.html)

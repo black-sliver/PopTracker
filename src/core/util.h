@@ -6,6 +6,12 @@
 #include <cstring>
 #include "fs.h"
 
+#ifdef __has_include
+#  if __has_include(<utility>)
+#    include <utility>
+#  endif
+#endif
+
 
 template< class Type, ptrdiff_t n >
 static ptrdiff_t countOf( Type (&)[n] ) { return n; }
@@ -100,6 +106,21 @@ static void strip(std::string& s, const char* whitespace = " \t\r\n")
             s = s.substr(start, end - start + 1);
         }
     }
+}
+
+namespace util {
+#ifdef __cpp_lib_unreachable
+    using unreachable = std::unreachable;
+#else
+    [[noreturn]] static inline void unreachable()
+    {
+#    if defined(_MSC_VER) && !defined(__clang__) // MSVC
+        __assume(false);
+#    else // GCC, Clang
+        __builtin_unreachable();
+#    endif
+    }
+#endif
 }
 
 #endif // _CORE_UTIL_H
