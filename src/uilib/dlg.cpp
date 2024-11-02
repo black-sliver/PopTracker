@@ -134,7 +134,7 @@ static LPVOID InitDialogU(LPVOID buf, ULONG_PTR buflen, LPCSTR title, DWORD styl
     // title
     LPWSTR lpwTitle = (LPWSTR)wbuf;
     nchar = MultiByteToWideChar(CP_UTF8, 0, title, -1, lpwTitle, 0);
-    if (nchar*2 > buflen) return nullptr;
+    if ((ULONG_PTR)nchar*2 > buflen) return nullptr;
     nchar = MultiByteToWideChar(CP_UTF8, 0, title, -1, lpwTitle, nchar);
     wbuf += nchar;
     buflen -= nchar*2;
@@ -148,7 +148,7 @@ static LPVOID InitDialogU(LPVOID buf, ULONG_PTR buflen, LPCSTR title, DWORD styl
        buflen -= 2;
        wchar_t fontname[] = L"MS Shell Dlg";
        nchar = sizeof(fontname)/2;
-       if (nchar*2 > buflen) return nullptr;
+       if ((ULONG_PTR)nchar*2 > buflen) return nullptr;
        memcpy(wbuf, fontname, nchar*2);
        wbuf += nchar;
        buflen -= nchar*2;
@@ -184,7 +184,7 @@ static LPVOID CreateDlgControlU(LPVOID buf, ULONG_PTR buflen, WORD ctrlclass, WO
     // text
     LPWSTR lpwText = (LPWSTR)wbuf;
     nchar = MultiByteToWideChar(CP_UTF8, 0, text, -1, lpwText, 0);
-    if (nchar*2 > buflen) return nullptr;
+    if ((ULONG_PTR)nchar*2 > buflen) return nullptr;
     nchar = MultiByteToWideChar(CP_UTF8, 0, text, -1, lpwText, nchar);
     wbuf += nchar;
     buflen -= nchar*2;
