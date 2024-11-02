@@ -164,8 +164,8 @@ bool Ui::render()
 
     #define FRAME_TIME (1000/_fpsLimit) // TODO: microseconds
     
-    uint32_t t0 = SDL_GetTicks(); // TODO: microseconds
-    uint32_t t1 = t0;
+    const uint32_t t0 = SDL_GetTicks(); // TODO: microseconds
+    uint32_t t1;
     
     do {
 #ifndef __EMSCRIPTEN__

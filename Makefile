@@ -117,9 +117,25 @@ WIN64_TEST_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC))
 WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)))
 
 # tools
-CC = gcc # TODO: use ?=
-CPP = g++ # TODO: use ?=
-AR = ar # TODO: use ?=
+CC ?= gcc
+CXX ?= g++
+AR ?= ar
+
+ifeq ($(CC), cc)
+CC = gcc
+CPP = $(CC) -E
+endif
+ifeq ($(CXX), cpp)
+CXX = g++
+endif
+ifeq ($(AR), ar)
+AR = ar
+endif
+
+$(info using CC=${CC})
+$(info using CPP=${CPP})
+$(info using CXX=${CXX})
+$(info using AR=${AR})
 
 # cross tools
 EMCC ?= emcc
@@ -137,29 +153,36 @@ WIN64STRIP = x86_64-w64-mingw32-strip
 WIN64WINDRES = x86_64-w64-mingw32-windres
 
 # tool config
-#TODO: -fsanitize=address -fno-omit-frame-pointer ?
 C_FLAGS = -Wall -std=c99 -D_REENTRANT
 LUA_C_FLAGS = -Wall -D_REENTRANT  # we actually use C++ for lua now
 ifeq ($(CONF), DEBUG) # DEBUG
-C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -ftrapv
-LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
-ifdef IS_LLVM # DEBUG with LLVM
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
-else # DEBUG with GCC
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
-endif
-else
-C_FLAGS += -O2 -fno-stack-protector -fno-common
-LUA_CFALGS += -O2 -fno-stack-protector -fno-common
-ifdef IS_LLVM # RELEASE or DIST with LLVM
-CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
-LD_FLAGS = -Wl,-dead_strip -O2 -flto
-else # RELEASE or DIST with GCC
-CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
-LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
-endif
+  C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -ftrapv
+  LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
+  ifdef IS_LLVM # DEBUG with LLVM
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
+    ifdef IS_LINUX # clang calls regular LD on linux
+      LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
+    endif
+  else # DEBUG with GCC
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
+  endif
+  #CPP_FLAGS += -fsanitize=address
+  #LD_FLAGS += -fsanitize=address
+else # RELEASE or DIST
+  C_FLAGS += -O2 -fno-stack-protector -fno-common
+  LUA_CFALGS += -O2 -fno-stack-protector -fno-common
+  ifdef IS_LLVM # RELEASE or DIST with LLVM
+    CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
+    LD_FLAGS = -Wl,-dead_strip -O2 -flto
+    ifdef IS_LINUX # clang calls regular LD on linux
+      LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
+    endif
+  else # RELEASE or DIST with GCC
+    CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
+    LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
+  endif
 endif
 
 CPP_FLAGS += -DLUA_CPP
@@ -209,7 +232,7 @@ ifdef IS_WIN32
   EXE = $(WIN32_EXE)
   TEST_EXE = $(WIN32_TEST_EXE)
   WIN32CC = $(CC)
-  WIN32CPP = $(CPP)
+  WIN32CPP = $(CXX)
   WIN32AR = $(AR)
   WIN32STRIP = strip
   WIN32WINDRES = windres
@@ -224,7 +247,7 @@ else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
   TEST_EXE = $(WIN64_TEST_EXE)
   WIN64CC = $(CC)
-  WIN64CPP = $(CPP)
+  WIN64CPP = $(CXX)
   WIN64AR = $(AR)
   WIN64STRIP = strip
   WIN64WINDRES = windres
@@ -275,10 +298,10 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+	$(CXX) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
@@ -361,7 +384,7 @@ $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DI
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CPP) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CXX) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib/lua
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN32_BUILD_DIR)
@@ -402,7 +425,7 @@ $(DIST_DIR):
 $(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
 	mkdir -p $@
 $(NIX_BUILD_DIR)/%.o: %.c* $(HDR) | $(NIX_OBJ_DIRS)
-	$(CPP) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
+	$(CXX) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
 	mkdir -p $@
 $(WIN32_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN32_OBJ_DIRS)

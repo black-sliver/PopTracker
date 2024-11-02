@@ -189,9 +189,6 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
             // move to drawing offset
             innerx += dstx;
             innery += dsty;
-            // calculate top left corner of border
-            int outerx = innerx-borderScreenSize;
-            int outery = innery-borderScreenSize;
 
             int state = (int)pos.state;
             if (state == -1) continue; // hidden

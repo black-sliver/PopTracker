@@ -321,7 +321,7 @@ Dlg::Result Dlg::MsgBox(const std::string& title, const std::string& message, Dl
     int res; 
     switch (btns) {
         case Dlg::Buttons::OK:
-            res = tinyfd_messageBox(title.c_str(), message.c_str(), "ok",  tfdicon, 0);
+            tinyfd_messageBox(title.c_str(), message.c_str(), "ok",  tfdicon, 0);
             return Dlg::Result::OK;
         case Dlg::Buttons::OKCancel:
             res = tinyfd_messageBox(title.c_str(), message.c_str(),  "okcancel",  tfdicon, dflt==Dlg::Result::OK ? 1 : 0);
