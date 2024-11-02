@@ -43,22 +43,30 @@ public:
             size.width = _minSize.width;
         }
         Container::setSize(size);
-        // TODO: move this to relayout and run relayout instead
-        for (auto child : _children) {
-            child->setTop(_padding + child->getMargin().top);
-            child->setHeight(size.height - child->getTop() - child->getMargin().bottom - _padding);
-        }
-        // FIXME: make this depend on vgrow of *all* chrildren
-        if (!_children.empty() && _children.back()->getHGrow()) {
-            // FIXME: this code actually gets run for every addChild()
-            _children.back()->setWidth(size.width - _children.back()->getLeft() - _padding);
-        }
+        relayout();
     }
+
     void relayout() { // TODO: virtual?
+        if (!_children.empty()) {
+            // sum up all hgrow and resize children based on their hgrow
+            int totalHGrow = 0;
+            int extraWidth = _size.width - _minSize.width;
+            for (auto child: _children) totalHGrow += child->getHGrow();
+            // if only the last child grows, we can skip resizing all children and we could skip the relayout
+            if (extraWidth != 0 && totalHGrow == _children.back()->getHGrow() && _children.back()->getMaxWidth() != _children.back()->getWidth()) {
+                auto child = _children.back();
+                child->setWidth(_size.width - _padding - child->getLeft());
+            }
+            else if (extraWidth != 0 && totalHGrow > 0) {
+                for (auto child: _children)
+                    child->setWidth(child->getMinWidth() + extraWidth * child->getHGrow() / totalHGrow);
+            }
+        }
         int x=_padding;
         for (auto& child : _children) {
             x += child->getMargin().left;
             child->setTop(child->getMargin().top + _padding);
+            child->setHeight(_size.height - child->getTop() - child->getMargin().bottom - _padding);
             child->setLeft(x);
             x += child->getWidth() + child->getMargin().right + _spacing;
         }
