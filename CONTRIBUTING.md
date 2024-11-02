@@ -39,6 +39,11 @@ Send PRs on github.
 - unique_ptr are fine, "raw pointers" are also fine, but should probably refactor uilib at some point
 - avoid shared and weak since they are far from free; prefer clear ownership and life cycle
 
+### Dependencies' Styles
+
+If a dependency can be used as-is, its style should not be changed from upstream.
+Use `diff -E -b --color=always -u ...` to compare upstream versions if style is inconsistent.
+
 ### "Mandatory" Optimizations
 
 - we want to be able to deploy to wasm
