@@ -3,20 +3,20 @@
 - check [doc/OUTLINE.md](doc/OUTLINE.md) to get an idea how this is supposed to work,
 - check [doc/TODO.md](doc/TODO.md) and `//TODO:` comments to see what has to be done.
 
-Send PRs on github.
+Send PRs on GitHub.
 
 ## C++ Style
 
 - cpp and h filenames are all lowercase, named after the class name
 - 120 chars per line
 - new code should mostly follow [WebKit C++ style](https://webkit.org/code-style-guidelines/),
-  with exception of
+  except for
   - `m_` for member variables is not required: just `_` is fine (read below)
   - `s_` for static members is not required
   - getters start with `get` - it would take a major refactor to change them all
 - include guards are `_FOLDER_FOLDER_FILENAME_H`,
   closing `#endif` should have the name as comment
-- `#pragma once` is preferred for new code
+- `#pragma once` is preferred over include guards for new code
 - camelCase
 - protected and private member variables start with `_`
 - local variables start with a lower case letter
@@ -66,6 +66,10 @@ We run [scan-build](https://clang.llvm.org/docs/analyzer/user-docs/CommandLineUs
 in CI to catch some mistakes, excluding some libs.
 
 See [scan-build.yaml](../.github/workflows/scan-build.yaml).
+
+### Address Sanitizer
+
+Consider testing with ASAN.
 
 ## Documentation Style
 
