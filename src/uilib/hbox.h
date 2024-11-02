@@ -29,6 +29,9 @@ public:
         }
         calcMinMax();
     }
+
+    virtual ~HBox() {}
+
     // TODO: removeChild: update maxSize and minSize
     virtual void setSize(Size size) override {
         if (size.height < _minSize.height) {
