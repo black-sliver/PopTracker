@@ -168,8 +168,6 @@ ifeq ($(CONF), DEBUG) # DEBUG
     CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
     LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
   endif
-  #CPP_FLAGS += -fsanitize=address
-  #LD_FLAGS += -fsanitize=address
 else # RELEASE or DIST
   C_FLAGS += -O2 -fno-stack-protector -fno-common
   LUA_CFALGS += -O2 -fno-stack-protector -fno-common
@@ -183,6 +181,11 @@ else # RELEASE or DIST
     CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
     LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
   endif
+endif
+
+ifdef WITH_ASAN
+CPP_FLAGS += -fsanitize=address
+LD_FLAGS += -fsanitize=address
 endif
 
 CPP_FLAGS += -DLUA_CPP
