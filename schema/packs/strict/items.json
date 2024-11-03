@@ -96,6 +96,10 @@
             ],
             "type": "string"
         },
+        "name_stage": {
+            "description": "Readable name of the stage for tooltip.",
+            "type": "string"
+        },
         "stages": {
             "description": "Stages of the progressive item.",
             "type": "array",
@@ -131,8 +135,7 @@
                         "$ref": "#/$defs/disabled_img_mods"
                     },
                     "name": {
-                        "description": "Readable name of the stage for tooltip.",
-                        "type": "string"
+                        "$ref": "#/$defs/name_stage"
                     }
                 },
                 "additionalProperties": false
@@ -201,7 +204,7 @@
                         "$ref": "#/$defs/stages"
                     },
                     "allow_disabled": {
-                        "description": "Automatically addes a \"off\" stage if set to true.",
+                        "description": "Automatically adds a \"off\" stage if set to true.",
                         "type": "boolean"
                     },
                     "initial_stage_idx": {
@@ -318,79 +321,59 @@
                     "name": true,
                     "type": true,
                     "capturable": true,
-                    "item_left": true,
-                    "item_right": true,
-                    "images": true,
-                    "overlay_align": true
+                    "overlay_align": true,
+                    "item_left": {
+                        "description": "Code identifier of the left item.",
+                        "type": "string"
+                    },
+                    "item_right": {
+                        "description": "Code identifier of the right item.",
+                        "type": "string"
+                    },
+                    "images": {
+                        "description": "Array of images and states (up to 4, on/off for each item).",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "left",
+                                "right"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "left": {
+                                    "description": "State of left item.",
+                                    "type": "boolean"
+                                },
+                                "right": {
+                                    "description": "State of right item.",
+                                    "type": "boolean"
+                                },
+                                "img": {
+                                    "$ref": "#/$defs/img"
+                                },
+                                "img_mods": {
+                                    "$ref": "#/$defs/img_mods"
+                                },
+                                "disabled_img": {
+                                    "$ref": "#/$defs/disabled_img"
+                                },
+                                "disabled_img_mods": {
+                                    "$ref": "#/$defs/disabled_img_mods"
+                                },
+                                "name": {
+                                    "$ref": "#/$defs/name_stage"
+                                }
+                            }
+                        }
+                    }
                 },
                 "additionalProperties": false,
                 "required": [
+                    "item_left",
+                    "item_right",
+                    "images",
                     "codes"
-                ],
-                "oneOf": [
-                    {
-                        "properties": {
-                            "item_left": {
-                                "description": "Code identifier of the left item.",
-                                "type": "string"
-                            },
-                            "item_right": {
-                                "description": "Code identifier of the right item.",
-                                "type": "string"
-                            },
-                            "images": false
-                        },
-                        "required": [
-                            "item_left",
-                            "item_right"
-                        ]
-                    },
-                    {
-                        "properties": {
-                            "images": {
-                                "description": "Array of images and states (up to 4, on/off for each item).",
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": [
-                                        "left",
-                                        "right"
-                                    ],
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "left": {
-                                            "description": "State of left item.",
-                                            "type": "boolean"
-                                        },
-                                        "right": {
-                                            "description": "State of right item.",
-                                            "type": "boolean"
-                                        },
-                                        "img": {
-                                            "$ref": "#/$defs/img"
-                                        },
-                                        "img_mods": {
-                                            "$ref": "#/$defs/img_mods"
-                                        },
-                                        "disabled_img": {
-                                            "$ref": "#/$defs/disabled_img"
-                                        },
-                                        "disabled_img_mods": {
-                                            "$ref": "#/$defs/disabled_img_mods"
-                                        },
-                                        "codes": {
-                                            "$ref": "#/$defs/codes"
-                                        }
-                                    }
-                                },
-                                "left_item": false,
-                                "right_item": false
-                            }
-                        },
-                        "required": [
-                            "images"
-                        ]
-                    }
                 ]
             }
         },
