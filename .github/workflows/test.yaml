@@ -89,6 +89,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Configure ASAN
+      if: ${{ startsWith(matrix.os, 'macos-latest') }}
+      run: |
+        # see https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow#false-positives
+        # since we don't build gtest with ASAN, we hit this issue on macos-latest
+        echo "ASAN_OPTIONS=detect_container_overflow=0" >> $GITHUB_ENV
     - name: Build DEBUG
       run: make native CONF=DEBUG WITH_ASAN=true ${{ matrix.extra_make_args }} -j4
     - name: Run tests
