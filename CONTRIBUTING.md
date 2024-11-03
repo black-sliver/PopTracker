@@ -69,7 +69,7 @@ See [scan-build.yaml](../.github/workflows/scan-build.yaml).
 
 ### Address Sanitizer
 
-Consider testing with ASAN.
+Consider testing with ASAN by passing WITH_ASAN=true to make.
 
 ### Spell Checker
 

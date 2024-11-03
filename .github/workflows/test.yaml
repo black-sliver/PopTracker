@@ -90,6 +90,6 @@ jobs:
       with:
         submodules: recursive
     - name: Build DEBUG
-      run: make native CONF=DEBUG ${{ matrix.extra_make_args }} -j4
+      run: make native CONF=DEBUG WITH_ASAN=true ${{ matrix.extra_make_args }} -j4
     - name: Run tests
-      run: make test CONF=DEBUG ${{ matrix.extra_make_args }}
+      run: make test CONF=DEBUG WITH_ASAN=true ${{ matrix.extra_make_args }} -j4
