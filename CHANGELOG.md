@@ -54,7 +54,7 @@
   * Lua: Added LocationSection.FullID to get the full location/section string
   * Added flag "apmanual" to enable sending in Archipelago
 * Fixes
-  * Fix map tooltip placement being wrong under certain cirumstances
+  * Fix map tooltip placement being wrong under certain circumstances
   * Fix sections with sequence break + inspect not showing up correctly
   * Fix a race condition in snes autotracking
   * Ignore "allow_disabled" for items where behavior wasn't documented: toggle, static, toggle_badged

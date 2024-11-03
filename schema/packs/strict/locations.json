@@ -9,7 +9,7 @@
     "$defs": {
         "rules_string": {
             "items": {
-                "description": "Rules. Comma sperated for AND.",
+                "description": "Rules. Comma separated for AND.",
                 "type": "string"
             }
         },
@@ -47,11 +47,11 @@
                                     "type": "array",
                                     "anyOf": [
                                         {
-                                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. Each entry will be OR-ed together, comma separated rules will be AND-ed.",
                                             "$ref": "#/$defs/rules_string"
                                         },
                                         {
-                                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                            "description": "Access rules for the section. Section will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the section will be marked as checkable (blue). Children will always inherit rules from parents. 2-Dimensional array of rules, first dimension will be OR-ed together, second will be AND-ed.",
                                             "$ref": "#/$defs/rules_array"
                                         }
                                     ]
@@ -72,11 +72,11 @@
                                     "type": "array",
                                     "anyOf": [
                                         {
-                                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. Each entry will be OR-ed together, comma separated rules will be AND-ed.",
                                             "$ref": "#/$defs/rules_string"
                                         },
                                         {
-                                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                            "description": "Visibility rules for the section. Section will only be visible if rules are matched. Children will always inherit rules from parents. 2-Dimensional array of rules, first dimension will be OR-ed together, second will be AND-ed.",
                                             "$ref": "#/$defs/rules_array"
                                         }
                                     ]
@@ -155,11 +155,11 @@
                             "type": "array",
                             "anyOf": [
                                 {
-                                    "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                    "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma separated rules will be AND-ed.",
                                     "$ref": "#/$defs/rules_string"
                                 },
                                 {
-                                    "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                    "description": "Access rules for the location. Location will be marked reachable (green) if all rules are matched. Rules inside [] are optional (i.e. glitches work around this rule; marked as yellow). If rules in {} are matched, the location will be marked as checkable (blue). Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimension will be OR-ed together, second will be AND-ed.",
                                     "$ref": "#/$defs/rules_array"
                                 }
                             ]
@@ -180,11 +180,11 @@
                             "type": "array",
                             "anyOf": [
                                 {
-                                    "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma sperated rules will be AND-ed.",
+                                    "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. Each entry will be OR-ed together, comma separated rules will be AND-ed.",
                                     "$ref": "#/$defs/rules_string"
                                 },
                                 {
-                                    "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimenstion will be OR-ed together, second will be AND-ed.",
+                                    "description": "Visibility rules for the location. Location will only be visible if rules are matched. Children/sections will always inherit rules from parents. 2-Dimensional array of rules, first dimension will be OR-ed together, second will be AND-ed.",
                                     "$ref": "#/$defs/rules_array"
                                 }
                             ]

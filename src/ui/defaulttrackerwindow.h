@@ -57,7 +57,7 @@ private:
     void hideMessage();
 };
 
-} // namspace Ui
+} // namespace Ui
 
 #endif /* _UI_DEFAULTTRACKERWINDOW_H */
 

@@ -2,8 +2,8 @@
 
 Simple HTTP/S Client around asio / boos::asio.
 
-To enable platform independend certificate checking, set HTTP::certfile to a
-file containing the ca certs in PEM fromat.\
+To enable platform-independent certificate checking, set HTTP::certfile to a
+file containing the ca certs in PEM format.\
 See https://curl.se/docs/caextract.html for an example certfile.
 
 Falls back to windows cert store on windows and default openssl paths on other

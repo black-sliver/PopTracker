@@ -534,7 +534,7 @@ void Tracker::UiHint(const std::string& name, const std::string& value)
 template <typename T>
 static void eraseDuplicates(std::list<T>& list)
 {
-    // This keeps the last occurence.
+    // This keeps the last occurrence.
     // FIXME: Complexity is awful.
     auto it = list.begin();
     while (it != list.end()) {

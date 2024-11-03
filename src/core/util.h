@@ -40,7 +40,7 @@ static std::string sanitize_filename(std::string s) {
     return s;
 }
 
-/// Replaces non-ASCII and reserved/non-portable symbols by '_'. Returns "_" for empty and resrved folder names.
+/// Replaces non-ASCII and reserved/non-portable symbols by '_'. Returns "_" for empty and reserved folder names.
 static std::string sanitize_dir(std::string s)
 {
     if (s.empty())
