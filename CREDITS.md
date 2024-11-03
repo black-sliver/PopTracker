@@ -1,6 +1,6 @@
 # Credits
 
-## Code Contibutors
+## Code Contributors
 
 * [black-sliver](https://github.com/black-sliver)
 * [sbzappa](https://github.com/sbzappa)
@@ -8,9 +8,9 @@
 
 ## Other Contributors
 
-* [Cyb3R](https://github.com/Cyb3RGER) - the new icon + figuring out, testing and brainstorming all teh stuff, also schema.
+* [Cyb3R](https://github.com/Cyb3RGER) - the new icon + figuring out, testing and brainstorming all the stuff, also schema.
 * [jsd1982](https://github.com/JamesDunne) & [total](https://github.com/tewtal) - providing snes/sni/usb2snes infos
-* [MisterIbis]( https://github.com/MisterIbis) - doing some documenation
+* [MisterIbis]( https://github.com/MisterIbis) - doing some documentation
 
 ## Libraries
 

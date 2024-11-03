@@ -29,6 +29,6 @@ screenshots
 packlist
 pop-pack-create-versions
 
-# exclude tool chain dependant files
+# exclude tool chain dependent files
 win32-lib
 win32-lib-src

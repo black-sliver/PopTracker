@@ -333,7 +333,7 @@ bool Ui::render()
                             }
                         }
                     }
-                    #if 0 // this is not neccessary
+                    #if 0 // this is not necessary
                     else if (ev.window.event == SDL_WINDOWEVENT_TAKE_FOCUS) {
                         // focus offered -> grab focus
                         EVENT_LOCK_GUARD(this);

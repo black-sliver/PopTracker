@@ -25,8 +25,8 @@ Send PRs on GitHub.
 - public member variables should start with a lower case letter - this is to match SDL's structs
 - public member variables should only be used for simple structs - use getters/setters otherwise
 - getters start with `get`, setters with `set`
-- class names start with a captial letter
-- one exception to the above is the Lua Inferface, which uses `T::Lua_CamelCase`
+- class names start with a capital letter
+- one exception to the above is the Lua Interface, which uses `T::Lua_CamelCase`
 - loops/iterations use `auto :` or `auto& :` where possible
 - use `std::string` or `std::string_view` (we target c++17)
 - there are a ton of violations, but new code should still try to check all the boxes
@@ -70,6 +70,11 @@ See [scan-build.yaml](../.github/workflows/scan-build.yaml).
 ### Address Sanitizer
 
 Consider testing with ASAN.
+
+### Spell Checker
+
+We use codespell to find typos. You can `pip install codespell` or rely on the GitHub workflow.
+See `.codespellrc` if you want to exclude files/folders and `.codespellignore` if you want to exclude a word.
 
 ## Documentation Style
 
