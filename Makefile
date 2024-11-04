@@ -454,10 +454,10 @@ test: $(EXE) ${TEST_EXE}
 
 clean:
 	(cd lib/lua && make -f makefile clean)
-	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(WIN32_EXE) $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(WIN64_EXE) $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(NIX_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR)
+	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR) $(WASM_BUILD_DIR)/test
+	rm -rf $(WIN32_EXE) $(WIN32_TEST_EXE) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR) $(WIN32_BUILD_DIR)/test
+	rm -rf $(WIN64_EXE) $(WIN64_TEST_EXE) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR) $(WIN64_BUILD_DIR)/test
+	rm -rf $(NIX_EXE) $(NEX_TEST_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR) $(NIX_BUILD_DIR)/test
 	[ -d $(NIX_BUILD_DIR) ] && [ -z "${ls -A $(NIX_BUILD_DIR)}" ] && rmdir $(NIX_BUILD_DIR) || true
 	[ -d $(WASM_BUILD_DIR) ] && [ -z "${ls -A $(WASM_BUILD_DIR)}" ] && rmdir $(WASM_BUILD_DIR) || true
 	[ -d $(WIN32_BUILD_DIR) ] && [ -z "${ls -A $(WIN32_BUILD_DIR)}" ] && rmdir $(WIN32_BUILD_DIR) || true
