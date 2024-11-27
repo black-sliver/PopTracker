@@ -562,7 +562,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     if (node.getType() == "container" || node.getType() == "tab") {
         Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight());
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
-        w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
+        w->setGrow(0,1); // required at the moment -- TODO: make this depend on children
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
         container->addChild(w);
@@ -631,7 +631,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         //       + a private hbox for tab buttons
         Tabs *w = new Tabs(0,0,container->getWidth(),container->getHeight(),_font);
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
-        w->setGrow(1,1); // required at the moment -- TODO: make this depend on children
+        w->setGrow(0,1); // required at the moment -- TODO: make this depend on children
         if (!node.getBackground().empty())
             w->setBackground(node.getBackground());
         if (children.empty())
