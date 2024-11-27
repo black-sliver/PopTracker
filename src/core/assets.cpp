@@ -2,19 +2,21 @@
 #include "fileutil.h"
 #include <algorithm>
 
-std::vector<std::string> Assets::_searchPaths;
+std::vector<fs::path> Assets::_searchPaths;
 
-void Assets::addSearchPath(const std::string& path)
+void Assets::addSearchPath(const fs::path& path)
 {
     if (std::find(_searchPaths.begin(), _searchPaths.end(), path) != _searchPaths.end()) return;
     _searchPaths.push_back(path);
 }
 
-std::string Assets::Find(const std::string& name)
+fs::path Assets::Find(const std::string& name)
 {
     for (auto& searchPath : _searchPaths) {
-        auto filename = os_pathcat(searchPath, name);
-        if (fileExists(filename)) return filename;
+        auto filename = searchPath / name;
+        if (fs::is_regular_file(filename))
+            return filename;
     }
-    return os_pathcat("assets", name); // fall-back to CWD
+    auto fallback = fs::u8path("assets") / name; // fall-back to CWD
+    return fallback;
 }

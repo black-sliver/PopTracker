@@ -10,10 +10,11 @@
 #include <map>
 #include <string>
 #include <functional>
-#include "../core/pack.h"
-#include "../core/signal.h"
 #include "../http/http.h"
 #include "../http/httpcache.h"
+#include "../core/fs.h"
+#include "../core/signal.h"
+#include "../core/pack.h"
 
 
 class PackManager final : HTTPCache {
@@ -24,7 +25,7 @@ public:
     typedef std::function<void(const std::string&)> no_update_available_callback;
     typedef std::function<void(std::string, std::function<void(bool)>)> confirmation_callback;
 
-    PackManager(asio::io_service *asio, const std::string& workdir, const std::list<std::string>& httpDefaultHeaders={});
+    PackManager(asio::io_service *asio, const fs::path& workdir, const std::list<std::string>& httpDefaultHeaders={});
     PackManager(const PackManager&) = delete;
     virtual ~PackManager();
 
@@ -53,12 +54,12 @@ public:
     void getAvailablePacks(std::function<void(const json&)> cb);
     void ignoreUpdateSHA256(const std::string& uid, const std::string& sha256);
     void tempIgnoreSourceVersion(const std::string& uid, const std::string& version);
-    void downloadUpdate(const std::string& url, const std::string& install_dir,
+    void downloadUpdate(const std::string& url, const fs::path& install_dir,
             const std::string& validate_uid, const std::string& validate_version, const std::string& validate_sha256);
 
     Signal<const std::string&, const std::string&, const std::string&, const std::string&> onUpdateAvailable;
     Signal<const std::string&, int, int> onUpdateProgress;
-    Signal<const std::string&, const std::string&, const std::string&> onUpdateComplete;
+    Signal<const std::string&, const fs::path&, const std::string&> onUpdateComplete;
     Signal<const std::string&, const std::string&> onUpdateFailed;
 
 private:
@@ -68,11 +69,11 @@ private:
     void askConfirmation(const std::string& message, std::function<void(bool)> cb);
     void loadConf();
     void saveConf();
-    void GetFile(const std::string& url, const std::string& dest,
+    void GetFile(const std::string& url, const fs::path& dest,
             std::function<void(bool,const std::string&)> cb,
             std::function<void(int,int)> progress, int followRedirect=3);
 
-    std::string _confFile;
+    fs::path _confFile;
     std::map<std::string, bool> _repositories;
     json _packs = json::object();
     json _conf = json::object();

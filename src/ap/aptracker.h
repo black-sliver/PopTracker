@@ -25,18 +25,30 @@ public:
     APTracker(const std::string& appname, const std::string& game="", bool allowSend=false, bool allowScout=false)
             : _appname(appname), _game(game), _allowSend(allowSend), _allowScout(allowScout)
     {
-        // AP uses an UUID to detect reconnects (replace old connection). If
-        // stored UUID is older than 60min, the connection should already be
+        // AP uses a UUID to detect reconnects (replace old connection).
+        // If stored UUID is older than 60min, the connection should already be
         // dropped, so we can generate a new one.
         bool newUuid = false;
         auto uuidFilename = getConfigPath(_appname, UUID_FILENAME);
+#ifdef _WIN32
+        struct _stat64 st;
+        auto now = _time64(nullptr);
+        if (_wstat64(uuidFilename.c_str(), &st) == 0)
+#else
         struct stat st;
-        if (stat(uuidFilename.c_str(), &st) == 0) {
-            time_t elapsed = time(nullptr) - st.st_mtime;
-            newUuid = elapsed > 3600;
+        auto now = time(nullptr);
+        if (stat(uuidFilename.c_str(), &st) == 0)
+#endif
+        {
+            static_assert(sizeof(st.st_mtime) == 8 && sizeof(now) == 8);
+            newUuid = (now - st.st_mtime) > 3600;
         }
-        if (!newUuid) newUuid = !readFile(uuidFilename, _uuid);
-        if (!newUuid) newUuid = _uuid.empty();
+        else
+            newUuid = true;
+        if (!newUuid)
+            newUuid = !readFile(uuidFilename, _uuid);
+        if (!newUuid)
+            newUuid = _uuid.empty();
         if (newUuid) {
             // generate a new uuid thread-safe
             _uuid.clear();
@@ -50,7 +62,11 @@ public:
             writeFile(uuidFilename, _uuid);
         } else {
             // update mtime of uuid file
+#ifdef _WIN32
+            _wutime(uuidFilename.c_str(), nullptr);
+#else
             utime(uuidFilename.c_str(), nullptr);
+#endif
         }
     }
 
@@ -74,7 +90,7 @@ public:
             return false;
         }
 
-        _ap = new APClient(_uuid, _game, uri, asset("cacert.pem"));
+        _ap = new APClient(_uuid, _game, uri, asset("cacert.pem").u8string());
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
             std::list<std::string> tags = {"PopTracker"};
@@ -199,7 +215,11 @@ public:
     void touchUUID()
     {
         // update mtime of the uuid file so we reuse the uuid on next connect
+#ifdef _WIN32
+        _wutime(getConfigPath(_appname, UUID_FILENAME).c_str(), nullptr);
+#else
         utime(getConfigPath(_appname, UUID_FILENAME).c_str(), nullptr);
+#endif
     }
 
     int getPlayerNumber() const

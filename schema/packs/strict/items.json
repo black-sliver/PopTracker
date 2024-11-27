@@ -68,7 +68,7 @@
             "type": "string"
         },
         "img_mods": {
-            "description": "Modifiers to apply to the image. Multiple values are comma seperated.",
+            "description": "Modifiers to apply to the image. Multiple values are comma separated.",
             "examples": [
                 "@disabled",
                 "overlay|path/to/img.png"
@@ -80,7 +80,7 @@
             "type": "string"
         },
         "disabled_img_mods": {
-            "description": "Modifiers to apply to the image when disabled. Multiple values are comma seperated.",
+            "description": "Modifiers to apply to the image when disabled. Multiple values are comma separated.",
             "examples": [
                 "@disabled",
                 "overlay|path/to/img.png"
@@ -88,7 +88,7 @@
             "type": "string"
         },
         "codes": {
-            "description": "Code identifier(s) of this item. Multiple values are comma seperated.",
+            "description": "Code identifier(s) of this item. Multiple values are comma separated.",
             "examples": [
                 "code1",
                 "code1,code2",
@@ -116,7 +116,7 @@
                         "$ref": "#/$defs/codes"
                     },
                     "secondary_codes": {
-                        "description": "Secondary code identifier(s) of this item. Multiple values are comma seperated. Unused at the moment.",
+                        "description": "Secondary code identifier(s) of this item. Multiple values are comma separated. Unused at the moment.",
                         "examples": [
                             "code1",
                             "code1,code2",
@@ -204,7 +204,7 @@
                         "$ref": "#/$defs/stages"
                     },
                     "allow_disabled": {
-                        "description": "Automatically adds a \"off\" stage if set to true.",
+                        "description": "Automatically adds an \"off\" stage if set to true.",
                         "type": "boolean"
                     },
                     "initial_stage_idx": {

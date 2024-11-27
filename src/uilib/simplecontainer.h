@@ -50,10 +50,28 @@ public:
         if (fireMin) onMinSizeChanged.emit(this);
         if (fireMax) onMaxSizeChanged.emit(this);
     }
+
+    bool calculateMinSize()
+    {
+        bool res = false;
+        for (auto child: _children) {
+            res |= calculateMinSize(child);
+        }
+        return res;
+    }
+
+    bool calculateMaxSize()
+    {
+        bool res = false;
+        for (auto child: _children) {
+            res |= calculateMaxSize(child);
+        }
+        return res;
+    }
     
     Signal<> onMinSizeChanged; // TODO: make split between simplecontainer and container more logical
     Signal<> onMaxSizeChanged;
-    
+
 private:
     bool calculateMinSize(Widget* child)
     {

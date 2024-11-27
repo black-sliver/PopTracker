@@ -24,7 +24,7 @@ public:
     virtual void showProgress(const std::string& title, int progress, int max);
     virtual void hideProgress();
     
-    Signal<const std::string&,const std::string&> onPackSelected;
+    Signal<const fs::path&, const std::string&> onPackSelected;
     
 protected:
     ImageButton *_btnLoad = nullptr;
@@ -57,7 +57,7 @@ private:
     void hideMessage();
 };
 
-} // namspace Ui
+} // namespace Ui
 
 #endif /* _UI_DEFAULTTRACKERWINDOW_H */
 

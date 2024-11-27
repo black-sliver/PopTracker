@@ -123,9 +123,9 @@ The following interfaces are provided:
   * `require` behaves mostly like Lua require since 0.25.6
     * `"foo.baz"` will try `/scripts/foo/baz.lua`, `/scripts/foo/baz/init.lua`, `/foo/baz.lua` and `/foo/baz/init.lua`
   * `...` contains mod name for relative require since 0.25.6
-* `ref :AddMemoryWatch(name,addr,len,callback,interal)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
+* `ref :AddMemoryWatch(name,addr,len,callback,interval)`: add a memory watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveMemoryWatch(name)`: remove memory watch by name, available since 0.11.0
-* `ref :AddVariableWatch(name,{variables, ...},callback,interal)`: add a variable watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
+* `ref :AddVariableWatch(name,{variables, ...},callback,interval)`: add a variable watch for auto-tracking, see [AUTOTRACKING.md](AUTOTRACKING.md)
 * `bool :RemoveVariableWatch(name)`: remove variable watch by name, available since 0.16.0
 * `ref :AddWatchForCode(name,code,callback)`: callback(code) will be called whenever an item changed state that canProvide(code). Only available in PopTracker, since 0.11.0, will return a reference (name) to the watch since 0.18.2. Use "*" to trigger for all codes since 0.25.5.
 * `bool :RemoveWatchForCode(name)`: remove watch by name

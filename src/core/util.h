@@ -4,6 +4,13 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include "fs.h"
+
+#ifdef __has_include
+#  if __has_include(<utility>)
+#    include <utility>
+#  endif
+#endif
 
 
 template< class Type, ptrdiff_t n >
@@ -15,6 +22,16 @@ static std::string sanitize_print(const std::string& s) {
     return res;
 }
 
+static std::string sanitize_print(const char* s)
+{
+    return sanitize_print(std::string(s));
+}
+
+static std::string sanitize_print(const fs::path& path)
+{
+    return sanitize_print(path.u8string());
+}
+
 /// Replaces reserved/non-portable symbols by '_'.
 static std::string sanitize_filename(std::string s) {
     auto exclude = "<>:\"/\\|?*$'`";
@@ -23,7 +40,7 @@ static std::string sanitize_filename(std::string s) {
     return s;
 }
 
-/// Replaces non-ASCII and reserved/non-portable symbols by '_'. Returns "_" for empty and resrved folder names.
+/// Replaces non-ASCII and reserved/non-portable symbols by '_'. Returns "_" for empty and reserved folder names.
 static std::string sanitize_dir(std::string s)
 {
     if (s.empty())
@@ -89,6 +106,21 @@ static void strip(std::string& s, const char* whitespace = " \t\r\n")
             s = s.substr(start, end - start + 1);
         }
     }
+}
+
+namespace util {
+#ifdef __cpp_lib_unreachable
+    using unreachable = std::unreachable;
+#else
+    [[noreturn]] static inline void unreachable()
+    {
+#    if defined(_MSC_VER) && !defined(__clang__) // MSVC
+        __assume(false);
+#    else // GCC, Clang
+        __builtin_unreachable();
+#    endif
+    }
+#endif
 }
 
 #endif // _CORE_UTIL_H

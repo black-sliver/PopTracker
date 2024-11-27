@@ -68,6 +68,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
                 printf("Layout changed ... ");
                 printf("%d,%d || %d,%d => %d,%d\n", curSize.width, curSize.height, minSize.width, minSize.height, newSize.width, newSize.height);
                 resize(newSize);
+                setMinSize(newSize);
             }
         }};
         // once the layout is fixed:

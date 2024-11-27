@@ -2,6 +2,7 @@
 # NOTE: we may use gifdec in the future to support animations
 #       for now we use SDL2_image GIF support only
 CONF ?= RELEASE # make CONF=DEBUG for debug, CONF=DIST for .zip
+MACOS_DEPLOYMENT_TARGET ?= 10.15
 SRC_DIR = src
 TEST_DIR = test
 LIB_DIR = lib
@@ -116,9 +117,25 @@ WIN64_TEST_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC))
 WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)))
 
 # tools
-CC = gcc # TODO: use ?=
-CPP = g++ # TODO: use ?=
-AR = ar # TODO: use ?=
+CC ?= gcc
+CXX ?= g++
+AR ?= ar
+
+ifeq ($(CC), cc)
+CC = gcc
+CPP = $(CC) -E
+endif
+ifeq ($(CXX), cpp)
+CXX = g++
+endif
+ifeq ($(AR), ar)
+AR = ar
+endif
+
+$(info using CC=${CC})
+$(info using CPP=${CPP})
+$(info using CXX=${CXX})
+$(info using AR=${AR})
 
 # cross tools
 EMCC ?= emcc
@@ -136,29 +153,39 @@ WIN64STRIP = x86_64-w64-mingw32-strip
 WIN64WINDRES = x86_64-w64-mingw32-windres
 
 # tool config
-#TODO: -fsanitize=address -fno-omit-frame-pointer ?
 C_FLAGS = -Wall -std=c99 -D_REENTRANT
 LUA_C_FLAGS = -Wall -D_REENTRANT  # we actually use C++ for lua now
 ifeq ($(CONF), DEBUG) # DEBUG
-C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -ftrapv
-LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
-ifdef IS_LLVM # DEBUG with LLVM
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
-else # DEBUG with GCC
-CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
+  C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -ftrapv
+  LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-all -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
+  ifdef IS_LLVM # DEBUG with LLVM
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,-dead_strip -fstack-protector-all -pthread -fno-omit-frame-pointer
+    ifdef IS_LINUX # clang calls regular LD on linux
+      LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
+    endif
+  else # DEBUG with GCC
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-all -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,--gc-sections -fstack-protector-all -pthread -fno-omit-frame-pointer
+  endif
+else # RELEASE or DIST
+  C_FLAGS += -O2 -fno-stack-protector -fno-common
+  LUA_CFALGS += -O2 -fno-stack-protector -fno-common
+  ifdef IS_LLVM # RELEASE or DIST with LLVM
+    CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
+    LD_FLAGS = -Wl,-dead_strip -O2 -flto
+    ifdef IS_LINUX # clang calls regular LD on linux
+      LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
+    endif
+  else # RELEASE or DIST with GCC
+    CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
+    LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
+  endif
 endif
-else
-C_FLAGS += -O2 -fno-stack-protector -fno-common
-LUA_CFALGS += -O2 -fno-stack-protector -fno-common
-ifdef IS_LLVM # RELEASE or DIST with LLVM
-CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
-LD_FLAGS = -Wl,-dead_strip -O2 -flto
-else # RELEASE or DIST with GCC
-CPP_FLAGS = -Wno-deprecated-declarations -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
-LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
-endif
+
+ifdef WITH_ASAN
+CPP_FLAGS += -fsanitize=address
+LD_FLAGS += -fsanitize=address
 endif
 
 CPP_FLAGS += -DLUA_CPP
@@ -172,14 +199,31 @@ WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 NIX_LUA_C_FLAGS = $(LUA_C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
+
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
-DEPLOYMENT_TARGET=10.12
+DEPLOYMENT_TARGET = $(MACOS_DEPLOYMENT_TARGET)
+DEPLOYMENT_TARGET_MAJOR := $(shell echo $(DEPLOYMENT_TARGET) | cut -f1 -d.)
+DEPLOYMENT_TARGET_MINOR := $(shell echo $(DEPLOYMENT_TARGET) | cut -f2 -d.)
+# NOTE: on macos before 10.15 we have to use boost::filesystem instead of std::filesystem
+#       This is currently not built automatically. Please open an issue if you really need a build for macos<10.15.
+HAS_STD_FILESYSTEM := $(shell [ $(DEPLOYMENT_TARGET_MAJOR) -gt 10 -o \( $(DEPLOYMENT_TARGET_MAJOR) -eq 10 -a $(DEPLOYMENT_TARGET_MINOR) -ge 15 \) ] && echo true)
 NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
 NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib -L$(BREW_PREFIX)/lib
 NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
 NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
+else
+HAS_STD_FILESYSTEM ?= true
 endif
+
+ifeq ($(HAS_STD_FILESYSTEM), true)
+$(info using std::filesystem)
+else
+$(info using boost::filesystem)
+NIX_LD_FLAGS += -lboost_filesystem
+NIX_CPP_FLAGS += -DNO_STD_FILESYSTEM
+endif
+
 ifeq ($(CONF), DEBUG) # DEBUG
 WINDRES_FLAGS =
 else
@@ -191,7 +235,7 @@ ifdef IS_WIN32
   EXE = $(WIN32_EXE)
   TEST_EXE = $(WIN32_TEST_EXE)
   WIN32CC = $(CC)
-  WIN32CPP = $(CPP)
+  WIN32CPP = $(CXX)
   WIN32AR = $(AR)
   WIN32STRIP = strip
   WIN32WINDRES = windres
@@ -206,7 +250,7 @@ else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
   TEST_EXE = $(WIN64_TEST_EXE)
   WIN64CC = $(CC)
-  WIN64CPP = $(CPP)
+  WIN64CPP = $(CXX)
   WIN64AR = $(AR)
   WIN64STRIP = strip
   WIN64WINDRES = windres
@@ -257,10 +301,10 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
 	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+	$(CXX) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CPP) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
@@ -343,7 +387,7 @@ $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DI
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CPP) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CXX) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib/lua
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN32_BUILD_DIR)
@@ -384,7 +428,7 @@ $(DIST_DIR):
 $(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
 	mkdir -p $@
 $(NIX_BUILD_DIR)/%.o: %.c* $(HDR) | $(NIX_OBJ_DIRS)
-	$(CPP) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
+	$(CXX) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
 	mkdir -p $@
 $(WIN32_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN32_OBJ_DIRS)
@@ -410,10 +454,10 @@ test: $(EXE) ${TEST_EXE}
 
 clean:
 	(cd lib/lua && make -f makefile clean)
-	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(WIN32_EXE) $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(WIN64_EXE) $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR)
-	rm -rf $(NIX_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR)
+	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR) $(WASM_BUILD_DIR)/test
+	rm -rf $(WIN32_EXE) $(WIN32_TEST_EXE) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR) $(WIN32_BUILD_DIR)/test
+	rm -rf $(WIN64_EXE) $(WIN64_TEST_EXE) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR) $(WIN64_BUILD_DIR)/test
+	rm -rf $(NIX_EXE) $(NEX_TEST_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR) $(NIX_BUILD_DIR)/test
 	[ -d $(NIX_BUILD_DIR) ] && [ -z "${ls -A $(NIX_BUILD_DIR)}" ] && rmdir $(NIX_BUILD_DIR) || true
 	[ -d $(WASM_BUILD_DIR) ] && [ -z "${ls -A $(WASM_BUILD_DIR)}" ] && rmdir $(WASM_BUILD_DIR) || true
 	[ -d $(WIN32_BUILD_DIR) ] && [ -z "${ls -A $(WIN32_BUILD_DIR)}" ] && rmdir $(WIN32_BUILD_DIR) || true

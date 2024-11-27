@@ -162,7 +162,7 @@ function ScriptHost:RemoveWatchForCode(name) end
 
 ---callback(store, {variableName, ...}) will be called whenever a remote variable changes.
 ---See [AUTOTRACKING.md](https://github.com/black-sliver/PopTracker/blob/master/doc/AUTOTRACKING.md#variable-interface-uat)
--- and [UAT REDME.md](https://github.com/black-sliver/UAT/blob/master/README.md) for more info.
+-- and [UAT README.md](https://github.com/black-sliver/UAT/blob/master/README.md) for more info.
 ---@param name string identifier/name of this watch
 ---@param variables string[] array of variable names
 ---@param callback fun(store:VariableStore, changedKeysArray:table):nil called when any watched variable changes
@@ -449,7 +449,7 @@ ImageRef = {}
 ImageReference = {}
 
 ---Create an image reference from filename.
----Note: currently path resultion happens when the ImageRef is being used, so there is no way to detect errors.
+---Note: currently path resolution happens when the ImageRef is being used, so there is no way to detect errors.
 ---@param filename string
 ---@return ImageRef reference to the image for filename
 function ImageReference:FromPackRelativePath(filename) end

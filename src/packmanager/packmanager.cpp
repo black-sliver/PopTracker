@@ -10,13 +10,13 @@
 #endif
 
 
-PackManager::PackManager(asio::io_service *asio, const std::string& workdir, const std::list<std::string>& httpDefaultHeaders)
-    : HTTPCache(asio, os_pathcat(workdir, "pack-cache.json"), os_pathcat(workdir, "pack-cache"), httpDefaultHeaders)
+PackManager::PackManager(asio::io_service *asio, const fs::path& workdir, const std::list<std::string>& httpDefaultHeaders)
+    : HTTPCache(asio, workdir / "pack-cache.json", workdir / "pack-cache", httpDefaultHeaders)
 {
     valijson::SchemaParser parser;
     parser.populateSchema(JsonSchemaAdapter(_packsSchemaJson), _packsSchema);
     parser.populateSchema(JsonSchemaAdapter(_versionSchemaJson), _versionSchema);
-    _confFile = os_pathcat(workdir, "pack-conf.json");
+    _confFile = workdir / "pack-conf.json";
     loadConf();
 }
 
@@ -220,11 +220,15 @@ void PackManager::tempIgnoreSourceVersion(const std::string& uid, const std::str
     _tempIgnoredSourceVersion[uid].insert(version);
 }
 
-void PackManager::GetFile(const std::string& url, const std::string& dest,
+void PackManager::GetFile(const std::string& url, const fs::path& dest,
         std::function<void(bool,const std::string&)> cb,
         std::function<void(int,int)> progress, int followRedirect)
 {
+#ifdef _WIN32
+    FILE* f = _wfopen(dest.c_str(), L"wb");
+#else
     FILE* f = fopen(dest.c_str(), "wb");
+#endif
     if (!f) cb(false, strerror(errno));
     HTTP::GetAsync(*_asio, url, _httpDefaultHeaders, [=](int code, const std::string& response, const HTTP::Headers&){
         fclose(f);
@@ -241,16 +245,21 @@ void PackManager::GetFile(const std::string& url, const std::string& dest,
     }, f, progress);
 }
 
-void PackManager::downloadUpdate(const std::string& url, const std::string& install_dir,
+void PackManager::downloadUpdate(const std::string& url, const fs::path& install_dir,
         const std::string& validate_uid, const std::string& validate_version, const std::string& validate_sha256)
 {
-    std::string path;
+    fs::path path;
     int fd = -1;
     for (int i=0; i<5; i++) {
         std::string name = GetRandomName(".zip");
-        path = os_pathcat(_cachedir, name);
+        path = _cachedir / name;
+#ifdef _WIN32
+        fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
+#else
         fd = open(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
-        if (fd>=0) break;
+#endif
+        if (fd>=0)
+            break;
     }
     if (fd < 0) {
         onUpdateFailed.emit(this, url, "Could not create temp file!");
@@ -262,12 +271,14 @@ void PackManager::downloadUpdate(const std::string& url, const std::string& inst
             if (!validate_sha256.empty()) {
                 auto hash = SHA256_File(path);
                 if (hash.empty()) {
-                    unlink(path.c_str());
+                    fs::error_code ec;
+                    fs::remove(path, ec);
                     onUpdateFailed.emit(this, url, "Could not calculate hash");
                     return;
                 }
                 if (strcasecmp(hash.c_str(), validate_sha256.c_str()) != 0) {
-                    unlink(path.c_str());
+                    fs::error_code ec;
+                    fs::remove(path, ec);
                     onUpdateFailed.emit(this, url, "SHA256 mismatch");
                     return;
                 }
@@ -276,27 +287,30 @@ void PackManager::downloadUpdate(const std::string& url, const std::string& inst
             Pack *pack = new Pack(path);
             if (!pack->isValid()) {
                 delete pack;
-                unlink(path.c_str());
+                fs::error_code ec;
+                fs::remove(path, ec);
                 onUpdateFailed.emit(this, url, "Not a valid pack");
                 return;
             }
             std::string newVersion = pack->getVersion();
             std::string newUid = pack->getUID();
-            std::string newPath = os_pathcat(install_dir,
-                    sanitize_filename(newUid+"_"+newVersion+".zip"));
+            auto newPath = install_dir / sanitize_filename(newUid + "_" + newVersion + ".zip");
             delete pack;
             pack = nullptr;
 
             if (!validate_version.empty() && newVersion != validate_version) {
                 std::string err = "Version mismatch: " + newVersion + " != " + validate_version;
-                unlink(path.c_str());
+                fs::error_code ec;
+                fs::remove(path, ec);
                 onUpdateFailed.emit(this, url, err);
                 return;
             }
             auto install = [this, url, path, newPath, newUid]() {
-                if (rename(path.c_str(), newPath.c_str()) != 0) {
-                    unlink(path.c_str());
-                    onUpdateFailed.emit(this, url, std::string("Error moving: ") + strerror(errno));
+                fs::error_code ec;
+                fs::rename(path, newPath, ec);
+                if (ec) {
+                    fs::remove(path, ec);
+                    onUpdateFailed.emit(this, url, "Error moving: " + ec.message());
                     return;
                 }
                 onUpdateComplete.emit(this, url, newPath, newUid);
@@ -306,7 +320,8 @@ void PackManager::downloadUpdate(const std::string& url, const std::string& inst
                     if (res) install();
                     else {
                         std::string err = "UID mismatch: " + newUid + " != " + validate_uid;
-                        unlink(path.c_str());
+                        fs::error_code ec;
+                        fs::remove(path, ec);
                         onUpdateFailed.emit(this, url, err);
                     }
                 });

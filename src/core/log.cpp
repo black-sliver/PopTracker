@@ -1,7 +1,9 @@
 #include "log.h"
+#include "fs.h"
+#include "util.h"
 
 
-std::string Log::_logFile = "";
+fs::path Log::_logFile = "";
 int Log::_oldOut = -1;
 int Log::_oldErr = -1;
 int Log::_newOut = -1;
@@ -17,16 +19,19 @@ int Log::_newErr = -1;
 #include <fcntl.h>
 #include <stdio.h>
 
-bool Log::RedirectStdOut(const std::string& file, bool truncate) {
+bool Log::RedirectStdOut(const fs::path& file, bool truncate) {
     fflush(stdout);
     fflush(stderr);
     _logFile = file;
     UnredirectStdOut();
+#ifdef _WIN32
+    _newOut = _wopen(_logFile.c_str(), O_RDWR|O_CREAT|O_APPEND|(truncate ? O_TRUNC : 0), 0655);
+#else
     _newOut = open(_logFile.c_str(), O_RDWR|O_CREAT|O_APPEND|(truncate ? O_TRUNC : 0), 0655);
+#endif
     _newErr = dup(_newOut);
     if (_newOut == -1) {
-        fprintf(stderr, "Could not open %s for logging!\n",
-                _logFile.c_str());
+        fprintf(stderr, "Could not open %s for logging!\n", sanitize_print(_logFile).c_str());
         return false;
     }
     _oldErr = dup(fileno(stderr));
@@ -34,7 +39,11 @@ bool Log::RedirectStdOut(const std::string& file, bool truncate) {
     
     // if stdout has no underlying handle, use freopen (fileno(stdout) is -2 on windows)
     if (_oldOut < 0) {
+#ifdef _WIN32
+        _wfreopen(_logFile.c_str(), L"w", stdout);
+#else
         freopen(_logFile.c_str(), "w", stdout);
+#endif
         setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
         close(_newOut);
         _newOut = fileno(stdout);
@@ -59,7 +68,11 @@ bool Log::RedirectStdOut(const std::string& file, bool truncate) {
 
     // if stderr has no underlying handle, use freopen
     if (_oldErr < 0 || _newErr < 0) {
+#ifdef _WIN32
+        _wfreopen(_logFile.c_str(), L"w", stderr);
+#else
         freopen(_logFile.c_str(), "w", stderr);
+#endif
         setvbuf(stderr, NULL, _IONBF, 0);
         close(_newErr);
         _newErr = fileno(stderr);

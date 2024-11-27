@@ -4,8 +4,8 @@
 #include <luaglue/luainterface.h>
 #include <luaglue/lua_json.h>
 #include <luaglue/luapp.h>
-#include "pack.h"
 #include "autotracker.h"
+#include "pack.h"
 #include "tracker.h"
 #include "luaitem.h"
 #include <string>

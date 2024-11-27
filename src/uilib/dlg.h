@@ -6,6 +6,8 @@
 #include <list>
 #include <mutex>
 
+#include "../core/fs.h"
+
 
 namespace Ui {
 
@@ -39,8 +41,8 @@ public:
 
     static bool InputBox(const std::string& title, const std::string& message, const std::string& dflt, std::string& result, bool password=false);
     static Result MsgBox(const std::string& title, const std::string& message, Buttons btns=Buttons::OK, Icon icon=Icon::Info, Result dflt=Result::OK);
-    static bool OpenFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out, bool multi=false);
-    static bool SaveFile(const std::string& title, const std::string& dflt, const std::list<FileType>& types, std::string& out);
+    static bool OpenFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out, bool multi=false);
+    static bool SaveFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out);
 
     static bool hasGUI();
 

@@ -1,8 +1,9 @@
 #include "imagebutton.h"
+#include "../core/fs.h"
 
 namespace Ui {
 
-ImageButton::ImageButton(int x, int y, int w, int h, const char* path)
+ImageButton::ImageButton(int x, int y, int w, int h, const fs::path& path)
     : Image(x,y,w,h,path)
 {
     setCursor(Cursor::HAND);

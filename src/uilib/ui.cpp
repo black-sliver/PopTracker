@@ -164,8 +164,8 @@ bool Ui::render()
 
     #define FRAME_TIME (1000/_fpsLimit) // TODO: microseconds
     
-    uint32_t t0 = SDL_GetTicks(); // TODO: microseconds
-    uint32_t t1 = t0;
+    const uint32_t t0 = SDL_GetTicks(); // TODO: microseconds
+    uint32_t t1;
     
     do {
 #ifndef __EMSCRIPTEN__
@@ -333,7 +333,7 @@ bool Ui::render()
                             }
                         }
                     }
-                    #if 0 // this is not neccessary
+                    #if 0 // this is not necessary
                     else if (ev.window.event == SDL_WINDOWEVENT_TAKE_FOCUS) {
                         // focus offered -> grab focus
                         EVENT_LOCK_GUARD(this);
@@ -362,7 +362,7 @@ bool Ui::render()
                         EVENT_LOCK(this);
                         auto winit = _windows.find(ev.drop.windowID);
                         if (winit != _windows.end()) {
-                            bool isDir = dirExists(ev.drop.file);
+                            bool isDir = fs::is_directory(fs::u8path(ev.drop.file));
                             winit->second->onDrop.emit(winit->second, 0, 0,
                                     isDir ? DropType::DIR : DropType::FILE,
                                     ev.drop.file);

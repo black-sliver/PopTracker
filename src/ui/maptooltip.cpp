@@ -74,7 +74,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
         c.b = mix(c.b, 0xff, 64);
         lbl->setTextColor(c);
         lbl->setTextAlignment(Label::HAlign::RIGHT, Label::VAlign::MIDDLE);
-        lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
+        lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be necessary
         lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
         hbox->addChild(lbl);
         addChild(hbox);
@@ -117,7 +117,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 Widget::Color c = getSectionColor(reachable, cleared);
                 lbl->setTextColor(c);
                 lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
-                lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be neccessary
+                lbl->setSize(lbl->getSize()||lbl->getMinSize()); // FIXME: this should not be necessary
                 lbl->setMinSize(lbl->getSize()||lbl->getMinSize());
                 container->addChild(lbl);
             } else {
