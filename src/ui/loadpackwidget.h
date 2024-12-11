@@ -11,6 +11,8 @@
 #include "../core/signal.h"
 #include <SDL2/SDL_ttf.h>
 
+#include "../core/fs.h"
+
 namespace Ui {
 
 class LoadPackWidget : public SimpleContainer {
@@ -20,7 +22,7 @@ public:
     
     void update();
     
-    Signal<const std::string&,const std::string&> onPackSelected;
+    Signal<const fs::path&, const std::string&> onPackSelected;
     
     virtual void setSize(Size size) override; // TODO: have more intelligent hbox instead
     

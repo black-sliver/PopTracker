@@ -96,7 +96,7 @@ void LoadPackWidget::update()
                     _curVariantLabel->setBackground(VARIANT_BG_DEFAULT);
                     _curVariantLabel = nullptr;
                 }};
-                std::string path = pack.path;
+                auto path = pack.path;
                 lbl->onMouseEnter += {this,[this](void *s, int x, int y, unsigned buttons) {
                     if (!s || s==_curVariantLabel) return;
                     if (_curVariantLabel) _curVariantLabel->onMouseLeave.emit(_curVariantLabel);

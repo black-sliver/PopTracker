@@ -2,18 +2,19 @@
 #define LOG_H
 
 #include <string>
+#include "fs.h"
 
 class Log final {
 private:
-    static std::string _logFile;
+    static fs::path _logFile;
     static int _oldOut;
     static int _oldErr;
     static int _newOut;
     static int _newErr;
     
 public:
-    static std::string getFile() { return _logFile; }
-    static bool RedirectStdOut(const std::string& file, bool truncate=true);
+    static const fs::path& getFile() { return _logFile; }
+    static bool RedirectStdOut(const fs::path& file, bool truncate=true);
     static void UnredirectStdOut();
     
     

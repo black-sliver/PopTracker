@@ -6,6 +6,8 @@
 #include <vector>
 #include <utility>
 
+#include "fs.h"
+
 class Zip final
 {
 public:
@@ -14,7 +16,7 @@ public:
         DIR
     };
     
-    Zip(const std::string& filename);
+    Zip(const fs::path& filename);
     virtual ~Zip();
     
     void setDir(const std::string&);

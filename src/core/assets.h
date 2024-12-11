@@ -3,17 +3,18 @@
 
 #include <string>
 #include <vector>
+#include "fs.h"
 
 class Assets final {
 public:
-    static std::string Find(const std::string& name);
-    static void addSearchPath(const std::string& path);
+    static fs::path Find(const std::string& name);
+    static void addSearchPath(const fs::path& path);
 private:
     static void initialize();
-    static std::vector<std::string> _searchPaths;
+    static std::vector<fs::path> _searchPaths;
 };
 
-static std::string asset(std::string name) { return Assets::Find(name); }
+static fs::path asset(const std::string& name) { return Assets::Find(name); }
 
 #endif /* _CORE_ASSETS_H */
 

@@ -114,7 +114,7 @@ int LuaPackIO::open(lua_State* L)
 int LuaPackIO::input(lua_State* L)
 {
     if (_input && (lua_gettop(L) == 0 || lua_isnil(L, -1))) {
-        // NOTE: LuaInterface::Lua_Push can't be used with __gc without addiional ref count
+        // NOTE: LuaInterface::Lua_Push can't be used with __gc without additional ref count
         lua_rawgeti(L, LUA_REGISTRYINDEX, _inputRef.ref);
         luaL_unref(L, LUA_REGISTRYINDEX, _inputRef.ref);
         _input = nullptr;

@@ -1,5 +1,5 @@
 #include "dock.h"
-#include <map>
+#include <cassert>
 
 namespace Ui {
 
@@ -99,6 +99,7 @@ void Dock::relayout()
     // 1. set hgrow/vgrow and minsize to signal parent based on children and dock options
     // 2. actually layout children based on (current) size
     // TODO: implement this better
+    assert(_docks.size() == _children.size());
     bool isHorizontal = false;
     bool isVertical = false;
     int nUndefined = 0; // number of floaters
@@ -237,13 +238,16 @@ void Dock::relayout()
             }
         }
     }
+    if (!nUndefined)
+        return;
     // actually layout floating children
     dockIt = _docks.begin();
     childIt = _children.begin();
     Size extraSpace = { (right-left), (bottom-top) };
     for (;dockIt != _docks.end() && childIt != _children.end(); dockIt++, childIt++)
     {
-        if (*dockIt != Direction::UNDEFINED) continue;
+        if (*dockIt != Direction::UNDEFINED)
+            continue;
 #if 0
         int childHGrow = (*childIt)->getHGrow() ? (*childIt)->getHGrow() : 1;
         int childVGrow = (*childIt)->getVGrow() ? (*childIt)->getVGrow() : 1;
@@ -265,7 +269,6 @@ void Dock::relayout()
             top += (*childIt)->getHeight();
         }
     }
-    
 }
 
 void Dock::setSize(Size size)

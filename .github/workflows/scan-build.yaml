@@ -1,0 +1,56 @@
+name: Native Code Static Analysis
+
+on:
+  push:
+    paths:
+      - '**.c'
+      - '**.cc'
+      - '**.cpp'
+      - '**.cxx'
+      - '**.h'
+      - '**.hh'
+      - '**.hpp'
+      - '.github/workflows/scan-build.yml'
+  pull_request:
+    paths:
+      - '**.c'
+      - '**.cc'
+      - '**.cpp'
+      - '**.cxx'
+      - '**.h'
+      - '**.hh'
+      - '**.hpp'
+      - '.github/workflows/scan-build.yml'
+
+jobs:
+  scan-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies (apt)
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev
+      - name: Install newer Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x ./llvm.sh
+          sudo ./llvm.sh 18
+      - name: Install scan-build command
+        run: |
+          sudo apt install clang-tools-18
+      - name: scan-build
+        run: |
+          scan-build-18 --status-bugs -o scan-build-reports \
+            --exclude build --exclude lib/lua \
+            --exclude lib/miniz \
+            make -j3
+      - name: Store report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-build-reports
+          path: scan-build-reports

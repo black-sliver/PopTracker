@@ -103,7 +103,7 @@ Dependencies to build the bundle: install git and `brew install automake libtool
 The release builds for Windows and macOS are very custom since we do not want to force msys or brew on anyone and use a
 gnu toolchain for development.
 
-* Meson's submodules system would be great, but some of them are very outdated or incomplete and maintinaing the recipes
+* Meson's submodules system would be great, but some of them are very outdated or incomplete and maintaining the recipes
   for all dependencies is too much work.
 * CMake did fail when trying to create the static windows build, at which point we'd need to modify and maintain CMake
   files for subprojects.

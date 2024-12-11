@@ -25,10 +25,10 @@ std::string HTTPCache::GetRandomName(const std::string& suffix, int len)
 }
 
 
-HTTPCache::HTTPCache(asio::io_service *asio, const std::string& cachefile, const std::string& cachedir, const std::list<std::string>& httpDefaultHeaders)
+HTTPCache::HTTPCache(asio::io_service *asio, const fs::path& cachefile, const fs::path& cachedir, const std::list<std::string>& httpDefaultHeaders)
     : _asio(asio), _cachefile(cachefile), _cachedir(cachedir), _httpDefaultHeaders(httpDefaultHeaders)
 {
-    mkdir_recursive(_cachedir.c_str());
+    fs::create_directories(_cachedir);
     std::string s;
     try {
         if (readFile(_cachefile, s)) {
@@ -57,11 +57,11 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
                 cacheIt.value()["timestamp"].is_number_unsigned() &&
                 cacheIt.value()["timestamp"].get<time_t>() > time(NULL)-_minAge &&  // less than 60 seconds old
                 cacheIt.value()["timestamp"].get<time_t>() < time(NULL)+30 &&  // less than 30 seconds in the future
-                readFile(os_pathcat(_cachedir, cacheIt.value()["file"].get<std::string>()), s)) {
+                readFile(_cachedir / fs::u8path(cacheIt.value()["file"].get<std::string>()), s)) {
             cb(true, s);
             return;
         } else if (cacheIt.value()["etag"].is_string() && cacheIt.value()["file"].is_string() &&
-                fileExists(os_pathcat(_cachedir, cacheIt.value()["file"].get<std::string>()))) {
+                fs::is_regular_file(_cachedir / fs::u8path(cacheIt.value()["file"].get<std::string>()))) {
             headers.push_back("If-None-Match: " + cacheIt.value()["etag"].get<std::string>());
         } else {
             _cache.erase(cacheIt);
@@ -78,8 +78,9 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
             auto oldCacheIt = _cache.find(url);
             if (oldCacheIt != _cache.end()) {
                 if (oldCacheIt.value()["file"].is_string()) {
-                    std::string oldpath = os_pathcat(_cachedir, oldCacheIt.value()["file"].get<std::string>());
-                    unlink(oldpath.c_str());
+                    auto oldPath = _cachedir / fs::u8path(oldCacheIt.value()["file"].get<std::string>());
+                    fs::error_code ec;
+                    fs::remove(oldPath, ec);
                 }
                 _cache.erase(oldCacheIt);
                 flushCache = true;
@@ -91,8 +92,12 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
                 int fd = -1;
                 for (int i=0; i<5; i++) {
                     name = GetRandomName();
-                    std::string path = os_pathcat(_cachedir, name);
+                    auto path = _cachedir / name;
+#ifdef _WIN32
+                    fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
+#else
                     fd = open(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
+#endif
                     if (fd>=0) break;
                 }
                 if (fd >= 0 && write(fd, r.c_str(), r.length()) == (ssize_t)r.length()) {
@@ -107,10 +112,12 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
                     flushCache = true;
                 } else if (fd >= 0) {
                     // write failed
-                    std::string path = os_pathcat(_cachedir, name);
-                    printf("Error %d writing cache file \"%s\": %s\n", errno, path.c_str(), strerror(errno));
+                    auto path = _cachedir / name;
+                    printf("Error %d writing cache file \"%s\": %s\n",
+                        errno, sanitize_print(path).c_str(), strerror(errno));
                     close(fd);
-                    unlink(path.c_str());
+                    fs::error_code ec;
+                    fs::remove(path, ec);
                 } else {
                     printf("Could not create cache file!\n");
                 }
@@ -125,7 +132,7 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
             // use cached file
             std::string cached;
             auto cacheIt = _cache.find(url);
-            if (cacheIt.value()["file"].is_string() && readFile(os_pathcat(_cachedir, cacheIt.value()["file"].get<std::string>()), cached)) {
+            if (cacheIt.value()["file"].is_string() && readFile(_cachedir / fs::u8path(cacheIt.value()["file"].get<std::string>()), cached)) {
                 time_t t = time(NULL);
                 _cache[url]["timestamp"] = t;
                 cb(true, cached);

@@ -3,6 +3,7 @@
 #include <luaglue/lua_json.h>
 #include <stdio.h>
 #include "gameinfo.h"
+#include "util.h"
 
 
 #ifdef DEBUG_TRACKER
@@ -431,6 +432,7 @@ json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef
     std::string script;
     if (!_tracker || !_tracker->getPack() || !_tracker->getPack()->ReadFile(file, script)) {
         luaL_error(_L, "Could not load script!");
+        util::unreachable(); // luaL_error does not return
     }
     return runAsync(file, script, arg, completeCallback, progressCallback);
 }

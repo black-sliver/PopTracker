@@ -3,20 +3,20 @@
 - check [doc/OUTLINE.md](doc/OUTLINE.md) to get an idea how this is supposed to work,
 - check [doc/TODO.md](doc/TODO.md) and `//TODO:` comments to see what has to be done.
 
-Send PRs on github.
+Send PRs on GitHub.
 
 ## C++ Style
 
 - cpp and h filenames are all lowercase, named after the class name
 - 120 chars per line
 - new code should mostly follow [WebKit C++ style](https://webkit.org/code-style-guidelines/),
-  with exception of
+  except for
   - `m_` for member variables is not required: just `_` is fine (read below)
   - `s_` for static members is not required
   - getters start with `get` - it would take a major refactor to change them all
 - include guards are `_FOLDER_FOLDER_FILENAME_H`,
   closing `#endif` should have the name as comment
-- `#pragma once` is preferred for new code
+- `#pragma once` is preferred over include guards for new code
 - camelCase
 - protected and private member variables start with `_`
 - local variables start with a lower case letter
@@ -25,8 +25,8 @@ Send PRs on github.
 - public member variables should start with a lower case letter - this is to match SDL's structs
 - public member variables should only be used for simple structs - use getters/setters otherwise
 - getters start with `get`, setters with `set`
-- class names start with a captial letter
-- one exception to the above is the Lua Inferface, which uses `T::Lua_CamelCase`
+- class names start with a capital letter
+- one exception to the above is the Lua Interface, which uses `T::Lua_CamelCase`
 - loops/iterations use `auto :` or `auto& :` where possible
 - use `std::string` or `std::string_view` (we target c++17)
 - there are a ton of violations, but new code should still try to check all the boxes
@@ -38,6 +38,11 @@ Send PRs on github.
 - ownership should be similar to Qt, where a parent will delete its children
 - unique_ptr are fine, "raw pointers" are also fine, but should probably refactor uilib at some point
 - avoid shared and weak since they are far from free; prefer clear ownership and life cycle
+
+### Dependencies' Styles
+
+If a dependency can be used as-is, its style should not be changed from upstream.
+Use `diff -E -b --color=always -u ...` to compare upstream versions if style is inconsistent.
 
 ### "Mandatory" Optimizations
 
@@ -54,6 +59,22 @@ Send PRs on github.
 - assume threads are not cheap
 - use private (not protected) where possible to avoid going through vtables
 - implement small functions inline in header files for platforms where LTO does not work correctly
+
+### Static Analysis
+
+We run [scan-build](https://clang.llvm.org/docs/analyzer/user-docs/CommandLineUsage.html#scan-build)
+in CI to catch some mistakes, excluding some libs.
+
+See [scan-build.yaml](../.github/workflows/scan-build.yaml).
+
+### Address Sanitizer
+
+Consider testing with ASAN by passing WITH_ASAN=true to make.
+
+### Spell Checker
+
+We use codespell to find typos. You can `pip install codespell` or rely on the GitHub workflow.
+See `.codespellrc` if you want to exclude files/folders and `.codespellignore` if you want to exclude a word.
 
 ## Documentation Style
 

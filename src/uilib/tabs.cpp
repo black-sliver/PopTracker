@@ -66,6 +66,8 @@ void Tabs::addChild(Widget* w)
 {
     w->setVisible(false);
     _children.push_back(w);
+    if (w->getHGrow() > _hGrow)
+        _hGrow = w->getHGrow();
     Button* btn = new Button(0,0,0,0,_font,"Tab");
     btn->setSize(btn->getMinSize());
     btn->onClick += {this, [this](void* sender,int x, int y, int btn) {

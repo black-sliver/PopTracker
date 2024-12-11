@@ -152,7 +152,7 @@
                                             ]
                                         },
                                         "canvas_top": {
-                                            "description": "Distance to top egde of canvas of the item.",
+                                            "description": "Distance to top edge of canvas of the item.",
                                             "anyOf": [
                                                 {
                                                     "type": "number"
@@ -164,7 +164,7 @@
                                             ]
                                         },
                                         "canvas_left": {
-                                            "description": "Distance to left egde of canvas of the item.",
+                                            "description": "Distance to left edge of canvas of the item.",
                                             "anyOf": [
                                                 {
                                                     "type": "number"

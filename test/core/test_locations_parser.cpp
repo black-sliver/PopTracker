@@ -8,7 +8,7 @@ using nlohmann::json;
 
 
 TEST(LocationsParserTest, LocationRulesInheritAndEmpty) {
-    // TODO: validate indirectly by checcking accessibility/visibilty via Tracker
+    // TODO: validate indirectly by checking accessibility/visibility via Tracker
     const list<list<string>> parentAccessRules = {{"a"}};
     const list<list<string>> parentVisibilityRules = {{"b"}};
     json childNode = R"(
@@ -27,7 +27,7 @@ TEST(LocationsParserTest, LocationRulesInheritAndEmpty) {
 }
 
 TEST(LocationsParserTest, SectionRulesInheritAndEmpty) {
-    // TODO: validate indirectly by checcking accessibility/visibilty via Tracker
+    // TODO: validate indirectly by checking accessibility/visibiltiy via Tracker
     json locationNode = R"(
         {
             "name": "location",
@@ -43,7 +43,7 @@ TEST(LocationsParserTest, SectionRulesInheritAndEmpty) {
         }
     )"_json;
 
-    auto section = Location::FromJSON(locationNode, {}, {}, {}).front().getSections().front();
+    auto section = Location::FromJSON(locationNode, {}).front().getSections().front();
     EXPECT_EQ(section.getAccessRules(),
               list<list<string>>({{"a"}}));
     EXPECT_EQ(section.getVisibilityRules(),

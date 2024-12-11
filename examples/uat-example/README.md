@@ -7,5 +7,5 @@ PopTracker to auto-track.
 * Variables are received in [scripts/autotracking.lua](scripts/autotracking.lua)
 * Sample server is in [util/uat-example-server.py](util/uat-example-server.py)
 
-Load the pack and run the example server for a demonstation. The example server
+Load the pack and run the example server for a demonstration. The example server
 requires python3 and websockets module (`pip install -r util/requirements.txt`).

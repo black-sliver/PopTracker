@@ -6,6 +6,10 @@
 #include "sha256.h"
 #include "util.h"
 
+#ifdef _WIN32
+#include <wchar.h>
+#endif
+
 
 using nlohmann::json;
 
@@ -41,7 +45,8 @@ static bool sanitizePath(const std::string& userfile, std::string& file)
     return true;
 }
 
-static std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+template<class T>
+static T replaceAll(T str, const T& from, const T& to) {
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
@@ -50,22 +55,24 @@ static std::string replaceAll(std::string str, const std::string& from, const st
     return str;
 }
 
-static std::string cleanUpPath(const std::string& path)
+static fs::path cleanUpPath(const fs::path& path)
 {
+    using namespace std::string_literals;
+
 #if defined WIN32 || defined _WIN32
-    char buf[_MAX_PATH];
-    char* p = _fullpath(buf, path.c_str(), sizeof(buf));
-    std::string s = p ? (std::string)p : path;
-    s = replaceAll(replaceAll(s, "//", "/"), "\\\\", "\\");
-    if (s[s.length()-1] == '/' || s[s.length()-1] == '\\')
+    wchar_t buf[_MAX_PATH];
+    auto p = _wfullpath(buf, path.c_str(), sizeof(buf));
+    std::wstring s = p ? p : path.c_str();
+    s = replaceAll(replaceAll(s, L"//"s, L"/"s), L"\\\\"s, L"\\"s);
+    if (s[s.length()-1] == L'/' || s[s.length()-1] == L'\\')
         s.pop_back();
 #else
     char* p = realpath(path.c_str(), nullptr);
-    std::string s = p ? (std::string)p : path;
+    std::string s = p ? p : path.c_str();
     if (p)
         free(p);
     p = nullptr;
-    s = replaceAll(s, "//", "/");
+    s = replaceAll(s, "//"s, "/"s);
     if (s[s.length()-1] == '/')
         s.pop_back();
 #endif
@@ -84,35 +91,32 @@ static bool fileNewerThan(const std::string& path, const std::chrono::system_clo
     return (!getFileMTime(path, tp) || tp > than); // assume changed on error
 }
 
-static bool dirNewerThan(const char* path, const std::chrono::system_clock::time_point& than)
+static bool fileNewerThan(const fs::path& path, const std::chrono::system_clock::time_point& than)
 {
-    DIR *d = opendir(path);
-    if (!d) return true; // error -> assume changed
-    struct dirent *dir;
-    while ((dir = readdir(d)) != NULL)
-    {
-        if (strcmp(dir->d_name,".")==0 || strcmp(dir->d_name,"..")==0) continue;
-        auto f = os_pathcat(path, dir->d_name);
-        struct stat st;
-        if (stat(f.c_str(), &st) != 0) return true;
-        if (S_ISDIR(st.st_mode) && dirNewerThan(f.c_str(), than)) return true;
-        else if (!S_ISDIR(st.st_mode) && fileNewerThan(&st, than)) return true;
+    std::chrono::system_clock::time_point tp;
+    return (!getFileMTime(path, tp) || tp > than); // assume changed on error
+}
+
+static bool dirNewerThan(const fs::path& path, const std::chrono::system_clock::time_point& than)
+{
+    for (const auto& dirEntry: fs::recursive_directory_iterator{path}) {
+        if ((dirEntry.is_regular_file() || dirEntry.is_symlink()) && fileNewerThan(dirEntry.path(), than))
+            return true;
     }
-    closedir(d);
     return false;
 }
 
 
-std::vector<std::string> Pack::_searchPaths;
-std::vector<std::string> Pack::_overrideSearchPaths;
+std::vector<fs::path> Pack::_searchPaths;
+std::vector<fs::path> Pack::_overrideSearchPaths;
 
 
-Pack::Pack(const std::string& path) : _zip(nullptr), _path(path), _override(nullptr)
+Pack::Pack(const fs::path& path) : _zip(nullptr), _path(path), _override(nullptr)
 {
     _loaded = std::chrono::system_clock::now();
     std::string s;
-    if (fileExists(path)) {
-        _zip = new Zip(path);
+    if (fs::is_regular_file(path)) {
+        _zip = new Zip(path.u8string().c_str());
         auto root = _zip->list();
         if (root.size() == 1 && root[0].first == Zip::EntryType::DIR) {
             _zip->setDir(root[0].second);
@@ -121,7 +125,7 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path), _override(null
         if (_zip->readFile("manifest.json", s, err)) {
             _manifest = parse_jsonc(s);
         } else {
-            fprintf(stderr, "%s: could not read manifest.json: %s\n", path.c_str(), err.c_str());
+            fprintf(stderr, "%s: could not read manifest.json: %s\n", sanitize_print(path).c_str(), err.c_str());
         }
     } else {
         if (ReadFile("manifest.json", s)) {
@@ -139,8 +143,8 @@ Pack::Pack(const std::string& path) : _zip(nullptr), _path(path), _override(null
 
     if (!_uid.empty()) {
         for (const auto& path: _overrideSearchPaths) {
-            std::string overridePath = os_pathcat(path, _uid);
-            if (dirExists(overridePath)) {
+            auto overridePath = path / _uid;
+            if (fs::is_directory(overridePath)) {
                 _override = new Override(overridePath);
                 break;
             }
@@ -200,14 +204,14 @@ bool Pack::hasFile(const std::string& userfile) const
         return false;
 
     if (_zip) {
-        if (!_variant.empty() && _zip->hasFile(_variant+"/"+file))
+        if (!_variant.empty() && _zip->hasFile(_variant + "/" + file))
             return true;
         if (_zip->hasFile(file))
             return true;
     } else {
-        if (!_variant.empty() && fileExists(os_pathcat(_path,_variant,file)))
+        if (!_variant.empty() && fs::is_regular_file(_path / fs::u8path(_variant) / fs::u8path(file)))
             return true;
-        if (fileExists(os_pathcat(_path,file)))
+        if (fs::is_regular_file(_path / fs::u8path(file)))
             return true;
     }
     return false;
@@ -223,18 +227,18 @@ bool Pack::ReadFile(const std::string& userfile, std::string& out) const
         bool packHasVariantFile = false;
         if (!_variant.empty()) {
             if (_zip)
-                packHasVariantFile = _zip->hasFile(_variant+"/"+file);
+                packHasVariantFile = _zip->hasFile(_variant + "/" + file);
             else
-                packHasVariantFile = fileExists(os_pathcat(_path,_variant,file));
+                packHasVariantFile = fs::is_regular_file(_path / fs::u8path(_variant) / fs::u8path(file));
         }
-        if (packHasVariantFile && _override->ReadFile(_variant+"/"+file, out))
+        if (packHasVariantFile && _override->ReadFile(_variant + "/" + file, out))
             return true;
         else if ((!packHasVariantFile || _variant.empty()) && _override->ReadFile(file, out))
             return true;
     }
 
     if (_zip) {
-        if (!_variant.empty() && _zip->readFile(_variant+"/"+file, out))
+        if (!_variant.empty() && _zip->readFile(_variant + "/" + file, out))
             return true;
         if (_zip->readFile(file, out))
             return true;
@@ -242,12 +246,21 @@ bool Pack::ReadFile(const std::string& userfile, std::string& out) const
     } else {
         out.clear();
         FILE* f = nullptr;
+#ifdef _WIN32
         if (!_variant.empty()) {
-            f = fopen(os_pathcat(_path,_variant,file).c_str(), "rb");
+            f = _wfopen((_path / fs::u8path(_variant) / fs::u8path(file)).c_str(), L"rb");
         }
         if (!f) {
-            f = fopen(os_pathcat(_path,file).c_str(), "rb");
+            f = _wfopen((_path / fs::u8path(file)).c_str(), L"rb");
         }
+#else
+        if (!_variant.empty()) {
+            f = fopen((_path / fs::u8path(_variant) / fs::u8path(file)).c_str(), "rb");
+        }
+        if (!f) {
+            f = fopen((_path / fs::u8path(file)).c_str(), "rb");
+        }
+#endif
         if (!f) {
             return false;
         }
@@ -367,9 +380,9 @@ bool Pack::hasFilesChanged() const
     if (_override && _override->hasFilesChanged(_loaded))
         return true;
     if (_zip)
-        return fileNewerThan(_path, _loaded);
+        return fileNewerThan(_path, _loaded); // TODO: fs::last_write_time + time_point_cast once we use C+++20
     else
-        return dirNewerThan(_path.c_str(), _loaded);
+        return dirNewerThan(_path, _loaded);
 }
 
 std::string Pack::getSHA256() const
@@ -384,20 +397,14 @@ std::vector<Pack::Info> Pack::ListAvailable()
 {
     std::vector<Pack::Info> res;
     for (auto& searchPath: _searchPaths) {
-        DIR *d = opendir(searchPath.c_str());
-        if (!d && errno != ENOENT)
-            fprintf(stderr, "Packs: could not open %s: %s\n", searchPath.c_str(), strerror(errno));
-        if (!d)
+        if (!fs::is_directory(searchPath))
             continue;
-        struct dirent *dir;
-        while ((dir = readdir(d)) != NULL)
-        {
-            Pack pack(os_pathcat(searchPath, dir->d_name));
+        for (auto const& dirEntry : fs::directory_iterator{searchPath}) {
+            Pack pack(dirEntry.path());
             if (!pack.isValid())
                 continue;
             res.push_back(pack.getInfo());
         }
-        closedir(d);
     }
 
     std::sort(res.begin(), res.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
@@ -419,26 +426,24 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
 {
     std::vector<Pack::Info> packs;
     for (auto& searchPath: _searchPaths) {
-        DIR *d = opendir(searchPath.c_str());
-        if (!d) continue;
-        struct dirent *dir;
-        while ((dir = readdir(d)) != NULL) {
-            Pack pack(os_pathcat(searchPath, dir->d_name));
-            if (pack.isValid() && pack.getUID() == uid) {
-                if (!sha256.empty()) {
-                    // require exact match if hash is given
-                    if ((version.empty() || pack.getVersion() == version) &&
-                            strcasecmp(pack.getSHA256().c_str(), sha256.c_str()) == 0) {
-                        return pack.getInfo(); // return exact match
-                    }
-                } else if (!version.empty() && pack.getVersion() == version) {
-                    return pack.getInfo(); // return exact version match
-                } else {
-                    packs.push_back(pack.getInfo());
+        if (!fs::is_directory(searchPath))
+            continue;
+        for (auto const& dirEntry : fs::directory_iterator{searchPath}) {
+            Pack pack(dirEntry.path());
+            if (!pack.isValid() || pack.getUID() != uid)
+                continue;
+            if (!sha256.empty()) {
+                // require exact match if hash is given
+                if ((version.empty() || pack.getVersion() == version) &&
+                        strcasecmp(pack.getSHA256().c_str(), sha256.c_str()) == 0) {
+                    return pack.getInfo(); // return exact match
                 }
+            } else if (!version.empty() && pack.getVersion() == version) {
+                return pack.getInfo(); // return exact version match
+            } else {
+                packs.push_back(pack.getInfo());
             }
         }
-        closedir(d);
     }
 
     if (!packs.empty()) {
@@ -453,9 +458,10 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
     return {};
 }
 
-static void addPath(const std::string& path, std::vector<std::string>& paths)
+static void addPath(const fs::path& path, std::vector<fs::path>& paths)
 {
 #if !defined WIN32 && !defined _WIN32
+    // TODO: canonical?
     char* tmp = realpath(path.c_str(), NULL);
     if (tmp) {
         std::string real = tmp;
@@ -465,9 +471,10 @@ static void addPath(const std::string& path, std::vector<std::string>& paths)
         paths.push_back(real);
     } else
 #else
-    char* tmp = _fullpath(NULL, path.c_str(), 1024);
+    // TODO: canonical?
+    auto tmp = _wfullpath(nullptr, path.c_str(), 1024);
     if (tmp) {
-        auto cmp = [tmp](const std::string& s) { return strcasecmp(tmp, s.c_str()) == 0; };
+        auto cmp = [tmp](const fs::path& p) { return wcsicmp(tmp, p.c_str()) == 0; };
         if (std::find_if(paths.begin(), paths.end(), cmp) != paths.end())
             return;
         paths.push_back(tmp);
@@ -481,33 +488,34 @@ static void addPath(const std::string& path, std::vector<std::string>& paths)
     }
 }
 
-void Pack::addSearchPath(const std::string& path)
+void Pack::addSearchPath(const fs::path& path)
 {
     addPath(path, _searchPaths);
 }
 
-bool Pack::isInSearchPath(const std::string& uncleanPath)
+bool Pack::isInSearchPath(const fs::path& uncleanPath)
 {
-    std::string path = cleanUpPath(uncleanPath);
+    auto path = cleanUpPath(uncleanPath);
     for (const auto& uncleanSearchPath: _searchPaths) {
-        std::string searchPath = cleanUpPath(uncleanSearchPath) + OS_DIR_SEP;
-        if (strncmp(path.c_str(), searchPath.c_str(), searchPath.length()) == 0)
+        auto searchPath = cleanUpPath(uncleanSearchPath);
+        // TODO: .make_preferred().canonical() instead
+        if (fs::is_sub_path(path, searchPath))
             return true;
     }
     return false;
 }
 
-const std::vector<std::string>& Pack::getSearchPaths()
+const std::vector<fs::path>& Pack::getSearchPaths()
 {
     return _searchPaths;
 }
 
-void Pack::addOverrideSearchPath(const std::string& path)
+void Pack::addOverrideSearchPath(const fs::path& path)
 {
     addPath(path, _overrideSearchPaths);
 }
 
-Pack::Override::Override(const std::string& path)
+Pack::Override::Override(const fs::path& path)
     : _path(path)
 {
 }
@@ -523,10 +531,12 @@ bool Pack::Override::ReadFile(const std::string& userfile, std::string& out) con
         return false;
 
     out.clear();
-    FILE* f = nullptr;
-    if (!f) {
-        f = fopen(os_pathcat(_path,file).c_str(), "rb");
-    }
+    FILE* f =
+#ifdef _WIN32
+        _wfopen((_path / fs::u8path(file)).c_str(), L"rb");
+#else
+        fopen((_path / fs::u8path(file)).c_str(), "rb");
+#endif
     if (!f) {
         return false;
     }
@@ -547,5 +557,5 @@ read_err:
 
 bool Pack::Override::hasFilesChanged(std::chrono::system_clock::time_point since) const
 {
-    return dirNewerThan(_path.c_str(), since);
+    return dirNewerThan(_path, since);
 }
