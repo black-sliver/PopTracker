@@ -18,8 +18,14 @@ public:
         Container::setSize(size);
         for (auto child : _children) {
             Size childSize = child->getSize();
-            if (child->getHGrow()) childSize.width = _size.width-child->getLeft();
-            if (child->getVGrow()) childSize.height = _size.height-child->getTop();
+            if (child->getHGrow())
+                childSize.width = _size.width-child->getLeft();
+            else if (childSize.width < child->getMinWidth()) // FIXME: this also be done for HGrow
+                childSize.width = child->getMinWidth();
+            if (child->getVGrow())
+                childSize.height = _size.height-child->getTop();
+            else if (childSize.height < child->getMinWidth()) // FIXME: this also be done for VGrow
+                childSize.height = child->getMinWidth();
             child->setSize(childSize);
             break; // only the first child for now; TODO: only container-sized widgets?
         }
