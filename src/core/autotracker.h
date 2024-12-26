@@ -178,9 +178,13 @@ public:
         return State::Unavailable;
     }
 
-    bool isAnyConnected()
+    bool isAnyMemoryConnected()
     {
         for (int index = 0; index < (int)_state.size(); ++index) {
+            if (_ap && _backendIndex[_ap] == index)
+                continue; // AP doesn't have memory
+            if (_uat && _backendIndex[_uat] == index)
+                continue; // UAT doesn't have memory
             if (getState(index) >= State::ConsoleConnected)
                 return true;
         }
