@@ -396,7 +396,20 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
         const auto& type = types.front(); // tinyfd only supports one
         auto patterns = new const char*[type.patterns.size()];
         int i=0;
-        for (const auto& pat: type.patterns) patterns[i++] = pat.c_str();
+#ifdef __APPLE__
+        // macos uses types instead of patterns, fix up the difference here
+        for (const auto& pat: type.patterns) {
+            if (strcasestr(pat.c_str(), ".json"))
+                patterns[i++] = "*.public.json"; // UTType json is "public.json"
+            else if (strcasestr(pat.c_str(), ".zip"))
+                patterns[i++] = "*.public.zip"; // UTType zip is "public.zip"
+            else
+                patterns[i++] = pat.c_str();
+        }
+#else
+        for (const auto& pat: type.patterns)
+            patterns[i++] = pat.c_str();
+#endif
         filename = tinyfd_openFileDialog(title.c_str(), dflt.c_str(), i,
                 patterns, type.name.c_str(), multi);
         delete[] patterns;
@@ -464,7 +477,20 @@ bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::li
         const auto& type = types.front(); // tinyfd only supports one
         auto patterns = new const char*[type.patterns.size()];
         int i=0;
-        for (const auto& pat: type.patterns) patterns[i++] = pat.c_str();
+#ifdef __APPLE__
+        // see Dlg::OpenFile
+        for (const auto& pat: type.patterns) {
+            if (strcasestr(pat.c_str(), ".json"))
+                patterns[i++] = "*.public.json";
+            else if (strcasestr(pat.c_str(), ".zip"))
+                patterns[i++] = "*.public.zip";
+            else
+                patterns[i++] = pat.c_str();
+        }
+#else
+        for (const auto& pat: type.patterns)
+            patterns[i++] = pat.c_str();
+#endif
         filename = tinyfd_saveFileDialog(title.c_str(), dflt.c_str(), i,
                 patterns, type.name.c_str());
         delete[] patterns;
