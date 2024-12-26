@@ -561,7 +561,7 @@ void ScriptHost::resetWatches()
 
 void ScriptHost::runMemoryWatchCallbacks()
 {
-    if (!_autoTracker || !_autoTracker->isAnyConnected())
+    if (!_autoTracker || !_autoTracker->isAnyMemoryConnected())
         return;
 
     // we need to run callbacks because the autotracker changed some cache
