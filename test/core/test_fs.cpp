@@ -26,12 +26,48 @@ TEST(FsTest, U8FourBytes) {
     EXPECT_EQ(fs::u8path(s).u8string(), s);
 }
 
+static fs::path my_realpath(const fs::path& path)
+{
+    fs::path res;
+#if !defined WIN32 && !defined _WIN32
+    char* tmp = realpath(path.c_str(), NULL);
+    if (tmp) {
+        res = tmp;
+        free(tmp);
+    }
+#else
+    auto tmp = _wfullpath(nullptr, path.c_str(), 1024);
+    if (tmp) {
+        auto cmp = [tmp](const fs::path& p) { return wcsicmp(tmp, p.c_str()) == 0; };
+        res = tmp;
+        free(tmp);
+    }
+#endif
+    return res;
+}
+
 TEST(FsTest, SubPath) {
     EXPECT_TRUE(fs::is_sub_path(fs::path("assets") / "icon.png", "assets"));
 }
 
+TEST(FsTest, SubPathAbs) {
+    EXPECT_TRUE(fs::is_sub_path(my_realpath("assets") / "icon.png", "assets"));
+}
+
+TEST(FsTest, SubPathAbsAbs) {
+    EXPECT_TRUE(fs::is_sub_path(my_realpath("assets") / "icon.png", my_realpath("assets")));
+}
+
 TEST(FsTest, NotSubPath) {
     EXPECT_FALSE(fs::is_sub_path(fs::path("assets") / "icon.png", "doc"));
+}
+
+TEST(FsTest, NotSubPathAbs) {
+    EXPECT_FALSE(fs::is_sub_path(my_realpath("assets") / "icon.png", "doc"));
+}
+
+TEST(FsTest, NotSubPathAbsAbs) {
+    EXPECT_FALSE(fs::is_sub_path(my_realpath("assets") / "icon.png", my_realpath("doc")));
 }
 
 TEST(FsTest, IdenticalSubPath) {

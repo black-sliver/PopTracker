@@ -242,7 +242,11 @@ namespace  fs {
             if (equivalent(p, root, ec)) {
                 return true;
             }
-            p = p.parent_path();
+            path parent = p.parent_path();
+            if (parent == p) {
+                break;
+            }
+            p = parent;
         }
         return false;
     }
