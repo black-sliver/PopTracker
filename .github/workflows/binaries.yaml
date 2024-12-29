@@ -7,10 +7,12 @@ on:
     paths:
       - '.github/workflows/binaries.yaml'
       - 'macosx/*.sh'
+      - 'win32/*.sh'
   pull_request:
     paths:
       - '.github/workflows/binaries.yaml'
       - 'macosx/*.sh'
+      - 'win32/*.sh'
 
 jobs:
 
@@ -125,6 +127,8 @@ jobs:
           coreutils
           make
           mingw-w64-x86_64-toolchain
+          autoconf-wrapper
+          mingw-w64-x86_64-autotools
           mingw64/mingw-w64-x86_64-SDL2
           mingw64/mingw-w64-x86_64-SDL2_image
           mingw64/mingw-w64-x86_64-SDL2_ttf
@@ -135,6 +139,16 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Build libs
+      shell: msys2 {0}
+      run: |
+        mkdir -p win32-lib-src
+        cd win32-lib-src
+        ../win32/native-compile-libs-win32.sh
+    - name: Uninstall system libs
+      shell: msys2 {0}
+      run: |
+          pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
     - name: Build RELEASE
       shell: msys2 {0}
       run: make native CONF=RELEASE -j2
