@@ -136,6 +136,7 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           p7zip
+          mingw-w64-x86_64-advancecomp
     - uses: actions/checkout@v4
       with:
         submodules: recursive
