@@ -46,6 +46,8 @@ build() {
 if [ ! -d $SDL_SRC ]; then
     wget "$SDL_URL"
     tar -xzvf "$SDL_SRC.tar.gz"
+    # disable dynapi
+    sed -i 's/#define SDL_DYNAMIC_API 1$/#define SDL_DYNAMIC_API 0/' "$SDL_SRC/src/dynapi/SDL_dynapi.h"
 fi
 if [ ! -d $IMAGE_SRC ]; then
     wget "$IMAGE_URL"
