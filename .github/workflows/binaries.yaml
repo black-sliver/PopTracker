@@ -28,7 +28,7 @@ jobs:
       with:
         submodules: recursive
     - name: Build RELEASE
-      run: make native CONF=RELEASE -j2
+      run: make native CONF=RELEASE -j4
     - name: Run tests
       run: make test CONF=RELEASE
     - name: Get version
@@ -88,7 +88,7 @@ jobs:
           macosx/build
           macosx/libs
     - name: Build RELEASE
-      run: make native CONF=RELEASE -j3
+      run: make native CONF=RELEASE -j4
     - name: Run tests
       run: make test CONF=RELEASE
     - name: Get version
@@ -159,7 +159,7 @@ jobs:
           pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
     - name: Build RELEASE
       shell: msys2 {0}
-      run: make native CONF=RELEASE -j2
+      run: make native CONF=RELEASE -j4
     - name: Run tests
       shell: msys2 {0}
       run: make test CONF=RELEASE
@@ -180,7 +180,7 @@ jobs:
       shell: msys2 {0}
       run: |
         make clean
-        make native CONF=DEBUG -j2
+        make native CONF=DEBUG -j4
         7z a -mx=9 dist/poptracker-win64-debug.zip build/win64/poptracker.exe
     - name: Store DEBUG
       uses: actions/upload-artifact@v4
