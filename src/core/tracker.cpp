@@ -722,7 +722,7 @@ void Tracker::rebuildSectionRefs()
     _sectionRefs.clear();
     for (const auto& pair: _sectionNameRefs) {
         const auto& target = getLocationSection(pair.first);
-        if (target.getName().empty())
+        if (target.getParentID().empty() && target.getName().empty()) // TODO: Optional<LocationSection> instead
             continue;
         for (const auto& sourceName: pair.second) {
             const auto& source = getLocationAndSection(sourceName);
