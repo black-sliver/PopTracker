@@ -7,10 +7,8 @@ IMAGE_URL="https://github.com/libsdl-org/SDL_image/releases/download/release-2.8
 TTF_SRC=SDL2_ttf-2.22.0
 TTF_URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/SDL2_ttf-2.22.0.tar.gz"
 
-# IMPORTANT: dynapi has to be disabled in SDL2-*/src/dynapi/SDL_dynapi.h
+# IMPORTANT: dynapi has to be disabled in SDL2-*/src/dynapi/SDL_dynapi.h, see sed -i below.
 #            loadso is now required for hardware renderers
-# TODO: disable dynapi using sed?
-# TODO: automate copying of output
 
 ARCH=`gcc -dumpmachine | sed "s/-.*$//"`
 OUTPUT_FLAGS="--enable-static --disable-shared" # --with-gnu-ld"
@@ -27,8 +25,12 @@ build() {
     FEATURE_FLAGS="$4"
     BUILD="build/$TARGET/$2"
 
-    echo "Building $2 on $ARCH"
+    if [ -f "$BUILD/.version" ] && [ `cat "$BUILD/.version"` == "$1" ]; then
+        echo "Skipping build $2 on $ARCH, $1 already built"
+        return 0
+    fi
 
+    echo "Building $2 on $ARCH"
     CONFIGURE_FLAGS="$OUTPUT_FLAGS $FEATURE_FLAGS"
     echo "$SRC -> $BUILD"
     if [ -d "$BUILD" ]; then rm -R "$BUILD" ; fi
@@ -36,6 +38,7 @@ build() {
     cd "$BUILD"
     ../../../$SRC/configure $CONFIGURE_FLAGS
     make -j4
+    echo "$1" > ".version"
     cd ../../..
 }
 
@@ -56,22 +59,23 @@ if [ ! -d $TTF_SRC ]; then
     tar -xzvf "$TTF_SRC.tar.gz"
 fi
 
-build $SDL_SRC "sdl" "native" "$SDL_FEATURE_FLAGS"
-build $IMAGE_SRC "sdl2_image" "native" "$IMAGE_FEATURE_FLAGS"
-build $TTF_SRC "sdl2_ttf" "native" "$TTF_FEATURE_FLAGS"
+build $SDL_SRC "sdl" "$ARCH" "$SDL_FEATURE_FLAGS"
+build $IMAGE_SRC "sdl2_image" "$ARCH" "$IMAGE_FEATURE_FLAGS"
+build $TTF_SRC "sdl2_ttf" "$ARCH" "$TTF_FEATURE_FLAGS"
 
 DST="../win32-lib/$ARCH"
-echo "build/... -> $DST"
+BUILD="build/$ARCH"
+echo "$BUILD/... -> $DST"
 mkdir -p $DST/include/SDL2
 mkdir -p $DST/lib
 cp $SDL_SRC/include/*  "$DST/include/SDL2/"
 cp $IMAGE_SRC/include/*  "$DST/include/SDL2/"
 cp $TTF_SRC/*.h  "$DST/include/SDL2/"
-cp build/native/sdl/include/* "$DST/include/SDL2/"
-cp build/native/sdl/build/.libs/* "$DST/lib/"
-cp build/native/sdl/build/*.la "$DST/lib/"
-cp build/native/sdl2_image/.libs/* "$DST/lib/"
-cp build/native/sdl2_image/*.la "$DST/lib/"
-cp build/native/sdl2_ttf/.libs/* "$DST/lib/"
-cp build/native/sdl2_ttf/*.la "$DST/lib/"
+cp $BUILD/sdl/include/* "$DST/include/SDL2/"
+cp $BUILD/sdl/build/.libs/* "$DST/lib/"
+cp $BUILD/sdl/build/*.la "$DST/lib/"
+cp $BUILD/sdl2_image/.libs/* "$DST/lib/"
+cp $BUILD/sdl2_image/*.la "$DST/lib/"
+cp $BUILD/sdl2_ttf/.libs/* "$DST/lib/"
+cp $BUILD/sdl2_ttf/*.la "$DST/lib/"
 ls $DST/*
