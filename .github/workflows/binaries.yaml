@@ -78,6 +78,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Cache/restore macosx-libs
+      uses: actions/cache@v4
+      with:
+        key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.cache-name }}-${{ hashFiles('macosx/*.sh') }}
+        path: |
+          macosx/build
+          macosx/libs
     - name: Build RELEASE
       run: make native CONF=RELEASE -j3
     - name: Run tests
