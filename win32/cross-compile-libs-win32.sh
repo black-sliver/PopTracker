@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SDL_SRC=SDL2-2.30.2
-IMAGE_SRC=SDL2_image-2.8.2
+SDL_SRC=SDL2-2.30.10
+IMAGE_SRC=SDL2_image-2.8.4
 TTF_SRC=SDL2_ttf-2.22.0
 
 # Helper to cross compile SDL libs for Windows on Linux
