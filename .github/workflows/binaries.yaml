@@ -139,6 +139,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Cache/restore win32-libs
+      uses: actions/cache@v4
+      with:
+        key: libs-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('win32/*.sh') }}
+        path: |
+          win32-lib
+          win32-lib-src
     - name: Build libs
       shell: msys2 {0}
       run: |
