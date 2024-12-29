@@ -84,7 +84,7 @@ jobs:
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
     - name: Build RELEASE
-      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j2
+      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
     - name: Run tests
       run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
     - name: Build DIST # this builds a .tar.xz
@@ -113,11 +113,11 @@ jobs:
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
     - name: Build RELEASE
-      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j3
+      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
     - name: Run tests
       run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
-      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }} 
+      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
@@ -129,5 +129,61 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #release-windows:
+  release-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          coreutils
+          make
+          mingw-w64-x86_64-toolchain
+          autoconf-wrapper
+          mingw-w64-x86_64-autotools
+          mingw64/mingw-w64-x86_64-SDL2
+          mingw64/mingw-w64-x86_64-SDL2_image
+          mingw64/mingw-w64-x86_64-SDL2_ttf
+          mingw64/mingw-w64-x86_64-freetype
+          mingw64/mingw-w64-x86_64-openssl
+          mingw64/mingw-w64-x86_64-gtest
+          p7zip
+          mingw-w64-x86_64-advancecomp
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build libs
+      shell: msys2 {0}
+      run: |
+        mkdir -p win32-lib-src
+        cd win32-lib-src
+        ../win32/native-compile-libs-win32.sh
+    - name: Uninstall system libs
+      shell: msys2 {0}
+      run: |
+          pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
+    - name: Set env
+      shell: msys2 {0}
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+    - name: Build RELEASE
+      shell: msys2 {0}
+      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
+    - name: Run tests
+      shell: msys2 {0}
+      run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
+    - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
+      shell: msys2 {0}
+      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+    - name: Create Release
+      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      with:
+        draft: true
+        prerelease: true
+        name: PopTracker v${{ env.RELEASE_VERSION }}
+        files: |
+          dist/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # The windows dist zips are created with a custom SDL on a bleeding edge arch linux mingw. See `make cross`.
