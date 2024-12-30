@@ -1,5 +1,16 @@
 # PopTracker Changelog
 
+## v0.30.0
+
+* App Features
+  * Unicode path support everywhere
+* Fixes
+  * Macos: Fixed file selection issues (when loading state)
+  * Fixed horizontal min size for settings window and some containers
+  * Fixed memory watches triggereing when AP or UAT connects
+  * Fixed location ref not working if target section has empty name
+  * Fixed mistakes in schema
+
 ## v0.29.0
 
 * App Features

@@ -2,7 +2,7 @@
 #define _VERSION_H
 
 #define APP_VERSION_MAJOR     0
-#define APP_VERSION_MINOR    29
+#define APP_VERSION_MINOR    30
 #define APP_VERSION_REVISION  0
 
 #ifndef XSTR
