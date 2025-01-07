@@ -80,12 +80,6 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           p7zip
-    - name: Fix dependencies (msys2)
-      if: ${{ startsWith(matrix.os, 'windows') }}
-      run: |
-        # static svt-av1 2.3.0-1 lib seems to be currently broken
-        wget https://quantum-mirror.hu/mirrors/pub/msys2/mingw/mingw64/mingw-w64-x86_64-svt-av1-2.2.1-1-any.pkg.tar.zst
-        pacman -U --noconfirm mingw-w64-x86_64-svt-av1-2.2.1-1-any.pkg.tar.zst
     - uses: actions/checkout@v4
       with:
         submodules: recursive
