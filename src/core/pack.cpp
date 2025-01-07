@@ -61,7 +61,7 @@ static fs::path cleanUpPath(const fs::path& path)
 
 #if defined WIN32 || defined _WIN32
     wchar_t buf[_MAX_PATH];
-    auto p = _wfullpath(buf, path.c_str(), sizeof(buf));
+    auto p = _wfullpath(buf, path.c_str(), _MAX_PATH);
     std::wstring s = p ? p : path.c_str();
     s = replaceAll(replaceAll(s, L"//"s, L"/"s), L"\\\\"s, L"\\"s);
     if (s[s.length()-1] == L'/' || s[s.length()-1] == L'\\')
