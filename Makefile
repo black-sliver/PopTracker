@@ -403,9 +403,12 @@ $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib/lua
 
-$(WIN32_BUILD_DIR)/app.res: $(SRC_DIR)/app.rc $(SRC_DIR)/version.h assets/icon.ico | $(WIN32_BUILD_DIR)
+$(BUILD_DIR)/poptracker.exe.manifest: win32/exe.manifest.template.xml | $(BUILD_DIR)
+	sed 's/{{VERSION}}/$(VERSION).0/g;s/{{NAME}}/poptracker/g;s/{{DESCRIPTION}}/PopTracker/g' $< > $@
+
+$(WIN32_BUILD_DIR)/app.res: $(SRC_DIR)/app.rc $(SRC_DIR)/version.h assets/icon.ico $(BUILD_DIR)/poptracker.exe.manifest | $(WIN32_BUILD_DIR)
 	$(WIN32WINDRES) $(WINDRES_FLAGS) $< -O coff $@
-$(WIN64_BUILD_DIR)/app.res: $(SRC_DIR)/app.rc $(SRC_DIR)/version.h assets/icon.ico | $(WIN64_BUILD_DIR)
+$(WIN64_BUILD_DIR)/app.res: $(SRC_DIR)/app.rc $(SRC_DIR)/version.h assets/icon.ico $(BUILD_DIR)/poptracker.exe.manifest | $(WIN64_BUILD_DIR)
 	$(WIN64WINDRES) $(WINDRES_FLAGS) $< -O coff $@
 
 # Build dirs
