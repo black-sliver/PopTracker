@@ -31,25 +31,6 @@ public:
             setSize({w->getWidth()+2*_padding, w->getHeight()+2*_padding});
             Container::addChild(w);
         }
-        // keep track of max and min size
-        _maxSize = {-1,2*_padding};
-        _minSize = {0,2*_padding};
-        for (auto& child : _children) {
-            if (_maxSize.width<0 || _maxSize.width>(child->getLeft()+child->getMaxWidth()+_padding))
-                _maxSize.width=child->getLeft()+child->getMaxWidth()+_padding;
-            if (child->getLeft()+child->getMinWidth()+_padding>_minSize.width)
-                _minSize.width=child->getLeft()+child->getMinWidth()+_padding;
-            if (_maxSize.height != -1) {
-                if (child->getMaxHeight() == -1)
-                    _maxSize.height = -1; // undefined = no max
-                else
-                    _maxSize.height += child->getMaxHeight()+_spacing;
-            }
-        }
-        if (_maxSize.width >= 0 && _minSize.width>_maxSize.width)
-            _maxSize.width = _minSize.width;
-        if (_maxSize.height >= 0 && _minSize.height>_maxSize.height)
-            _maxSize.height = _minSize.height;
         relayout(); // required to update scroll position
     }
 
@@ -82,6 +63,28 @@ public:
 
     void relayout(bool isFixup=false) // TODO: virtual?
     {
+        // calculate max and min size
+        _maxSize = {-1,2*_padding};
+        _minSize = {0,2*_padding};
+        for (auto& child : _children) {
+            if (!child->getVisible())
+                continue;
+            if (_maxSize.width<0 || _maxSize.width>(child->getLeft()+child->getMaxWidth()+_padding))
+                _maxSize.width=child->getLeft()+child->getMaxWidth()+_padding;
+            if (child->getLeft()+child->getMinWidth()+_padding>_minSize.width)
+                _minSize.width=child->getLeft()+child->getMinWidth()+_padding;
+            if (_maxSize.height != -1) {
+                if (child->getMaxHeight() == -1)
+                    _maxSize.height = -1; // undefined = no max
+                else
+                    _maxSize.height += child->getMaxHeight()+_spacing;
+            }
+        }
+        if (_maxSize.width >= 0 && _minSize.width>_maxSize.width)
+            _maxSize.width = _minSize.width;
+        if (_maxSize.height >= 0 && _minSize.height>_maxSize.height)
+            _maxSize.height = _minSize.height;
+
         if (_scrollY > 0) _scrollY = 0;
         else if (_children.empty()) _scrollY = 0;
 
