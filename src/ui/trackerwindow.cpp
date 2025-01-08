@@ -54,11 +54,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
             _view->setHideUnreachableLocations(_hideUnreachableLocations);
         _rendered = false;
         addChild(_view);
-        
-        // force-resize after the first render pass to force correct relayout.
-        // TODO: fix this in TrackerView and Containers
-        setSize(_size/*{_size.width-1, _size.height-1}*/);
-        
+
         _view->onMinSizeChanged += {this, [this](void *s) {
             //Size curSize = Size::FromPosition(_view->getPosition()+_view->getSize());
             Size curSize = getSize();
