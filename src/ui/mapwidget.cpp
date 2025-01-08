@@ -165,7 +165,10 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
     
     int srcw, srch, dstx, dsty, dstw, dsth;
     calculateSizes(offX+_pos.left, offY+_pos.top, srcw, srch, dstx, dsty, dstw, dsth);
-    
+    if (srcw == 0 || dstw == 0) {
+        return; // nothing to do
+    }
+
     for (const auto& pair : _locations) {
         const auto& loc = pair.second;
         for (const auto& pos : loc.pos) {
