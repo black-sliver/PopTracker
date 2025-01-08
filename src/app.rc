@@ -7,6 +7,8 @@
 #define APP_FILE_FLAGS VS_FF_DEBUG
 #endif
 
+LANGUAGE 0,0 // neutral
+
 id ICON "../assets/icon.ico"
 1 24 "../build/poptracker.exe.manifest"
 
