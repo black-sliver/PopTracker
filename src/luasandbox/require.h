@@ -61,6 +61,11 @@ static inline int luasandbox_require(lua_State *L)
     if (luaL_loadbufferx(L, pscript.c_str(), pscript.length(), filename.c_str(), "t") == LUA_OK) {
         lua_pushstring(L, name);
         if (lua_pcall(L, 1, 1, 0) == LUA_OK) {
+            if (lua_isnil(L, -1)) {
+                // if module returned nil, we return (and cache) true instead
+                lua_pop(L, 1);
+                lua_pushboolean(L, 1);
+            }
             lua_pushvalue(L, -1); // duplicate result
             lua_setfield(L, -3, name);
             lua_remove(L, -2); // remove _LOADED from stack
