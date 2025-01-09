@@ -79,5 +79,14 @@
         "versions_url": "https://raw.githubusercontent.com/coveleski/rb2/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/coveleski/rb2/main/images/items/itemicon.png",
         "description":  "Pokemon Red/Blue autotracker pack for PopTracker"
+    },
+    "ape_escape_tracker":{
+        "name" : "Ape Escape Tracker",
+        "author": "Lurch9229, Thedragon005",
+        "platform": "PS1",
+        "homepage": "https://github.com/lurch9229/Ape-Escape-Tracker",
+        "versions_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/refs/heads/main/images/icons/specterIcon.png",
+        "description":  "Ape Escape autotracker pack for PopTracker"
     }
 }
