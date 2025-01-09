@@ -1,5 +1,17 @@
 # PopTracker Changelog
 
+## v0.30.1
+
+* Fixes
+  * Windows: Fix crash when installing packs
+  * Windows: Fix visual styles not being applied
+  * Fix crash when map widget/image has size of 0
+  * Fix width calculation of map location tooltips with hidden sections
+  * Fix window size not being restored when loading a state
+  * Fix min/default window size of broadcast view
+  * Lua: also cache require if the module returns nil / doesn't return  
+    This now follows regular Lua behavior and require returns `true` in that case.
+
 ## v0.30.0
 
 * App Features
@@ -7,7 +19,7 @@
 * Fixes
   * Macos: Fixed file selection issues (when loading state)
   * Fixed horizontal min size for settings window and some containers
-  * Fixed memory watches triggereing when AP or UAT connects
+  * Fixed memory watches triggering when AP or UAT connects
   * Fixed location ref not working if target section has empty name
   * Fixed mistakes in schema
 
