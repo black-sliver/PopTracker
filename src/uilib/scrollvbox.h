@@ -24,11 +24,15 @@ public:
             auto& last = _children.back();
             w->setPosition({_padding, last->getTop() + last->getHeight() + _spacing});
             Container::addChild(w);
-            _size.height = w->getTop() + w->getHeight() + _padding;
-            if (w->getLeft() + w->getWidth() + _padding > _size.width) setWidth(w->getLeft() + w->getWidth() + _padding);
+            if (w->getVisible()) {
+                _size.height = w->getTop() + w->getHeight() + _padding;
+                if (w->getLeft() + w->getWidth() + _padding > _size.width)
+                    setWidth(w->getLeft() + w->getWidth() + _padding);
+            }
         } else {
             w->setPosition({_padding,_padding});
-            setSize({w->getWidth()+2*_padding, w->getHeight()+2*_padding});
+            if (w->getVisible())
+                setSize({w->getWidth()+2*_padding, w->getHeight()+2*_padding});
             Container::addChild(w);
         }
         relayout(); // required to update scroll position
