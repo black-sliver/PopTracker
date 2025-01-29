@@ -93,14 +93,14 @@ public:
         _ap = new APClient(_uuid, _game, uri, asset("cacert.pem").u8string());
         _ap->set_socket_connected_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
-            std::list<std::string> tags = {"PopTracker"};
+            std::list<std::string> tags = {"PopTracker", "NoText"};
             if (_allowScout && !_allowSend)
                 tags.push_back("HintGame");
             else if (!_allowSend)
                 tags.push_back("Tracker");
             if (_game.empty())
                 tags.push_back("IgnoreGame");
-            return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 0});
+            return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 1});
         });
         _ap->set_slot_refused_handler([this](const std::list<std::string>& errs) {
             auto lock = EventLock(_event);
