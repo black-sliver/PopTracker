@@ -98,8 +98,6 @@ public:
                 tags.push_back("HintGame");
             else if (!_allowSend)
                 tags.push_back("Tracker");
-            if (_game.empty())
-                tags.push_back("IgnoreGame");
             return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 1});
         });
         _ap->set_slot_refused_handler([this](const std::list<std::string>& errs) {
