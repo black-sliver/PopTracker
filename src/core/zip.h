@@ -1,6 +1,7 @@
 #ifndef _CORE_ZIP_H
 #define _CORE_ZIP_H
 
+#define MINIZ_NO_ZLIB_APIS
 #include <miniz.h>
 #include <string>
 #include <vector>
