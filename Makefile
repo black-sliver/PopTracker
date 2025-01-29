@@ -38,7 +38,7 @@ WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 SSL_LIBS = -lssl -lcrypto
-NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS)
+NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lz
 WIN32_LIBS = -D_WIN32_WINNT=0x0502 -lmingw32 -lSDL2main -lSDL2 -mwindows -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
 WIN64_LIBS = -D_WIN32_WINNT=0x0502 -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
