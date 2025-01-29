@@ -143,6 +143,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 Item *w = makeItem(0,0,32,32, item);
                 _items[tracker->getItemByCode(item).getID()].push_back(w);
                 w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
+                w->setMaxSize(w->getSize()); // FIXME: this as well. Make hbox honor grow=0 instead.
                 hbox->addChild(w);
                 if (sec.getClearAsGroup()) {
                     // override onClick to clear everything
