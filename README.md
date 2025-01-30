@@ -97,6 +97,17 @@ Preview, currently only when setting platform to "n64". See
 ### Other systems
 No work has been done for other systems yet.
 
+## Keyboard Shortcuts
+
+| Hotkey    | Alternative      | Function                                                                                                         |
+|-----------|------------------|------------------------------------------------------------------------------------------------------------------|
+| F1        | n/a              | Show this document.                                                                                              |
+| F2        | n/a              | Open broadcast window.                                                                                           |
+| F5        | Ctrl + R         | Reload: if the pack did not change, loads an empty state (everything unchecked), otherwise same as force-reload. |
+| Ctrl + F5 | Ctrl + Shift + R | Force-reload: reload the pack from disk.                                                                         |
+| F11       | Ctrl + H         | Toggle visibility of cleared and inaccessible map locations.                                                     |
+| Ctrl + P  | n/a              | Toggle between mixed and split colors for map locations.                                                         |
+
 ## Version Numbering
 
 * Major update (X.0.0) may break everything
