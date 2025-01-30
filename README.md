@@ -1,9 +1,11 @@
 # PopTracker
+
 *Powerful open progress tracker* is a project to offer a universal, scriptable
 randomizer tracking solution that it is open source, runs everywhere and
 supports auto-tracking.
 
 ## Getting started
+
 This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
@@ -34,9 +36,11 @@ Check [doc/PACKS.md](doc/PACKS.md) if you want to write a game pack for this tra
 Upstream URL is https://github.com/black-sliver/PopTracker/
 
 ## Screenshot
+
 ![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
 
 ## Download prebuilt exe or app
+
 Head over to [releases](https://github.com/black-sliver/PopTracker/releases)
 and unfold "Assets" of the latest release or pre-release to get a Windows exe or macOS app.
 
@@ -45,29 +49,24 @@ You still need to install `which` and a dialog provider (`zenity`, `kdialog`, `m
 to run them.
 
 ## Building from source
+
 See [BUILD.md](BUILD.md).
 
 ## Supported/tested packs
-* [evermizer-tracker-package](https://github.com/Cyb3RGER/evermizer-tracker-package)
-* [SoM-Open-Mode-Tracker](https://github.com/Cyb3RGER/SoM-Open-Mode-Tracker)
-* [iogr_emotracker_apokalysme](https://github.com/Apokalysme/iogr_emotracker_apokalysme) v3.6
-* [Ender Lilies Tracker](https://github.com/lurch9229/ender-lilies-poptracker/tree/main/enderlilies_maptracker_lurch9229)
-
-*more to be tested*
 
 Join the [Community Discord](https://discord.com/invite/gwThqMCPgK) to find pack
 repositories, follow updates and get support.
 
 ## Location Color Key
 
-| Color  | Meaning |
-|--------|---------|
-| Red    | This check is not currently accessible. |
+| Color  | Meaning                                                                                                                               |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------|
+| Red    | This check is not currently accessible.                                                                                               |
 | Yellow | This check is not logically accessible, but the location can be reached through alternate methods (e.g. glitches, breaking key logic) |
-| Orange | Some (but not all) checks at this location are accessible. |
-| Green  | All checks at this location are logically accessible. |
-| Blue   | The check at this location is visible, but you cannot currently access the check. |
-| Other  | Locations with mixed accessibility checks will have the corresponding colors mixed. |
+| Orange | Some (but not all) checks at this location are accessible.                                                                            |
+| Green  | All checks at this location are logically accessible.                                                                                 |
+| Blue   | The check at this location is visible, but you cannot currently access the check.                                                     |
+| Other  | Locations with mixed accessibility checks will have the corresponding colors mixed.                                                   |
 
 Colors can be customized by following instructions on
 [the Color Picker page](https://poptracker.github.io/color-picker.html).
@@ -75,6 +74,7 @@ Colors can be customized by following instructions on
 Press Ctrl+P to switch between "mixed" and "split" map location colors.
 
 ## Auto-tracking
+
 ### SNES Games
 Requires [SNI](https://github.com/alttpo/sni)
 or [QUsb2Snes](https://usb2snes.com) (flash cart, emu, snes mini)
@@ -98,24 +98,27 @@ Preview, currently only when setting platform to "n64". See
 No work has been done for other systems yet.
 
 ## Version Numbering
+
 * Major update (X.0.0) may break everything
 * Minor update (0.X.0) may change render output (i.e. window captures break)
 * Revisions (0.0.X) should only fix bugs and add non-breaking features
 
 ## Plug-Ins
 
-Currently there is no plug-in interface.
+Currently, there is no plug-in interface.
 
 If you want to work towards implementing such a system, please check
 [PLUGIN LICENSE ADDENDUM.md](PLUGIN%20LICENSE%20ADDENDUM.md)
 for licensing considerations.
 
 ## User Overrides
+
 Users can override files from packs by creating a folder with the same file
 structure as in the pack, named `.../user-override/<pack_uid>` where `...` is
 any one of `Documents/PopTracker`, `%home%/PopTracker` or `AppPath`.
 
 ## Portable Mode
+
 When creating a file called `portable.txt` next to the program (not macos) or
 next to poptracker **inside** the AppBundle (macos-only), the app runs in
 portable mode, which changes the default pack folder to be next to the program
