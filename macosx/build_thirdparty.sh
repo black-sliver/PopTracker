@@ -61,15 +61,15 @@ LIB_SDL_IMAGE_TAG="release-2.8.4"
 LIB_SDL_TTF_TAG="release-2.22.0"
 LIB_PNG_TAG="v1.6.44"
 LIB_FREETYPE_TAG="VER-2-13-3"
-LIB_OPENSSL_TAG="OpenSSL_1_1_1w"
+LIB_OPENSSL_TAG="openssl-3.0.16"
 
 LIB_SDL_TARGET="build/.libs/libSDL2-2.0.0.dylib"
 LIB_SDL_IMAGE_TARGET=".libs/libSDL2_image-2.0.0.dylib"
 LIB_SDL_TTF_TARGET=".libs/libSDL2_ttf-2.0.0.dylib"
 LIB_PNG_TARGET=".libs/libpng16.16.dylib"
 LIB_FREETYPE_TARGET="objs/.libs/libfreetype.6.dylib"
-LIB_OPENSSL_TARGET="libssl.1.1.dylib"
-LIB_CRYPTO_TARGET="libcrypto.1.1.dylib"
+LIB_OPENSSL_TARGET="libssl.3.dylib"
+LIB_CRYPTO_TARGET="libcrypto.3.dylib"
 
 REGEX="s/^.*\/\([^\/]*\).git$/\1/"
 
