@@ -309,6 +309,9 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
         relayout();
         setSize(oldSize);
     }
+    if (_mapsDirty) {
+        updateLocationsNow();
+    }
     // store global coordinates for overlay calculations
     _absX = offX+_pos.left;
     _absY = offY+_pos.top;
@@ -377,6 +380,7 @@ void TrackerView::updateLayout(const std::string& layout)
     _mapTooltipOwner = nullptr;
     _items.clear();
     _maps.clear();
+    _mapsDirty = false;
     _tabs.clear();
     _layoutRefs.clear();
     clearChildren();
@@ -390,25 +394,49 @@ void TrackerView::updateLayout(const std::string& layout)
 
 void TrackerView::updateLocations()
 {
-    updateLocation("", true);
+    if (_tracker->allowDeferredLogicUpdate()) {
+        _mapsDirty = true; // will be updated on next frame render
+    } else {
+        updateLocationsNow();
+    }
     updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
 }
 
-void TrackerView::updateLocation(const std::string& location, bool all)
+void TrackerView::updateLocationsNow()
 {
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
             std::string lastLocation;
             size_t n = 0; // nth map location of the same location on the same map
             for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
-                if (!all && pair.first != location)
-                    continue;
-                if (all && lastLocation != pair.first) {
+                if (lastLocation != pair.first) {
                     lastLocation = pair.first;
                     n = 0;
                 }
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
-                if (_maps.size()<1) {
+                if (_maps.empty()) {
+                    // ui file loaded while updating states
+                    return;
+                }
+                w->setLocationState(pair.first, state, n);
+                n++;
+            }
+        }
+    }
+    _mapsDirty = false;
+}
+
+void TrackerView::updateLocation(const std::string& location)
+{
+    for (auto& mappair: _maps) {
+        for (auto& w: mappair.second) {
+            std::string lastLocation;
+            size_t n = 0; // nth map location of the same location on the same map
+            for (const auto& pair : _tracker->getMapLocations(mappair.first)) {
+                if (pair.first != location)
+                    continue;
+                int state = CalculateLocationState(_tracker, pair.first, pair.second);
+                if (_maps.empty()) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     fprintf(stderr, "cybuuuuuu!!\n");
                     return;
