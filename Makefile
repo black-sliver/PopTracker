@@ -208,10 +208,10 @@ DEPLOYMENT_TARGET_MINOR := $(shell echo $(DEPLOYMENT_TARGET) | cut -f2 -d.)
 # NOTE: on macos before 10.15 we have to use boost::filesystem instead of std::filesystem
 #       This is currently not built automatically. Please open an issue if you really need a build for macos<10.15.
 HAS_STD_FILESYSTEM := $(shell [ $(DEPLOYMENT_TARGET_MAJOR) -gt 10 -o \( $(DEPLOYMENT_TARGET_MAJOR) -eq 10 -a $(DEPLOYMENT_TARGET_MINOR) -ge 15 \) ] && echo true)
-NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
-NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@1.1/lib -L$(BREW_PREFIX)/lib
-NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
-NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@1.1/include -I$(BREW_PREFIX)/include
+NIX_CPP_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@3.0/include -I$(BREW_PREFIX)/include
+NIX_LD_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -L$(BREW_PREFIX)/opt/openssl@3.0/lib -L$(BREW_PREFIX)/lib
+NIX_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@3.0/include -I$(BREW_PREFIX)/include
+NIX_LUA_C_FLAGS += -mmacosx-version-min=$(DEPLOYMENT_TARGET) -I$(BREW_PREFIX)/opt/openssl@3.0/include -I$(BREW_PREFIX)/include
 else
 HAS_STD_FILESYSTEM ?= true
 endif

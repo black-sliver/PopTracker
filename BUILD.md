@@ -89,7 +89,7 @@ The build found in Releases is done with a customized sdl2, so the builds differ
 
 ## Build on macOS
 
-- run `brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@1.1`
+- run `brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0`
 - run `make CONF=RELEASE`
 
 The build will link against brew libraries.
