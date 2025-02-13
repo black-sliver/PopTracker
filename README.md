@@ -9,7 +9,6 @@ supports auto-tracking.
 This is work in progress. Some pre-existing packs work, some do not.
 
 Download a binary release or build from source.
-Nix users can install [`poptracker`](https://search.nixos.org/packages?show=poptracker&type=packages&query=poptracker) from nixpkgs.
 
 Drag & drop downloaded packs into the PopTracker window to install them without unpacking.\
 Alternatively copy or unpack tracker packs into one of the search paths
@@ -20,8 +19,11 @@ Use the Load button in the top left corner to load a pack.
 
 Do not load untrusted packs until some sort of fuzzing is done.
 
-Binary release is Windows 64bit and macOS 64bit only at the moment (see [Download prebuilt exe or app](#download-prebuilt-exe-or-app)),\
-should compile on most unix-like OS (see [Building from source](#building-from-source)).\
+Binary releases exist for Windows 64bit, macOS 64bit and Linux x86_64 (see [Download prebuilt exe or app](#download-prebuilt-exe-or-app)),\
+should compile on most unix-like OS (see [Building from source](#building-from-source)).
+
+Nix users can install [`poptracker`](https://search.nixos.org/packages?show=poptracker&type=packages&query=poptracker) from nixpkgs.
+
 [WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
 
 Check
@@ -39,14 +41,13 @@ Upstream URL is https://github.com/black-sliver/PopTracker/
 
 ![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
 
-## Download prebuilt exe or app
+## Download prebuilt exe, app or AppImage
 
 Head over to [releases](https://github.com/black-sliver/PopTracker/releases)
 and unfold "Assets" of the latest release or pre-release to get a Windows exe or macOS app.
 
-We have AppImage builds on the [Community Discord](https://discord.com/invite/gwThqMCPgK) for Linux.
-You still need to install `which` and a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma` or `xdialog`)
-to run them.
+For the AppImage, you still need to install `which` and a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma`
+or `xdialog`) to run them.
 
 ## Building from source
 
