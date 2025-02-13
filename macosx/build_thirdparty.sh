@@ -213,7 +213,7 @@ fi
 cd $LIB_OPENSSL_DEST_DIR
 
 ./config $CONFIGURE_FLAGS
-make -j3
+make -j4
 
 [ -f $LIB_OPENSSL_TARGET ] || { echo "Missing $LIB_OPENSSL_TARGET..." ; exit 1; }
 [ -f $LIB_CRYPTO_TARGET ] || { echo "Missing $LIB_CRYPTO_TARGET..." ; exit 1; }
