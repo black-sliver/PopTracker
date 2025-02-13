@@ -253,7 +253,7 @@ void Item::render(Renderer renderer, int offX, int offY)
         if (SDL_QueryTexture(_overlayTex, NULL, NULL, &ow, &oh) == 0) {
             SDL_Rect dest;
             int bottom = offY+_pos.top+_size.height-1;
-            if (ow>_size.width || _overlayAlign == Label::HAlign::CENTER) {
+            if (_overlayAlign == Label::HAlign::CENTER) {
                 int center = offX+_pos.left+_size.width/2;
                 dest = {
                     .x = center-ow/2,
