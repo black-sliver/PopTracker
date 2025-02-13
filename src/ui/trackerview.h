@@ -61,6 +61,7 @@ protected:
     int _absY=0;
     std::map<std::string, std::list<Item*>> _items;
     std::map<std::string, std::list<MapWidget*>> _maps;
+    bool _mapsDirty = false;
     std::list<Tabs*> _tabs;
     std::list<std::string> _activeTabs;
     std::list< std::pair<std::string,std::string> > _missedHints;
@@ -75,7 +76,8 @@ protected:
     void updateDisplay(const std::string& check);
     void updateState(const std::string& check);
     void updateLocations();
-    void updateLocation(const std::string& location, bool all=false);
+    void updateLocationsNow();
+    void updateLocation(const std::string& location);
     void updateMapTooltip();
     void updateItem(Item* w, const BaseItem& item);
 
