@@ -354,7 +354,6 @@ bool Ui::render()
                     // this event is more or less useless:
                     // * it fires on drop, not on drag over
                     // * it does not contain file/text/mime
-                    if (ev.drop.file) free(ev.drop.file);
                     break;
                 }
                 case SDL_DROPFILE: {
@@ -387,7 +386,6 @@ bool Ui::render()
                     break;
                 }
                 case SDL_DROPCOMPLETE: {
-                    if (ev.drop.file) free(ev.drop.file);
                     break;
                 }
                 #ifndef NDEBUG
