@@ -135,6 +135,7 @@ public:
         });
         _ap->set_slot_disconnected_handler([this]() {
             auto lock = EventLock(_event);
+            _syncing = false;
             onStateChanged.emit(this, _ap->get_state());
         });
         _ap->set_bounced_handler([this](const json& packet) {
@@ -146,6 +147,15 @@ public:
             for (const auto& item: items) {
                 if (item.index != _itemIndex) continue;
                 // TODO: Sync if item.index > _itemIndex
+                if (_syncing) {
+                    // we started a sync to reset state -> replay onClear and onLocationChecked
+                    _syncing = false;
+                    onClear.emit(this, _slotData);
+                    for (int64_t location: _checkedLocations) {
+                        _uncheckedLocations.erase(location);
+                        onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
+                    }
+                }
                 onItem.emit(this, item.index, item.item, _ap->get_item_name(item.item, _ap->get_game()), item.player);
                 _itemIndex++;
             }
@@ -196,6 +206,7 @@ public:
             onStateChanged.emit(this, APClient::State::DISCONNECTED);
         _scheduleDisconnect = false;
         _itemIndex = 0;
+        _syncing = false;
         _slotData.clear();
         _checkedLocations.clear();
         _uncheckedLocations.clear();
@@ -280,13 +291,18 @@ public:
     {
         if (!_ap)
             return false;
-        if (!_ap->Sync())
-            return false;
-        _itemIndex = 0;
-        onClear.emit(this, _slotData);
-        for (int64_t location: _checkedLocations) {
-            _uncheckedLocations.erase(location);
-            onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
+        if (_itemIndex > 0 && !_syncing) {
+            if (!_ap->Sync())
+                return false;
+            _syncing = true;
+            _itemIndex = 0;
+        } else if (!_syncing) {
+            // never received an item, so we can immediately run onClear
+            onClear.emit(this, _slotData);
+            for (int64_t location: _checkedLocations) {
+                _uncheckedLocations.erase(location);
+                onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
+            }
         }
         return true;
     }
@@ -354,6 +370,7 @@ private:
     int _event = 0;
     bool _scheduleDisconnect = false;
     json _slotData;
+    bool _syncing = false;
 
     static const std::map<std::string, std::string> _errorMessages;
 
