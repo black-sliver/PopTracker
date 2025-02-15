@@ -152,8 +152,8 @@ LIB_SDL2_IMAGE="libSDL2_image-2.0.0.dylib"
 LIB_SDL2_TTF="libSDL2_ttf-2.0.0.dylib"
 LIB_FREETYPE="libfreetype.6.dylib"
 LIB_PNG="libpng16.16.dylib"
-LIB_OPENSSL="libssl.1.1.dylib"
-LIB_CRYPTO="libcrypto.1.1.dylib"
+LIB_OPENSSL="libssl.3.dylib"
+LIB_CRYPTO="libcrypto.3.dylib"
 
 cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2" $APP_BUNDLE_FRAMEWORKS_DIR
 cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_IMAGE" $APP_BUNDLE_FRAMEWORKS_DIR
