@@ -1,5 +1,19 @@
 # PopTracker Changelog
 
+## v0.30.2
+
+* Fixes
+  * Linux: Fix crash when using sdl2-compat
+  * Fix overlay position of hosted items
+  * Remove special alignment handling when overlay text overflows
+  * AP: Fix event timing for reset while connected
+  * AP: Fix performance for huge sync games by sending NoText tag
+  * AP: Fix performance for huge sync games by enabling compression
+  * Fix location performance under some circumstances
+    * only when AllowDeferredLogicUpdate is enabled,
+      which will likely become the default in the future
+    * this change may make any use of BulkUpdate obsolete
+
 ## v0.30.1
 
 * Fixes
