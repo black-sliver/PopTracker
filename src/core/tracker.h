@@ -135,6 +135,7 @@ protected:
     bool _isIndirectConnection = false; /// flag to skip cache for codes that depend on locations
     bool _updatingCache = false; /// true while cache*() is running
     std::set<std::string> _itemChangesDuringCacheUpdate;
+    std::map<std::string, std::vector<std::string>> _missingBaseItemConnection;
 
     std::map<std::string, std::vector<std::string>> _sectionNameRefs;
     std::map<std::reference_wrapper<const LocationSection>,
