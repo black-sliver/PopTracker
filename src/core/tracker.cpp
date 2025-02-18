@@ -202,17 +202,31 @@ bool Tracker::AddItems(const std::string& file) {
                 auto rightCodes = i->getCodes(2);
                 if (!leftCodes.empty()) {
                     auto o = FindObjectForCode(leftCodes.front().c_str());
-                    if (o.type == Object::RT::JsonItem)
-                        o.jsonItem->setState((n&1)?1:0); // TODO: advanceToCode() instead?
-                    else if (o.type == Object::RT::LuaItem)
+                    if (o.type == Object::RT::JsonItem) {
+                        if (o.jsonItem->getType() == BaseItem::Type::COMPOSITE_TOGGLE
+                                || o.jsonItem->getType() == BaseItem::Type::TOGGLE_BADGED) {
+                            fprintf(stderr, "WARNING: ignored %s as item_left of composite\n",
+                                BaseItem::Type2Str(o.jsonItem->getType()).c_str());
+                        } else {
+                            o.jsonItem->setState((n&1)?1:0); // TODO: advanceToCode() instead?
+                        }
+                    } else if (o.type == Object::RT::LuaItem) {
                         o.luaItem->setState((n&1)?1:0);
+                    }
                 }
                 if (!rightCodes.empty()) {
                     auto o = FindObjectForCode(rightCodes.front().c_str());
-                    if (o.type == Object::RT::JsonItem)
-                        o.jsonItem->setState((n&2)?1:0);
-                    else if (o.type == Object::RT::LuaItem)
+                    if (o.type == Object::RT::JsonItem) {
+                        if (o.jsonItem->getType() == JsonItem::Type::COMPOSITE_TOGGLE
+                                || o.jsonItem->getType() == BaseItem::Type::TOGGLE_BADGED) {
+                            fprintf(stderr, "WARNING: ignored %s as item_right of composite\n",
+                                BaseItem::Type2Str(o.jsonItem->getType()).c_str());
+                        } else {
+                            o.jsonItem->setState((n&2)?1:0);
+                        }
+                    } else if (o.type == Object::RT::LuaItem) {
                         o.luaItem->setState((n&2)?1:0);
+                    }
                 }
             }
             if (_bulkUpdate)
