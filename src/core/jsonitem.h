@@ -141,6 +141,9 @@ public:
 #else
         if (std::find(_codes.begin(), _codes.end(), code) != _codes.end()) return true;
 #endif
+        if (_type == Type::COMPOSITE_TOGGLE)
+            return false; // composite toggle has fake stages we have to ignore for this
+
         for (const auto& stage: _stages)
             if (stage.hasCode(code))
                 return true;

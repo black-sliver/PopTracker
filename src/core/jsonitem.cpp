@@ -121,9 +121,12 @@ JsonItem JsonItem::FromJSON(json& j)
 #ifdef JSONITEM_CI_QUIRK
     for (const auto& code : item._codes)
         item._ciAllCodes.emplace(toLower(code));
-    for (const auto& stage : item._stages)
-        for (const auto& code : stage.getCodes())
-            item._ciAllCodes.emplace(toLower(code));
+    if (item._type != Type::COMPOSITE_TOGGLE) {
+        // stages can provide codes, but not for composite toggle since the stages are fake
+        for (const auto& stage : item._stages)
+            for (const auto& code : stage.getCodes())
+                item._ciAllCodes.emplace(toLower(code));
+    }
 #endif
 
     return item;
