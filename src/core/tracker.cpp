@@ -288,6 +288,8 @@ bool Tracker::AddItems(const std::string& file) {
             }
             item.setState(1, n);
         }
+
+        // connect base item onChange to badged (if base was defined first)
         if (!item.getBaseItem().empty()) {
             // fire event for toggle_badged when base item changed
             auto id = item.getID();
@@ -308,6 +310,31 @@ bool Tracker::AddItems(const std::string& file) {
                 o.luaItem->onChange += {this, [update](void* sender) {
                     update();
                 }};
+            } else {
+                auto& connectionList = _missingBaseItemConnection[JsonItem::toLower(item.getBaseItem())];
+                connectionList.push_back(id);
+            }
+        }
+        // connect item onChange to badged (if badged was defined first)
+        if (item.getType() == BaseItem::Type::TOGGLE_BADGED) {
+            fprintf(stderr, "WARNING: ignored %s as base_item of badged\n",
+                BaseItem::Type2Str(item.getType()).c_str());
+        } else {
+            for (const auto& code: item.getCodes(0)) {
+                auto it = _missingBaseItemConnection.find(JsonItem::toLower(code));
+                if (it != _missingBaseItemConnection.end()) {
+                    for (const auto& targetId: it->second) {
+                        item.onChange += {this, [this, targetId](void* sender) {
+                            for (auto& i : _jsonItems) {
+                                if (i.getID() == targetId) {
+                                    i.onChange.emit(&i);
+                                    break;
+                                }
+                            }
+                        }};
+                    }
+                    _missingBaseItemConnection.erase(it);
+                }
             }
         }
     }
