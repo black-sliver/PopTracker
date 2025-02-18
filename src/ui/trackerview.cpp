@@ -183,7 +183,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
     std::string id = origItem.getID();
     w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
-        printf("Item %s clicked w/ btn %d!\n", id.c_str(), btn);
+        printf("Item %s: \"%s\" clicked w/ btn %d!\n",
+            id.c_str(), sanitize_print(_tracker->getItemById(id).getName()).c_str(), btn);
         if (btn == BUTTON_LEFT) {
             _tracker->changeItemState(id, ::BaseItem::Action::Primary);
         } else if (btn == BUTTON_RIGHT) {
