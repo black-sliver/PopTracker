@@ -1,5 +1,11 @@
 # PopTracker Changelog
 
+## v0.30.3
+
+* Fixes
+  * Make order of definition not matter for composite_toggle/toggle_badged and their base items
+  * Avoid recursion (endless updates) in composite_toggle and toggle_badged
+
 ## v0.30.2
 
 * Fixes
