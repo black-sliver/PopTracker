@@ -10,7 +10,8 @@ on:
       - '**.h'
       - '**.hh'
       - '**.hpp'
-      - '.github/workflows/scan-build.yml'
+      - '**.ipp'
+      - '.github/workflows/scan-build.yaml'
   pull_request:
     paths:
       - '**.c'
@@ -20,7 +21,8 @@ on:
       - '**.h'
       - '**.hh'
       - '**.hpp'
-      - '.github/workflows/scan-build.yml'
+      - '**.ipp'
+      - '.github/workflows/scan-build.yaml'
 
 jobs:
   scan-build:
