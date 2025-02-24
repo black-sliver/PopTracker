@@ -346,7 +346,7 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
     assert(!multi);
     bool res = false;
     wchar_t buf[MAX_PATH];
-    *buf = 0;
+    memset(buf, 0, sizeof(buf));
 
     if (dflt.native().length() >= MAX_PATH)
         return false;
@@ -369,7 +369,8 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
     MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), filter.length()+1, lpwFilter, filter.length()+1);
 
     static_assert(sizeof(*buf) == sizeof(*dflt.c_str()));
-    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().size());
+    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().length()); // terminating NUL from memset
+    assert(buf[dflt.native().length()] == 0);
 
     OPENFILENAMEW ofn;
     memset(&ofn, 0, sizeof(ofn));
@@ -428,7 +429,7 @@ bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::li
     // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
     bool res = false;
     wchar_t buf[MAX_PATH];
-    *buf = 0;
+    memset(buf, 0, sizeof(buf));
 
     if (dflt.native().length() >= MAX_PATH)
         return false;
@@ -445,7 +446,8 @@ bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::li
     }
 
     static_assert(sizeof(*buf) == sizeof(*dflt.c_str()));
-    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().size());
+    memcpy(buf, dflt.c_str(), sizeof(*buf) * dflt.native().length()); // terminating NUL from memset
+    assert(buf[dflt.native().length()] == 0);
 
     LPWSTR lpwTitle = (LPWSTR)malloc(title.length()*2+2);
     MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, lpwTitle, title.length()+1);
