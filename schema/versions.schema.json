@@ -2,6 +2,7 @@
     "type": "object",
     "properties": {
         "versions" : {
+            "description": "List of versions for the pack, ordered latest to oldest",
             "type": "array",
             "items": {
                 "type": "object",

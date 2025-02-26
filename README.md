@@ -17,6 +17,8 @@ and [schema/packs.schema.json](schema/packs.schema.json) for examples and detail
 `packs.json` links to a `versions.json` for each pack.
 It lists the available versions for update and changelog and has to be transferred over https (not http).
 
+The top entry in the list is considered the latest version.
+
 See [examples/versions.json](examples/versions.json)
 and [schema/versions.schema.json](schema/versions.schema.json) for examples and details.
 
