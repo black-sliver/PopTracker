@@ -38,13 +38,13 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
-          sudo ./llvm.sh 18
+          sudo ./llvm.sh 19
       - name: Install scan-build command
         run: |
-          sudo apt install clang-tools-18
+          sudo apt install clang-tools-19
       - name: scan-build
         run: |
-          scan-build-18 --status-bugs -o scan-build-reports \
+          scan-build-19 --status-bugs -o scan-build-reports \
             --exclude build --exclude lib/lua \
             --exclude lib/miniz \
             make -j3
