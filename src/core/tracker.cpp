@@ -1218,6 +1218,13 @@ bool Tracker::loadState(nlohmann::json& state)
             }
         }
     }
+
+    // updating sections above will evaluate stale logic for map locations
+    // make sure logic is reevaluated after updating the map locations
+    _providerCountCache.clear();
+    _accessibilityStale = true;
+    _visibilityStale = true;
+
     eraseDuplicates(_bulkItemUpdates);
     for (const auto& id: _bulkItemUpdates)
         onStateChanged.emit(this, id);
