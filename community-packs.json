@@ -85,7 +85,7 @@
         "author": "Lurch9229, Thedragon005",
         "platform": "PS1",
         "homepage": "https://github.com/lurch9229/Ape-Escape-Tracker",
-        "versions_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/main/versions.json",
+        "versions_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/refs/heads/main/images/icons/specterIcon.png",
         "description":  "Ape Escape autotracker pack for PopTracker"
     }
