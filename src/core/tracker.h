@@ -128,6 +128,7 @@ protected:
     std::map<const std::string, Object, std::less<>> _objectCache;
     std::list<std::string> _bulkItemUpdates;
     std::list<std::string> _bulkItemDisplayUpdates;
+    std::vector<std::string> _bulkSectionUpdates;
     bool _bulkUpdate = false;
     bool _allowDeferredLogicUpdate = false; /// opt-in flag to use onBulkUpdate to update state just once at the end
     bool _accessibilityStale = false;

@@ -259,6 +259,8 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
             updateLocations();
     }};
     _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
+        if (_tracker->isBulkUpdate() && _tracker->allowDeferredLogicUpdate())
+            return; // will update on bulk update done
         updateLocation(sec.getParentID());
         for (const auto& pair: _tracker->getReferencingSections(sec))
             updateLocation(pair.first.get().getID());
