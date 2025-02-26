@@ -400,7 +400,6 @@ void TrackerView::updateLocations()
     } else {
         updateLocationsNow();
     }
-    updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
 }
 
 void TrackerView::updateLocationsNow()
@@ -424,11 +423,13 @@ void TrackerView::updateLocationsNow()
             }
         }
     }
+    updateMapTooltip();
     _mapsDirty = false;
 }
 
 void TrackerView::updateLocation(const std::string& location)
 {
+    // TODO: allow deferring this to render
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
             std::string lastLocation;
