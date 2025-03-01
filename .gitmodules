@@ -13,3 +13,6 @@
 [submodule "lib/luaglue"]
 	path = lib/luaglue
 	url = https://github.com/black-sliver/luaglue.git
+[submodule "lib/gmock-win32"]
+	path = lib/gmock-win32
+	url = https://github.com/smalti/gmock-win32.git

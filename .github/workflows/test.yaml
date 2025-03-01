@@ -53,7 +53,7 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev
+        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - name: Install dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: |
