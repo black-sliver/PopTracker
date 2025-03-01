@@ -30,7 +30,8 @@ and add a `test_*.cpp` file that uses googletest API.
 
 ## How to run Unit Tests
 
-* install `googltest`, sometimes called `gtest` or `libgtest-dev`, via pacman, apt, brew, etc. or from source
+* install `googltest`, sometimes called `gtest` or `libgtest-dev` and `libgmock-dev`, via pacman, apt, brew, etc. or
+  from source
 * `make test`
 
 ## Other Tests
