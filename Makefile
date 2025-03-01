@@ -31,11 +31,12 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/packmanager/*.h) \
       $(wildcard $(LIB_DIR)/tinyfiledialogs/*)
 TEST_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
+      $(wildcard $(TEST_DIR)/*.cpp) \
       $(wildcard $(TEST_DIR)/*/*.cpp)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec
-WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include
+WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include -Ilib/gmock-win32/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
-WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include
+WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include -Ilib/gmock-win32/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 SSL_LIBS = -lssl -lcrypto
 NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lz
@@ -70,6 +71,10 @@ else
 endif
 ifneq '' '$(findstring clang,$(CC))'
   IS_LLVM = yes
+endif
+
+ifdef IS_WIN
+  TEST_SRC += $(wildcard $(LIB_DIR)/gmock-win32/src/*.cpp)
 endif
 
 # output
@@ -304,7 +309,7 @@ $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CXX) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
-	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gtest_main $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gmock $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
@@ -314,7 +319,7 @@ ifneq ($(CONF), DEBUG)
 endif
 
 $(WIN32_TEST_EXE): $(WIN32_TEST_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
-	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_TEST_OBJ) -l gtest -l gtest_main $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_TEST_OBJ) -l gtest -l gmock $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 
 $(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
@@ -323,7 +328,7 @@ ifneq ($(CONF), DEBUG)
 endif
 
 $(WIN64_TEST_EXE): $(WIN64_TEST_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
-	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_TEST_OBJ) -l gtest -l gtest_main $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
+	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_TEST_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 
 $(WIN32_ZIP): $(WIN32_EXE) | $(DIST_DIR)
 $(WIN64_ZIP): $(WIN64_EXE) | $(DIST_DIR)

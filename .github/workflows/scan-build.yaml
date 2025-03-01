@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies (apt)
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev
+          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
       - name: Install newer Clang
         run: |
           wget https://apt.llvm.org/llvm.sh
