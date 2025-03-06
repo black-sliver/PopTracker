@@ -215,7 +215,6 @@
                     },
                     "name": true,
                     "type": true,
-                    "codes": true,
                     "capturable": true,
                     "overlay_align": true
                 },
@@ -253,7 +252,6 @@
                     },
                     "name": true,
                     "type": true,
-                    "codes": true,
                     "capturable": true,
                     "overlay_align": true
                 },
