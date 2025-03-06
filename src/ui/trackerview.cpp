@@ -429,6 +429,15 @@ void TrackerView::updateLocationsNow()
 
 void TrackerView::updateLocation(const std::string& location)
 {
+    if (_tracker->allowDeferredLogicUpdate()) {
+        _mapsDirty = true; // will be updated on next frame render
+    } else {
+        updateLocationNow(location);
+    }
+}
+
+void TrackerView::updateLocationNow(const std::string& location)
+{
     for (auto& mappair: _maps) {
         for (auto& w: mappair.second) {
             std::string lastLocation;
