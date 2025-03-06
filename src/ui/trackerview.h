@@ -78,6 +78,7 @@ protected:
     void updateLocations();
     void updateLocationsNow();
     void updateLocation(const std::string& location);
+    void updateLocationNow(const std::string& location);
     void updateMapTooltip();
     void updateItem(Item* w, const BaseItem& item);
 
