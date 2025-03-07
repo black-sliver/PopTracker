@@ -24,8 +24,8 @@ public:
                 childSize.width = child->getMinWidth();
             if (child->getVGrow())
                 childSize.height = _size.height-child->getTop();
-            else if (childSize.height < child->getMinWidth()) // FIXME: this also be done for VGrow
-                childSize.height = child->getMinWidth();
+            else if (childSize.height < child->getMinHeight()) // FIXME: this also be done for VGrow
+                childSize.height = child->getMinHeight();
             child->setSize(childSize);
             break; // only the first child for now; TODO: only container-sized widgets?
         }
