@@ -756,7 +756,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         LayoutNode::Size sp = node.getItemMargin();
         int halign = node.getHAlignment() == "left" ? -1 : node.getHAlignment() == "right" ? 1 : 0;
         Label::HAlign itemHalign = str2itemHalign(node.getItemHAlignment());
-        Label::VAlign itemValign = str2itemValign(node.getItemHAlignment());
+        Label::VAlign itemValign = str2itemValign(node.getItemVAlignment());
         int maxX = 0, maxY = 0;
         for (const auto& row: rows) {
             int x = 0;
