@@ -1,4 +1,5 @@
 #include "item.h"
+#include <assert.h>
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
 #include "../uilib/colorhelper.h"
@@ -141,6 +142,7 @@ void Item::render(Renderer renderer, int offX, int offY)
         };
         SDL_RenderFillRect(renderer, &r);
     }
+    assert(_stage1 >= 0 && _stage2 >= 0);
     auto tex  = (_overrideTex || _overrideSurf) ? _overrideTex
             : (_stage1<(int)_texs.size() && _stage2<(int)_texs[_stage1].size()) ? _texs[_stage1][_stage2]
             : nullptr;
