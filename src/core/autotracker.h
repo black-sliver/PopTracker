@@ -169,7 +169,10 @@ public:
     Signal<> onDataChange;
     Signal<const std::list<std::string>&> onVariablesChanged;
     Signal<const std::string&> onError;
-    State getState(int index) const { return _state.size() < (size_t)index ? State::Unavailable : _state[index]; }
+    State getState(int index) const
+    {
+        return _state.size() <= (size_t)index ? State::Unavailable : _state[index];
+    }
     State getState(const std::string& name) {
         if (name == BACKEND_AP_NAME)  return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
         if (name == BACKEND_UAT_NAME) return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
@@ -513,8 +516,10 @@ public:
 
     bool enable(int index, const std::string& uri="", const std::string& slot="", const std::string& password="")
     {
-        if (_state.size() < (size_t)index) return false;
-        if (_state[index] != State::Disabled) return true;
+        if (_state.size() <= (size_t)index)
+            return false;
+        if (_state[index] != State::Disabled)
+            return true;
         if ((_snes && _backendIndex[_snes] == index)
                 || (_uat && _backendIndex[_uat] == index)) {
             // snes and uat will auto-connect when polling (doStuff())
@@ -542,11 +547,13 @@ public:
     void disable(int index)
     {
         // -1 = all
-        if (_state.empty()) return;
-        int tmp = index;
-        for (int index = ((tmp==-1)?0:tmp); index < ((tmp==-1)?(int)_state.size():(tmp+1)); index++) {
-            if (_state.size() < (size_t)index) return;
-            if (_state[index] == State::Unavailable) continue;
+        if (index < -1)
+            return;
+        int start = (index == -1) ? 0 : index;
+        int stop = (index == -1) ? (int)_state.size() : std::min(start + 1, (int)_state.size());
+        for (index = start; index < stop; index++) {
+            if (_state[index] == State::Unavailable)
+                continue;
             _state[index] = State::Disabled;
             if (_snes && _backendIndex[_snes] == index) {
                 // connect() after disconnect() needs to join the worker thread,
