@@ -198,8 +198,10 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         } else if (action == Action::Secondary || action == Action::Prev) {
             n--;
             if (n<0) {
-                if (_loop) n = (int)_stages.size()-1;
-                else n++;
+                if (_loop && !_stages.empty())
+                    n = (int)_stages.size() - 1;
+                else
+                    n++;
             }
         } else {
             // single button control
@@ -232,11 +234,13 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
             } else {
                 n--;
                 if (n<0) {
-                    if (_loop) {
-                        n = (int)_stages.size()-1;
+                    if (_loop && !_stages.empty()) {
+                        n = (int)_stages.size() - 1;
                         a = 1;
                     }
-                    else n++;
+                    else {
+                        n++;
+                    }
                 }
             }
         } else {
@@ -266,8 +270,10 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         } else if (action == Action::Prev) {
             int n = _stage2-1;
             if (n<0) {
-                if (_loop) n = _stages.size()-1;
-                else n++;
+                if (_loop && !_stages.empty())
+                    n = (int)_stages.size() - 1;
+                else
+                    n++;
             }
             if (n == _stage2) return false;
             _stage2 = n;

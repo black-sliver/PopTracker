@@ -120,8 +120,11 @@ public:
     }
     
     virtual const std::string& getCurrentName() const override {
-        if ((int)_stages.size() > _stage2 && !_stages[_stage2].getName().empty())
-            return _stages[_stage2].getName();
+        if ((int)_stages.size() > _stage2) {
+            assert(_stage2 >= 0);
+            if (!_stages[_stage2].getName().empty())
+                return _stages[_stage2].getName();
+        }
         return _name;
     }
 
