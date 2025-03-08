@@ -577,7 +577,7 @@ bool PopTracker::start()
             if (!_scriptHost || !_scriptHost->getAutoTracker()) return;
             auto at = _scriptHost->getAutoTracker();
             if (!at) return;
-            auto backend = at->getName(index);
+            const auto& backend = at->getName(index);
             if (at->getState(index) == AutoTracker::State::Disabled) {
                 if (backend == "AP") {
                     // TODO: replace inputbox by GUI overlay
