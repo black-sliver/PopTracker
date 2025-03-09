@@ -18,15 +18,21 @@ std::string SHA256_File(const fs::path& file)
 #else
     FILE* f = fopen(file.c_str(), "rb");
 #endif
-    if (!f) goto err_fopen;
+    if (!f)
+        goto err_fopen;
     context = EVP_MD_CTX_new();
-    if(context == NULL) goto err_alloc;
-    if(!EVP_DigestInit_ex(context, EVP_sha256(), NULL)) goto err_hash;
+    if (context == nullptr)
+        goto err_alloc;
+    if (!EVP_DigestInit_ex(context, EVP_sha256(), nullptr))
+        goto err_hash;
     while ((len = fread(buf, 1, sizeof(buf), f))) {
-        if (!EVP_DigestUpdate(context, buf, len)) goto err_hash;
+        if (!EVP_DigestUpdate(context, buf, len))
+            goto err_hash;
     }
-    if (!feof(f)) goto err_hash;
-    if (!EVP_DigestFinal_ex(context, hash, &hashLen)) goto err_hash;
+    if (!feof(f))
+        goto err_hash;
+    if (!EVP_DigestFinal_ex(context, hash, &hashLen))
+        goto err_hash;
     for (unsigned i=0; i<hashLen; i++) {
         char hex[] = "0123456789abcdef";
         res += hex[(hash[i]>>4)&0x0f];
