@@ -151,7 +151,7 @@ static LPVOID InitDialogU(LPVOID buf, ULONG_PTR buflen, LPCSTR title, DWORD styl
        if ((ULONG_PTR)nchar*2 > buflen) return nullptr;
        memcpy(wbuf, fontname, nchar*2);
        wbuf += nchar;
-       buflen -= nchar*2;
+       // buflen -= nchar*2;
     }
 
     return wbuf;
@@ -251,7 +251,6 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     if (password) style |= ES_PASSWORD;
     bufp = CreateDlgControlU(bufp, dlgbuflen, EDIT_CLASS, ID_INPUT, textbuf, style, 10, 26, 120, 13);
     if (!bufp) goto err;
-    dlgbuflen = (uint8_t*)endp - (uint8_t*)bufp;
 
     ret = DialogBoxIndirectParamW(NULL, (LPDLGTEMPLATE)dlgbuf, hwnd,
                                   (DLGPROC)InputBoxDlgProc, (LPARAM)userdata);
