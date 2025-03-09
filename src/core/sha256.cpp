@@ -25,12 +25,13 @@ std::string SHA256_File(const fs::path& file)
         goto err_alloc;
     if (!EVP_DigestInit_ex(context, EVP_sha256(), nullptr))
         goto err_hash;
-    while ((len = fread(buf, 1, sizeof(buf), f))) {
+    while (!feof(f)) {
+        len = fread(buf, 1, sizeof(buf), f);
+        if (ferror(f))
+            goto err_read;
         if (!EVP_DigestUpdate(context, buf, len))
             goto err_hash;
     }
-    if (!feof(f))
-        goto err_hash;
     if (!EVP_DigestFinal_ex(context, hash, &hashLen))
         goto err_hash;
     for (unsigned i=0; i<hashLen; i++) {
@@ -39,6 +40,7 @@ std::string SHA256_File(const fs::path& file)
         res += hex[hash[i]&0x0f];
     }
 
+err_read:
 err_hash:
     EVP_MD_CTX_free(context);
 err_alloc:
