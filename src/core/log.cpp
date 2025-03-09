@@ -29,11 +29,11 @@ bool Log::RedirectStdOut(const fs::path& file, bool truncate) {
 #else
     _newOut = open(_logFile.c_str(), O_RDWR|O_CREAT|O_APPEND|(truncate ? O_TRUNC : 0), 0655);
 #endif
-    _newErr = dup(_newOut);
     if (_newOut == -1) {
         fprintf(stderr, "Could not open %s for logging!\n", sanitize_print(_logFile).c_str());
         return false;
     }
+    _newErr = dup(_newOut);
     _oldErr = dup(fileno(stderr));
     _oldOut = dup(fileno(stdout));
     
