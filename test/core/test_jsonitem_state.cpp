@@ -193,6 +193,40 @@ TEST_P(ProgressiveJsonItemState, Advances) {
     EXPECT_EQ(item.getCurrentName(), jItem["stages"][expectedStage]["name"]);
 }
 
+/// tests that stage correctly advances backwards for progressive to check validity of changeState in EmptyJsonItemState
+TEST_P(ProgressiveJsonItemState, AdvancesBackwards) {
+    auto jItem = jProgressiveNoDisabled;
+    bool loop = GetParam();
+    jItem["loop"] = loop;
+    jItem["initial_stage_idx"] = jItem["stages"].size() - 1;
+    auto item = JsonItem::FromJSON(jItem);
+
+    EXPECT_EQ(item.getState(), 1);
+    EXPECT_EQ(item.getActiveStage(), 2);
+    EXPECT_EQ(item.getCurrentName(), jItem["stages"][2]["name"]);
+
+    EXPECT_TRUE(item.changeState(BaseItem::Action::Secondary));
+
+    EXPECT_EQ(item.getState(), 1);
+    EXPECT_EQ(item.getActiveStage(), 1);
+    EXPECT_EQ(item.getCurrentName(), jItem["stages"][1]["name"]);
+
+    EXPECT_TRUE(item.changeState(BaseItem::Action::Secondary));
+
+    EXPECT_EQ(item.getState(), 1);
+    EXPECT_EQ(item.getActiveStage(), 0);
+    EXPECT_EQ(item.getCurrentName(), jItem["stages"][0]["name"]);
+
+    int expectedStage = loop ? 2 : 0;
+    bool expectedChanged = loop ? true : false; // item loops -> true, otherwise unchanged -> false
+
+    EXPECT_EQ(item.changeState(BaseItem::Action::Secondary), expectedChanged);
+
+    EXPECT_EQ(item.getState(), 1);
+    EXPECT_EQ(item.getActiveStage(), expectedStage);
+    EXPECT_EQ(item.getCurrentName(), jItem["stages"][expectedStage]["name"]);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     LoopAndNoLoop,
     ProgressiveJsonItemState,
