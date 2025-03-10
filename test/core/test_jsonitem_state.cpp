@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <tuple>
 #include <string_view>
 #include <nlohmann/json.hpp>
@@ -160,12 +161,21 @@ class ProgressiveJsonItemState : public testing::TestWithParam<loops>
 {
 };
 
+class MockEventHandler {
+public:
+    MOCK_METHOD(void, onEvent, ());
+};
+
 /// tests that stage correctly advances for progressive to check validity of changeState in EmptyJsonItemState
 TEST_P(ProgressiveJsonItemState, Advances) {
     auto jItem = jProgressiveNoDisabled;
     bool loop = GetParam();
     jItem["loop"] = loop;
     auto item = JsonItem::FromJSON(jItem);
+
+    MockEventHandler mock;
+    item.onChange += {&mock, [&mock](void*) {mock.onEvent();}};
+    EXPECT_CALL(mock, onEvent()).Times(2);
 
     EXPECT_EQ(item.getState(), 1);
     EXPECT_EQ(item.getActiveStage(), 0);
@@ -186,6 +196,7 @@ TEST_P(ProgressiveJsonItemState, Advances) {
     int expectedStage = loop ? 0 : 2;
     bool expectedChanged = loop ? true : false; // item loops -> true, otherwise unchanged -> false
 
+    EXPECT_CALL(mock, onEvent()).Times(expectedChanged ? 1 : 0);
     EXPECT_EQ(item.changeState(BaseItem::Action::Primary), expectedChanged);
 
     EXPECT_EQ(item.getState(), 1);
