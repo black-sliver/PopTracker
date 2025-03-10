@@ -1,5 +1,17 @@
 # PopTracker Changelog
 
+## v0.30.4
+
+* Fixes
+  * Fix load state / save state dialog sometimes not showing on Windows
+  * Fix crash when changing progressive item that has no stages
+  * Fix height of some UI elements
+  * Fix loading/resetting state using stale Accessibility under some circumstances (Lua logic)
+  * Fix performance when connecting to Archipelago under some circumstances
+    * specifically if there are many location/section and ref updates
+  * Fix crash when toggling an unloaded AutoTracker
+  * Minor fixes in file related error handling
+
 ## v0.30.3
 
 * Fixes
