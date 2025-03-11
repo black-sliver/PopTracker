@@ -14,8 +14,12 @@ on:
       - 'macosx/*.sh'
       - 'win32/*.sh'
 
-jobs:
+concurrency:
+  # Cancels pending runs when a PR gets updated. (For push we'd use ref.)
+  group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ github.actor }}"
+  cancel-in-progress: true
 
+jobs:
   build-ubuntu:
     runs-on: ubuntu-22.04
 

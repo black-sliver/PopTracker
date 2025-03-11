@@ -24,6 +24,11 @@ on:
       - '**.ipp'
       - '.github/workflows/scan-build.yaml'
 
+concurrency:
+  # Cancels pending runs when a PR gets updated. (For push we'd use ref.)
+  group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ github.actor }}"
+  cancel-in-progress: true
+
 jobs:
   scan-build:
     strategy:
