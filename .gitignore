@@ -13,6 +13,7 @@ dist/
 .DS_Store
 thumbs.db
 gmon.out
+.cacert.sha256.etag
 
 # exclude unused and scratch pad files
 .trash
