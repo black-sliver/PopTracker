@@ -400,7 +400,6 @@ void TrackerView::updateLocations()
     } else {
         updateLocationsNow();
     }
-    updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
 }
 
 void TrackerView::updateLocationsNow()
@@ -424,6 +423,7 @@ void TrackerView::updateLocationsNow()
             }
         }
     }
+    updateMapTooltip();
     _mapsDirty = false;
 }
 
