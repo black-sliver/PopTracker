@@ -286,9 +286,10 @@ else
   endif
 endif
 
-.PHONY: all native cross wasm clean test_osx_app
-all: native cross wasm
+.PHONY: all native cross wasm clean test_osx_app commandline
+all: native cross wasm commandline
 wasm: $(HTML)
+commandline: doc/commandline.txt
 
 ifeq ($(CONF), DIST)
 cross: $(WIN32_ZIP) $(WIN64_ZIP)
@@ -299,6 +300,9 @@ cross-test: $(WIN32_TEST_EXE) $(WIN64_TEST_EXE)
 	# TODO: run tests with wine
 
 # Project Targets
+doc/commandline.txt: $(EXE)
+	$(EXE) --help | sed 's@$(EXE)@poptracker@' > $@
+
 $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
     # TODO: add preloads as dependencies
 	# -s ASSERTIONS=1 
