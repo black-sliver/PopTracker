@@ -193,12 +193,15 @@ a table representing an enum with the following constants: \
 * `:Set(string key,value)`: write to property store (NOTE: property store == .ItemState)
 * `:Get(string key)`: read from property store. not sure what this is good for if we have `.ItemState`
 * `:SetOverlay(string)`: set overlay text (see JsonItem), only available in PopTracker
+* `:SetOverlayColor(string)`: set overlay text color (see JsonItem), only available in PopTracker, since 0.31.0
 * `:SetOverlayBackground(string)`: set overlay background (see JsonItem), only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 * `:SetOverlayAlign(string)`: set overlay alignment to "left", "center" or "right", only available in PopTracker, since 0.25.9
 * `.Owner`: returns empty table at the moment for compatibility reasons, since 0.18.2
 * `.Type`: gets the type of the item as string (always "custom"), since 0.23.0
 * `.IgnoreUserInput`: disables state/stage changes when clicking the item, since 0.26.2
+* `.BadgeText`: same as SetOverlay, but a property, since 0.31.0
+* `.BadgeTextColor`: same as SetOverlay, but a property, since 0.31.0
 
 *Probably more to come.*
 
@@ -211,6 +214,7 @@ a table representing an enum with the following constants: \
 * `int .MinCount`: set/get min amount for consumables (available since 0.21.0)
 * `int .MaxCount`: set/get max amount for consumables (available since 0.14.0)
 * `:SetOverlay(string)`: set overlay text (like count, for non-consumables), only available in PopTracker
+* `:SetOverlayColor(string)`: set text color: "#000000" is (A)RGB, "" is *default*, only available in PopTracker, since 0.31.0
 * `:SetOverlayBackground(string)`: set background: "#000000" is (A)RGB, "" is transparent, only available in PopTracker, since 0.17.0
 * `:SetOverlayFontSize(int)`: set overlay font size (~pixels), only available in PopTracker, since 0.17.2
 * `:SetOverlayAlign(string)`: set overlay alignment to "left", "center" or "right", only available in PopTracker, since 0.25.9
@@ -219,6 +223,8 @@ a table representing an enum with the following constants: \
 * `.Decrement`: sets or gets the decrement (right-click) value of consumables
 * `.Type`: gets the type of the item as string ("toggle", ...), since 0.23.0
 * `.Icon`: override displayed image, including mods, until state changes, since 0.26.2. Prefer stages instead.
+* `.BadgeText`: same as SetOverlay, but a property, since 0.31.0
+* `.BadgeTextColor`: same as SetOverlay, but a property, since 0.31.0
 
 *Probably more to come.*
 
