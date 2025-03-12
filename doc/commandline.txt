@@ -1,0 +1,24 @@
+Usage: poptracker [<ARGS...>] [<ACTION ARGS...>] [<ACTION>|<path/to/pack>]
+
+  path/to/pack: will try to load this pack on startup
+        Action args: --pack-variant
+
+  Args:
+    --console: try to open console window if not attached to a console (Windows)
+    --no-console: do not attach to the console, even if run from one (Windows)
+    --yes: answer yes to questions for cli tools
+    --no: answer no to questions for cli tools
+
+  Actions:
+    --version: print version and exit
+    --help: show this message
+    --list-packs: list installed and installable packs
+    --list-installed: list only installed packs
+    --install-pack <uid>: download and install pack with uid from repositories
+    --load-pack <uid>[:<version>]: load this pack on startup
+        Action args: --pack-variant, --pack-version
+
+  Action args:
+    --pack-variant <variant>: try to load this variant
+    --pack-version <version>: try to load this version
+

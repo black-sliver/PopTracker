@@ -136,3 +136,8 @@ next to poptracker **inside** the AppBundle (macos-only), the app runs in
 portable mode, which changes the default pack folder to be next to the program
 (not in home folder) and disables asset and pack overrides from home folder
 (only allows overrides from program folder).
+
+## Command Line Arguments
+
+PopTracker supports some command line arguments. Run with `--help` from a terminal
+or see [doc/commandline.txt](doc/commandline.txt).
