@@ -15,7 +15,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.27.1"
+PopVersion = "0.31.0"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true to get more error or debug output.
@@ -555,6 +555,11 @@ function LuaItem:Get(key) end
 ---@param text string
 function LuaItem:SetOverlay(text) end
 
+---Set item overlay text color (default context dependent).
+---PopTracker, since 0.31.0.
+---@param color string "#rgb", "#rrggbb", "#argb", "#aarrggbb" or "" (default)
+function LuaItem:SetOverlayColor(color) end
+
 ---Set item overlay background color (default transparent).
 ---PopTracker, since 0.17.0.
 ---@param background string "#rgb", "#rrggbb", "#argb", "#aarrggbb" or "" (transparent)
@@ -571,6 +576,18 @@ function LuaItem:SetOverlayFontSize(fontSize) end
 ---PopTracker, since 0.25.9
 ---@param align HAlign "horizontal alignment of overlay text"
 function LuaItem:SetOverlayAlign(align) end
+
+---Set item overlay text, same as SetOverlay.
+---Since PopTracker 0.31.0.
+---@see LuaItem.SetOverlay
+---@type string
+LuaItem.BadgeText = ""
+
+---Set item overlay text color, same as SetOverlayColor.
+---Since PopTracker 0.31.0.
+---@see LuaItem.SetOverlayColor
+---@type string
+LuaItem.BadgeTextColor = ""
 
 
 ---- JsonItem ----
@@ -631,6 +648,11 @@ JsonItem.IgnoreUserInput = false
 ---@param text string
 function JsonItem:SetOverlay(text) end
 
+---Set item overlay text color (default context dependent).
+---PopTracker, since 0.31.0.
+---@param color string "#rgb", "#rrggbb", "#argb", "#aarrggbb" or "" (default)
+function JsonItem:SetOverlayColor(color) end
+
 ---Set item overlay background color (default transparent).
 ---PopTracker, since 0.17.0.
 ---@param background string "#rgb", "#rrggbb", "#argb", "#aarrggbb" or "" (transparent)
@@ -646,6 +668,17 @@ function JsonItem:SetOverlayFontSize(fontSize) end
 ---@param align HAlign "horizontal alignment of overlay text"
 function JsonItem:SetOverlayAlign(align) end
 
+---Set item overlay text, same as SetOverlay.
+---Since PopTracker 0.31.0.
+---@see JsonItem.SetOverlay
+---@type string
+JsonItem.BadgeText = ""
+
+---Set item overlay text color, same as SetOverlayColor.
+---Since PopTracker 0.31.0.
+---@see JsonItem.SetOverlayColor
+---@type string
+JsonItem.BadgeTextColor = ""
 
 ---- Location ----
 

@@ -47,6 +47,13 @@ public:
         onChange.emit(this);
     }
 
+    void SetOverlayColor(const char* text) override {
+        if (_overlayColor == text)
+            return;
+        _overlayColor = text;
+        onChange.emit(this);
+    }
+
     virtual bool setState(int state, int stage=-1) override {
         return false; // TODO: implement this?
     }
