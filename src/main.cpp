@@ -37,6 +37,7 @@ int main(int argc, char** argv)
 {
     const char* appName = argc>0 && argv[0] ? argv[0] : PopTracker::APPNAME;
     bool openConsole = false;
+    bool noConsole = false;
     bool printVersion = false;
     bool showHelp = false;
     bool badArg = false;
@@ -55,6 +56,9 @@ int main(int argc, char** argv)
         if (strcasecmp("--console", argv[1])==0) {
             // use --console to force open a dos window
             openConsole = true;
+        } else if (strcasecmp("--no-console", argv[1]) == 0) {
+            // use --silent to not attach to existing console
+            noConsole = true;
         } else if (strcasecmp("--version", argv[1])==0) {
             printVersion = true;
         } else if (strcasecmp("--help", argv[1])==0) {
@@ -119,7 +123,7 @@ int main(int argc, char** argv)
 
 #if defined WIN32 || defined _WIN32
     // enable stdout on windows
-    if(AttachConsole(ATTACH_PARENT_PROCESS) || (openConsole && AllocConsole())) {
+    if (!noConsole && (AttachConsole(ATTACH_PARENT_PROCESS) || (openConsole && AllocConsole()))) {
         freopen("CONOUT$", "w", stdout);
         setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
         freopen("CONOUT$", "w", stderr);
@@ -128,6 +132,7 @@ int main(int argc, char** argv)
     EnableVisualStyles();
 #else
     (void)openConsole; // no-op on non-windows
+    (void)noConsole; // no-op on non-windows
 #endif
 
     if (showHelp || badArg) {
