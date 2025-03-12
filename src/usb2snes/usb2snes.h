@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 class USB2SNES {
     public:
@@ -60,15 +61,16 @@ class USB2SNES {
             int vminor;
             int vrevision;
             std::string extra;
-            Version(const std::string& vs) {
-                char* next = NULL;
+            Version(const std::string& vs)
+                    : vmajor(0), vminor(0), vrevision(0) {
+                char* next = nullptr;
                 vmajor = (int)strtol(vs.c_str(), &next, 10);
                 if (next && *next) vminor = (int)strtol(next+1, &next, 10);
                 if (next && *next) vrevision = (int)strtol(next+1, &next, 10);
                 if (next && *next) extra = next+1;
             }
-            Version(int ma=0,int mi=0, int rev=0, const std::string& ex="")
-                    : vmajor(ma), vminor(mi), vrevision(rev), extra(ex) {}
+            Version(int ma=0,int mi=0, int rev=0, std::string ex="")
+                    : vmajor(ma), vminor(mi), vrevision(rev), extra(std::move(ex)) {}
             void clear() { *this = {}; }
             bool empty() const { 
                 return vmajor==0 && vminor==0 && vrevision==0 && extra.empty();
