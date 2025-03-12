@@ -43,6 +43,9 @@ NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lz
 WIN32_LIBS = -D_WIN32_WINNT=0x0502 -lmingw32 -lSDL2main -lSDL2 -mwindows -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc
 WIN64_LIBS = -D_WIN32_WINNT=0x0502 -lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -Wl,--dynamicbase -Wl,--nxcompat -lSDL2_image -lSDL2_ttf $(SSL_LIBS) -lm -lz -lwsock32 -lws2_32 -ldinput8 -ldxguid -ldxerr8 -luser32 -lusp10 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -lhid -lsetupapi -lfreetype -lbz2 -lpng -luuid -lrpcrt4 -lcrypt32 -lssp -lcrypt32 -static-libgcc -Wl,--high-entropy-va
 
+CACERT_URL = https://curl.se/ca/cacert.pem
+CACERT_SHA256_URL = https://curl.se/ca/cacert.pem.sha256
+
 # extract version
 VERSION_MAJOR := $(shell grep '.define APP_VERSION_MAJOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
 VERSION_MINOR := $(shell grep '.define APP_VERSION_MINOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
@@ -286,10 +289,11 @@ else
   endif
 endif
 
-.PHONY: all native cross wasm clean test_osx_app commandline
+.PHONY: all native cross wasm clean test_osx_app commandline update-cacert assets/cacert.pem
 all: native cross wasm commandline
 wasm: $(HTML)
 commandline: doc/commandline.txt
+update-cacert: assets/cacert.pem
 
 ifeq ($(CONF), DIST)
 cross: $(WIN32_ZIP) $(WIN64_ZIP)
@@ -300,6 +304,28 @@ cross-test: $(WIN32_TEST_EXE) $(WIN64_TEST_EXE)
 	# TODO: run tests with wine
 
 # Project Targets
+assets/cacert.pem:
+	(cd assets && \
+	    if [ -x "`which curl`" ]; then \
+	        curl --etag-compare ../.cacert.sha256.etag \
+	             --etag-save ../.cacert.sha256.etag \
+	             -o '$(notdir $@).sha256' '$(CACERT_SHA256_URL)' && \
+	        if [ -f '$(notdir $@).sha256' ]; then \
+	            sha256sum -c '$(notdir $@).sha256' || ( \
+	                wget -O '$(notdir $@)' '$(CACERT_URL)' && \
+	                sha256sum -c '$(notdir $@).sha256' \
+	            ) \
+	        fi \
+	    else \
+	        wget -O '$(notdir $@).sha256' '$(CACERT_SHA256_URL)' && \
+	        sha256sum -c '$(notdir $@).sha256' || ( \
+	            wget -O '$(notdir $@)' '$(CACERT_URL)' && \
+	            sha256sum -c '$(notdir $@).sha256' \
+	        ) \
+	    fi \
+	)
+	rm -f '$@.sha256'
+
 doc/commandline.txt: $(EXE)
 	$(EXE) --help | sed 's@$(EXE)@poptracker@' > $@
 
