@@ -1,0 +1,28 @@
+name: Update cacert.pem
+
+on:
+  schedule:
+    - cron: "0 12 * * 6"  # every Saturday at 12:00
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  update-cacert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for cacert update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make update-cacert
+          if git diff --quiet; then
+            echo "Already up to date"
+          else
+            git checkout -b bot/update-cacert-${{ github.ref_name }}
+            git add .
+            git commit -m "Update cacert.pem"
+            gh pr create -B ${{ github.ref_name }} --title '[Bot] Update cacert.pem'
+          fi
