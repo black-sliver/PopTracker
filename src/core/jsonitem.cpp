@@ -8,6 +8,7 @@ const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {
     LUA_METHOD(JsonItem, SetOverlayBackground, const char*),
     LUA_METHOD(JsonItem, SetOverlayAlign, const char*),
     LUA_METHOD(JsonItem, SetOverlayFontSize, int),
+    LUA_METHOD(JsonItem, SetOverlayColor, const char*),
 };
 
 std::string JsonItem::getCodesString() const {
@@ -394,6 +395,12 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
     } else if (strcmp(key, "IgnoreUserInput") == 0) {
         lua_pushboolean(L, _ignoreUserInput);
         return 1;
+    } else if (strcmp(key,"BadgeText")==0) {
+        lua_pushstring(L, _overlay.c_str());
+        return 1;
+    } else if (strcmp(key,"BadgeTextColor")==0) {
+        lua_pushstring(L, _overlayColor.c_str());
+        return 1;
     }
     printf("Get JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return 0;
@@ -512,6 +519,12 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         _ignoreUserInput = (t == LUA_TBOOLEAN && lua_toboolean(L, -1))
                         || (t == LUA_TINTEGER && lua_tointeger(L, -1) > 0);
         return true;
+    } else if (strcmp(key, "BadgeText")==0) {
+        SetOverlay(luaL_checkstring(L, -1));
+        return true;
+    } else if (strcmp(key, "BadgeTextColor")==0) {
+        SetOverlayColor(luaL_checkstring(L, -1));
+        return true;
     }
     printf("Set JsonItem(%s).%s unknown\n", _name.c_str(), key);
     return false;
@@ -534,6 +547,8 @@ json JsonItem::save() const
         data["overlay_align"] = _overlayAlign;
     if (_overlayFontSizeChanged)
         data["overlay_font_size"] = _overlayFontSize;
+    if (!_overlayColor.empty())
+        data["overlay_color"] = _overlayColor;
     if (_incrementChanged)
         data["increment"] = _increment;
     if (_decrementChanged)
@@ -552,6 +567,7 @@ bool JsonItem::load(json& j)
         std::string overlayBackground = to_string(j["overlay_background"], _overlayBackground);
         std::string overlayAlign = to_string(j["overlay_align"], _overlayAlign);
         int overlayFontSize = to_int(j["overlay_font_size"], _overlayFontSize);
+        std::string overlayColor = to_string(j["overlay_color"], _overlayColor);
         int increment = to_int(j["increment"], _increment);
         int decrement = to_int(j["decrement"], _decrement);
         auto state = j["state"];
@@ -575,6 +591,7 @@ bool JsonItem::load(json& j)
                 || _overlayBackground != overlayBackground
                 || _overlayAlign != overlayAlign
                 || _overlayFontSize != overlayFontSize
+                || _overlayColor != overlayColor
                 || _increment != increment
                 || _decrement != decrement
                 || _ignoreUserInput != ignoreUserInput) {
@@ -592,6 +609,7 @@ bool JsonItem::load(json& j)
             _overlayAlign = overlayAlign;
             _overlayFontSizeChanged = _overlayFontSize != overlayFontSize;
             _overlayFontSize = overlayFontSize;
+            _overlayColor = overlayColor;
             _incrementChanged = _increment != increment;
             _increment = increment;
             _decrementChanged = _decrement != decrement;

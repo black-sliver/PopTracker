@@ -264,6 +264,13 @@ public:
         onChange.emit(this);
     }
 
+    void SetOverlayColor(const char* text) override {
+        if (_overlayColor == text)
+            return;
+        _overlayColor = text;
+        onChange.emit(this);
+    }
+
     bool isImageOverridden() const
     {
         return _imgOverridden;

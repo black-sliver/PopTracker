@@ -150,15 +150,23 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         }
     }
     if (item->getCount()) {
-        if (item->getCount() == item->getMaxCount()) {
+        const auto& itemOverlayColor = item->getOverlayColor();
+        if (!itemOverlayColor.empty()) {
+            w->setOverlayColor(itemOverlayColor);
+        } else if (item->getCount() == item->getMaxCount()) {
             w->setOverlayColor({31,255,31});
         } else {
             w->setOverlayColor({220,220,220});
         }
         w->setOverlay(std::to_string(item->getCount()));
     } else {
+        const auto& itemOverlayColor = item->getOverlayColor();
+        if (!itemOverlayColor.empty()) {
+            w->setOverlayColor(itemOverlayColor);
+        } else {
+            w->setOverlayColor({220,220,220});
+        }
         w->setOverlay(item->getOverlay());
-        w->setOverlayColor({220,220,220});
     }
     w->setOverlayBackgroundColor(item->getOverlayBackground());
     w->setOverlayAlignment(str2itemHalign(item->getOverlayAlign(), Label::HAlign::RIGHT));
@@ -537,7 +545,10 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         w->setStage(item.getState(), item.getActiveStage());
     }
     if (item.getCount()) {
-        if (item.getCount() == item.getMaxCount()) {
+        const auto& itemOverlayColor = item.getOverlayColor();
+        if (!itemOverlayColor.empty()) {
+            w->setOverlayColor(itemOverlayColor);
+        } else if (item.getCount() == item.getMaxCount()) {
             w->setOverlayColor({31,255,31});
         } else {
             w->setOverlayColor({220,220,220});
@@ -551,7 +562,12 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         auto s = item.getOverlay();
         w->setOverlay(s);
         if (!s.empty()) {
-            w->setOverlayColor({220,220,220});
+            const auto& itemOverlayColor = item.getOverlayColor();
+            if (!itemOverlayColor.empty()) {
+                w->setOverlayColor(itemOverlayColor);
+            } else {
+                w->setOverlayColor({220,220,220});
+            }
             w->setFont(_fontStore->getFont(DEFAULT_FONT_NAME,
                     FontStore::sizeFromData(DEFAULT_FONT_SIZE, item.getOverlayFontSize())));
             w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
