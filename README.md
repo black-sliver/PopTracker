@@ -19,7 +19,8 @@ Use the Load button in the top left corner to load a pack.
 
 Do not load untrusted packs until some sort of fuzzing is done.
 
-Binary releases exist for Windows 64bit, macOS 64bit and Linux x86_64 (see [Download prebuilt exe or app](#download-prebuilt-exe-or-app)),\
+Binary releases exist for Windows 64bit, macOS 64bit and Linux x86_64
+(see [Download prebuilt exe or app](#download-prebuilt-exe-app-or-appimage)),\
 should compile on most unix-like OS (see [Building from source](#building-from-source)).
 
 Nix users can install [`poptracker`](https://search.nixos.org/packages?show=poptracker&type=packages&query=poptracker) from nixpkgs.
