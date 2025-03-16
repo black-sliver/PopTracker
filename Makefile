@@ -479,7 +479,7 @@ $(WIN64_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN64_OBJ_DIRS)
 # Avoid detection/auto-cleanup of intermediates
 .OBJ_DIRS: $(NIX_OBJ_DIRS) $(WIN32_OBJ_DIRS) $(WIN64_OBJ_DIRS)
 
-test: $(EXE) ${TEST_EXE}
+test: $(EXE) $(TEST_EXE)
 	@echo "Running $(TEST_EXE)"
 	@$(TEST_EXE)
 	@echo "Checking $(EXE)"
