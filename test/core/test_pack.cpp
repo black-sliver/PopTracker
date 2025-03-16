@@ -15,7 +15,6 @@ static fs::path my_realpath(const fs::path& path)
 #else
     auto tmp = _wfullpath(nullptr, path.c_str(), 1024);
     if (tmp) {
-        auto cmp = [tmp](const fs::path& p) { return wcsicmp(tmp, p.c_str()) == 0; };
         res = tmp;
         free(tmp);
     }
