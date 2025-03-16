@@ -1,5 +1,30 @@
 # PopTracker Changelog
 
+## v0.31.0
+
+* App Features
+  * Add --no-console switch to not attach on Windows
+  * Linux, macOS: fall back to ~/Documents for documents_path
+  * Break long text in settings window tooltips
+  * Improve Lua performance
+  * Improve HTTP download performance
+  * Improve logic update performance under some circumstances
+  * Update dependencies
+* Pack Features
+  * Add 'luaconnector' flag to enable BizHawk/CrowdControl connector for any platform (other than SNES)
+  * Lua: add {Lua,Json}Item.SetOverlayColor(color)
+  * Lua: add {Lua,Json}Item.BadgeText and {Lua,Json}Item.BadgeTextColor
+  * Lua: read the merged settings.json (pack + user override) when using io module
+  * Default to AllowDeferredLogicUpdate for packs with 'ap' flag and allow setting it in settings.json
+    * honors `"target_poptracker_version"` (is not enabled by default for < 0.31)
+    * please test and explicitly disable deferred logic update if it breaks the pack
+    * this hopefully makes performance hacks in Lua unnecessary going forward
+* Fixes
+  * Fix undefined behaviour if Usb2Snes does not send a version
+  * Fix crash with overlay img_mods with missing image
+  * Fix duplicate click event into unfocused window when using SDL3 compat
+  * Correctly calculate size/position for text that has fully blank lines
+
 ## v0.30.4
 
 * Fixes
