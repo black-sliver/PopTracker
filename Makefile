@@ -178,7 +178,7 @@ ifeq ($(CONF), DEBUG) # DEBUG
   endif
 else # RELEASE or DIST
   C_FLAGS += -O2 -fno-stack-protector -fno-common
-  LUA_CFALGS += -O2 -fno-stack-protector -fno-common
+  LUA_C_FLAGS += -O2 -fno-stack-protector -fno-common
   ifdef IS_LLVM # RELEASE or DIST with LLVM
     CPP_FLAGS = -Wno-deprecated-declarations -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
     LD_FLAGS = -Wl,-dead_strip -O2 -flto
