@@ -83,7 +83,7 @@ public:
                 _snes->setMapping(USB2SNES::Mapping::SA1);
             _snesMapping = _snes->getMapping();
         }
-        if (strcasecmp(platform.c_str(), "n64") == 0 or flags.find("lua") != flags.end()) {
+        if (strcasecmp(platform.c_str(), "n64") == 0 or flags.find("luaconnetor") != flags.end()) {
             _provider = new LuaConnector::LuaConnector(_name);
             _lastBackendIndex++;
             _backendIndex[_provider] = _lastBackendIndex;
