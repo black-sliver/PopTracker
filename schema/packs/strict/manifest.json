@@ -40,7 +40,8 @@
                                             "aphintgame",
                                             "hirom",
                                             "lorom",
-                                            "uat"
+                                            "uat",
+                                            "luaconnector"
                                         ]
                                     }
                                 }
@@ -70,7 +71,8 @@
                                             "aphintgame",
                                             "hirom",
                                             "lorom",
-                                            "uat"
+                                            "uat",
+                                            "luaconnector"
                                         ]
                                     }
                                 }
