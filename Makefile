@@ -328,7 +328,7 @@ assets/cacert.pem:
 	             -o '$(notdir $@).sha256' '$(CACERT_SHA256_URL)' && \
 	        if [ -f '$(notdir $@).sha256' ]; then \
 	            sha256sum -c '$(notdir $@).sha256' || ( \
-	                wget -O '$(notdir $@)' '$(CACERT_URL)' && \
+	                curl -o '$(notdir $@)' '$(CACERT_URL)' && \
 	                sha256sum -c '$(notdir $@).sha256' \
 	            ) \
 	        fi \
