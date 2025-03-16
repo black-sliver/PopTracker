@@ -55,6 +55,7 @@ Currently supported flags:
 * `"exlorom"`: (SNES) game has ExLoROM mapping
 * `"exhirom"`: (SNES) game has ExHiROM mapping
 * `"sa-1"`: (SNES) game has SA-1 mapping
+* `"luaconnector"`: Connect to (Bizhawk) LuaConnector (crowd control version)
 
 `versions_url` can be used for automatic updates. Information from global `packs.json` takes precedence.
 See https://github.com/black-sliver/PopTracker/tree/packlist for more information.
