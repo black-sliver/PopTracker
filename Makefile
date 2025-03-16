@@ -176,30 +176,30 @@ WIN64WINDRES = x86_64-w64-mingw32-windres
 C_FLAGS = -Wall -std=c99 -D_REENTRANT
 LUA_C_FLAGS = -Wall -D_REENTRANT  # we actually use C++ for lua now
 ifeq ($(CONF), DEBUG) # DEBUG
-  C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-strong -fno-common -ftrapv
-  LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-strong -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
+  C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-strong -fstack-clash-protection -fno-common -ftrapv
+  LUA_C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-strong -fstack-clash-protection -fno-common -DLUA_USE_APICHECK -DLUAI_ASSERT -ftrapv
   ifdef IS_LLVM # DEBUG with LLVM
-    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-strong -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-    LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -pthread -fno-omit-frame-pointer
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-strong -fstack-clash-protection -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -fstack-clash-protection -pthread -fno-omit-frame-pointer
     ifdef IS_LINUX # clang calls regular LD on linux
-      LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -pthread -fno-omit-frame-pointer
+      LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -fstack-clash-protection -pthread -fno-omit-frame-pointer
     endif
   else # DEBUG with GCC
-    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-strong -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
-    LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -pthread -fno-omit-frame-pointer
+    CPP_FLAGS = -Wall -Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -fstack-protector-strong -fstack-clash-protection -g -Og -ffunction-sections -fdata-sections -pthread -fno-omit-frame-pointer
+    LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -fstack-clash-protection -pthread -fno-omit-frame-pointer
   endif
 else # RELEASE or DIST
-  C_FLAGS += -fstack-protector-strong -O2 -fno-common
-  LUA_C_FLAGS += -fstack-protector-strong -O2 -fno-common
+  C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common
+  LUA_C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common
   ifdef IS_LLVM # RELEASE or DIST with LLVM
-    CPP_FLAGS = -Wno-deprecated-declarations -fstack-protector-strong -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
-    LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -O2 -flto
+    CPP_FLAGS = -Wno-deprecated-declarations -fstack-protector-strong -fstack-clash-protection -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
+    LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -fstack-clash-protection -O2 -flto
     ifdef IS_LINUX # clang calls regular LD on linux
       LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=8 -pthread
     endif
   else # RELEASE or DIST with GCC
-    CPP_FLAGS = -Wno-deprecated-declarations -fstack-protector-strong -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
-    LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -O2 -s -flto=8 -pthread
+    CPP_FLAGS = -Wno-deprecated-declarations -fstack-protector-strong -fstack-clash-protection -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=8 -pthread
+    LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -fstack-clash-protection -O2 -s -flto=8 -pthread
   endif
 endif
 
