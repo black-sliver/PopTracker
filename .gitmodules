@@ -16,3 +16,6 @@
 [submodule "lib/gmock-win32"]
 	path = lib/gmock-win32
 	url = https://github.com/smalti/gmock-win32.git
+[submodule "lib/sltbench"]
+	path = lib/sltbench
+	url = https://github.com/ivafanas/sltbench.git
