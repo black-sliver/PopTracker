@@ -189,8 +189,8 @@ ifeq ($(CONF), DEBUG) # DEBUG
     LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -fstack-clash-protection -pthread -fno-omit-frame-pointer
   endif
 else # RELEASE or DIST
-  C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common
-  LUA_C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common
+  C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common -DNDEBUG
+  LUA_C_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -fno-common -DNDEBUG
   ifdef IS_LLVM # RELEASE or DIST with LLVM
     CPP_FLAGS = -Wno-deprecated-declarations -fstack-protector-strong -fstack-clash-protection -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
     LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -fstack-clash-protection -O2 -flto
