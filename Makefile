@@ -5,6 +5,7 @@ CONF ?= RELEASE # make CONF=DEBUG for debug, CONF=DIST for .zip
 MACOS_DEPLOYMENT_TARGET ?= 10.15
 SRC_DIR = src
 TEST_DIR = test
+BENCH_DIR = bench
 LIB_DIR = lib
 SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
@@ -33,7 +34,11 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
 TEST_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
       $(wildcard $(TEST_DIR)/*.cpp) \
       $(wildcard $(TEST_DIR)/*/*.cpp)
-INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include #-Ilib/gifdec
+BENCH_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
+      $(wildcard $(BENCH_DIR)/*.cpp) \
+      $(wildcard $(BENCH_DIR)/*/*.cpp) \
+      $(wildcard $(LIB_DIR)/sltbench/src/*.cpp)
+INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include -Ilib/sltbench/include #-Ilib/gifdec
 WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include -Ilib/gmock-win32/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include -Ilib/gmock-win32/include
@@ -87,16 +92,20 @@ DIST_DIR ?= dist
 BUILD_DIR ?= build
 EXE_NAME = poptracker
 TEST_EXE_NAME = poptracker-test
+BENCH_EXE_NAME = poptracker-benchmark
 NIX_BUILD_DIR = $(BUILD_DIR)/$(UNAME)
 WIN32_BUILD_DIR = $(BUILD_DIR)/win32
 WIN64_BUILD_DIR = $(BUILD_DIR)/win64
 WASM_BUILD_DIR = $(BUILD_DIR)/wasm
 WIN32_EXE = $(WIN32_BUILD_DIR)/$(EXE_NAME).exe
 WIN32_TEST_EXE = $(WIN32_BUILD_DIR)/$(TEST_EXE_NAME).exe
+WIN32_BENCH_EXE = $(WIN32_BUILD_DIR)/$(BENCH_EXE_NAME).exe
 WIN64_EXE = $(WIN64_BUILD_DIR)/$(EXE_NAME).exe
 WIN64_TEST_EXE = $(WIN64_BUILD_DIR)/$(TEST_EXE_NAME).exe
+WIN64_BENCH_EXE = $(WIN64_BUILD_DIR)/$(BENCH_EXE_NAME).exe
 NIX_EXE = $(NIX_BUILD_DIR)/$(EXE_NAME)
 NIX_TEST_EXE = $(NIX_BUILD_DIR)/$(TEST_EXE_NAME)
+NIX_BENCH_EXE = $(NIX_BUILD_DIR)/$(BENCH_EXE_NAME)
 HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 
 # dist/zip
@@ -116,13 +125,16 @@ endif
 # fragments
 NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
 NIX_TEST_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(TEST_SRC))
-NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)) $(dir $(NIX_TEST_OBJ)))
+NIX_BENCH_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(BENCH_SRC))
+NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)) $(dir $(NIX_TEST_OBJ)) $(dir $(NIX_BENCH_OBJ)))
 WIN32_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC))
 WIN32_TEST_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(TEST_SRC))
-WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)) $(dir $(WIN32_TEST_OBJ)))
+WIN32_BENCH_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(BENCH_SRC))
+WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)) $(dir $(WIN32_TEST_OBJ)) $(dir $(WIN32_BENCH_OBJ)))
 WIN64_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC))
 WIN64_TEST_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC))
-WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)))
+WIN64_BENCH_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(BENCH_SRC))
+WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)) $(dir $(WIN64_BENCH_OBJ)))
 
 # tools
 CC ?= gcc
@@ -242,6 +254,7 @@ endif
 ifdef IS_WIN32
   EXE = $(WIN32_EXE)
   TEST_EXE = $(WIN32_TEST_EXE)
+  BENCH_EXE = $(WIN32_BENCH_EXE)
   WIN32CC = $(CC)
   WIN32CPP = $(CXX)
   WIN32AR = $(AR)
@@ -257,6 +270,7 @@ ifdef IS_WIN32
 else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
   TEST_EXE = $(WIN64_TEST_EXE)
+  BENCH_EXE = $(WIN64_BENCH_EXE)
   WIN64CC = $(CC)
   WIN64CPP = $(CXX)
   WIN64AR = $(AR)
@@ -272,6 +286,7 @@ else ifdef IS_WIN64
 else ifdef IS_OSX
   EXE = $(NIX_EXE)
   TEST_EXE = $(NIX_TEST_EXE)
+  BENCH_EXE = $(NIX_BENCH_EXE)
   ifeq ($(CONF), DIST) # TODO dmg?
     native: $(OSX_APP) $(OSX_ZIP) test_osx_app
   else
@@ -282,6 +297,7 @@ else
   WIN64_LIBS +=  -lbrotlidec-static -lbrotlicommon-static
   EXE = $(NIX_EXE)
   TEST_EXE = $(NIX_TEST_EXE)
+  BENCH_EXE = $(NIX_BENCH_EXE)
   ifeq ($(CONF), DIST) # TODO deb?
     native: $(NIX_XZ)
   else
@@ -289,7 +305,7 @@ else
   endif
 endif
 
-.PHONY: all native cross wasm clean test_osx_app commandline update-cacert assets/cacert.pem
+.PHONY: all native cross wasm clean test_osx_app commandline update-cacert assets/cacert.pem bench
 all: native cross wasm commandline
 wasm: $(HTML)
 commandline: doc/commandline.txt
@@ -341,6 +357,9 @@ $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 $(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gmock $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
+$(NIX_BENCH_EXE): $(NIX_BENCH_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
+	$(CXX) -std=c++1z $(NIX_BENCH_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
+
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
 	$(WIN32CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
@@ -351,6 +370,9 @@ endif
 $(WIN32_TEST_EXE): $(WIN32_TEST_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_TEST_OBJ) -l gtest -l gmock $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 
+$(WIN32_BENCH_EXE): $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
+	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+
 $(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 ifneq ($(CONF), DEBUG)
@@ -359,6 +381,9 @@ endif
 
 $(WIN64_TEST_EXE): $(WIN64_TEST_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_TEST_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
+
+$(WIN64_BENCH_EXE): $(WIN64_BENCH_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
+	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_BENCH_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 
 $(WIN32_ZIP): $(WIN32_EXE) | $(DIST_DIR)
 $(WIN64_ZIP): $(WIN64_EXE) | $(DIST_DIR)
@@ -374,6 +399,7 @@ $(WIN32_ZIP) $(WIN64_ZIP):
 	cp $(dir $<)*.exe $(TMP_DIR)/poptracker/
 	cp $(dir $<)*.dll $(TMP_DIR)/poptracker/ || true
 	rm $(TMP_DIR)/poptracker/*test.exe || true
+	rm $(TMP_DIR)/poptracker/*benchmark.exe || true
 	rm -f $@
 	(cd $(TMP_DIR) && \
 	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../$(notdir $@) poptracker ; \
@@ -490,12 +516,16 @@ test: $(EXE) ${TEST_EXE}
 	@echo "HTTP Test ..."
 	@timeout 9 $(EXE) --list-packs > /dev/null
 
+bench: $(EXE) $(BENCH_EXE)
+	@echo "Running $(BENCH_EXE)"
+	@$(BENCH_EXE)
+
 clean:
 	(cd lib/lua && make -f makefile clean)
-	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR) $(WASM_BUILD_DIR)/test
-	rm -rf $(WIN32_EXE) $(WIN32_TEST_EXE) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR) $(WIN32_BUILD_DIR)/test
-	rm -rf $(WIN64_EXE) $(WIN64_TEST_EXE) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR) $(WIN64_BUILD_DIR)/test
-	rm -rf $(NIX_EXE) $(NEX_TEST_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR) $(NIX_BUILD_DIR)/test
+	rm -rf $(WASM_BUILD_DIR)/$(EXE_NAME){,.exe,.html,.js,.wasm,.data} $(WASM_BUILD_DIR)/*.a $(WASM_BUILD_DIR)/$(SRC_DIR) $(WASM_BUILD_DIR)/$(LIB_DIR) $(WASM_BUILD_DIR)/test $(WASM_BUILD_DIR)/bench
+	rm -rf $(WIN32_EXE) $(WIN32_TEST_EXE) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/*.a $(WIN32_BUILD_DIR)/$(SRC_DIR) $(WIN32_BUILD_DIR)/$(LIB_DIR) $(WIN32_BUILD_DIR)/test $(WIN32_BUILD_DIR)/bench
+	rm -rf $(WIN64_EXE) $(WIN64_TEST_EXE) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/*.a $(WIN64_BUILD_DIR)/$(SRC_DIR) $(WIN64_BUILD_DIR)/$(LIB_DIR) $(WIN64_BUILD_DIR)/test $(WIN64_BUILD_DIR)/bench
+	rm -rf $(NIX_EXE) $(NEX_TEST_EXE) $(NIX_BUILD_DIR)/*.a $(NIX_BUILD_DIR)/$(SRC_DIR) $(NIX_BUILD_DIR)/$(LIB_DIR) $(NIX_BUILD_DIR)/test $(NIX_BUILD_DIR)/bench
 	[ -d $(NIX_BUILD_DIR) ] && [ -z "${ls -A $(NIX_BUILD_DIR)}" ] && rmdir $(NIX_BUILD_DIR) || true
 	[ -d $(WASM_BUILD_DIR) ] && [ -z "${ls -A $(WASM_BUILD_DIR)}" ] && rmdir $(WASM_BUILD_DIR) || true
 	[ -d $(WIN32_BUILD_DIR) ] && [ -z "${ls -A $(WIN32_BUILD_DIR)}" ] && rmdir $(WIN32_BUILD_DIR) || true
