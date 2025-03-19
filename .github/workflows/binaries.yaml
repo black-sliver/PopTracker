@@ -84,7 +84,18 @@ jobs:
       with:
         subject-path: |
           appimage-build/linux-x86_64/poptracker
-          *.AppImage*
+    - name: Attest AppImage
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          *.AppImage
+    - name: Attest zsync
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          *.AppImage.zsync
     - name: Store AppImage
       uses: actions/upload-artifact@v4
       with:
@@ -126,12 +137,17 @@ jobs:
         otool -L ./poptracker
         ./poptracker --version
         ./poptracker --list-packs
-    - name: Attest Build and AppBundle
+    - name: Attest Build
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest-build-provenance@v2
       with:
         subject-path: |
           build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
+    - name: Attest AppBundle
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
           dist/*
     - name: Store app bundle
       uses: actions/upload-artifact@v4
@@ -200,12 +216,17 @@ jobs:
     - name: Build DIST # this builds a release ZIP
       shell: msys2 {0}
       run: make CONF=DIST
-    - name: Attest Build and Archive
+    - name: Attest Build
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest-build-provenance@v2
       with:
         subject-path: |
           build/win64/poptracker.exe
+    - name: Attest Archive
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v4
@@ -224,6 +245,11 @@ jobs:
       with:
         subject-path: |
           build/win64/poptracker.exe
+    - name: Attest Debug Archive
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
           dist/poptracker-win64-debug.zip
     - name: Store DEBUG
       uses: actions/upload-artifact@v4
