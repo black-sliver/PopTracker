@@ -19,6 +19,10 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ github.actor }}"
   cancel-in-progress: true
 
+permissions:
+  id-token: 'write'  # '${{ github.event_name == 'workflow_dispatch' && 'write' || 'none' }}
+  attestations: 'write'  # '${{ github.event_name == 'workflow_dispatch' && 'write' || 'none' }}
+
 jobs:
   build-ubuntu:
     runs-on: ubuntu-22.04
@@ -41,6 +45,13 @@ jobs:
         echo "POP_NAME=poptracker_`./build/linux-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
     - name: Build DIST # this builds a release ZIP, maybe .deb in the future
       run: make CONF=DIST
+    - name: Attest Build and Archive
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/linux-x86_64/poptracker
+          dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v4
       with:
@@ -67,11 +78,18 @@ jobs:
     - name: Build AppImage
       run: |
         ./appimage-builder --recipe linux/AppImageBuilder.yml
+    - name: Attest Build, AppImage and zsync
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          appimage-build/linux-x86_64/poptracker
+          *.AppImage*
     - name: Store AppImage
       uses: actions/upload-artifact@v4
       with:
         name: AppImage
-        path: "*.AppImage"
+        path: "*.AppImage*"
         if-no-files-found: error
 
   build-macos:
@@ -108,6 +126,13 @@ jobs:
         otool -L ./poptracker
         ./poptracker --version
         ./poptracker --list-packs
+    - name: Attest Build and AppBundle
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
+          dist/*
     - name: Store app bundle
       uses: actions/upload-artifact@v4
       with:
@@ -175,6 +200,13 @@ jobs:
     - name: Build DIST # this builds a release ZIP
       shell: msys2 {0}
       run: make CONF=DIST
+    - name: Attest Build and Archive
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/win64/poptracker.exe
+          dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v4
       with:
@@ -186,6 +218,13 @@ jobs:
         make clean
         make native CONF=DEBUG -j4
         7z a -mx=9 dist/poptracker-win64-debug.zip build/win64/poptracker.exe
+    - name: Attest Debug Build and Archive
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/win64/poptracker.exe
+          dist/poptracker-win64-debug.zip
     - name: Store DEBUG
       uses: actions/upload-artifact@v4
       with:
