@@ -101,12 +101,12 @@ if [ "$WITH_PNG" ]; then
 
     if [ ! -d $LIB_PNG_DEST_DIR ]; then
       git clone --depth 1 --branch $LIB_PNG_TAG $LIB_PNG_URL $LIB_PNG_DEST_DIR || { echo "Could not clone $LIB_PNG_URL" ; exit 1; }
+      cd $LIB_PNG_DEST_DIR
     else
+      cd $LIB_PNG_DEST_DIR
       git pull
       git checkout $LIB_PNG_TAG
     fi
-
-    cd $LIB_PNG_DEST_DIR
 
     ./configure $CONFIGURE_FLAGS
     make -j3
@@ -122,12 +122,12 @@ if [ "$WITH_FREETYPE" ]; then
 
     if [ ! -d $LIB_FREETYPE_DEST_DIR ]; then
       git clone --depth 1 --branch $LIB_FREETYPE_TAG $LIB_FREETYPE_URL $LIB_FREETYPE_DEST_DIR || { echo "Could not clone $LIB_FREETYPE_URL" ; exit 1; }
+      cd $LIB_FREETYPE_DEST_DIR
     else
+      cd $LIB_FREETYPE_DEST_DIR
       git pull
       git checkout $LIB_FREETYPE_TAG
     fi
-
-    cd $LIB_FREETYPE_DEST_DIR
 
     ./autogen.sh
     ./configure $CONFIGURE_FLAGS --with-harfbuzz=no --with-brotli=no --with-png=yes
@@ -143,12 +143,12 @@ fi
 
 if [ ! -d $LIB_SDL_DEST_DIR ]; then
   git clone --depth 1 --branch $LIB_SDL_TAG $LIB_SDL_URL $LIB_SDL_DEST_DIR || { echo "Could not clone $LIB_SDL_URL" ; exit 1; }
+  cd $LIB_SDL_DEST_DIR
 else
+  cd $LIB_SDL_DEST_DIR
   git pull
   git checkout $LIB_SDL_TAG
 fi
-
-cd $LIB_SDL_DEST_DIR
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -163,13 +163,13 @@ cd "../.."
 
 if [ ! -d $LIB_SDL_IMAGE_DEST_DIR ]; then
   git clone --recurse-submodules --depth 1 --branch $LIB_SDL_IMAGE_TAG $LIB_SDL_IMAGE_URL $LIB_SDL_IMAGE_DEST_DIR || { echo "Could not clone $LIB_SDL_IMAGE_URL" ; exit 1; }
+  cd $LIB_SDL_IMAGE_DEST_DIR
 else
+  cd $LIB_SDL_IMAGE_DEST_DIR
   git pull
   git checkout $LIB_SDL_IMAGE_TAG
   git submodule update --recursive
 fi
-
-cd $LIB_SDL_IMAGE_DEST_DIR
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -184,13 +184,13 @@ cd "../.."
 
 if [ ! -d $LIB_SDL_TTF_DEST_DIR ]; then
   git clone --recurse-submodules --depth 1 --branch $LIB_SDL_TTF_TAG $LIB_SDL_TTF_URL $LIB_SDL_TTF_DEST_DIR || { echo "Could not clone $LIB_SDL_TTF_URL" ; exit 1; }
+  cd $LIB_SDL_TTF_DEST_DIR
 else
+  cd $LIB_SDL_TTF_DEST_DIR
   git pull
   git checkout $LIB_SDL_TTF_TAG
   git submodule update --recursive
 fi
-
-cd $LIB_SDL_TTF_DEST_DIR
 
 ./autogen.sh
 ./configure $CONFIGURE_FLAGS
@@ -205,12 +205,12 @@ cd "../.."
 
 if [ ! -d $LIB_OPENSSL_DEST_DIR ]; then
   git clone --depth 1 --branch $LIB_OPENSSL_TAG $LIB_OPENSSL_URL $LIB_OPENSSL_DEST_DIR || { echo "Could not clone $LIB_OPENSSL_URL" ; exit 1; }
+  cd $LIB_OPENSSL_DEST_DIR
 else
+  cd $LIB_OPENSSL_DEST_DIR
   git pull
   git checkout $LIB_OPENSSL_TAG
 fi
-
-cd $LIB_OPENSSL_DEST_DIR
 
 ./config $CONFIGURE_FLAGS
 make -j4
