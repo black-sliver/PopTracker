@@ -49,6 +49,7 @@ and unfold "Assets" of the latest release or pre-release to get a Windows exe or
 
 For the AppImage, you still need to install `which` and a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma`
 or `xdialog`) to run them.
+The AppImage currently requires fuse2. On recent Ubuntu and Debian that can be installed with `apt install libfuse2t64`.
 
 ## Building from source
 
