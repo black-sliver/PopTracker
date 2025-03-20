@@ -69,6 +69,11 @@ bool Version::operator >(const Version& other) const
     return other < *this;
 }
 
+bool Version::operator >=(const Version& other) const
+{
+    return !(*this < other);
+}
+
 std::string Version::to_string() const
 {
     return std::to_string(Major) + "." + std::to_string(Minor) + "." + std::to_string(Revision) + Extra;

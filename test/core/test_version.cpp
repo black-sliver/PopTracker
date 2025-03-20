@@ -13,7 +13,9 @@ TEST(VersionTest, CompareBasic) {
     EXPECT_FALSE(Version(1, 0, 0) < Version("1"));
     EXPECT_FALSE(Version(1, 0, 0) < Version("1.0"));
     EXPECT_FALSE(Version(1, 0, 0) < Version("1.0.0"));
+    EXPECT_TRUE(Version(1, 0, 0) >= Version("1.0.0"));
     EXPECT_TRUE(Version("1.2.3-1something2") < Version("1.2.3-2something1"));
+    EXPECT_FALSE(Version("1.2.3-1something2") >= Version("1.2.3-2something1"));
 }
 
 TEST(VersionTest, CompareSemVer) {
