@@ -785,6 +785,11 @@ bool Tracker::allowDeferredLogicUpdate() const
     return _allowDeferredLogicUpdate;
 }
 
+void Tracker::setAllowDeferredLogicUpdate(bool value)
+{
+    _allowDeferredLogicUpdate = value;
+}
+
 const Pack* Tracker::getPack() const
 {
     return _pack;
