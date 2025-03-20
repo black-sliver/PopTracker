@@ -13,6 +13,11 @@
             "description": "Sets scaling algorithm for maps. false = crisp, true = null = smooth",
             "type": ["boolean", "null"],
             "default": true
+        },
+        "allow_deferred_logic_update": {
+            "description": "Set to enable/disable deferred (faster) logic update. Can be overwritten from Lua as Tracker.AllowDeferredLogicUpdate.",
+            "type": ["boolean", "null"],
+            "default": null
         }
     }
 }

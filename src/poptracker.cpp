@@ -1181,6 +1181,11 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
 
     printf("Loading Tracker...\n");
     _tracker = new Tracker(_pack, _L);
+    // set tracker defaults from settings.json
+    const auto& settings = _pack->getSettings();
+    auto itAllowDeferredLogicUpdate = settings.find("allow_deferred_logic_update");
+    if (itAllowDeferredLogicUpdate != settings.end() && itAllowDeferredLogicUpdate.value().is_boolean())
+        _tracker->setAllowDeferredLogicUpdate(itAllowDeferredLogicUpdate.value());
     printf("Registering in Lua...\n");
     Tracker::Lua_Register(_L);
     _tracker->Lua_Push(_L);

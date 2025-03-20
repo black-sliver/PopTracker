@@ -104,6 +104,7 @@ public:
 
     bool isBulkUpdate() const;
     bool allowDeferredLogicUpdate() const;
+    void setAllowDeferredLogicUpdate(bool value);
 
     const Pack* getPack() const;
 

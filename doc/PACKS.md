@@ -77,6 +77,7 @@ Configures behavior of the pack.
     {
         "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
         "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
+        "allow_deferred_logic_update": true|false|null, // set initial value of Tracker.AllowDeferredLogicUpdate
     }
 
 NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
