@@ -228,9 +228,14 @@ namespace  fs {
 #else
         // this returns XDG_DOCUMENTS_DIR if defined, HOME otherwise
         const char* res = getenv("XDG_DOCUMENTS_DIR");
-        if (res && *res)
+        auto home = home_path();
+        if (res && *res && res != home)
             return res;
-        return home_path();
+        fs::error_code ec;
+        auto documents = home / "Documents";
+        if (fs::is_directory(documents, ec))
+            return documents;
+        return home;
 #endif
     }
 
