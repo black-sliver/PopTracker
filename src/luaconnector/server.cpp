@@ -102,38 +102,41 @@ bool Server::Update()
 }
 
 #ifdef LUACONNECTOR_NOASYNC
-bool Server::ReadByteBuffered(uint32_t address)
+bool Server::ReadByteBuffered(uint32_t address, optional<std::string> domain)
 {
     json body;
 
     body["type"] = READ_BYTE;
     body["address"] = address;
-    body["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     json reply = sendJsonMessage(body);
     return updateBuffer(reply);
 }
 
-bool Server::ReadBlockBuffered(uint32_t address, uint32_t length)
+bool Server::ReadBlockBuffered(uint32_t address, uint32_t length, optional<std::string> domain)
 {
     json body;
 
     body["type"] = READ_BLOCK;
     body["address"] = address;
     body["value"] = length;
-    body["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     json reply = sendJsonMessage(body);
     return updateBuffer(reply);
 }
 
-uint8_t Server::ReadU8Live(uint32_t address)
+uint8_t Server::ReadU8Live(uint32_t address, optional<std::string> domain)
 {
     json block;
 
     block["type"] = READ_BYTE;
     block["address"] = address;
-    block["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     json reply = sendJsonMessage(block);
 
@@ -145,13 +148,14 @@ uint8_t Server::ReadU8Live(uint32_t address)
     return result;
 }
 
-uint16_t Server::ReadU16Live(uint32_t address)
+uint16_t Server::ReadU16Live(uint32_t address, optional<std::string> domain)
 {
     json block;
 
     block["type"] = READ_USHORT;
     block["address"] = address;
-    block["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     json reply = sendJsonMessage(block);
 
@@ -165,25 +169,27 @@ uint16_t Server::ReadU16Live(uint32_t address)
 
 #else
 
-void Server::ReadByteBufferedAsync(uint32_t address)
+void Server::ReadByteBufferedAsync(uint32_t address, optional<std::string> domain)
 {
     json body;
 
     body["type"] = READ_BYTE;
     body["address"] = address;
-    body["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     sendJsonMessageAsync(body);
 }
 
-void Server::ReadBlockBufferedAsync(uint32_t address, uint32_t length)
+void Server::ReadBlockBufferedAsync(uint32_t address, uint32_t length, optional<std::string> domain)
 {
     json body;
 
     body["type"] = READ_BLOCK;
     body["address"] = address;
     body["value"] = length;
-    body["domain"] = "RDRAM";
+    if (domain.has_value())
+        body["domain"] = domain.value();
 
     sendJsonMessageAsync(body);
 }

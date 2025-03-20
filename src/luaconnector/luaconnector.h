@@ -6,6 +6,12 @@
 #include "../core/tsbuffer.h"
 #include <chrono>
 
+#if (defined __cplusplus && __cplusplus >= 201703L) || (defined __has_include && __has_include(<optional>))
+#include <optional>
+#else
+#include <experimental/optional>
+#endif
+
 namespace LuaConnector {
 
 namespace Net {
@@ -17,8 +23,16 @@ typedef std::vector<Watch> Watchlist;
 
 class LuaConnector : public IAutotrackProvider {
 public:
-    LuaConnector(const std::string& appname);
-    ~LuaConnector();
+#if defined __cpp_lib_optional
+    template<class T>
+    using optional = std::optional<T>;
+#else
+    template<class T>
+    using optional = std::experimental::optional<T>;
+#endif
+
+    LuaConnector(const std::string& appname, optional<std::string> defaultDomain);
+    ~LuaConnector() override;
 
     const std::string& getName() override;
 
@@ -63,6 +77,7 @@ private:
     Watchlist _watches;
     Watchlist _combinedWatches;
     bool _recalculateWatches = true;
+    optional<std::string> _defaultDomain;
 
     uint64_t _watchRefreshMilliseconds = 1500;
 };

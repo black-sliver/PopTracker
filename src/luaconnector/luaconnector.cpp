@@ -8,14 +8,16 @@
 
 #include <stdio.h>
 #include <cstring>
+#include <utility>
 #include "../core/util.h"
 
 namespace LuaConnector {
 
-LuaConnector::LuaConnector(const std::string& name)
+LuaConnector::LuaConnector(const std::string& name, optional<std::string> defaultDomain)
 {
     printf("LuaConnector(%s)\n", sanitize_print(name).c_str());
     _appname = name;
+    _defaultDomain = std::move(defaultDomain);
 }
 
 LuaConnector::~LuaConnector()
@@ -82,7 +84,7 @@ bool LuaConnector::update()
 
             for (auto& w : _watches) // use _combinedWatches in prod
             {
-                _server->ReadBlockBufferedAsync(w.first, w.second);
+                _server->ReadBlockBufferedAsync(w.first, w.second, _defaultDomain);
             }
 
             _lastWatchCheck = std::chrono::system_clock::now();
