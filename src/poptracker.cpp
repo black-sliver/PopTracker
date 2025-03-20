@@ -850,17 +850,20 @@ bool PopTracker::start()
             auto backupPath = backupDir / oldName;
             fs::error_code ec;
             if (fs::exists(backupPath, ec) && !fs::remove(backupPath, ec)) {
-                fprintf(stderr, "Could not delete old backup %s: %s\n",
-                    sanitize_print(backupPath).c_str(),
-                    ec.message().c_str());
+                std::string msg = "Could not delete old backup " + sanitize_print(backupPath) + ": " +
+                    ec.message() + "\n";
+                fprintf(stderr, "%s", msg.c_str());
+                msg += "Please move/delete the old version manually.";
+                Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::OK, Dlg::Icon::Info);
             } else {
                 fs::error_code ec;
                 fs::rename(oldPath, backupPath, ec);
                 if (ec) {
-                    fprintf(stderr, "Could not move %s to %s: %s\n",
-                        sanitize_print(oldPath).c_str(),
-                        sanitize_print(backupPath).c_str(),
-                        ec.message().c_str());
+                    std::string msg = "Could not move " + sanitize_print(oldPath) +
+                        "\nto " + sanitize_print(backupPath) + ": " + ec.message() + "\n";
+                    fprintf(stderr, "%s", msg.c_str());
+                    msg += "Please move/delete the old version manually.";
+                    Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::OK, Dlg::Icon::Info);
                 } else {
                     printf("Moved %s to %s\n",
                         sanitize_print(oldPath).c_str(),
