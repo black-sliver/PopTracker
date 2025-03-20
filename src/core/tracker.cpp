@@ -369,7 +369,12 @@ bool Tracker::AddLocations(const std::string& file) {
                 merged = true;
                 for (auto& sec : other.getSections()) {
                     sec.onChange -= this;
-                    sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};
+                    sec.onChange += {this,[this,&sec](void*) {
+                        if (_bulkUpdate)
+                            _bulkSectionUpdates.push_back(sec.getFullID());
+                        else
+                            onLocationSectionChanged.emit(this, sec);
+                    }};
                 }
                 break;
             }
@@ -409,7 +414,12 @@ bool Tracker::AddLocations(const std::string& file) {
         for (auto& sec : _locations.back().getSections()) {
             if (!sec.getRef().empty())
                 _sectionNameRefs[sec.getRef()].push_back(sec.getFullID());
-            sec.onChange += {this,[this,&sec](void*){ onLocationSectionChanged.emit(this, sec); }};
+            sec.onChange += {this,[this,&sec](void*) {
+                if (_bulkUpdate)
+                    _bulkSectionUpdates.push_back(sec.getFullID());
+                else
+                    onLocationSectionChanged.emit(this, sec);
+            }};
         }
     }
 
@@ -615,6 +625,9 @@ bool Tracker::Lua_NewIndex(lua_State *L, const char* key) {
             for (const auto& id: _bulkItemDisplayUpdates)
                 onDisplayChanged.emit(this, id);
             _bulkItemDisplayUpdates.clear();
+            for (const auto& id: _bulkSectionUpdates)
+                onLocationSectionChanged.emit(this, getLocationSection(id));
+            _bulkSectionUpdates.clear();
             _bulkUpdate = false;
             onBulkUpdateDone.emit(this);
         } else {
@@ -1219,20 +1232,20 @@ bool Tracker::loadState(nlohmann::json& state)
         }
     }
 
-    // updating sections above will evaluate stale logic for map locations
-    // make sure logic is reevaluated after updating the map locations
-    _providerCountCache.clear();
-    _accessibilityStale = true;
-    _visibilityStale = true;
-
     eraseDuplicates(_bulkItemUpdates);
     for (const auto& id: _bulkItemUpdates)
         onStateChanged.emit(this, id);
     _bulkItemUpdates.clear();
+
     eraseDuplicates(_bulkItemDisplayUpdates);
     for (const auto& id: _bulkItemDisplayUpdates)
         onDisplayChanged.emit(this, id);
     _bulkItemDisplayUpdates.clear();
+
+    for (const auto& id: _bulkSectionUpdates)
+        onLocationSectionChanged.emit(this, getLocationSection(id));
+    _bulkSectionUpdates.clear();
+
     _bulkUpdate = false;
     onBulkUpdateDone.emit(this);
 
