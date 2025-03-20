@@ -85,6 +85,7 @@ Tracker.BulkUpdate = false
 
 ---Allow to evaluate logic rules fewer times than items are updated.
 ---Only available in PopTracker, since 0.28.1.
+---Since 0.31.0 defaults to true for flag 'ap' and gets initialized from settings.json. Honors target_poptracker_version.
 ---Use as: `if Tracker.AllowDeferredLogicUpdate ~= nil then Tracker.AllowDeferredLogicUpdate = true end`
 ---@type boolean
 Tracker.AllowDeferredLogicUpdate = false

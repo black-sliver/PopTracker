@@ -19,6 +19,7 @@ public:
     
     bool operator<(const Version& other) const;
     bool operator>(const Version& other) const;
+    bool operator>=(const Version& other) const;
 
     std::string to_string() const;
 
