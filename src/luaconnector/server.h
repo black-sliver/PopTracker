@@ -11,6 +11,12 @@
 #include "message.h"
 #include "connection.h"
 
+#if (defined __cplusplus && __cplusplus >= 201703L) || (defined __has_include && __has_include(<optional>))
+#include <optional>
+#else
+#include <experimental/optional>
+#endif
+
 namespace LuaConnector {
 
 namespace Net {
@@ -45,6 +51,13 @@ enum MESSAGE_TYPES {
 /// </summary>
 class Server {
     using json = nlohmann::json;
+#if defined __cpp_lib_optional
+    template<class T>
+    using optional = std::optional<T>;
+#else
+    template<class T>
+    using optional = std::experimental::optional<T>;
+#endif
 
 public:
     Server(tsbuffer<uint8_t>&);
@@ -73,19 +86,19 @@ public:
 public:
     // Read data into the buffer.
     // Returns true if buffer was changed.
-    bool ReadByteBuffered(uint32_t address);
+    bool ReadByteBuffered(uint32_t address, optional<std::string> domain);
 
     // Read data into the buffer.
     // Returns true if buffer was changed.
-    bool ReadBlockBuffered(uint32_t address, uint32_t length);
+    bool ReadBlockBuffered(uint32_t address, uint32_t length, optional<std::string> domain);
 
     // Read data without updating the buffer.
     // Returns the requested bytes.
-    uint8_t ReadU8Live(uint32_t address);
+    uint8_t ReadU8Live(uint32_t address, optional<std::string> domain);
 
     // Read data without updating the buffer.
     // Returns the requested bytes.
-    uint16_t ReadU16Live(uint32_t address);
+    uint16_t ReadU16Live(uint32_t address, optional<std::string> domain);
 
 protected:
     // Send a json payload to the client.
@@ -102,10 +115,10 @@ protected:
 
 public:
     // Read data into the buffer.
-    void ReadByteBufferedAsync(uint32_t address);
+    void ReadByteBufferedAsync(uint32_t address, optional<std::string> domain);
 
     // Read data into the buffer.
-    void ReadBlockBufferedAsync(uint32_t address, uint32_t length);
+    void ReadBlockBufferedAsync(uint32_t address, uint32_t length, optional<std::string> domain);
 
 protected:
     // Send a json payload to the client.

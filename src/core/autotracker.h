@@ -83,8 +83,12 @@ public:
                 _snes->setMapping(USB2SNES::Mapping::SA1);
             _snesMapping = _snes->getMapping();
         }
-        if (strcasecmp(platform.c_str(), "n64") == 0 || flags.find("luaconnector") != flags.end()) {
-            _provider = new LuaConnector::LuaConnector(_name);
+        bool isN64 = strcasecmp(platform.c_str(), "n64") == 0;
+        if (isN64 || flags.find("luaconnector") != flags.end()) {
+            LuaConnector::LuaConnector::optional<std::string> defaultDomain;
+            if (isN64)
+                defaultDomain = "RDRAM";
+            _provider = new LuaConnector::LuaConnector(_name, defaultDomain);
             _lastBackendIndex++;
             _backendIndex[_provider] = _lastBackendIndex;
             _state.push_back(State::Disabled);
