@@ -300,7 +300,7 @@ private:
     }
 #endif
 
-    enum { max_length = 1024 };
+    enum { max_length = 8192 };
 
     class base_client
     {
@@ -557,11 +557,10 @@ private:
         }
 
     private:
+        std::string location;
         std::string request;
-        char buffer[max_length];
-        std::string data;
-        std::string content;
         Headers headers;
+        std::string content;
         int code;
         bool chunked;
         bool in_content;
@@ -569,8 +568,9 @@ private:
         size_t received_length;
         size_t last_progress_report;
         std::string status;
-        std::string location;
         FILE* response_file;
+        std::string data;
+        char buffer[max_length];
         response_callback response_handler;
 
     protected:
