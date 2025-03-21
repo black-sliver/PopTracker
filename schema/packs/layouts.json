@@ -714,7 +714,7 @@
                     ]
                 },
                 "dropshadow": {
-                    "description": "Enable/disable drop shadow. Not implemented yet.",
+                    "description": "Enable/disable drop shadow. Only partially implemented.",
                     "anyOf": [
                         {
                             "type": "boolean"
