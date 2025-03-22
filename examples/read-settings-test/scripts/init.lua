@@ -7,3 +7,4 @@ local settings_data = settings_file:read("*all")
 settings_file:close()
 local settings = json.decode(settings_data)
 print(settings["key"])  -- should print "value"
+print(settings["key2"])  -- should print "nil"

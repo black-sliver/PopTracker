@@ -217,13 +217,18 @@ bool Pack::hasFile(const std::string& userfile) const
     return false;
 }
 
-bool Pack::ReadFile(const std::string& userfile, std::string& out) const
+bool Pack::ReadFile(const std::string& userfile, std::string& out, bool allowOverride) const
 {
     std::string file;
     if (!sanitizePath(userfile, file))
         return false;
 
-    if (_override && userfile != "settings.json") {
+    if (_override && allowOverride) {
+        if (file == "settings.json" && !_settings.is_null() && !_settings.empty()) {
+            // reading settings.json from Lua will give the merged version from pack + user override
+            out = _settings.dump();
+            return true;
+        }
         bool packHasVariantFile = false;
         if (!_variant.empty()) {
             if (_zip)
@@ -294,7 +299,7 @@ void Pack::setVariant(const std::string& variant)
     _variantName = to_string(variants[_variant]["display_name"], _variantName);
 
     std::string s;
-    if (ReadFile("settings.json", s)) {
+    if (ReadFile("settings.json", s, false)) {
         _settings = parse_jsonc(s);
         if (!_settings.is_object())
             fprintf(stderr, "WARNING: invalid settings.json\n");
