@@ -2,6 +2,7 @@
 #include "container.h"
 #include "size.h"
 #include "label.h"
+#include "textutil.h"
 #include <string>
 
 namespace Ui {
@@ -15,10 +16,19 @@ Tooltip::Tooltip()
     setPadding(PADDING);
 }
 
-Tooltip::Tooltip(FONT font, const std::string& text)
+Tooltip::Tooltip(FONT font, const std::string& text, Size maxSize)
     : Tooltip()
 {
-    Label* label = new Label(0, 0, 0, 0, font, text);
+    Label* label;
+    if (maxSize != Size::UNDEFINED) {
+        // NOTE: we ignore height for now. TODO: ellipsis
+        maxSize.width = (maxSize.width > PADDING) ? (maxSize.width - PADDING) : 1;
+        maxSize.height = (maxSize.height > PADDING) ? (maxSize.height - PADDING) : 1;
+        auto fittedText = BreakText(font, text, maxSize.width);
+        label = new Label(0, 0, 0, 0, font, fittedText);
+    } else {
+        label = new Label(0, 0, 0, 0, font, text);
+    }
     label->setSize(label->getAutoSize());
     addChild(label);
 }

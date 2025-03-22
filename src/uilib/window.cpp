@@ -134,7 +134,7 @@ void Window::showTooltip(Tooltip* tooltip, Position pos)
 
 void Window::showTooltip(const std::string& text, Position pos)
 {
-    Tooltip* tooltip = new Tooltip(_font, text);
+    Tooltip* tooltip = new Tooltip(_font, text, _size);
     showTooltip(tooltip, pos);
 }
 

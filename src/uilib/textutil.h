@@ -5,6 +5,8 @@
 
 #include "label.h"
 #include <string.h>
+#include <string>
+#include <vector>
 
 
 namespace Ui {
@@ -101,6 +103,52 @@ static int SizeText(Label::FONT font, const char* text, int* w, int* h)
 {
     int res;
     _RenderText(font, text, {0,0,0,0}, Label::HAlign::LEFT, 1, w, h, &res);
+    return res;
+}
+
+static std::string BreakText(Label::FONT font, const std::string& text, int maxW)
+{
+    int w;
+    if (SizeText(font, text.c_str(), &w, nullptr) != 0)
+        return text; // error
+    if (maxW < 1 || w <= maxW)
+        return text; // fits
+    std::vector<std::string> words;
+    std::vector<int> widths;
+    std::vector<bool> forceBreak = {false};
+    std::string::size_type pos = 0;
+    for (auto next = text.find_first_of(" \n"); next != std::string::npos; next = text.find_first_of(" \n", pos)) {
+        words.push_back(text.substr(pos, next - pos));
+        if (SizeText(font, words.back().c_str(), &w, nullptr) != 0)
+            return text; // error
+        widths.push_back(w);
+        forceBreak.push_back(text[pos] == '\n');
+        pos = next + 1;
+    }
+    if (words.empty())
+        return text; // only 1 word
+    if (SizeText(font, words.back().c_str(), &w, nullptr) != 0)
+        return text; // error
+    words.push_back(text.substr(pos));
+    widths.push_back(w);
+    int spaceWidth;
+    if (SizeText(font, " ", &spaceWidth, nullptr) != 0)
+        return text; // error
+
+    std::string res = words.front();
+    int lineWidth = widths.front();
+    for (size_t i=1; i<words.size(); i++) {
+        if (forceBreak[i]) {
+            res += "\n" + text;
+            lineWidth = widths[i];
+        } else if (lineWidth + widths[i] + spaceWidth > maxW) {
+            res += "\n" + words[i];
+            lineWidth = widths[i];
+        } else {
+            res += " " + words[i];
+            lineWidth += spaceWidth + widths[i];
+        }
+    }
     return res;
 }
 
