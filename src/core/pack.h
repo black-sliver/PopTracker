@@ -54,7 +54,7 @@ public:
     Info getInfo() const;
     
     bool hasFile(const std::string& file) const;
-    bool ReadFile(const std::string& file, std::string& out) const;
+    bool ReadFile(const std::string& file, std::string& out, bool allowOverride=true) const;
     
     bool variantHasFlag(const std::string& flag) const;
     std::set<std::string> getVariantFlags() const;
