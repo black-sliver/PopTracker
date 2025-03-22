@@ -17,8 +17,8 @@ public:
     using FONT = Label::FONT;
 
     Tooltip();
-    Tooltip(FONT font, const std::string& text);
-    
+    Tooltip(FONT font, const std::string& text, Size maxSize);
+
     virtual ~Tooltip() {};
 
     static constexpr int PADDING=8;
