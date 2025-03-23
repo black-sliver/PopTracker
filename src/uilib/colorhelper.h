@@ -1,6 +1,7 @@
 #ifndef _UILIB_COLORHELPER_H
 #define _UILIB_COLORHELPER_H
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -111,6 +112,7 @@ void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytespp)
 static inline __attribute__((always_inline))
 void _makeGreyscaleRGB(SDL_Surface *surf, bool darken)
 {
+    assert(surf && "surf argument can't be NULL");
     const uint8_t bytespp = surf->format->BytesPerPixel;
     uint8_t* data = (uint8_t*)surf->pixels;
     auto fmt = surf->format;
@@ -137,6 +139,7 @@ SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
     // inline since it should only be used in a few places
     // by inlining all of it, we get rid of 'darken' during runtime regardless of optimization level,
     // but profiling output (gprof) will be less readable
+    assert(surf && "surf argument can't be NULL");
     if (SDL_MUSTLOCK(surf)) {
         if (SDL_LockSurface(surf) != 0) {
             fprintf(stderr, "makeGreyscale: Could not lock surface: %s\n",
@@ -179,6 +182,7 @@ SDL_Surface *makeGreyscale(SDL_Surface *surf, bool darken)
 static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uint8_t b, bool allowColorKey)
 {
     // if any corner pixel is [r,g,b], make that color transparent
+    assert(surf && "surf argument can't be NULL");
     bool doColorKey = false;
     if (!SDL_MUSTLOCK(surf) || SDL_LockSurface(surf) == 0) {
         for (uint8_t n=0; !doColorKey && n<4; n++) {

@@ -13,7 +13,9 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf) const
     }
     if (name=="overlay" && !args.empty()) {
         auto overlay = IMG_Load_RW(SDL_RWFromMem((void*)args[0].c_str(), (int)args[0].length()), 1);
-        overlay = makeTransparent(overlay, 0xff, 0x00, 0xff, false);
+        if (overlay) {
+            overlay = makeTransparent(overlay, 0xff, 0x00, 0xff, false);
+        }
         if (overlay) {
             bool first = true;
             for (const auto& arg: args) {
@@ -30,7 +32,7 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf) const
             fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
         }
     }
-    
+
     return surf;
 }
 
