@@ -27,6 +27,8 @@ static LocationSection blankLocationSection;// = LocationSection::FromJSON(json(
 Tracker::Tracker(Pack* pack, lua_State *L)
     : _pack(pack), _L(L)
 {
+    lua_pushcfunction(_L, mordoria);
+    lua_setglobal(_L, "Mordoria");
 }
 
 Tracker::~Tracker()
@@ -1267,4 +1269,16 @@ void Tracker::setExecLimit(int execLimit)
 int Tracker::getExecLimit()
 {
     return _execLimit;
+}
+
+int Tracker::mordoria(lua_State *L)
+{
+    lua_getglobal(L, "Tracker");
+    Tracker* self = luaL_checkthis(L, -1);
+    assert(self);
+    self->_layouts["tracker_default"] = LayoutNode::FromJSON(
+        R"({"background":"#5d9be2","content":[{"text":"\n\n        Error","type":"text"}],"type":"container"})"_json
+    );
+    self->onLayoutChanged.emit(self, "");
+    return 0;
 }

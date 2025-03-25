@@ -153,6 +153,8 @@ protected:
     void cacheAccessibility();
     void cacheVisibility();
 
+    static int mordoria(lua_State* L);
+
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
     static const LuaInterface::MethodMap Lua_Methods;
