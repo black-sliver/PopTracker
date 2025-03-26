@@ -1,3 +1,4 @@
+#include <cstring>
 #include <gtest/gtest.h>
 #include "../../src/uilib/fontstore.h"
 #include "../../src/uilib/label.h"
@@ -50,6 +51,33 @@ TEST(UiTextUtilTest, SizeTextVertical) {
     ASSERT_EQ(SizeText(font, "A\nA", &w2, &h2), 0); // non-zero means error
     ASSERT_EQ(w1, w2);
     ASSERT_GE(h2, 2 * h1);
+}
+
+TEST(UiTextUtilTest, SizeTextBlankLines) {
+    auto font = getDefaultFont();
+    ASSERT_TRUE(font);
+    int h1, h2;
+    ASSERT_EQ(SizeText(font, " \n \n ", nullptr, &h1), 0); // non-zero means error
+    ASSERT_GT(h1, 0);
+    ASSERT_EQ(SizeText(font, "\n\n ", nullptr, &h2), 0); // non-zero means error
+    ASSERT_EQ(h1, h2);
+}
+
+TEST(UiTextUtilTest, RenderBlankLines) {
+    auto font = getDefaultFont();
+    ASSERT_TRUE(font);
+    auto surf1 = RenderText(font, " \n \nW", {0, 0, 0, 255}, Label::HAlign::LEFT);
+    ASSERT_TRUE(surf1);
+    EXPECT_GT(surf1->h, 0);
+    EXPECT_GT(surf1->w, 0);
+    auto surf2 = RenderText(font, "\n\nW", {0, 0, 0, 255}, Label::HAlign::LEFT);
+    ASSERT_TRUE(surf2);
+    EXPECT_EQ(surf1->h, surf2->h);
+    EXPECT_EQ(surf1->w, surf2->w);
+    // and compare the pixels that are supposed to be transparent
+    EXPECT_EQ(memcmp(surf1->pixels, surf2->pixels, surf1->h / 3 * 2 * surf1->pitch), 0);
+    SDL_FreeSurface(surf1);
+    SDL_FreeSurface(surf2);
 }
 
 TEST(UiTextUtilTest, BreakText) {

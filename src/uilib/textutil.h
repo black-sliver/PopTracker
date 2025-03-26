@@ -35,6 +35,7 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
     int maxW = 0, totalH = 0, curY = 0;
     int res = 0;
     int linespace = 1; // TODO: line pitch instead?
+    int blankHeight = 0;
     for (int pass=0; pass<passes; pass++) {
         char* lf = buf+(firstlf-text);
         char* p = buf;
@@ -54,7 +55,16 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
             if (pass == 0) {
                 // pass0: measure text
                 int w=0,h=0;
-                res = TTF_SizeUTF8(font, p, &w, &h);
+                if (*p) {
+                    res = TTF_SizeUTF8(font, p, &w, &h);
+                } else if (!blankHeight) {
+                    res = TTF_SizeUTF8(font, " ", &w, &h);
+                    w = 0;
+                    blankHeight = h;
+                } else {
+                    w = 0;
+                    h = blankHeight;
+                }
                 if (res != 0) goto err;
                 if (w>maxW) maxW=w;
                 totalH += h + linespace;
@@ -71,6 +81,8 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
                     SDL_BlitSurface(line, nullptr, surf, &rect);
                     curY += line->h + linespace;
                     SDL_FreeSurface(line);
+                } else {
+                    curY += blankHeight;
                 }
             }
             if (!lf) break; // pass done
