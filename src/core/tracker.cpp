@@ -193,7 +193,8 @@ bool Tracker::AddItems(const std::string& file) {
                 if (_updatingCache)
                     _itemChangesDuringCacheUpdate.insert(i->getID());
             } else {
-                fprintf(stderr, "WARNING: item toggled multiple times in access rule. Ignoring.\n");
+                fprintf(stderr, "WARNING: item toggled multiple times in access rule: %s. Ignoring.\n",
+                        sanitize_print(i->getCodesString()).c_str());
             }
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
                 // update part items when changing composite
@@ -1027,7 +1028,8 @@ LuaItem * Tracker::CreateLuaItem()
             if (_updatingCache)
                 _itemChangesDuringCacheUpdate.insert(i->getID());
         } else {
-            fprintf(stderr, "WARNING: item toggled multiple times in access rule. Ignoring.\n");
+            fprintf(stderr, "WARNING: item toggled multiple times in access rule: %s. Ignoring.\n",
+                    sanitize_print(i->getCodesString()).c_str());
         }
         if (_bulkUpdate)
             _bulkItemUpdates.push_back(i->getID());
