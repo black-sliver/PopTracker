@@ -5,8 +5,11 @@ on:
     tags:
       - 'v*.*.*'
 
-jobs:
+permissions:
+  id-token: 'write'
+  attestations: 'write'
 
+jobs:
   release-main:
     runs-on: ubuntu-latest
 
@@ -59,6 +62,12 @@ jobs:
     - name: Build AppImage
       run: |
         ./appimage-builder --recipe linux/AppImageBuilder.yml
+    - name: Attest Build, AppImage and zsync
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          appimage-build/linux-x86_64/poptracker
+          *.AppImage*
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
@@ -89,6 +98,12 @@ jobs:
       run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
     - name: Build DIST # this builds a .tar.xz
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+    - name: Attest Build and Archive
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/linux-x86_64/poptracker
+          dist/*
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
@@ -118,6 +133,12 @@ jobs:
       run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+    - name: Attest Build and AppBundle
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
+          dist/*
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
@@ -176,6 +197,12 @@ jobs:
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       shell: msys2 {0}
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+    - name: Attest Build and Archive
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: |
+          build/win64/poptracker.exe
+          dist/*
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
