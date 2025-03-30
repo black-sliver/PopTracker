@@ -30,6 +30,7 @@ protected:
     unsigned _lastRenderDuration = 0;
     uint64_t _lastFrameMicroTimestamp = 0;
     unsigned _globalMouseButton = 0;
+    Uint32 _lastEventType = 0;
     bool _fallbackRenderer = false;
     unsigned _fpsLimit = 0;
     unsigned _hardwareFpsLimit = DEFAULT_FPS_LIMIT;
