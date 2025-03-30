@@ -74,6 +74,7 @@ ROOT_DIR="$SRC_DIR/.."
 SRC_ASSETS_DIR="$ROOT_DIR/assets"
 SRC_API_DIR="$ROOT_DIR/api"
 SRC_SCHEMA_DIR="$ROOT_DIR/schema"
+SRC_KEY_DIR="$ROOT_DIR/key"
 DOCS="$ROOT_DIR/LICENSE $ROOT_DIR/README.md $ROOT_DIR/CHANGELOG.md $ROOT_DIR/CREDITS.md"
 
 APP_BUNDLE_DIR="$DST_DIR/$BUNDLE_NAME.app"
@@ -131,9 +132,10 @@ cp $EXE $DST_EXE
 cp -r $SRC_ASSETS_DIR $APP_BUNDLE_MACOS_DIR
 cp -r $DOCS $APP_BUNDLE_MACOS_DIR
 
-# Copy schema and api into app bundle
+# Copy schema, api and key into app bundle
 cp -r "$SRC_API_DIR" "$APP_BUNDLE_RESOURCES_DIR"
 cp -r "$SRC_SCHEMA_DIR" "$APP_BUNDLE_RESOURCES_DIR"
+cp -r "$SRC_KEY_DIR" "$APP_BUNDLE_RESOURCES_DIR"
 rm "$APP_BUNDLE_RESOURCES_DIR/"*/README.md
 
 # Build third party libraries and update dynamic paths
