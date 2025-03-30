@@ -218,6 +218,10 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
                     Dlg::Buttons::YesNo, Dlg::Icon::Question);
             _config["check_for_updates"] = (res == Dlg::Result::Yes);
         }
+
+        if (!_config["update_to_prerelease"].is_boolean()) {
+            _config["update_to_prerelease"] = false;
+        }
 #endif
 
         if (_config.find("add_emo_packs") == _config.end()) {
@@ -371,8 +375,9 @@ bool PopTracker::start()
         const std::string url = "https://api.github.com/repos/black-sliver/PopTracker/releases?per_page=8";
         // .../releases/latest would be better, but does not return pre-releases
         auto requestHeaders = _httpDefaultHeaders;
+        auto includePrerelease = _config.value<bool>("update_to_prerelease", false);
         if (!HTTP::GetAsync(*_asio, url, requestHeaders,
-                [this](int code, const std::string& content, HTTP::Headers)
+                [this, includePrerelease](int code, const std::string& content, HTTP::Headers)
                 {
                     if (code == 200) {
                         try {
@@ -382,6 +387,8 @@ bool PopTracker::start()
                             std::string url;
                             for (size_t i=0; i<j.size(); i++) {
                                 auto rls = j[i];
+                                if (rls["prerelease"].get<bool>() && !includePrerelease)
+                                    continue;
                                 version = rls["tag_name"].get<std::string>();
                                 if ((version[0]=='v' || version[0]=='V') && isNewer(version)) {
                                     version = version.substr(1);
@@ -389,10 +396,9 @@ bool PopTracker::start()
                                     for (auto val: rls["assets"]) {
                                         assets.push_back(val["browser_download_url"].get<std::string>());
                                     }
-                                    break;
-                                } else {
-                                    version.clear();
+                                    break; // found an update
                                 }
+                                version.clear();
                             }
                             if (!version.empty())
                                 updateAvailable(version, url, assets);
