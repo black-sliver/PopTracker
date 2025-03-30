@@ -183,7 +183,7 @@ bool Ui::render()
                     // ... inside window -> fire event
                     int x,y;
                     SDL_GetMouseState(&x, &y);
-                    SDL_Event ev; memset(&ev, 0, sizeof(ev));
+                    SDL_Event ev = {};
                     ev.type = SDL_MOUSEBUTTONDOWN;
                     ev.button.x = (Sint32)x;
                     ev.button.y = (Sint32)y;
@@ -321,12 +321,12 @@ bool Ui::render()
                         EVENT_UNLOCK(this);
                     }
                     else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                        // SDL eats the mouse event that was used to get focus,
+                        // SDL2 may eat the mouse event that was used to get focus,
                         // which is wrong since keyboard focus != mouse focus.
                         // We check for global mouse down on focus and
                         // schedule to fire onClick on global mouse up
                         unsigned button = SDL_GetGlobalMouseState(nullptr, nullptr);
-                        if (button) {
+                        if (button && _lastEventType != SDL_MOUSEBUTTONDOWN) {
                             SDL_Window* win = SDL_GetMouseFocus();
                             if (win) {
                                 _globalMouseButton = button;
@@ -397,6 +397,8 @@ bool Ui::render()
                 }
                 #endif
             }
+
+            _lastEventType = ev.type;
         }
         t1 = SDL_GetTicks();
         #ifndef VSYNC
