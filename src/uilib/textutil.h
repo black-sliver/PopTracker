@@ -32,6 +32,8 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
         return nullptr;
     }
     char* buf = strdup(text);
+    if (!buf)
+        return nullptr;
     int maxW = 0, totalH = 0, curY = 0;
     int res = 0;
     int linespace = 1; // TODO: line pitch instead?
