@@ -88,5 +88,15 @@
         "versions_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/refs/heads/main/images/icons/specterIcon.png",
         "description":  "Ape Escape autotracker pack for PopTracker"
+    },
+    {
+    "AP_Man_Xeno1_Xan": {
+        "name": "Xenoblade Chronicles Manual PopTracker",
+        "author": "skipperki1",
+        "platform": "poptracker",
+        "homepage": "https://github.com/skipperki1/Manual_XenobladeChronicles_Xanderoni_PopTracker",
+        "versions_url": "https://raw.githubusercontent.com/skipperki1/Manual_XenobladeChronicles_Xanderoni_PopTracker/refs/heads/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/skipperki1/Manual_XenobladeChronicles_Xanderoni_PopTracker/refs/heads/main/images/mapicons/Rare.png",
+        "description":  "Poptracker for Xenoblade Chronicles APManual with Manual Client support."
     }
 }
