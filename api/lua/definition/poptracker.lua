@@ -10,6 +10,11 @@
 
 ---@alias AnyObject JsonItem | LuaItem | LocationSection | Location
 
+---Options for extra debug output
+--- - fps: enable FPS output in console
+--- - errors: enable more detailed error reporting
+---@see DEBUG
+---@alias DebugOption "fps"|"errors"
 
 ---- Globals ----
 
@@ -18,8 +23,9 @@
 PopVersion = "0.31.0"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
----Set to true to get more error or debug output.
----@type boolean
+---Set to true or an array of strings to get more error or debug output.
+---@see DebugOption
+---@type nil | boolean | (DebugOption)[]
 DEBUG = false
 
 ---If defined in global scope, called when a game is connected (currently memory interfaces only).
