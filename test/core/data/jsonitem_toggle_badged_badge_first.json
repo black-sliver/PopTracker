@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Badged First",
+    "type": "toggle_badged",
+    "codes": "badge",
+    "base_item": "base"
+  },
+  {
+    "name": "Then Base",
+    "type": "toggle",
+    "codes": "base"
+  }
+]
