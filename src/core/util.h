@@ -34,8 +34,8 @@ static std::string sanitize_print(const fs::path& path)
 
 /// Replaces reserved/non-portable symbols by '_'.
 static std::string sanitize_filename(std::string s) {
-    auto exclude = "<>:\"/\\|?*$'`";
-    auto sanitize = [&](char c) { return strchr(exclude, c) || c == 0; };
+    const auto exclude = "<>:\"/\\|?*$'`";
+    auto sanitize = [&](const char c) { return strchr(exclude, c) || c == 0; };
     std::replace_if(s.begin(), s.end(), sanitize, '_');
     return s;
 }
@@ -45,21 +45,22 @@ static std::string sanitize_dir(std::string s)
 {
     if (s.empty())
         return "_";
-    if ((size_t)std::count(s.begin(), s.end(), '.') == s.length())
+    if (static_cast<size_t>(std::count(s.begin(), s.end(), '.')) == s.length())
         return "_";
-    auto exclude = "<>:\"/\\|?*$'`";
-    auto sanitize = [&](char c) { return c < 0x20 || c >= 0x7f || strchr(exclude, c); };
+    const auto exclude = "<>:\"/\\|?*$'`";
+    auto sanitize = [&](const char c) { return c < 0x20 || c >= 0x7f || strchr(exclude, c); };
     std::replace_if(s.begin(), s.end(), sanitize, '_');
     return s;
 }
 
 template<typename T>
 std::string format_bytes(T val) {
-    const char suffix[] = "KMGT";
+    constexpr char suffix[] = "KMGT";
+    const ssize_t maxSuffixIndex = static_cast<ssize_t>(strlen(suffix)) - 1;
     ssize_t n = -1;
     if (std::is_integral<T>::value) {
         val *= 10; // integer with 1 decimal place
-        while (val>=10240 && n<(ssize_t)strlen(suffix)-1) {
+        while (val >= 10240 && n < maxSuffixIndex) {
             val = (val+512) / 1024;
             n++;
         }
@@ -67,7 +68,7 @@ std::string format_bytes(T val) {
             val = ((val+5)/10)*10; // remove/round decimal place for >= 3digits
         }
     } else {
-        while (val>=1024 && n<(ssize_t)strlen(suffix)-1) {
+        while (val >= 1024 && n < maxSuffixIndex) {
             val /= 1024;
             n++;
         }
@@ -84,15 +85,15 @@ std::string format_bytes(T val) {
 }
 
 template<typename T>
-unsigned upercent(T divident, T divisor)
+unsigned upercent(T dividend, T divisor)
 {
     static_assert(sizeof(unsigned) >= 4, "Unsupported platform");
-    while (divident > 42949672) {
+    while (dividend > 42949672) {
         // avoid overflow during integer multiplication
-        divident = (divident + 5) / 10;
+        dividend = (dividend + 5) / 10;
         divisor = (divisor + 5) / 10;
     }
-    return 100U * divident / divisor;
+    return 100U * dividend / divisor;
 }
 
 static void strip(std::string& s, const char* whitespace = " \t\r\n")
