@@ -29,7 +29,11 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # , macos-13  # for tests, only do special macos-13 build below
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          # - macos-13  # for tests, only do special macos-13 build below
         shell: [bash]
         extra_make_args: ['']  # default build
         include:
