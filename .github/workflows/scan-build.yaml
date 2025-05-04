@@ -88,7 +88,7 @@ jobs:
           ${{ matrix.scan-build }} --status-bugs -o scan-build-reports \
             --exclude build --exclude lib/lua \
             --exclude lib/miniz \
-            make -j3
+            make -j4
       - name: Store report
         if: failure()
         uses: actions/upload-artifact@v4
