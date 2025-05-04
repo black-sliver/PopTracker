@@ -48,7 +48,7 @@ static std::string sanitize_dir(std::string s)
     if ((size_t)std::count(s.begin(), s.end(), '.') == s.length())
         return "_";
     auto exclude = "<>:\"/\\|?*$'`";
-    auto sanitize = [&](char c) { return c<0x20 || strchr(exclude, c); };
+    auto sanitize = [&](char c) { return c < 0x20 || c >= 0x7f || strchr(exclude, c); };
     std::replace_if(s.begin(), s.end(), sanitize, '_');
     return s;
 }
