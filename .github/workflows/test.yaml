@@ -31,7 +31,10 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # for tests on macOS, we do regular arm and special x86_64 below
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest  # for tests on macOS, we do regular arm and special x86_64 below
         shell: [bash]
         extra_make_args: ['']  # default build
         include:
