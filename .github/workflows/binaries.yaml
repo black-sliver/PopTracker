@@ -40,9 +40,17 @@ env:
 
 jobs:
   build-ubuntu:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
 
     steps:
+    - name: Set env
+      shell: bash
+      run: echo "ARCH=`uname -m`" >> $GITHUB_ENV
     - name: Install dependencies
       run: |
         sudo apt-get update -y -qq
@@ -56,8 +64,8 @@ jobs:
       run: make test CONF=RELEASE
     - name: Get version
       run: |
-        echo "POP_VERSION=`./build/linux-x86_64/poptracker --version`" >> $GITHUB_ENV
-        echo "POP_NAME=poptracker_`./build/linux-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+        echo "POP_VERSION=`./build/linux-${{ env.ARCH }}/poptracker --version`" >> $GITHUB_ENV
+        echo "POP_NAME=poptracker_`./build/linux-${{ env.ARCH }}/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
     - name: Build DIST # this builds a release ZIP, maybe .deb in the future
       run: make CONF=DIST
     - name: Attest Build and Archive
@@ -65,12 +73,12 @@ jobs:
       uses: actions/attest-build-provenance@v2
       with:
         subject-path: |
-          build/linux-x86_64/poptracker
+          build/linux-${{ env.ARCH }}/poptracker
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v4
       with:
-        name: ubuntu-22-04-dist
+        name: ${{ matrix.os }}-dist
         path: dist
 
   build-appimage:
