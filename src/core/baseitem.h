@@ -1,6 +1,7 @@
 #ifndef _CORE_BASEITEM_H
 #define _CORE_BASEITEM_H
 
+#include <cstdint>
 #include <string>
 #include <list>
 #include <vector>
