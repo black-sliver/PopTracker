@@ -204,6 +204,9 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
                 if (pos.shape == Shape::DIAMOND)
                     drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
                             c, c, c, c);
+                else if (pos.shape == Shape::TRAPEZOID)
+                    drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            c, c, c, c);
                 else
                     drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
                             c, c, c, c);
@@ -216,6 +219,9 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
 
                 if (pos.shape == Shape::DIAMOND)
                     drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                            topC, leftC, botC, rightC);
+                else if (pos.shape == Shape::TRAPEZOID)
+                    drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
                             topC, leftC, botC, rightC);
                 else
                     drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
