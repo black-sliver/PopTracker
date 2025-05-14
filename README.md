@@ -25,6 +25,9 @@ should compile on most unix-like OS (see [Building from source](#building-from-s
 
 Nix users can install [`poptracker`](https://search.nixos.org/packages?show=poptracker&type=packages&query=poptracker) from nixpkgs.
 
+Raspberry Pis can run the Linux ARM64 builds on the 64bit OS (available for Pi 3 and newer). 32bit OS may still work,
+but you need to build yourself. Only Pi 5 with 64bit OS is tested.
+
 [WASM](https://wikipedia.org/wiki/WebAssembly) support still needs a lot of work.
 
 Check
