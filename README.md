@@ -94,8 +94,8 @@ tracker. Click on the grey "AP" to connect to a server if the pack supports it.
 See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md) for more details.
 
 ### Bizhawk Connector
-Preview, currently only when setting platform to "n64". See
-[doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md#supported-interfaces) for details.
+Preview, currently only tested with GBA and N64.
+See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md#supported-interfaces) for details.
 
 ### Other systems
 No work has been done for other systems yet.
