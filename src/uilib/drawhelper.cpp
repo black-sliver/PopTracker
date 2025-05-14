@@ -215,4 +215,89 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
     }
 }
 
+void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
+        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC)
+{
+    bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff || rC.a != 0xff;
+
+    float il = pos.left;
+    float it = pos.top;
+    float iw = size.width;
+    float ih = size.height;
+
+    float ol = il - borderWidth;
+    float ot = it - borderWidth;
+    float ow = iw + 2 * borderWidth;
+    float oh = ih + 2 * borderWidth;
+    SDL_Color borderColor = {0, 0, 0, 255};
+
+    if (hasAlpha) {
+        // we have to draw 4 individual lines for border
+        float x1 = ol, x2 = ol + borderWidth, x3 = ol + ow/4, x4 = ol + ow/4 + borderWidth;
+        float x5 = ol + 3*ow/4 - borderWidth, x6 = ol + 3*ow/4, x7 = ol + ow - borderWidth, x8 = ol + ow;
+        float y1 = ot, y2 = ot + borderWidth, y3 = ot + oh - borderWidth, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x2, y3}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x4, y2}, borderColor, {0, 0}},
+            {{x5, y2}, borderColor, {0, 0}},
+            {{x6, y1}, borderColor, {0, 0}},
+            {{x7, y3}, borderColor, {0, 0}},
+            {{x8, y4}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+            2, 1, 3,
+            2, 3, 4,
+            2, 4, 5,
+            5, 4, 6,
+            5, 6, 7,
+            7, 1, 6,
+            7, 0, 1,
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 8, indices, 24);
+    } else {
+        // border as bigger background shape
+        float x1 = ol, x3 = ol + ow/4, x6 = ol + 3*ow/4, x8 = ol + ow;
+        float y1 = ot, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x6, y1}, borderColor, {0, 0}},
+            {{x8, y4}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 3, 1,
+            1, 3, 2
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 4, indices, 6);
+    }
+
+    {
+        float x1 = il, x2 = ol + ow/4 + borderWidth, x3 = il + iw/2, x4 = ol + 3*ow/4 - borderWidth, x5 = il + iw;
+        float y1 = it, y2 = it + ih/2, y3 = it + ih;
+
+        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+        SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+        SDL_Color rColor = {rC.r, rC.g, rC.b, rC.a};
+        SDL_Vertex verts[] = {
+            {{x2, y1}, tColor, {0, 0}},
+            {{x3, y2}, tColor, {0, 0}},
+            {{x4, y1}, tColor, {0, 0}},
+            {{x1, y3}, lColor, {0, 0}},
+            {{x3, y2}, lColor, {0, 0}},
+            {{x2, y1}, lColor, {0, 0}},
+            {{x1, y3}, bColor, {0, 0}},
+            {{x5, y3}, bColor, {0, 0}},
+            {{x3, y2}, bColor, {0, 0}},
+            {{x5, y3}, rColor, {0, 0}},
+            {{x4, y1}, rColor, {0, 0}},
+            {{x3, y2}, rColor, {0, 0}},
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 12, nullptr, 0);
+    }
+}
+
 } // namespace Ui

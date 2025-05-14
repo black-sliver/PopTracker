@@ -38,7 +38,7 @@
             },
             "location_shape": {
                 "description": "Shape of the map locations.",
-                "enum": ["rect", "diamond"],
+                "enum": ["rect", "diamond", "trapezoid"],
                 "default": "rect"
             },
             "img": {
