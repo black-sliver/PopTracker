@@ -408,13 +408,18 @@ int JsonItem::Lua_Index(lua_State *L, const char* key) {
 
 bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     if (strcmp(key, "AcquiredCount")==0) {
-        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
-        if (_count != val) {
-            _count = val;
-            if (_type == Type::CONSUMABLE)
-                _stage1 = (_count>0);
-            onChange.emit(this);
-        }
+        int val = lua_isinteger(L, -1) ? static_cast<int>(lua_tointeger(L, -1)) :
+                                         static_cast<int>(luaL_checknumber(L, -1));
+        if (_maxCount >= 0 && val > _maxCount)
+            val = _maxCount;
+        if (val < _minCount)
+            val = _minCount;
+        if (val == _count)
+            return true;
+        _count = val;
+        if (_type == Type::CONSUMABLE)
+            _stage1 = (_count > 0);
+        onChange.emit(this);
         return true;
     } else if (strcmp(key, "Active")==0) {
         bool val = lua_isinteger(L, -1) ? (lua_tointeger(L, -1)>0) : (bool)lua_toboolean(L, -1);
