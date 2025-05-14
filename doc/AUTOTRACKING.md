@@ -27,6 +27,9 @@ For snes, the interface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
 "lorom", "hirom", "exlorom", "exhirom" or "sa-1", or the internal game-name table.
 
+For n64, Lua connector is automatically enabled.
+
+For other platforms, add "luaconnector" to variant's flags.
 
 ### global ScriptHost
 * `:AddMemoryWatch(name, addr, size, callback[, interval_in_ms])` returns a reference (name) to the watch
