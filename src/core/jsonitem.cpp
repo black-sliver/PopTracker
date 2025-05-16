@@ -55,7 +55,7 @@ JsonItem JsonItem::FromJSON(json& j)
     item._img           = to_string(j["img"], "");
     item._disabledImg   = to_string(j["disabled_img"], item._img);
     item._minCount      = to_int(j["min_quantity"], 0);
-    item._maxCount      = to_int(j["max_quantity"], -1);
+    item._maxCount      = to_int(j["max_quantity"], std::min(-1, item._minCount - 1));
     item._increment     = to_int(j["increment"], 1);
     item._decrement     = to_int(j["decrement"], item._increment);
     item._overlayBackground = to_string(j["overlay_background"], "");
@@ -116,7 +116,9 @@ JsonItem JsonItem::FromJSON(json& j)
     }
 
     item._stage2 = std::max(0,std::min(to_int(j["initial_stage_idx"],0), (int)item._stages.size()-1));
-    item._count  = std::max(item._minCount, std::min(to_int(j["initial_quantity"],0), item._maxCount));
+    item._count  = std::max(item._minCount, to_int(j["initial_quantity"],0));
+    if (item._maxCount >= item._minCount && item._count > item._maxCount) // max is infinite if < min
+        item._count = item._maxCount;
     if (item._type == Type::CONSUMABLE && item._count > 0) item._stage1=1;
 
 #ifdef JSONITEM_CI_QUIRK
@@ -295,22 +297,29 @@ bool JsonItem::_changeStateImpl(BaseItem::Action action) {
         // left,fwd = +1, right,back = -1
         if (action == Action::Primary || action == Action::Next) {
             int n = _count+_increment;
-            if (_maxCount>=0 && n>_maxCount) n = _maxCount;
-            if (n < _minCount) n = _minCount;
-            if (n == _count) return false;
+            if (_maxCount >= _minCount && n > _maxCount)
+                n = _maxCount;
+            if (n < _minCount)
+                n = _minCount;
+            if (n == _count)
+                return false;
             _count = n;
             _stage1 = (n>0);
         } else if (action == Action::Secondary || action == Action::Prev) {
             int n = _count-_decrement;
-            if (_maxCount>=0 && n>_maxCount) n = _maxCount;
-            if (n < _minCount) n = _minCount;
-            if (n == _count) return false;
+            if (_maxCount >= _minCount && n > _maxCount)
+                n = _maxCount;
+            if (n < _minCount)
+                n = _minCount;
+            if (n == _count)
+                return false;
             _count = n;
             _stage1 = (n>0);
         } else {
             // single button control
             int n = _count+1;
-            if (_maxCount>=0 && n>_maxCount) n = _minCount;
+            if (_maxCount >= _minCount && n > _maxCount)
+                n = _minCount;
             _count = n;
             _stage1 = (n>0);
         }
@@ -410,7 +419,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
     if (strcmp(key, "AcquiredCount")==0) {
         int val = lua_isinteger(L, -1) ? static_cast<int>(lua_tointeger(L, -1)) :
                                          static_cast<int>(luaL_checknumber(L, -1));
-        if (_maxCount >= 0 && val > _maxCount)
+        if (_maxCount >= _minCount && val > _maxCount)
             val = _maxCount;
         if (val < _minCount)
             val = _minCount;
@@ -484,7 +493,7 @@ bool JsonItem::Lua_NewIndex(lua_State *L, const char *key) {
         if (_maxCount != val) {
             _maxCount = val;
             _maxCountChanged = true;
-            if (_maxCount<_count && _maxCount>=0) { // less than 0 is infinite
+            if (_maxCount >= _minCount && _count > _maxCount) { // max is infinite if < min
                 _count = _maxCount;
                 onChange.emit(this);
             }
