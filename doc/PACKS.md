@@ -311,7 +311,7 @@ a table representing an enum with the following constants: \
 * `"consumable"`:
   + has AcquiredCount (0 = grey/disabled)
   + adds `"min_quantity": 0`, since 0.21.0
-  + adds `"max_quantity": 0`
+  + adds `"max_quantity": 0`; if max_quantity < min_quantity, there is no upper limit; works for negative min since 0.32.0
   + adds `"increment": 1` can be used if an item pickup is always a certain count, since 0.18.3
   + adds `"decrement": 1` can be used if using an item always uses up multiple, since 0.18.3
   + adds optional `"initial_quantity": 0`
