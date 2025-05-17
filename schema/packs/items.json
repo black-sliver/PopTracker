@@ -289,7 +289,19 @@
                     },
                     "initial_active_state": {
                         "description": "Precollected if true",
-                        "type": "boolean"
+                        "anyOf": [
+                            {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
                     }
                 },
                 "required": [
@@ -324,7 +336,19 @@
                     },
                     "initial_active_state": {
                         "description": "Precollected if true",
-                        "type": "boolean"
+                        "anyOf": [
+                            {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
                     }
                 },
                 "required": []
@@ -447,7 +471,19 @@
                     },
                     "initial_active_state": {
                         "description": "Precollected overlay if true",
-                        "type": "boolean"
+                        "anyOf": [
+                            {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
                     }
                 },
                 "required": []
