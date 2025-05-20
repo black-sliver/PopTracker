@@ -176,7 +176,7 @@ bool Ui::render()
         
         // Work around SDL eating mouse input when switching windows
         // read below at SDL_WINDOWEVENT_FOCUS_GAINED
-        if (_globalMouseButton) {
+        if (_globalMouseButtons) {
             if (!SDL_GetGlobalMouseState(nullptr, nullptr)) {
 #ifdef UI_ENABLE_UNFOCUSED_CLICK_HACK
                 // untracked mouse button released ...
@@ -189,14 +189,19 @@ bool Ui::render()
                     ev.type = SDL_MOUSEBUTTONDOWN;
                     ev.button.x = (Sint32)x;
                     ev.button.y = (Sint32)y;
-                    ev.button.button = (Uint8) _globalMouseButton;
+                    for (uint8_t button=0; button < sizeof(_globalMouseButtons) * 8; ++button) {
+                        if (_globalMouseButtons & (1 << button)) {
+                            ev.button.button = button + 1; // button enum starts at 1
+                            break;
+                        }
+                    }
                     ev.button.windowID = SDL_GetWindowID(win);
                     SDL_PushEvent(&ev);
                     ev.type = SDL_MOUSEBUTTONUP;
                     SDL_PushEvent(&ev);
                 }
 #endif // UI_ENABLE_UNFOCUSED_CLICK_HACK
-                _globalMouseButton = 0;
+                _globalMouseButtons = 0;
             }
         }
         
@@ -209,7 +214,7 @@ bool Ui::render()
                 }
                 case SDL_MOUSEBUTTONDOWN: {
                     // clear/cancel cached "global" event (see above or below)
-                    _globalMouseButton = 0;
+                    _globalMouseButtons = 0;
                     // ignore. We click() on SDL_MOUSEBUTTONUP
                     break;
                 }
@@ -332,7 +337,7 @@ bool Ui::render()
                         if (button && _lastEventType != SDL_MOUSEBUTTONDOWN) {
                             SDL_Window* win = SDL_GetMouseFocus();
                             if (win) {
-                                _globalMouseButton = button;
+                                _globalMouseButtons = button;
                             }
                         }
                     }

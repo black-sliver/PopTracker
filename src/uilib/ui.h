@@ -29,7 +29,7 @@ protected:
     std::string _name;
     unsigned _lastRenderDuration = 0;
     uint64_t _lastFrameMicroTimestamp = 0;
-    unsigned _globalMouseButton = 0;
+    unsigned _globalMouseButtons = 0; ///< bit mask of pressed mouse buttons during last capture
     Uint32 _lastEventType = 0;
     bool _fallbackRenderer = false;
     unsigned _fpsLimit = 0;
