@@ -24,6 +24,7 @@
 #   define EVENT_UNLOCK(self)
 #endif
 
+#define UI_ENABLE_UNFOCUSED_CLICK_HACK
 
 namespace Ui {
 
@@ -177,6 +178,7 @@ bool Ui::render()
         // read below at SDL_WINDOWEVENT_FOCUS_GAINED
         if (_globalMouseButton) {
             if (!SDL_GetGlobalMouseState(nullptr, nullptr)) {
+#ifdef UI_ENABLE_UNFOCUSED_CLICK_HACK
                 // untracked mouse button released ...
                 SDL_Window* win = SDL_GetMouseFocus();
                 if (win) {
@@ -193,6 +195,7 @@ bool Ui::render()
                     ev.type = SDL_MOUSEBUTTONUP;
                     SDL_PushEvent(&ev);
                 }
+#endif // UI_ENABLE_UNFOCUSED_CLICK_HACK
                 _globalMouseButton = 0;
             }
         }
