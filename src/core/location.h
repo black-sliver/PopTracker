@@ -17,6 +17,13 @@ enum class AccessibilityLevel : int {
     CLEARED = 7,
 };
 
+enum class Highlight : int {
+    AVOID = -1,
+    NONE = 0,
+    NO_PRIORITY = 1,
+    UNSPECIFIED = 2,
+    PRIORITY = 3,
+};
 
 class LocationSection final : public LuaInterface<LocationSection> {
     friend class LuaInterface;
