@@ -26,5 +26,5 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Update cacert.pem"
-            gh pr create -B ${{ github.ref_name }} --title '[Bot] Update cacert.pem'
+            gh pr create -B ${{ github.ref_name }} --title '[Bot] Update cacert.pem' --body 'Update cacert.pem to latest from curl.se'
           fi
