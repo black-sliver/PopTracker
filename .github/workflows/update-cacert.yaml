@@ -23,6 +23,6 @@ jobs:
           else
             git checkout -b bot/update-cacert-${{ github.ref_name }}
             git add .
-            git commit -m "Update cacert.pem"
+            git commit -m "Update cacert.pem" --author "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
             gh pr create -B ${{ github.ref_name }} --title '[Bot] Update cacert.pem'
           fi
