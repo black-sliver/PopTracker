@@ -1276,6 +1276,14 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
         {"Cleared", AccessibilityLevel::CLEARED},
     }).Lua_SetGlobal(_L, "AccessibilityLevel");
 
+    LuaEnum<Highlight>({
+        {"Avoid", Highlight::AVOID},
+        {"None", Highlight::NONE},
+        {"NoPriority", Highlight::NO_PRIORITY},
+        {"Unspecified", Highlight::UNSPECIFIED},
+        {"Priority", Highlight::PRIORITY},
+    }).Lua_SetGlobal(_L, "Highlight");
+
     printf("Hooking Lua globals...\n");
     global_wrap(_L, this);
     if (_debugFlags.empty())
