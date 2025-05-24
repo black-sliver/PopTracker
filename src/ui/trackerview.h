@@ -40,6 +40,10 @@ public:
     static int CalculateLocationState(Tracker* tracker, const std::string& location,
             const Location::MapLocation& mapLoc);
 
+    static Highlight CalculateLocationHighlight(Tracker* tracker, const std::string& location);
+    static Highlight CalculateLocationHighlight(Tracker* tracker, const std::string& location,
+            const Location::MapLocation& mapLoc);
+
 protected:
     Tracker* _tracker;
     std::string _layoutRoot;

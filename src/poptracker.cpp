@@ -179,6 +179,27 @@ PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
             } else if (!stateColors.is_null()) {
                 fprintf(stderr, "Warning: invalid 'MapWidget.StateColors' in colors.json\n");
             }
+
+            auto& highlightColors = _colors["MapWidget.HighlightColors"];
+            if (highlightColors.is_object()) {
+                for (auto& pair: highlightColors.items()) {
+                    if (!pair.value().is_string()) {
+                        fprintf(stderr, "Error: value not a string in colors.json\n");
+                    }
+                    auto highlight = HighlightFromString(pair.key());
+                    if (highlight == Highlight::NONE) {
+                        fprintf(stderr, "Warning: unknown key '%s' in 'MapWidget.HighlightColors' in colors.json\n",
+                            pair.key().c_str());
+                    } else {
+                        Ui::MapWidget::HighlightColors[highlight] = Ui::Widget::Color::FromStringWithDefaultAlpha(
+                            pair.value().get<std::string>(),
+                            Ui::MapWidget::HighlightColors[highlight].a
+                        );
+                    }
+                }
+            } else if (!highlightColors.is_null()) {
+                fprintf(stderr, "Warning: invalid 'MapWidget.HighlightColors' in colors.json\n");
+            }
         } else {
             fprintf(stderr, "Error: expected object at top level of colors.json\n");
         }

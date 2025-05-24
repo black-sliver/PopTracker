@@ -1,70 +1,13 @@
 #include "location.h"
+#include <lua.h>
+#include <luaglue/luainterface.h>
 #include "jsonutil.h"
-#include "util.h"
 #include "tracker.h"
+#include "util.h"
 
 using nlohmann::json;
 
-const LuaInterface<LocationSection>::MethodMap LocationSection::Lua_Methods = {};
 const LuaInterface<Location>::MethodMap Location::Lua_Methods = {};
-
-int LocationSection::Lua_Index(lua_State *L, const char *key)
-{
-    if (strcmp(key, "Owner") == 0) {
-        lua_newtable(L); // dummy
-        return 1;
-    } else if (strcmp(key, "AvailableChestCount") == 0) {
-        lua_pushinteger(L, _itemCount - _itemCleared);
-        return 1;
-    } else if (strcmp(key, "ChestCount")==0) {
-        lua_pushinteger(L, _itemCount);
-        return 1;
-    } else if (strcmp(key, "FullID") == 0) {
-        lua_pushstring(L, getFullID().c_str());
-        return 1;
-    } else if (strcmp(key, "AccessibilityLevel") == 0) {
-        lua_getglobal(L, "Tracker");
-        Tracker* tracker = Tracker::luaL_testthis(L, -1);
-        if (!tracker) return 0;
-        if (_itemCleared >= _itemCount) {
-            // if items are cleared, check if hosted items are collected
-            bool done = true;
-            for (auto& hosted: _hostedItems) {
-                if (tracker->ProviderCountForCode(hosted) < 1) {
-                    done = false;
-                    break;
-                }
-            }
-            if (done) {
-                // if yes, cleared
-                lua_pushinteger(L, (int)AccessibilityLevel::CLEARED);
-                return 1;
-            }
-        }
-        int res = (int)tracker->isReachable(*this);
-        lua_pushinteger(L, res);
-        return 1;
-    }
-    return 0;
-}
-
-bool LocationSection::Lua_NewIndex(lua_State *L, const char *key)
-{
-    if (strcmp(key,"AvailableChestCount")==0) {
-        int val = lua_isinteger(L, -1) ? (int)lua_tointeger(L, -1) : (int)luaL_checknumber(L, -1);
-        int cleared = _itemCount - val;
-        if (cleared < 0) cleared = 0;
-        if (cleared > _itemCount) cleared = _itemCleared;
-        if (_itemCleared == cleared) return true;
-        _itemCleared = cleared;
-        onChange.emit(this);
-        return true;
-    } else if (strcmp(key,"CapturedItem")==0) {
-        // FIXME: implement this, see issue #12
-        return true;
-    }
-    return false;
-}
 
 int Location::Lua_Index(lua_State *L, const char *key)
 {
@@ -458,19 +401,30 @@ bool LocationSection::unclearItem()
 
 json LocationSection::save() const
 {
-    return {
-        {"cleared", _itemCleared}
-    };
+    json j = json::object();
+    if (_itemCleared)
+        j["cleared"] = _itemCleared;
+    if (_highlight != Highlight::NONE)
+        j["highlight"] = HighlightToString(_highlight);
+    return j;
 }
 
 bool LocationSection::load(json& j)
 {
     if (j.type() == json::value_t::object) {
+        bool changed = false;
         int val = to_int(j["cleared"], _itemCleared);
         if (val != _itemCleared) {
             _itemCleared = val;
-            onChange.emit(this);
+            changed = true;
         }
+        const auto highlight = HighlightFromString(to_string(j, "highlight", ""));
+        if (highlight != _highlight) {
+            _highlight = highlight;
+            changed = true;
+        }
+        if (changed)
+            onChange.emit(this);
         return true;
     }
     return false;

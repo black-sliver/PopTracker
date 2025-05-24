@@ -424,11 +424,13 @@ void TrackerView::updateLocationsNow()
                     n = 0;
                 }
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
+                Highlight highlight = CalculateLocationHighlight(_tracker, pair.first, pair.second);
                 if (_maps.empty()) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     return;
                 }
                 w->setLocationState(pair.first, state, n);
+                w->setLocationHighlight(pair.first, highlight, n); // TODO: separate update handler?
                 n++;
             }
         }
@@ -456,11 +458,13 @@ void TrackerView::updateLocationNow(const std::string& location)
                 if (pair.first != location)
                     continue;
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
+                Highlight highlight = CalculateLocationHighlight(_tracker, pair.first, pair.second);
                 if (_maps.empty()) {
                     printf("TrackerView: UI changed during updateLocations()\n");
                     return;
                 }
                 w->setLocationState(pair.first, state, n);
+                w->setLocationHighlight(pair.first, highlight, n); // TODO: separate update handler?
                 n++;
             }
         }
@@ -838,12 +842,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setGrow(1,1);
             w->setMinSize({200,200});
             for (const auto& pair : _tracker->getMapLocations(mapname)) {
-                int state = 0; // this is done later to avoid calling into Lua
-                w->addLocation(pair.first, pair.second.getX(), pair.second.getY(),
-                        pair.second.getSize(map.getLocationSize()),
-                        pair.second.getBorderThickness(map.getLocationBorderThickness()),
-                        pair.second.getShape(map.getLocationShape()),
-                        state);
+                // NOTE: state and highlight are set later
+                w->addLocation(pair.first, {
+                    pair.second.getX(), pair.second.getY(),
+                    pair.second.getSize(map.getLocationSize()),
+                    pair.second.getBorderThickness(map.getLocationBorderThickness()),
+                    pair.second.getShape(map.getLocationShape()),
+                });
             }
 #ifndef NDEBUG
             w->setBackground({0x00,0x00,0xff});
@@ -1074,7 +1079,7 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
                     hostedItems.push_back(code);
             }
             // ignore section if empty
-            if (sec.getItemCount() < 1 && hostedItems.size() < 1)
+            if (sec.getItemCount() < 1 && hostedItems.empty())
                 continue;
         }
 
@@ -1082,14 +1087,11 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
 
         if (sec.getItemCleared() >= sec.getItemCount()) {
             // check hosted items
-            bool missing = false;
-            for (const auto& code: hostedItems) {
-                if (!tracker->ProviderCountForCode(code)) {
-                    missing = true;
-                    break;
-                }
-            }
-            if (!missing) continue;
+            const auto missing = std::any_of(hostedItems.begin(), hostedItems.end(), [tracker](const auto& code) {
+                return !tracker->ProviderCountForCode(code);
+            });
+            if (!missing)
+                continue;
         }
 
         auto reachable = tracker->isReachable(loc, sec);
@@ -1120,5 +1122,47 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
     return CalculateLocationState(tracker, locid);
 }
 
+Highlight TrackerView::CalculateLocationHighlight(Tracker *tracker, const std::string &locid)
+{
+    // TODO: move to a common place
+    auto& loc = tracker->getLocation(locid);
+    bool locHighlightSet = false;
+    Highlight locHighlight = Highlight::NONE;
+
+    for (const auto& ogSec: loc.getSections()) {
+        const auto& sec = ogSec.getRef().empty() ? ogSec : tracker->getLocationSection(ogSec.getRef());
+
+        if (!tracker->isVisible(loc, sec))
+            continue;
+
+        if (sec.getItemCleared() >= sec.getItemCount()) {
+            // check hosted items
+            const auto& hostedItems = sec.getHostedItems();
+            const auto missing = std::any_of(hostedItems.begin(), hostedItems.end(), [tracker](const auto& code) {
+                // any exists and is not provided
+                return tracker->getItemByCode(code).getType() != BaseItem::Type::NONE
+                        && !tracker->ProviderCountForCode(code);
+            });
+            if (!missing)
+                continue;
+        }
+
+        const auto secHighlight = sec.getHighlight();
+        if (!locHighlightSet || secHighlight > locHighlight) {
+            locHighlight = secHighlight;
+            locHighlightSet = true;
+        }
+    }
+
+    return locHighlight;
+}
+
+Highlight TrackerView::CalculateLocationHighlight(Tracker* tracker, const std::string& locid, const Location::MapLocation& mapLoc)
+{
+    // TODO: move to a common place
+    if (!tracker->isVisible(mapLoc))
+        return Highlight::NONE;
+    return CalculateLocationHighlight(tracker, locid);
+}
 
 } // namespace
