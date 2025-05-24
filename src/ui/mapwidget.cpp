@@ -46,6 +46,14 @@ namespace Ui {
     { 0x00, 0x00, 0x00, 0xff }, \
 }
 
+#define DEFAULT_HIGHLIGHT_COLORS { \
+    { Highlight::AVOID, {0xff, 0x00, 0x00, 0xcc}}, \
+    { Highlight::NONE, {0x00, 0x00, 0x00, 0x00}}, \
+    { Highlight::NO_PRIORITY, {0x6a, 0x7f, 0xf8, 0xcc}}, /* slateblue-ish */ \
+    { Highlight::UNSPECIFIED, {0xff, 0xff, 0xff, 0xbb}}, \
+    { Highlight::PRIORITY, {0xff, 0xd7, 0x00, 0xcc}}, /* plum is hard to see, so we make it "gold" */ \
+}
+
 // map 4 state bits to 4 individual triangle colors
 // triangle order: top, left, bottom, right
 static const int triangleValues[16][4] = {
@@ -69,6 +77,7 @@ static const int triangleValues[16][4] = {
 
 
 Widget::Color MapWidget::StateColors[] = _DEFAULT_STATE_COLORS;
+std::map<Highlight, Widget::Color> MapWidget::HighlightColors = DEFAULT_HIGHLIGHT_COLORS;
 
 bool MapWidget::SplitRects = true;
 
@@ -169,75 +178,91 @@ void MapWidget::render(Renderer renderer, int offX, int offY)
         return; // nothing to do
     }
 
-    for (const auto& pair : _locations) {
-        const auto& loc = pair.second;
-        for (const auto& pos : loc.pos) {
-            // location icon size in screen space
-            int locScreenInnerW  = (pos.size*dstw+srcw/2)/srcw;
-            int locScreenInnerH  = (pos.size*dsth+srch/2)/srch;
-            if (locScreenInnerW<1) locScreenInnerW=1;
-            if (locScreenInnerH<1) locScreenInnerH=1;
-            int borderScreenSize = (pos.borderThickness*dstw+srcw/2)/srcw;
-            if (borderScreenSize<1 && pos.borderThickness>0) borderScreenSize=1;
-            int locScreenOuterW  = locScreenInnerW+2*borderScreenSize;
-            int locScreenOuterH  = locScreenInnerH+2*borderScreenSize;
-            // calculate top left corner of squares
-            int innerx = (pos.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
-            int innery = (pos.y*dsth+srch/2)/srch - locScreenInnerH/2;
-            // fix up locations that are on the edge of the map -- we could also move this to addLocation
-            if (innerx < borderScreenSize) innerx = borderScreenSize;
-            if (innery < borderScreenSize) innery = borderScreenSize;
-            if (innerx > dstw+locScreenOuterW) innerx = dstw-locScreenOuterW;
-            if (innery > dsth+locScreenOuterH) innery = dsth-locScreenOuterH;
-            // move to drawing offset
-            innerx += dstx;
-            innery += dsty;
+    for (const auto pass: {0, 1}) {
+        for (const auto& pair : _locations) {
+            const auto& loc = pair.second;
+            for (const auto& pos : loc.pos) {
+                // location icon size in screen space
+                int locScreenInnerW  = (pos.size*dstw+srcw/2)/srcw;
+                int locScreenInnerH  = (pos.size*dsth+srch/2)/srch;
+                if (locScreenInnerW<1) locScreenInnerW=1;
+                if (locScreenInnerH<1) locScreenInnerH=1;
+                int borderScreenSize = (pos.borderThickness*dstw+srcw/2)/srcw;
+                if (borderScreenSize<1 && pos.borderThickness>0) borderScreenSize=1;
+                int locScreenOuterW  = locScreenInnerW+2*borderScreenSize;
+                int locScreenOuterH  = locScreenInnerH+2*borderScreenSize;
+                // calculate top left corner of squares
+                int innerx = (pos.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
+                int innery = (pos.y*dsth+srch/2)/srch - locScreenInnerH/2;
+                // fix up locations that are on the edge of the map -- we could also move this to addLocation
+                if (innerx < borderScreenSize) innerx = borderScreenSize;
+                if (innery < borderScreenSize) innery = borderScreenSize;
+                if (innerx > dstw+locScreenOuterW) innerx = dstw-locScreenOuterW;
+                if (innery > dsth+locScreenOuterH) innery = dsth-locScreenOuterH;
+                // move to drawing offset
+                innerx += dstx;
+                innery += dsty;
 
-            int state = (int)pos.state;
-            if (state == -1) continue; // hidden
-            if (state == 0 && _hideClearedLocations) continue;
-            if (state == 2 && _hideUnreachableLocations) continue;
+                int state = (int)pos.state;
+                if (state == -1) continue; // hidden
+                if (state == 0 && _hideClearedLocations) continue;
+                if (state == 2 && _hideUnreachableLocations) continue;
+                const Highlight highlight = pos.highlight;
 
-            if (!SplitRects || state<0 || state>=countOf(triangleValues)) {
-                const Widget::Color& c = (state<0 || state>=countOf(StateColors)) ?
-                        StateColors[countOf(StateColors)-1] : StateColors[state];
-                if (pos.shape == Shape::DIAMOND)
-                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            c, c, c, c);
-                else if (pos.shape == Shape::TRAPEZOID)
-                    drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            c, c, c, c);
-                else
-                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            c, c, c, c);
-            } else {
-                const int* values = triangleValues[state];
-                const Widget::Color& topC = StateColors[values[0]];
-                const Widget::Color& leftC = StateColors[values[1]];
-                const Widget::Color& botC = StateColors[values[2]];
-                const Widget::Color& rightC = StateColors[values[3]];
+                if (pass == 0) {
+                    // glow
+                    if (highlight == Highlight::NONE)
+                        continue;
+                    const Color c = HighlightColors[highlight];
+                    if (pos.shape == Shape::DIAMOND)
+                        drawDiamondGlow(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, c);
+                    else if (pos.shape == Shape::TRAPEZOID)
+                        drawTrapezoidGlow(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, c);
+                    else
+                        drawRectGlow(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, c);
+                } else if (!SplitRects || state<0 || state>=countOf(triangleValues)) {
+                    // uniform shape
+                    const Color& c = (state<0 || state>=countOf(StateColors)) ?
+                            StateColors[countOf(StateColors)-1] : StateColors[state];
+                    if (pos.shape == Shape::DIAMOND)
+                        drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                c, c, c, c);
+                    else if (pos.shape == Shape::TRAPEZOID)
+                        drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                c, c, c, c);
+                    else
+                        drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                c, c, c, c);
+                } else {
+                    // split shape
+                    const int* values = triangleValues[state];
+                    const Color& topC = StateColors[values[0]];
+                    const Color& leftC = StateColors[values[1]];
+                    const Color& botC = StateColors[values[2]];
+                    const Color& rightC = StateColors[values[3]];
 
-                if (pos.shape == Shape::DIAMOND)
-                    drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            topC, leftC, botC, rightC);
-                else if (pos.shape == Shape::TRAPEZOID)
-                    drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            topC, leftC, botC, rightC);
-                else
-                    drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
-                            topC, leftC, botC, rightC);
+                    if (pos.shape == Shape::DIAMOND)
+                        drawDiamond(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                topC, leftC, botC, rightC);
+                    else if (pos.shape == Shape::TRAPEZOID)
+                        drawTrapezoid(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                topC, leftC, botC, rightC);
+                    else
+                        drawRect(renderer, {innerx, innery}, {locScreenInnerW, locScreenInnerH}, borderScreenSize,
+                                topC, leftC, botC, rightC);
+                }
             }
         }
     }
 }
 
-void MapWidget::addLocation(const std::string& id, int x, int y, int size, int borderThickness, Shape shape, int state)
+void MapWidget::addLocation(const std::string& id, Point&& point)
 {
     auto it = _locations.find(id);
     if (it != _locations.end()) {
-        it->second.pos.push_back( {x, y, size, borderThickness, shape, state} );
+        it->second.pos.emplace_back(point);
     } else {
-        _locations[id] = { { {x, y, size, borderThickness, shape, state} } };
+        _locations[id] = {{point}};
     }
 }
 
@@ -246,6 +271,14 @@ void MapWidget::setLocationState(const std::string& id, int state, size_t n)
     auto it = _locations.find(id);
     if (it != _locations.end() && it->second.pos.size() >= n) {
         it->second.pos[n].state = state;
+    }
+}
+
+void MapWidget::setLocationHighlight(const std::string& id, Highlight highlight, size_t n)
+{
+    auto it = _locations.find(id);
+    if (it != _locations.end() && it->second.pos.size() >= n) {
+        it->second.pos[n].highlight = highlight;
     }
 }
 

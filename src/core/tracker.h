@@ -3,11 +3,13 @@
 
 #include <luaglue/luatype.h>
 #include <luaglue/luainterface.h>
+#include "accessibilitylevel.h"
 #include "pack.h"
 #include "luaitem.h"
 #include "jsonitem.h"
 #include "map.h"
 #include "location.h"
+#include "locationsection.h"
 #include "layoutnode.h"
 #include "signal.h"
 #include <string>
