@@ -22,12 +22,13 @@ class LocationSection final : public LuaInterface<LocationSection> {
     friend class LuaInterface;
 public:
     static LocationSection FromJSON(nlohmann::json& j,
-            const std::string parentId,
+            const std::string& parentId,
             const std::list< std::list<std::string> >& parentAccessRules={},
             const std::list< std::list<std::string> >& parentVisibilityRules={},
             const std::string& closedImg="", const std::string& openedImg="",
             const std::string& overlayBackground="");
     Signal<> onChange;
+
 protected:
     std::string _name;
     std::string _parentId;
@@ -67,10 +68,10 @@ public:
     bool operator<(const LocationSection& rhs) const;
 
 protected: // lua interface
-    static constexpr const char Lua_Name[] = "LocationSection";
+    static constexpr char Lua_Name[] = "LocationSection";
     static const LuaInterface::MethodMap Lua_Methods;
-    virtual int Lua_Index(lua_State *L, const char *key) override;
-    virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
+    int Lua_Index(lua_State *L, const char *key) override;
+    bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
 
 class Location final : public LuaInterface<Location> {
@@ -138,6 +139,7 @@ protected:
     std::list<LocationSection> _sections;
     std::list< std::list<std::string> > _accessRules; // this is only used if referenced through @-Rules
     std::list< std::list<std::string> > _visibilityRules;
+
 public:
     const std::string& getName() const { return _name; }
     const std::string& getID() const { return _id; }
@@ -156,10 +158,10 @@ public:
 #endif
 
 protected: // lua interface
-    static constexpr const char Lua_Name[] = "Location";
+    static constexpr char Lua_Name[] = "Location";
     static const LuaInterface::MethodMap Lua_Methods;
-    virtual int Lua_Index(lua_State *L, const char *key) override;
-    virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
+    int Lua_Index(lua_State *L, const char *key) override;
+    bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
 
 #endif // _CORE_LOCATION_H

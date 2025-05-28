@@ -340,7 +340,7 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
 }
 
 
-LocationSection LocationSection::FromJSON(json& j, const std::string parentId, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
+LocationSection LocationSection::FromJSON(json& j, const std::string& parentId, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
 {
     // TODO: pass inherited values as parent instead
     LocationSection sec;
