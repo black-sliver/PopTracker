@@ -35,20 +35,32 @@ public:
         uint8_t a;
         constexpr Color(uint8_t R, uint8_t G, uint8_t B, uint8_t A=0xff) : r(R), g(G), b(B), a(A) {}
         constexpr Color() : r(0),g(0),b(0),a(0) {}
-        Color(const std::string& s) {
+        Color(const std::string& s) : Color(s, 255) {}
+
+        static Color FromStringWithDefaultAlpha(const std::string& s, uint8_t a)
+        {
+            return Color{s, a};
+        }
+
+        bool operator==(const Color& other) const { return other.r==r && other.g==g && other.b==b && other.a==a; }
+        bool operator!=(const Color& other) const { return ! (*this == other); }
+
+    private:
+        Color(const std::string& s, const uint8_t defaultAlpha)
+        {
             size_t p = 0;
             if (s[0] == '#') p++;
             if (s.length()-p == 6) { // RRGGBB
                 r = hex(s[p+0],s[p+1]);
                 g = hex(s[p+2],s[p+3]);
                 b = hex(s[p+4],s[p+5]);
-                a = 0xff;
+                a = defaultAlpha;
             }
             else if (s.length()-p == 3) { // RGB -> RRGGBB
                 r = hex(s[p+0],s[p+0]);
                 g = hex(s[p+1],s[p+1]);
                 b = hex(s[p+2],s[p+2]);
-                a = 0xff;
+                a = defaultAlpha;
             }
             else if (s.length()-p == 8) { // AARRGGBB
                 a = hex(s[p+0],s[p+1]);
@@ -66,17 +78,17 @@ public:
                 r = 0; g = 0; b = 0; a = 0;
             }
         }
-        bool operator==(const Color& other) const { return other.r==r && other.g==g && other.b==b && other.a==a; }
-        bool operator!=(const Color& other) const { return ! (*this == other); }
 
-    private:
-        uint8_t hex(char c) {
+        uint8_t hex(char c)
+        {
             if (c>='0' && c<='9') return (uint8_t)(c-'0');
             if (c>='a' && c<='f') return (uint8_t)(c-'a'+0x0a);
             if (c>='A' && c<='F') return (uint8_t)(c-'A'+0x0a);
             return 0;
         }
-        uint8_t hex(char hi, char lo) {
+
+        uint8_t hex(char hi, char lo)
+        {
             return hex(hi)<<4 | hex(lo);
         }
     };
