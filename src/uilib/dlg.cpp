@@ -3,6 +3,7 @@
 #if defined __WIN32__
 #include <windows.h>
 #include <assert.h>
+#include <commdlg.h>
 #else
 #include <tinyfiledialogs.h>
 #include <tinyfiledialogs.cpp>

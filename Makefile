@@ -39,9 +39,9 @@ BENCH_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
       $(wildcard $(BENCH_DIR)/*/*.cpp) \
       $(wildcard $(LIB_DIR)/sltbench/src/*.cpp)
 INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include -Ilib/sltbench/include #-Ilib/gifdec
-WIN32_INCLUDE_DIRS = -Iwin32-lib/i686/include -Ilib/gmock-win32/include
+WIN32_INCLUDE_DIRS =  -DWIN32_LEAN_AND_MEAN -Iwin32-lib/i686/include -Ilib/gmock-win32/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
-WIN64_INCLUDE_DIRS = -Iwin32-lib/x86_64/include -Ilib/gmock-win32/include
+WIN64_INCLUDE_DIRS = -DWIN32_LEAN_AND_MEAN -Iwin32-lib/x86_64/include -Ilib/gmock-win32/include
 WIN64_LIB_DIRS = -L./win32-lib/x86_64/bin -L./win32-lib/x86_64/lib
 SSL_LIBS = -lssl -lcrypto
 NIX_LIBS = -lSDL2_ttf -lSDL2_image $(SSL_LIBS) -lz

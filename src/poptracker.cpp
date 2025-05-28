@@ -21,6 +21,7 @@
 #include "core/fs.h"
 #ifdef _WIN32
 #include <windows.h>
+#include <shellapi.h>
 #endif
 using nlohmann::json;
 using Ui::Dlg;
