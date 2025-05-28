@@ -425,7 +425,7 @@ void TrackerView::updateLocationsNow()
                 }
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.empty()) {
-                    // ui file loaded while updating states
+                    printf("TrackerView: UI changed during updateLocations()\n");
                     return;
                 }
                 w->setLocationState(pair.first, state, n);
@@ -458,7 +458,6 @@ void TrackerView::updateLocationNow(const std::string& location)
                 int state = CalculateLocationState(_tracker, pair.first, pair.second);
                 if (_maps.empty()) {
                     printf("TrackerView: UI changed during updateLocations()\n");
-                    fprintf(stderr, "cybuuuuuu!!\n");
                     return;
                 }
                 w->setLocationState(pair.first, state, n);
