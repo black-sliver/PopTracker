@@ -976,9 +976,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                                 }
                                 last = n;
                                 sec.clearItem(true);
-                                std::list<std::string> codes = sec.getHostedItems();
-                                for (const auto& item: codes) {
-                                    tracker->changeItemState(tracker->getItemByCode(item).getID(),
+                                for (const auto& code: sec.getHostedItems()) {
+                                    tracker->changeItemState(tracker->getItemByCode(code).getID(),
                                             ::BaseItem::Action::Primary);
                                 }
                                 done = false;
@@ -1067,9 +1066,10 @@ int TrackerView::CalculateLocationState(Tracker* tracker, const std::string& loc
         if (!tracker->isVisible(loc, sec))
             continue;
 
-        std::list<std::string> hostedItems;
+        std::vector<std::string> hostedItems;
         if (sec.getItemCleared() >= sec.getItemCount()) {
             // be lazy about filling hostedItems
+            hostedItems.reserve(sec.getHostedItems().size());
             for (const auto& code : sec.getHostedItems()) {
                 if (tracker->getItemByCode(code).getType() != BaseItem::Type::NONE)
                     hostedItems.push_back(code);
