@@ -8,7 +8,7 @@
 #include "container.h"
 #include "hflexbox.h"
 #include "button.h"
-#include <list>
+#include <vector>
 
 namespace Ui {
 
@@ -28,6 +28,9 @@ public:
     virtual bool setActiveTab(int index);
     virtual const std::string& getActiveTabName() const;
 
+    /// reserves memory for the tabs
+    void reserve(size_t size);
+
     virtual bool isHit(int x, int y) const override {
         return _buttonbox->isHit(x - _pos.left, y - _pos.top) || Container::isHit(x, y);
     }
@@ -35,7 +38,7 @@ public:
 protected:
     void relayout();
     HFlexBox* _buttonbox;
-    std::list<Button*> _buttons;
+    std::vector<Button*> _buttons;
     FONT _font;
     int _spacing = 0;
     int _tabIndex = 0;

@@ -692,6 +692,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setBackground(node.getBackground());
         if (children.empty())
             fprintf(stderr, "WARNING: tabbed widget with 0 tabs\n");
+        w->reserve(children.size());
         for (const auto& childnode: children) {
             if (addLayoutNode(w, childnode, depth+1)) {
                 const auto& name = childnode.getHeader();

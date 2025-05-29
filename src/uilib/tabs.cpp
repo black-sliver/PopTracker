@@ -3,30 +3,20 @@
 namespace Ui {
 
 // TODO: move to utility file
-#ifndef unlikely
-#define unlikely(x) __builtin_expect((x),0)
+#ifndef likely
+#define likely(x) __builtin_expect((x),1)
 #endif
 
 template<class T>
-static T* getFromList(std::list<T*> list, int index)
+static T* getFromVector(const std::vector<T*>& vec, int index)
 {
-    if (unlikely(list.empty())) return nullptr;
-    if (index==0) { // 0 index = first
-        return list.front();
-    } else if (index<0) { // negative index = Nth from back
-        for (auto it = list.rbegin(); it != list.rend(); it++) {
-            index++;
-            if (index==0) {
-                return *it;
-            }
-        }
-    } else { // positive index = Nth from front
-        for (auto it = list.begin(); it != list.end(); it++) {
-            if (index==0) {
-                return *it;
-            }
-            index--;
-        }
+    if (index >= 0 && likely(static_cast<size_t>(index) < vec.size())) {
+        // positive index = Nth from front
+        return vec[index];
+    }
+    if (index < 0 && likely(std::abs(index) <= vec.size())) {
+        // negative index = Nth from back
+        return vec[vec.size() + index];
     }
     return nullptr;
 }
@@ -88,7 +78,7 @@ void Tabs::addChild(Widget* w)
                 _tab->setVisible(true);
                 break;
             }
-            childIt++;
+            ++childIt;
             n++;
         }
     }};
@@ -111,7 +101,7 @@ void Tabs::removeChild(Widget *w)
     {
         auto childIt = _children.begin();
         auto buttonIt = _buttons.begin();
-        for (;childIt!=_children.end(); childIt++,buttonIt++) {
+        for (; childIt!=_children.end(); ++childIt, ++buttonIt) {
             if (*childIt == w) {
                 _children.erase(childIt);
                 if (buttonIt != _buttons.end()) {
@@ -129,22 +119,22 @@ void Tabs::removeChild(Widget *w)
     if (_tab == w) {
         _tab = nullptr;
         auto it=_children.begin();
-        for (int i=_tabIndex; it!=_children.end() && i>0; it++, i--);
+        for (int i = _tabIndex; it != _children.end() && i > 0; ++it, --i) {}
         if (it != _children.end()) {
             _tab = *it;
-        }
-        else {
-            _tabIndex--;
-             if (!_children.empty()) _tab = _children.back();
+        } else {
+            --_tabIndex;
+            if (!_children.empty())
+                _tab = _children.back();
         }
         if (_tab)
             _tab->setVisible(true);
     }
 }
 
-void Tabs::setTabName(int index, const std::string& name)
+void Tabs::setTabName(const int index, const std::string& name)
 {
-    auto btn = getFromList(_buttons, index);
+    auto btn = getFromVector(_buttons, index);
     if (btn && btn->getText() != name) {
         btn->setText(name);
         btn->setSize(btn->getMinSize());
@@ -152,10 +142,9 @@ void Tabs::setTabName(int index, const std::string& name)
     }
 }
 
-void Tabs::setTabIcon(int index, const void *data, size_t len)
+void Tabs::setTabIcon(const int index, const void *data, const size_t len)
 {
-    auto btn = getFromList(_buttons, index);
-    if (btn) {
+    if (auto btn = getFromVector(_buttons, index)) {
         btn->setIcon(data, len);
         btn->setSize(btn->getMinSize());
         relayout();
@@ -164,31 +153,32 @@ void Tabs::setTabIcon(int index, const void *data, size_t len)
 
 bool Tabs::setActiveTab(const std::string& name)
 {
-    for (auto btn: _buttons) {
+    return std::any_of(_buttons.begin(), _buttons.end(), [&](auto btn) {
         if (btn->getText() == name) {
             if (btn != _tabButton)
-                btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+                btn->onClick.emit(btn, 0, 0, MouseButton::BUTTON_LEFT);
             return true;
         }
-    }
-    return false;
+        return false;
+    });
 }
 
-bool Tabs::setActiveTab(int index)
+bool Tabs::setActiveTab(const int index)
 {
-    auto btn = getFromList(_buttons, index);
-    if (btn) {
+    if (auto btn = getFromVector(_buttons, index)) {
         if (btn != _tabButton)
-            btn->onClick.emit(btn, 0,0,MouseButton::BUTTON_LEFT);
+            btn->onClick.emit(btn, 0, 0, MouseButton::BUTTON_LEFT);
         return true;
     }
     return false;
 }
 
-static const std::string noTabName = "";
+static const std::string noTabName;
+
 const std::string& Tabs::getActiveTabName() const
 {
-    if (_tabButton) return _tabButton->getText();
+    if (_tabButton)
+        return _tabButton->getText();
     return noTabName;
 }
 
@@ -239,6 +229,10 @@ void Tabs::setSize(Size size)
     relayout();
 }
 
+void Tabs::reserve(const size_t size)
+{
+    _buttons.reserve(size);
+}
 
 } // namespace
 
