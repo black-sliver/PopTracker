@@ -131,11 +131,11 @@ protected:
     std::list<std::string> _bulkItemDisplayUpdates;
     std::vector<std::string> _bulkSectionUpdates;
     bool _bulkUpdate = false;
-    bool _allowDeferredLogicUpdate = false; /// opt-in flag to use onBulkUpdate to update state just once at the end
+    bool _allowDeferredLogicUpdate = false; ///< opt-in flag to use onBulkUpdate to update state just once at the end
     bool _accessibilityStale = false;
     bool _visibilityStale = false;
-    bool _isIndirectConnection = false; /// flag to skip cache for codes that depend on locations
-    bool _updatingCache = false; /// true while cache*() is running
+    bool _isIndirectConnection = false; ///< flag to skip cache for codes that depend on locations
+    bool _updatingCache = false; ///< true while cache*() is running
     std::set<std::string> _itemChangesDuringCacheUpdate;
     std::map<std::string, std::vector<std::string>> _missingBaseItemConnection;
 
