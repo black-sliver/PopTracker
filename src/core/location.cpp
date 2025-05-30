@@ -288,7 +288,7 @@ void Location::merge(const Location& other)
         _mapLocations.push_back(maploc);
     }
     for (auto& sec: other._sections) {
-        // TODO: detect duplicates and overwrite
+        // TODO: detect duplicates and overwrite; NOTE: doing that would invalidate Section& whenever calling into Lua
         _sections.push_back(sec);
     }
 }
