@@ -19,6 +19,7 @@ public:
     virtual void setTracker(Tracker* tracker) override;
     virtual void setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname) override;
     virtual void setSize(Size size) override;
+    void setMinSize(Size size) override;
     virtual void showOpen();
     virtual void hideOpen();
     virtual void showProgress(const std::string& title, int progress, int max);

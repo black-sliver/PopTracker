@@ -3,6 +3,7 @@
 
 #include "../uilib/image.h"
 #include "../core/location.h"
+#include "../core/locationsection.h"
 #include <map>
 #include <vector>
 
@@ -22,6 +23,7 @@ public:
         int borderThickness = 0;
         Shape shape = Shape::UNSPECIFIED;
         int state = 1;
+        Highlight highlight = Highlight::NONE;
     };
 
     struct Location {
@@ -29,20 +31,22 @@ public:
     };
 
     // TODO: enum location state
-    void addLocation(const std::string& name, int x, int y, int size, int borderThickness, Shape shape, int state=1);
+    void addLocation(const std::string& name, Point&& point);
     void setLocationState(const std::string& name, int state, size_t n);
-    
+    void setLocationHighlight(const std::string& name, Highlight highlight, size_t n);
+
     // FIXME: this does not work if name is not unique
     Signal<const std::string&,int,int> onLocationHover; // FIXME: we should provide absolute AND relative mouse position through the Event stack
-    
-    virtual void render(Renderer renderer, int offX, int offY);
+
+    void render(Renderer renderer, int offX, int offY) override;
     int getAbsLeft() const { return _absX; } // FIXME: this is not really a good solution
     int getAbsTop() const { return _absY; }
 
     void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; }
     void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; }
 
-    static Widget::Color StateColors[17];
+    static Color StateColors[17];
+    static std::map<Highlight, Color> HighlightColors;
     static bool SplitRects;
 
 protected:
