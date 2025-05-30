@@ -68,7 +68,7 @@ public:
             child->setTop(child->getMargin().top + _padding);
             child->setHeight(_size.height - child->getTop() - child->getMargin().bottom - _padding);
             child->setLeft(x);
-            x += child->getWidth() + child->getMargin().right + _spacing;
+            x += std::max(0, child->getWidth()) + child->getMargin().right + _spacing;
         }
         calcMinMax();
     }
