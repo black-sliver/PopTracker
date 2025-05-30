@@ -1,25 +1,11 @@
 #include <cstring>
 #include <gtest/gtest.h>
-#include "../../src/uilib/fontstore.h"
+#include "font_helper.h"
 #include "../../src/uilib/label.h"
 #include "../../src/uilib/textutil.h"
-#include "../../src/ui/defaults.h"
-#include "../../src/core/assets.h"
 
 
 using namespace Ui;
-
-static FontStore fontStore;
-
-static FontStore::FONT getDefaultFont() {
-    static FontStore::FONT res = nullptr;
-    if (!res) {
-        Assets::addSearchPath("assets");
-        TTF_Init();
-        res = fontStore.getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE);
-    }
-    return res;
-}
 
 TEST(UiTextUtilTest, RenderBasicText) {
     auto font = getDefaultFont();
