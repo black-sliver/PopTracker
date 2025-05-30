@@ -57,7 +57,7 @@ public:
             y += child->getMargin().top;
             child->setLeft(child->getMargin().left + _padding);
             child->setTop(y);
-            y += std::max(0, child->getHeight()) + child->getMargin().right + _spacing;
+            y += std::max(0, child->getHeight()) + child->getMargin().bottom + _spacing;
         }
         calcMinMax();
     }
