@@ -164,6 +164,12 @@ a table representing an enum with the following constants: \
 `None`, `Partial`, `Inspect`, `SequenceBreak`, `Normal`, `Cleared`
 
 
+### global Highlight (enum)
+
+a table representing an enum with the following constants: \
+`Avoid`, `None`, `NoPriority`, `Unspecified`, `Priority`
+
+
 ### other globals
 
 * `DEBUG` set to true or an array of strings to get more error or debug output
@@ -506,6 +512,7 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 * `.ChestCount`: read how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
 * `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
+* `.Highlight`: Highlight the location as one of the states in Highlight constants, since 0.32.0
 
 **Location Lua Interface:**
 

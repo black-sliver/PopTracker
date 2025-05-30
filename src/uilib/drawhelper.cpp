@@ -1,6 +1,16 @@
 #include "drawhelper.h"
+#include "imghelper.h"
+#include "texturemanager.h"
+#include "../core/assets.h"
 
 namespace Ui {
+
+static SDL_Texture* getGlowTexture(Renderer renderer)
+{
+    static fs::path glowAsset = asset("glow64.png");
+    SDL_Texture* tex = TextureManager::get(renderer, glowAsset);
+    return tex;
+}
 
 void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
         Widget::Color topC, Widget::Color leftC, Widget::Color botC, Widget::Color rightC)
@@ -298,6 +308,232 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
         };
         SDL_RenderGeometry(renderer, nullptr, verts, 12, nullptr, 0);
     }
+}
+
+void drawRectGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+{
+    constexpr int glowSize = 10;
+    float x1 = pos.left - glowSize;
+    float x2 = pos.left;
+    float x3 = pos.left + size.width;
+    float x4 = pos.left + size.width + glowSize;
+    float y1 = pos.top - glowSize;
+    float y2 = pos.top;
+    float y3 = pos.top + size.height;
+    float y4 = pos.top + size.height + glowSize;
+
+    SDL_Color c = {color.r, color.g, color.b, color.a};
+    SDL_Vertex verts[] = {
+        {{x1, y1}, c, {0, 0}},
+        {{x2, y2}, c, {0.5, 0.5}},
+        {{x2, y1}, c, {0.5, 0}},
+        {{x1, y2}, c, {0, 0.5}},
+
+        {{x3, y1}, c, {0.5, 0}},
+        {{x4, y2}, c, {1, 0.5}},
+        {{x4, y1}, c, {1, 0}},
+        {{x3, y2}, c, {0.5, 0.5}},
+
+        {{x3, y3}, c, {0.5, 0.5}},
+        {{x4, y4}, c, {1, 1}},
+        {{x4, y3}, c, {1, 0.5}},
+        {{x3, y4}, c, {0.5, 1}},
+
+        {{x1, y3}, c, {0, 0.5}},
+        {{x2, y4}, c, {0.5, 1}},
+        {{x2, y3}, c, {0.5, 0.5}},
+        {{x1, y4}, c, {0, 1}},
+    };
+
+    int indices[] = {
+        0, 1, 2,
+        0, 3, 1,
+
+        1, 7, 2,
+        2, 7, 4,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 14, 11,
+        11, 14, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
+}
+
+void drawDiamondGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+{
+    constexpr float sqrtOf2 = 1.41421356237;
+    constexpr int glowSize = 10;
+    constexpr float glowDiag = glowSize * sqrtOf2;
+    float x1 = pos.left - glowDiag;
+    float x2 = pos.left - glowDiag / 2;
+    float x3 = pos.left;
+    float x4 = pos.left + size.width / 2 - glowDiag / 2;
+    float x5 = pos.left + size.width / 2;
+    float x6 = pos.left + size.width / 2 + glowDiag / 2;
+    float x7 = pos.left + size.width;
+    float x8 = pos.left + size.width + glowDiag / 2;
+    float x9 = pos.left + size.width + glowDiag;
+    float y1 = pos.top - glowDiag;
+    float y2 = pos.top - glowDiag / 2;
+    float y3 = pos.top;
+    float y4 = pos.top + size.height / 2 - glowDiag / 2;
+    float y5 = pos.top + size.height / 2;
+    float y6 = pos.top + size.height / 2 + glowDiag / 2;
+    float y7 = pos.top + size.height;
+    float y8 = pos.top + size.height + glowDiag / 2;
+    float y9 = pos.top + size.height + glowDiag;
+
+    SDL_Color c = {color.r, color.g, color.b, color.a};
+    SDL_Vertex verts[] = {
+        {{x5, y1}, c, {0, 0}},
+        {{x5, y3}, c, {0.5, 0.5}},
+        {{x6, y2}, c, {0.5, 0}},
+        {{x4, y2}, c, {0, 0.5}},
+
+        {{x8, y4}, c, {0.5, 0}},
+        {{x8, y6}, c, {1, 0.5}},
+        {{x9, y5}, c, {1, 0}},
+        {{x7, y5}, c, {0.5, 0.5}},
+
+        {{x5, y7}, c, {0.5, 0.5}},
+        {{x5, y9}, c, {1, 1}},
+        {{x6, y8}, c, {1, 0.5}},
+        {{x4, y8}, c, {0.5, 1}},
+
+        {{x2, y4}, c, {0, 0.5}},
+        {{x2, y6}, c, {0.5, 1}},
+        {{x3, y5}, c, {0.5, 0.5}},
+        {{x1, y5}, c, {0, 1}},
+    };
+
+    int indices[] = {
+        0, 1, 2,
+        0, 3, 1,
+
+        1, 7, 2,
+        2, 7, 4,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 14, 11,
+        11, 14, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
+}
+
+void drawTrapezoidGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+{
+    constexpr int glowSize = 10;
+    int left2 = pos.left + size.width / 4;
+    int width2 = size.width / 2;
+    int glowOff1 = 12;
+    int glowOff2 = 14;
+    int glowOff3 = 6;
+    float x1 = pos.left - glowOff2;
+    float x2 = pos.left - glowOff1;
+    float x3 = pos.left;
+    float x4 = left2 - glowOff1;
+    float x5 = left2 - glowOff3;
+    float x6 = left2;
+    float x7 = left2 + width2;
+    float x8 = left2 + width2 + glowOff3;
+    float x9 = left2 + width2 + glowOff1;
+    float x10 = pos.left + size.width;
+    float x11 = pos.left + size.width + glowOff1;
+    float x12 = pos.left + size.width + glowOff2;
+    float y1 = pos.top - glowSize;
+    float y2 = pos.top;
+    float y3 = pos.top + size.height;
+    float y4 = pos.top + size.height + glowSize;
+
+    SDL_Color c = {color.r, color.g, color.b, color.a};
+    SDL_Vertex verts[] = {
+        {{x5, y1}, c, {0, 0}},
+        {{x6, y2}, c, {0.5, 0.5}},
+        {{x6, y1}, c, {0.5, 0}},
+        {{x4, y2}, c, {0, 0.5}},
+
+        {{x7, y1}, c, {0.5, 0}},
+        {{x9, y2}, c, {1, 0.5}},
+        {{x8, y1}, c, {1, 0}},
+        {{x7, y2}, c, {0.5, 0.5}},
+
+        {{x10, y3}, c, {0.5, 0.5}},
+        {{x12, y4}, c, {1, 1}},
+        {{x11, y3}, c, {1, 0.5}},
+        {{x10, y4}, c, {0.5, 1}},
+
+        {{x2, y3}, c, {0, 0.5}},
+        {{x3, y4}, c, {0.5, 1}},
+        {{x3, y3}, c, {0.5, 0.5}},
+        {{x1, y4}, c, {0, 1}},
+    };
+
+    int indices[] = {
+        0, 1, 2,
+        0, 3, 1,
+
+        1, 7, 2,
+        2, 7, 4,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 14, 11,
+        11, 14, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
 }
 
 } // namespace Ui

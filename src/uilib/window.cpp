@@ -2,6 +2,7 @@
 #include "../core/assets.h"
 #include "../ui/defaults.h" // DEFAULT_FONT_*
 #include "tooltip.h"
+#include "texturemanager.h"
 #include <SDL2/SDL_syswm.h>
 #include <algorithm>
 #include <string>
@@ -63,6 +64,7 @@ Window::~Window()
     printf("Destroying window...\n");
     // NOTE: we have to destroy children before destroying the renderer
     clearChildren();
+    TextureManager::remove(_ren);
     if (_fontStore) delete _fontStore;
     if (_ren) SDL_DestroyRenderer(_ren);
     if (_win) SDL_DestroyWindow(_win);
