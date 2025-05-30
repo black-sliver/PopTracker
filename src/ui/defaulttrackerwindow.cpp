@@ -330,6 +330,11 @@ void DefaultTrackerWindow::setSize(Size size)
     }
 }
 
+void DefaultTrackerWindow::setMinSize(const Size size)
+{
+    TrackerWindow::setMinSize(size || Size{220, 0});
+}
+
 void DefaultTrackerWindow::showOpen()
 {
     _loadPackWidget->update();
