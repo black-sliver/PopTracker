@@ -3,7 +3,7 @@
         "name": "Example Area",
         "children": [
             {
-                "name": "A",
+                "name": "\"{A}\", \"[B],C\"",
                 "map_locations": [
                     {
                         "map": "example",
@@ -22,6 +22,34 @@
                     "[B],C"
                 ]
             },
+            {
+                "name": "Sequence Break",
+                "access_rules": [
+                    "[B]"
+                ],
+                "children": [
+                    {
+                        "name": "\"[B]\" -> \"{A}\", \"C\"",
+                        "map_locations": [
+                            {
+                                "map": "example",
+                                "x": 200,
+                                "y": 300
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "name": "Another thing",
+                                "item_count": 1
+                            }
+                        ],
+                        "access_rules": [
+                            "{A}",
+                            "C"
+                        ]
+                    }
+                ]
+            }
         ]
     }
 ]
