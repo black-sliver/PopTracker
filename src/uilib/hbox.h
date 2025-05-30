@@ -55,7 +55,8 @@ public:
             // if only the last child grows, we can skip resizing all children and we could skip the relayout
             if (extraWidth != 0 && totalHGrow == _children.back()->getHGrow() && _children.back()->getMaxWidth() != _children.back()->getWidth()) {
                 auto child = _children.back();
-                child->setWidth(_size.width - _padding - child->getLeft());
+                if (_size.width - _padding > child->getLeft())
+                    child->setWidth(_size.width - _padding - child->getLeft());
             }
             else if (extraWidth != 0 && totalHGrow > 0) {
                 for (auto child: _children)
