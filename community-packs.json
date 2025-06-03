@@ -97,4 +97,5 @@
         "versions_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/refs/heads/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/main/images/items/maiamai.png",
         "description": "This is a PopTracker pack meant for tracking items and checks in The Legend of Zelda: A Link Between Worlds Randomizer runs, with AP integration for auto-tracking."
+    }
 }
