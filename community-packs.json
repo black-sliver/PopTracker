@@ -88,5 +88,14 @@
         "versions_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/refs/heads/main/images/icons/specterIcon.png",
         "description":  "Ape Escape autotracker pack for PopTracker"
+    },
+    "albw_ap_poptracker": {
+        "name": "A Link Between Worlds Autotracker",
+        "author": "Legend",
+        "platform": "3DS",
+        "homepage": "https://github.com/Legendgreat/albw-ap-poptracker/",
+        "versions_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/refs/heads/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/main/images/items/maiamai.png",
+        "description": "This is a PopTracker pack meant for tracking items and checks in The Legend of Zelda: A Link Between Worlds Randomizer runs, with AP integration for auto-tracking."
     }
 }
