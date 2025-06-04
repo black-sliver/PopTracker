@@ -89,7 +89,7 @@
         "icon_url": "https://raw.githubusercontent.com/lurch9229/Ape-Escape-Tracker/refs/heads/main/images/icons/specterIcon.png",
         "description":  "Ape Escape autotracker pack for PopTracker"
     },
-    "albw_ap_poptracker": {
+    "albw-ap-poptracker": {
         "name": "A Link Between Worlds Autotracker",
         "author": "Legend",
         "platform": "3DS",
