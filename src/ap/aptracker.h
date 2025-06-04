@@ -150,7 +150,9 @@ public:
                     // we started a sync to reset state -> replay onClear and onLocationChecked
                     _syncing = false;
                     onClear.emit(this, _slotData);
-                    for (int64_t location: _checkedLocations) {
+                    // create copy in case Lua checks locations
+                    const auto checkedLocations = _checkedLocations;
+                    for (int64_t location: checkedLocations) {
                         _uncheckedLocations.erase(location);
                         onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
                     }
@@ -298,7 +300,9 @@ public:
         } else if (!_syncing) {
             // never received an item, so we can immediately run onClear
             onClear.emit(this, _slotData);
-            for (int64_t location: _checkedLocations) {
+            // create copy in case Lua checks locations
+            const auto checkedLocations = _checkedLocations;
+            for (int64_t location: checkedLocations) {
                 _uncheckedLocations.erase(location);
                 onLocationChecked.emit(this, location, _ap->get_location_name(location, _ap->get_game()));
             }
