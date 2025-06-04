@@ -118,7 +118,6 @@ void MapWidget::connectSignals()
         int y1 = y-dsty;
         x1 = (x1*srcw + dstw/2) / dstw;
         y1 = (y1*srch + dsth/2) / dsth;
-        bool match = false;
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
             for (const auto& pos: loc.pos) {
@@ -136,7 +135,6 @@ void MapWidget::connectSignals()
                     y1 >= loctop  && y1 < loctop+locsize)
                 {
                     // TODO; store iterator instead of string?
-                    match = true;
                     if (locIt->first != _locationHover) {
                         _locationHover = locIt->first;
     #if 0
@@ -144,14 +142,14 @@ void MapWidget::connectSignals()
     #endif
                         onLocationHover.emit(this, _locationHover, absX, absY);
                     }
-                    break;
+                    return;
                 }
             }
         }
-        if (!match) {
-            _locationHover = "";
-        }
+        // no match
+        _locationHover = "";
     }};
+
     this->onMouseLeave += { this, [this](void* s) {
         _locationHover = "";
     }};
