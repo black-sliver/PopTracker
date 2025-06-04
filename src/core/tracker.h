@@ -24,7 +24,7 @@ class Tracker final : public LuaInterface<Tracker> {
     friend class LuaInterface;
     
 public:
-    static constexpr int DEFAULT_EXEC_LIMIT = 500000;
+    static constexpr int DEFAULT_EXEC_LIMIT = 600000;
     
     Tracker(Pack* pack, lua_State *L);
     virtual ~Tracker();
