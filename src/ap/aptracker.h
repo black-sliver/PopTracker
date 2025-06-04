@@ -1,5 +1,4 @@
-#ifndef _AP_APTRACKER_H
-#define _AP_APTRACKER_H
+#pragma once
 
 // APTracker wraps APClient to provide a simpler interface to core/AutoTracker
 #include <apclientpp/apclient.hpp>
@@ -326,7 +325,16 @@ public:
     {
         if (!_allowSend || !_ap)
             return false;
-        return _ap->LocationChecks(locations);
+        if (!_ap->LocationChecks(locations))
+            return false;
+        for (auto location: locations) {
+            auto it = _uncheckedLocations.find(location);
+            if (it != _uncheckedLocations.end()) {
+                _checkedLocations.insert(location);
+                _uncheckedLocations.erase(it);
+            }
+        }
+        return true;
     }
 
     /// returns true if locations were queued to be scouted
@@ -385,5 +393,3 @@ private:
         int& _event;
     };
 };
-
-#endif // _AP_APTRACKER_H
