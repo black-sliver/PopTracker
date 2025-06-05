@@ -770,7 +770,9 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         for (const auto& row: rows) { 
             if (row.size()>colCount) colCount = row.size();
         }
-        Container *w = new SimpleContainer(0,0,container->getWidth(),container->getHeight()); // TODO: itemgrid
+        auto w = new SimpleContainer(0,0,container->getWidth(),container->getHeight()); // TODO: itemgrid
+        w->setHAlign(str2itemHalign(node.getHAlignment()));
+        w->setVAlign(str2itemValign(node.getVAlignment()));
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         auto m = node.getMargin();
         w->setMargin({m.left, m.top, m.right, m.bottom});
