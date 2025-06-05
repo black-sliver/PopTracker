@@ -1,5 +1,34 @@
 # PopTracker Changelog
 
+## v0.32.0
+
+* App Features
+  * More reasonable minimum size for main window
+  * Slightly improve location update performance
+  * Slightly improve Archipelago performance / responsiveness during connect
+  * Match items when loading state even if the pack changed or item order is non-deterministic
+* Pack Features
+  * Allow packs to Highlight sections and map locations
+  * Add new "trapezoid" shape for map locations
+  * Don't allow consumables to go outside limits
+  * Lua: increase execution limit by 20% to 600k instructions
+  * Allow setting item_size / item_height + item_width for location sections
+  * Allow setting mode (color) for sequence-break + inspect-only via `"inspectable_sequence_break"`
+    * `false` = inspect-only color; default for `target_poptracker_version` > 0.31.0
+    * `true` = sequence-break color; default for `target_poptracker_version` <= 0.31.0
+* Fixes
+  * Trigger map location hover for the top most one
+  * Use the correct margin for vertical array layout
+  * Fix wrong event being triggered when right-clicking item while window is unfocused
+  * Fix reset not correctly updating checked locations for AP "Manuals"
+  * Lua: Fix Archipelago.CheckedLocations and .MissingLocations not correctly updating for AP "Manuals"
+  * Don't break layout (menu) if the container/window becomes too small
+  * Linux, macOS: don't set preset of input dialogs if it would break (`'` or `\` in it)
+  * Update Lua to 5.4.8-rc1 fixing a few bugs
+* Other Changes
+  * Drop support for Archipelago <= 0.3.1 (April 2022)
+  * Default sequence-break + inspect-only to inspect-only ("scoutable") color
+
 ## v0.31.0
 
 * App Features
