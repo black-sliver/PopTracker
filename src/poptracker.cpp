@@ -1284,8 +1284,13 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
     // because this is a good way to detect auto-tracking support
     Lua(_L).Push("Lua 5.3");
     lua_setglobal(_L, "_VERSION");
-    
-    Lua(_L).Push(VERSION_STRING);
+
+    if (const auto dashP = strchr(VERSION_STRING, '-')) {
+        // cut away "-alpha", etc for PopVersion
+        Lua(_L).Push(std::string{VERSION_STRING}.substr(0, dashP - VERSION_STRING));
+    } else {
+        Lua(_L).Push(VERSION_STRING);
+    }
     lua_setglobal(_L, "PopVersion");
     
     // enums
