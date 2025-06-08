@@ -140,6 +140,9 @@ public:
         return _name;
     }
 
+    /// Generates and assigns a (hopefully) stable item ID to the item.
+    void makeStableID(std::map<std::string, int>& counter);
+
 #ifdef JSONITEM_CI_QUIRK
     bool canProvideCodeLower(const std::string& code) const
     {

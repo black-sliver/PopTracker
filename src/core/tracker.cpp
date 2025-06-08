@@ -1,10 +1,14 @@
 #include "tracker.h"
-#include <luaglue/luamethod.h>
 #include <cstring>
+#include <sstream>
+#include <luaglue/luamethod.h>
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"
 #include "util.h"
+
+
 using nlohmann::json;
+
 
 const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, AddItems, const char*),
@@ -186,6 +190,7 @@ bool Tracker::AddItems(const std::string& file) {
         _jsonItems.push_back(JsonItem::FromJSON(v));
         auto& item = _jsonItems.back();
         item.setID(++_lastItemID);
+        item.makeStableID(_itemStableNameCounter);
         item.onChange += {this, [this](void* sender) {
             const auto* i = static_cast<JsonItem*>(sender);
             if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
@@ -844,6 +849,26 @@ bool Tracker::changeItemState(const std::string& id, BaseItem::Action action)
     return false; // nothing changed
 }
 
+void Tracker::updateLuaStableIDs()
+{
+    for (auto& luaItem: _luaItems) {
+        if (!luaItem.getStableID().empty())
+            continue; // stable IDs can only be set once
+        const auto sourceNameHashString = (std::stringstream{}
+            << std::hex << util::getStableWeakHash(luaItem.getSourceFilename())).str();
+        const std::string base = BaseItem::Type2Str(luaItem.getType()) + ":"
+                + luaItem.getName() + "@" + sourceNameHashString;
+
+        auto [it, inserted] = _itemStableNameCounter.emplace(base, 1);
+        if (!inserted)
+            it->second++;
+        if (it->second == 1)
+            luaItem.setStableID(base);
+        else
+            luaItem.setStableID(base + "#" + std::to_string(it->second));
+    }
+}
+
 AccessibilityLevel Tracker::isReachable(const LocationSection& section)
 {
     for (const auto& loc: _locations) {
@@ -1038,6 +1063,16 @@ LuaItem * Tracker::CreateLuaItem()
     _objectCache.clear();
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
+    {
+        lua_Debug ar;
+        if (!lua_getstack(_L, 1, &ar)) {
+            fprintf(stderr, "WARNING: lua_getstack failed in CreateLuaItem\n");
+        } else if (!lua_getinfo(_L, "Sl", &ar)) {
+            fprintf(stderr, "WARNING: lua_getinfo failed in CreateLuaItem\n");
+        } else {
+            i.setSource(ar.source, ar.currentline);
+        }
+    }
     i.onChange += {this, [this](void* sender) {
         const auto* i = static_cast<LuaItem*>(sender);
         if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
@@ -1159,18 +1194,28 @@ json Tracker::saveState() const
      { tracker: {
         format_version: 1,
         json_items: { "some_id": <JsonItem::saveState>, ... },
+        json_item_ids: { "some_id": <JsonItem::stableID>, ... },
         lua_items: { "some_id": <LuaItem::saveState>, ... },
+        lua_item_ids: { "some_id": <LuaItem::stableID>, ... },
         sections: { "full_location_path": <LocationSection::saveState>, ... }
      } }
     */
-    
+
+    // NOTE: we don't want to change item IDs so we don't break save states. Instead, *_item_ids was added,
+    //       which maps unstable to stable IDs. This will also allow upgrading save states in the future.
+
     json jJsonItems = {};
+    json jJsonItemIDs = {};
     for (auto& item: _jsonItems) {
         jJsonItems[item.getID()] = item.save();
+        jJsonItemIDs[item.getID()] = item.getStableID();
+
     }
     json jLuaItems = {};
+    json jLuaItemIDs = {};
     for (auto& item: _luaItems) {
         jLuaItems[item.getID()] = item.save();
+        jLuaItemIDs[item.getID()] = item.getStableID();
     }
     json jSections = {};
     for (auto& loc: _locations) {
@@ -1188,7 +1233,9 @@ json Tracker::saveState() const
         "tracker", {
             {"format_version", 1},
             {"json_items", jJsonItems},
+            {"json_item_ids", jJsonItemIDs},
             {"lua_items", jLuaItems},
+            {"lua_item_ids", jLuaItemIDs},
             {"sections", jSections}
         }
     } };
@@ -1209,20 +1256,43 @@ bool Tracker::loadState(nlohmann::json& state)
 
     _bulkUpdate = true;
     auto& jJsonItems = j["json_items"];
+    auto& jJsonItemIDs = j["json_item_ids"];
     if (jJsonItems.type() == json::value_t::object) {
-        for (auto it=jJsonItems.begin(); it!=jJsonItems.end(); it++) {
-            for (auto& item: _jsonItems) {
-                if (item.getID() != it.key()) continue;
-                item.load(it.value());
+        for (auto it = jJsonItems.begin(); it != jJsonItems.end(); ++it) {
+            auto& jStableID = jJsonItemIDs[it.key()];
+            if (jStableID.is_string() && !jStableID.empty()) {
+                auto stableID = jStableID.get<std::string>();
+                for (auto& item: _jsonItems) {
+                    if (item.getStableID() != stableID)
+                        continue;
+                    item.load(it.value());
+                }
+            } else {
+                for (auto& item: _jsonItems) {
+                    if (item.getID() != it.key())
+                        continue;
+                    item.load(it.value());
+                }
             }
         }
     }
     auto& jLuaItems = j["lua_items"];
+    auto& jLuaItemIDs = j["lua_item_ids"];
     if (jLuaItems.type() == json::value_t::object) {
-        for (auto it=jLuaItems.begin(); it!=jLuaItems.end(); ++it) {
-            for (auto& item: _luaItems) {
-                if (item.getID() != it.key()) continue;
-                item.load(it.value());
+        for (auto it = jLuaItems.begin(); it != jLuaItems.end(); ++it) {
+            auto& jStableID = jLuaItemIDs[it.key()];
+            if (jStableID.is_string() && !jStableID.empty()) {
+                auto stableID = jStableID.get<std::string>();
+                for (auto& item: _luaItems) {
+                    if (item.getStableID() != stableID)
+                        continue;
+                    item.load(it.value());
+                }
+            } else {
+                for (auto& item: _luaItems) {
+                    if (item.getID() != it.key()) continue;
+                    item.load(it.value());
+                }
             }
         }
     }

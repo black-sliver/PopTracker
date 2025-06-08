@@ -88,7 +88,9 @@ protected:
     int _maxCount = 0; // for consumable
     int _increment = 1; // for consumable
     int _decrement = 1; // for consumables
+
     std::string _baseItem; // for toggle_badged
+    std::string _stableId;
     
 public:
     virtual ~BaseItem() {}
@@ -102,9 +104,21 @@ public:
     bool getLoop() const { return _loop; }
     bool getAllowDisabled() const { return _allowDisabled; }
 
+    /// Gets the stable item ID, which can be used to save/restore state even when a pack has changed.
+    const std::string& getStableID() const { return _stableId; }
+
+    /// Sets an item ID, which can be used to track the item. It is not guaranteed stable across pack reloads.
     void setID(const std::string& id) { _id = id; }
-    void setID(uint64_t id) { setID(std::to_string(id)); }
-    
+    /// Sets an item ID, which can be used to track the item. It is not guaranteed stable across pack reloads.
+    void setID(std::string&& id) { _id = id; }
+    /// Sets an item ID, which is used internally to track the item. It is not guaranteed stable across pack reloads.
+    void setID(const uint64_t id) { setID(std::to_string(id)); }
+
+    /// Sets a stable item ID, which should be suitable to save/restore state even when a pack has changed.
+    void setStableID(const std::string& stableID) { _stableId = stableID; }
+    /// Sets a stable item ID, which can be used to save/restore state when a pack has changed.
+    void setStableID(std::string&& stableID) { _stableId = stableID; }
+
     //virtual const std::vector<Stage>& getStages() const { return _stages; }
     
     virtual size_t getStageCount() const { return 0; }

@@ -1366,6 +1366,7 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
     // run pack's init script
     printf("Running init...\n");
     bool res = _scriptHost->LoadScript("scripts/init.lua");
+    _tracker->updateLuaStableIDs();
     // save reset-state
     StateManager::saveState(_tracker, _scriptHost, _win->getHints(), json::value_t::null, false, "reset");
     if (loadAutosave) {
