@@ -1,7 +1,12 @@
 #include "jsonitem.h"
-#include "jsonutil.h"
+#include <sstream>
 #include <luaglue/luamethod.h>
+#include "jsonutil.h"
+#include "util.h"
+
+
 using nlohmann::json;
+
 
 const LuaInterface<JsonItem>::MethodMap JsonItem::Lua_Methods = {
     LUA_METHOD(JsonItem, SetOverlay, const char*),
@@ -174,6 +179,23 @@ std::string JsonItem::Stage::getCodesString() const {
     return s;
 }
 
+void JsonItem::makeStableID(std::map<std::string, int> &counter)
+{
+    auto base = Type2Str(_type) + ":";
+    if (_name.empty())
+        base += (std::stringstream{} << std::hex << util::getStableWeakHash(getCodesString())).str();
+    else
+        base += _name;
+    auto [it, inserted] = counter.emplace(base, 1);
+    if (inserted && base.find('#') != std::string::npos) {
+        _stableId = base + "#" + std::to_string(it->second); // append #1 to avoid collisions
+    } else if (inserted) {
+        _stableId = base; // omit #1 by default
+    } else {
+        it->second++;
+        _stableId = base + "#" + std::to_string(it->second);
+    }
+}
 
 bool JsonItem::_changeStateImpl(BaseItem::Action action) {
     if (_type == Type::TOGGLE) {

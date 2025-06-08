@@ -112,6 +112,8 @@ public:
 
     bool changeItemState(const std::string& id, BaseItem::Action action);
 
+    void updateLuaStableIDs();
+
     static void setExecLimit(int execLimit);
     static int getExecLimit();
 
@@ -146,6 +148,8 @@ protected:
              std::vector<std::pair<std::reference_wrapper<const Location>,
                                    std::reference_wrapper<const LocationSection>>>,
              std::less<const LocationSection&>> _sectionRefs;
+
+    std::map<std::string, int> _itemStableNameCounter;
 
     static int _execLimit;
 

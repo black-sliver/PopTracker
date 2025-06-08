@@ -65,6 +65,32 @@ public:
         return false; // TODO: implement this?
     }
 
+    /// Set source filename and source line number for use in debugging and stable ID generation.
+    void setSource(const std::string& filename, const int line)
+    {
+        _sourceFileName = filename;
+        _sourceLine = line;
+    }
+
+    /// Set source filename and source line number for use in debugging and stable ID generation.
+    void setSource(std::string&& filename, const int line)
+    {
+        _sourceFileName = filename;
+        _sourceLine = line;
+    }
+
+    /// Returns the source filename the Lua item was created in, if available.
+    const std::string& getSourceFilename() const
+    {
+        return _sourceFileName;
+    }
+
+    /// Returns the source line number the Lua item was created in, if available.
+    int getSourceLine() const
+    {
+        return _sourceLine;
+    }
+
     nlohmann::json save() const;
     bool load(nlohmann::json& j);
     
@@ -86,6 +112,9 @@ private:
 
     std::string _fullImg; // including pre-applied mods
     std::list<std::string> _extraImgMods; // set via .IconMods, applied on top of .Icon
+
+    std::string _sourceFileName;
+    int _sourceLine = -1;
 
     void parseFullImg(); // convert fullImg + _extraImageMods into _img + _imgMods
 

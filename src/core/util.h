@@ -122,6 +122,21 @@ namespace util {
 #    endif
     }
 #endif
+
+    static uint32_t getStableWeakHash(const char* s)
+    {
+        uint32_t hash = 0;
+        while (*s) hash = (hash << 1) + (hash >> 31) + static_cast<uint8_t>(*(s++));
+        return hash;
+    }
+
+    static uint32_t getStableWeakHash(const std::string& s)
+    {
+        uint32_t hash = 0;
+        for (const auto c: s) hash = (hash << 1) + (hash >> 31) + static_cast<uint8_t>(c);
+        return hash;
+    }
+
 }
 
 #endif // _CORE_UTIL_H
