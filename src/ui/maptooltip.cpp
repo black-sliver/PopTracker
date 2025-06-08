@@ -129,10 +129,20 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
             int itemcount = sec.getItemCount();
             int looted = sec.getItemCleared();
 
+            auto sz = sec.getItemSize();
+            if (sz.x == -1 && sz.y == -1) {
+                sz = {32, 32};  // default
+            }
+            if (sz.x < 1 || sz.y < 1) {
+                fprintf(stderr, "WARNING: item_size %d, %d in MapToolTip not implemented\n", sz.x, sz.y);
+                sz = {32, 32}; // fall-back
+            }
+
             // add location items
-            for (int i=0; i<itemcount; i++) {
-                bool opened = compact ? looted>=itemcount : i<=looted;
-                Item *w = MakeLocationIcon(0,0,32,32, font, quality, tracker, sec.getParentID(), sec, opened, compact);
+            for (int i = 0; i < itemcount; ++i) {
+                const bool opened = compact ? (looted >= itemcount) : (i <= looted);
+                Item *w = MakeLocationIcon(0, 0, sz.x, sz.y, font, quality,
+                    tracker, sec.getParentID(), sec, opened, compact);
                 locationItems.push_back(w);
                 hbox->addChild(w);
                 if (compact)
@@ -140,7 +150,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
             }
             // add hosted items
             for (const auto& item: hostedItems) {
-                Item *w = makeItem(0,0,32,32, item);
+                Item *w = makeItem(0, 0, sz.x, sz.y, item);
                 _items[tracker->getItemByCode(item).getID()].push_back(w);
                 w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
                 w->setMaxSize(w->getSize()); // FIXME: this as well. Make hbox honor grow=0 instead.

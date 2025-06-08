@@ -107,6 +107,30 @@
                         "hosted_item": {
                             "description": "Item to be hosted in the section.",
                             "type": "string"
+                        },
+                        "item_size": {
+                            "anyOf": [
+                                {
+                                    "description": "Size of the items in the format of x,y.",
+                                    "type": "string",
+                                    "pattern": "^(\\s*[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                                },
+                                {
+                                    "description": "Size of the items.",
+                                    "type": "number",
+                                    "minimum": 0
+                                }
+                            ]
+                        },
+                        "item_height": {
+                            "description": "Height of the items.",
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "item_width": {
+                            "description": "Width of the items.",
+                            "type": "number",
+                            "minimum": 0
                         }
                     },
                     "additionalProperties": false

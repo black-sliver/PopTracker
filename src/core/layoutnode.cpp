@@ -11,7 +11,8 @@ static LayoutNode::OptionalBool to_OptionalBool(const json& j)
         return j.get<bool>() ? LayoutNode::OptionalBool::True : LayoutNode::OptionalBool::False;
     return LayoutNode::OptionalBool::Undefined;
 }
-static LayoutNode::Size to_size(const json& j, LayoutNode::Size dflt)
+
+LayoutNode::Size LayoutNode::to_size(const json& j, LayoutNode::Size dflt)
 {
     if (j.is_null()) return dflt;
     if (j.is_number()) {
@@ -27,14 +28,17 @@ static LayoutNode::Size to_size(const json& j, LayoutNode::Size dflt)
     res.y = (next && *next) ? (int)strtol(next+1, &next, 0) : res.x;
     return res;
 }
-static int to_pixel(int size) {
+
+static int to_pixel(const int size) {
     constexpr int icon_sizes[] = {8,16,24,32,48,64,96,128}; // maybe
-    return (size<0) ? size :
-           (size<countOf(icon_sizes)) ? icon_sizes[size] : size;
+    return (size < 0) ? size :
+           (size < countOf(icon_sizes)) ? icon_sizes[size] : size;
 }
-static LayoutNode::Size to_pixel(const LayoutNode::Size& size) {
-    return {to_pixel(size.x), to_pixel(size.y)};
+
+LayoutNode::Size LayoutNode::to_pixel(const Size& size) {
+    return {::to_pixel(size.x), ::to_pixel(size.y)};
 }
+
 static LayoutNode::Orientation to_orientation(const json& j)
 {
     std::string s = to_string(j,"");
@@ -47,7 +51,7 @@ static LayoutNode::Spacing to_spacing(const json& j, LayoutNode::Spacing dflt)
 {
     if (j.is_null()) return dflt;
     if (j.is_number()) {
-        return {j.get<int>()};
+        return LayoutNode::Spacing{j.get<int>()};
     }
     std::string s = to_string(j,"");
     if (s.empty()) return dflt;

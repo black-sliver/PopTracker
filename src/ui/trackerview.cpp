@@ -778,11 +778,11 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         int y=0;
         auto sz = node.getItemSize();
         if (sz.x == -1 && sz.y == -1) {
-            sz.x = 32; sz.y = 32; // default
+            sz = {32, 32}; // default
         }
         if (sz.x < 1 || sz.y < 1) {
-            fprintf(stderr, "*** NOT IMPLEMENTED ***\n");
-            sz.x = 32; sz.y = 32; // fall-back
+            fprintf(stderr, "WARNING: item_size %d, %d in itemgrid not implemented\n", sz.x, sz.y);
+            sz = {32, 32}; // fall-back
         }
         LayoutNode::Size sp = node.getItemMargin();
         int halign = node.getHAlignment() == "left" ? -1 : node.getHAlignment() == "right" ? 1 : 0;
