@@ -5,6 +5,24 @@
 
 Send PRs on GitHub.
 
+## Compiler Support
+
+Both clang and gnu toolchains are supported. For CI and release builds, we use g++ on Linux, MSYS2's g++ on Windows and
+brew's clang++ + gcc-compat on macOS.
+
+We do not use MSVC.
+
+## IDE Support
+
+*Currently only CLion is tested/used. PRs for other IDEs and detailed setup are welcome.*
+
+### CLion
+
+CLion has support for Makefile projects, but the configuration part may only work with clang.
+You can either install both g++ and clang and overwrite the compiler for the configuration part
+as shown in [doc/clion-make.png](doc/clion-make.png)
+or use clang + gcc-compat for dev (and g++ only in CI).
+
 ## C++ Style
 
 - cpp and h filenames are all lowercase, named after the class name
