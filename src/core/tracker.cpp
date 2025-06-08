@@ -366,7 +366,11 @@ bool Tracker::AddLocations(const std::string& file) {
     _sectionRefs.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
-    for (auto& loc : Location::FromJSON(j, _locations)) {
+    const auto targetPopTrackerVersion = _pack->getTargetPopTrackerVersion();
+    const bool glitchedScoutableAsGlitched =
+            targetPopTrackerVersion > Version{0, 0, 0} &&
+            !(targetPopTrackerVersion > Version{0, 31, 0});
+    for (auto& loc : Location::FromJSON(j, _locations, glitchedScoutableAsGlitched)) {
         // find duplicate, warn and merge
 #ifdef MERGE_DUPLICATE_LOCATIONS // this should be default in the future
         bool merged = false;
@@ -882,13 +886,16 @@ AccessibilityLevel Tracker::isReachable(const LocationSection& section)
 bool Tracker::isVisible(const Location::MapLocation& mapLoc)
 {
     if (!mapLoc.getInvisibilityRules().empty()
-            && resolveRules(mapLoc.getInvisibilityRules(), true) != AccessibilityLevel::NONE)
+            && resolveRules(mapLoc.getInvisibilityRules(), true, false) != AccessibilityLevel::NONE)
         return false;
-    auto res = resolveRules(mapLoc.getVisibilityRules(), true);
-    return (res != AccessibilityLevel::NONE);
+    return resolveRules(mapLoc.getVisibilityRules(), true, false) != AccessibilityLevel::NONE;
 }
 
-AccessibilityLevel Tracker::resolveRules(const std::list< std::list<std::string> >& rules, bool visibilityRules)
+AccessibilityLevel Tracker::resolveRules(
+    const std::list< std::list<std::string> >& rules,
+    const bool visibilityRules,
+    const bool glitchedScoutableAsGlitched
+)
 {
     bool glitchedReachable = false;
     bool inspectOnlyReachable = false;
@@ -1015,12 +1022,14 @@ AccessibilityLevel Tracker::resolveRules(const std::list< std::list<std::string>
         }
         if (reachable == AccessibilityLevel::NORMAL && !inspectOnly)
             return AccessibilityLevel::NORMAL;
-        else if (reachable != AccessibilityLevel::NONE /*== 1*/ && inspectOnly)
+        if (reachable != AccessibilityLevel::NONE && inspectOnly)
             inspectOnlyReachable = true;
         if (reachable == AccessibilityLevel::SEQUENCE_BREAK)
             glitchedReachable = true;
     }
-    return glitchedReachable ? AccessibilityLevel::SEQUENCE_BREAK :
+    const bool glitchedScoutable = glitchedReachable && inspectOnlyReachable;
+    return (glitchedScoutable && !glitchedScoutableAsGlitched) ? AccessibilityLevel::INSPECT :
+           glitchedReachable ? AccessibilityLevel::SEQUENCE_BREAK :
            inspectOnlyReachable ? AccessibilityLevel::INSPECT :
                AccessibilityLevel::NONE;
 }
@@ -1106,9 +1115,10 @@ void Tracker::cacheAccessibility()
     while (!done) {
         done = true;
         for (const auto& location: _locations) {
+            bool glitchedScoutableAsGlitched = location.getGlitchedScoutableAsGlitched();
             auto it = _accessibilityCache.find(location.getID());
             if (it == _accessibilityCache.end() || it->second != AccessibilityLevel::NORMAL) {
-                auto res = resolveRules(location.getAccessRules(), false);
+                const auto res = resolveRules(location.getAccessRules(), false, glitchedScoutableAsGlitched);
                 if (it == _accessibilityCache.end()) {
                     _accessibilityCache[location.getID()] = res;
                     done = false;
@@ -1119,11 +1129,12 @@ void Tracker::cacheAccessibility()
                 }
             }
             for (const auto& section: location.getSections()) {
+                glitchedScoutableAsGlitched = section.getGlitchedScoutableAsGlitched();
                 const std::string id = location.getID() + "/" + section.getName();
                 it = _accessibilityCache.find(id);
                 if (it != _accessibilityCache.end() && it->second == AccessibilityLevel::NORMAL)
                     continue; // nothing to do
-                auto res = resolveRules(section.getAccessRules(), false);
+                const auto res = resolveRules(section.getAccessRules(), false, glitchedScoutableAsGlitched);
                 if (it == _accessibilityCache.end()) {
                     _accessibilityCache[id] = res;
                     done = false;
@@ -1154,7 +1165,7 @@ void Tracker::cacheVisibility()
             if (!location.getVisibilityRules().empty()) { // no need to pre-cache empty
                 auto it = _visibilityCache.find(location.getID());
                 if (it == _visibilityCache.end() || !it->second) {
-                    bool res = resolveRules(location.getVisibilityRules(), true) != AccessibilityLevel::NONE;
+                    bool res = resolveRules(location.getVisibilityRules(), true, false) != AccessibilityLevel::NONE;
                     if (it == _visibilityCache.end()) {
                         _visibilityCache[location.getID()] = res;
                         done = false;
@@ -1172,7 +1183,7 @@ void Tracker::cacheVisibility()
                 auto it = _visibilityCache.find(id);
                 if (it != _visibilityCache.end() && it->second)
                     continue; // nothing to do
-                auto res = resolveRules(section.getVisibilityRules(), true) != AccessibilityLevel::NONE;
+                auto res = resolveRules(section.getVisibilityRules(), true, false) != AccessibilityLevel::NONE;
                 if (it == _visibilityCache.end()) {
                     _visibilityCache[id] = res;
                     done = false;

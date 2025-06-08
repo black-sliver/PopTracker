@@ -100,7 +100,7 @@ public:
     AccessibilityLevel isReachable(const Location& location, const LocationSection& section);
     bool isVisible(const Location& location, const LocationSection& section);
     AccessibilityLevel isReachable(const Location& location);
-    AccessibilityLevel isReachable(const LocationSection& location);
+    AccessibilityLevel isReachable(const LocationSection& section);
     bool isVisible(const Location& location);
     bool isVisible(const Location::MapLocation& mapLoc);
 
@@ -153,7 +153,10 @@ protected:
 
     static int _execLimit;
 
-    AccessibilityLevel resolveRules(const std::list< std::list<std::string> >& rules, bool visibilityRules);
+    AccessibilityLevel resolveRules(
+        const std::list< std::list<std::string> >& rules,
+        bool visibilityRules,
+        bool glitchedScoutableAsGlitched);
 
     void rebuildSectionRefs();
     void cacheAccessibility();

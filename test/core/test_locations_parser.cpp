@@ -19,7 +19,7 @@ TEST(LocationsParserTest, LocationRulesInheritAndEmpty) {
         }
     )"_json;
 
-    auto location = Location::FromJSON(childNode, {}, parentAccessRules, parentVisibilityRules).front();
+    auto location = Location::FromJSON(childNode, {}, false, parentAccessRules, parentVisibilityRules).front();
     EXPECT_EQ(location.getAccessRules(),
               parentAccessRules);
     EXPECT_EQ(location.getVisibilityRules(),

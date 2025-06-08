@@ -503,6 +503,8 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 
 `item_size`, `item_width` and `item_height`, since 0.32.0, works the same as with Layouts. See below.
 
+`inspectable_sequence_break` can be set to `true` on either location or section to restore 0.31.0 behavior of showing sequence-break-inspectable as sequence break.
+
 **Tracker Lua Interface:**
 
 * `Tracker:FindObjectForCode('@location_name/section_name')` returns a Section or nil

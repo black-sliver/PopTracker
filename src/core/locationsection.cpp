@@ -43,7 +43,15 @@ std::string_view HighlightToString(const Highlight highlight)
 
 const LuaInterface<LocationSection>::MethodMap LocationSection::Lua_Methods = {};
 
-LocationSection LocationSection::FromJSON(json& j, const std::string& parentId, const std::list< std::list<std::string> >& parentAccessRules, const std::list< std::list<std::string> >& parentVisibilityRules, const std::string& closedImg, const std::string& openedImg, const std::string& overlayBackground)
+LocationSection LocationSection::FromJSON(
+    json& j,
+    const std::string& parentId,
+    const bool glitchedScoutableAsGlitched,
+    const std::list< std::list<std::string> >& parentAccessRules,
+    const std::list< std::list<std::string> >& parentVisibilityRules,
+    const std::string& closedImg,
+    const std::string& openedImg,
+    const std::string& overlayBackground)
 {
     // TODO: pass inherited values as parent instead
     LocationSection sec;
@@ -62,6 +70,7 @@ LocationSection LocationSection::FromJSON(json& j, const std::string& parentId, 
     sec._itemSize = LayoutNode::to_pixel(LayoutNode::to_size(j["item_size"],{-1,-1}));
     sec._itemSize.x = to_int(j["item_width"], sec._itemSize.x);
     sec._itemSize.y = to_int(j["item_height"], sec._itemSize.y);
+    sec._glitchedScoutableAsGlitched = to_bool(j["inspectable_sequence_break"], glitchedScoutableAsGlitched);
 
     if (j["access_rules"].is_array() && !j["access_rules"].empty()) {
         // TODO: merge code with Location's access rules

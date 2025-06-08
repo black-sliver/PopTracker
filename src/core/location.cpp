@@ -35,14 +35,33 @@ bool Location::Lua_NewIndex(lua_State *L, const char *key)
 }
 
 
-std::list<Location> Location::FromJSON(json& j, const std::list<Location>& parentLookup, const std::list< std::list<std::string> >& prevAccessRules, const std::list< std::list<std::string> >& prevVisibilityRules, const std::string& parentName, const std::string& closedImgR, const std::string& openedImgR, const std::string& overlayBackgroundR)
+std::list<Location> Location::FromJSON(
+    json& j,
+    const std::list<Location>& parentLookup,
+    bool glitchedScoutableAsGlitched,
+    const std::list< std::list<std::string> >& prevAccessRules,
+    const std::list< std::list<std::string> >& prevVisibilityRules,
+    const std::string& closedImgR,
+    const std::string& openedImgR,
+    const std::string& overlayBackgroundR,
+    const std::string& parentName)
 {
     // TODO: sine we store all intermediate locations now, we could pass a parent to FromJSON instead of all arguments
     std::list<Location> locs;
     
     if (j.type() == json::value_t::array) {
         for (auto& v : j) {
-            for (auto& loc : FromJSON(v, parentLookup, prevAccessRules, prevVisibilityRules, parentName, closedImgR, openedImgR, overlayBackgroundR)) {
+            for (auto& loc : FromJSON(
+                v,
+                parentLookup,
+                glitchedScoutableAsGlitched,
+                prevAccessRules,
+                prevVisibilityRules,
+                closedImgR,
+                openedImgR,
+                overlayBackgroundR,
+                parentName
+            )) {
                 locs.push_back(std::move(loc)); // TODO: move constructor
             }
         }
@@ -156,6 +175,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
     std::string closedImg = to_string(j["chest_unopened_img"], closedImgR); // TODO: avoid copy
     std::string openedImg = to_string(j["chest_opened_img"], openedImgR);
     std::string overlayBackground = to_string(j["overlay_background"], overlayBackgroundR);
+    glitchedScoutableAsGlitched = to_bool(j["inspectable_sequence_break"], glitchedScoutableAsGlitched);
 
     {
         Location loc;
@@ -164,6 +184,7 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
         loc._id = loc._parentName.empty() ? loc._name : (loc._parentName + "/" + loc._name);
         loc._accessRules = accessRules;
         loc._visibilityRules = visibilityRules;
+        loc._glitchedScoutableAsGlitched = glitchedScoutableAsGlitched;
         if (j["map_locations"].is_array()) {
             for (auto& v : j["map_locations"]) {
                 if (v.type() != json::value_t::object) {
@@ -181,7 +202,15 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
                     fprintf(stderr, "Location: bad section\n");
                     continue;
                 }
-                loc._sections.push_back(LocationSection::FromJSON(v, loc._id, accessRules, visibilityRules, closedImg, openedImg, overlayBackground));
+                loc._sections.push_back(LocationSection::FromJSON(
+                    v,
+                    loc._id,
+                    glitchedScoutableAsGlitched,
+                    accessRules,
+                    visibilityRules,
+                    closedImg,
+                    openedImg,
+                    overlayBackground));
             }
         } else if (!j["sections"].is_null()) {
             fprintf(stderr, "Location: invalid sections\n");
@@ -191,7 +220,17 @@ std::list<Location> Location::FromJSON(json& j, const std::list<Location>& paren
 
     if (j["children"].type() == json::value_t::array) {
         std::string fullname = parentName.empty() ? name : (parentName + "/" + name);
-        for (auto& loc : Location::FromJSON(j["children"], parentLookup, accessRules, visibilityRules, fullname, closedImg, openedImg, overlayBackground)) {
+        for (auto& loc : FromJSON(
+            j["children"],
+            parentLookup,
+            glitchedScoutableAsGlitched,
+            accessRules,
+            visibilityRules,
+            closedImg,
+            openedImg,
+            overlayBackground,
+            fullname
+        )) {
             locs.push_back(std::move(loc));
         }
     } else if (j["children"].type() != json::value_t::null) {
