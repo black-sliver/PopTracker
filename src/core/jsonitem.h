@@ -1,5 +1,4 @@
-#ifndef _CORE_JSONITEM_H
-#define _CORE_JSONITEM_H
+#pragma once
 
 #include "baseitem.h"
 #include <luaglue/luainterface.h>
@@ -47,7 +46,10 @@ public:
         const std::vector<std::string>& getCodes() const { return _codes; }
         const std::list<std::string>& getSecondaryCodes() const { return _secondaryCodes; }
         std::string getCodesString() const;
-        bool hasCode(const std::string& code) const { // NOTE: this is called canProvideCode in lua
+
+        bool hasCode(const std::string& code) const
+        {
+            // NOTE: this is called canProvideCode in Lua
 #ifdef JSONITEM_CI_QUIRK
             const auto cmp = [&code](const std::string& s) {
                 return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
@@ -57,10 +59,13 @@ public:
             return std::find(_codes.begin(), _codes.end(), code) != _codes.end();
 #endif
         }
-        bool hasSecondaryCode(const std::string& code) const {
+
+        bool hasSecondaryCode(const std::string& code) const
+        {
             return std::find(_secondaryCodes.begin(), _secondaryCodes.end(), code) != _secondaryCodes.end();
         }
-        const bool getInheritCodes() const { return _inheritCodes; }
+
+        bool getInheritCodes() const { return _inheritCodes; }
         const std::string& getName() const { return _name; }
     };
 
@@ -95,31 +100,38 @@ public:
         return s;
     }
 
-    virtual size_t getStageCount() const override { return _stages.size(); }
+    size_t getStageCount() const override { return _stages.size(); }
     
-    virtual const std::string& getImage(size_t stage) const override {
+    const std::string& getImage(size_t stage) const override
+    {
         if (_type == Type::TOGGLE) return _img;
         if (_stages.size()>stage) return _stages[stage].getImage();
         return _img;
     }
-    virtual const std::string& getDisabledImage(size_t stage) const override {
+
+    const std::string& getDisabledImage(size_t stage) const override
+    {
         if (_type == Type::TOGGLE) return _disabledImg;
         if (_stages.size()>stage) return _stages[stage].getDisabledImage();
         return _disabledImg;
     }
     
-    virtual const std::list<std::string>& getImageMods(int stage) const override {
+    const std::list<std::string>& getImageMods(int stage) const override
+    {
         if (_type == Type::TOGGLE) return _imgMods;
         if ((int)_stages.size()>stage) return _stages[stage].getImageMods();
         return _imgMods;
     }
-    virtual const std::list<std::string>& getDisabledImageMods(int stage) const override {
+
+    const std::list<std::string>& getDisabledImageMods(int stage) const override
+    {
         if (_type == Type::TOGGLE) return _disabledImgMods;
         if ((int)_stages.size()>stage) return _stages[stage].getDisabledImageMods();
         return _disabledImgMods;
     }
     
-    virtual const std::string& getCurrentName() const override {
+    const std::string& getCurrentName() const override
+    {
         if ((int)_stages.size() > _stage2) {
             assert(_stage2 >= 0);
             if (!_stages[_stage2].getName().empty())
@@ -135,7 +147,8 @@ public:
     }
 #endif
 
-    virtual bool canProvideCode(const std::string& code) const override {
+    bool canProvideCode(const std::string& code) const override
+    {
 #ifdef JSONITEM_CI_QUIRK
         const auto cmp = [&code](const std::string& s) {
             return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
@@ -206,7 +219,8 @@ public:
     std::string getCodesString() const override;
     const std::vector<std::string>& getCodes(int stage) const;
     
-    virtual bool changeState(BaseItem::Action action) override {
+    bool changeState(const Action action) override
+    {
         if (_ignoreUserInput)
             return false;
         if (_changeStateImpl(action)) {
@@ -222,7 +236,9 @@ public:
         }
         return false;
     }
-    virtual bool setState(int state, int stage=-1) override {
+
+    bool setState(int state, int stage=-1) override
+    {
         // NOTE: we have to override because upcasting sender from void* in onChange does not work with multiple inheritance
         if (state<0) state = _stage1;
         if (stage<0) stage = _stage2;
@@ -237,27 +253,31 @@ public:
         return false;
     }
     
-    virtual void SetOverlay(const char* text) override {
+    void SetOverlay(const char* text) override
+    {
         if (_overlay == text) return;
         _overlay = text;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayBackground(const char* text) override {
+    void SetOverlayBackground(const char* text) override
+    {
         if (_overlayBackground == text) return;
         _overlayBackgroundChanged = true;
         _overlayBackground = text;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayAlign(const char* align) override {
+    void SetOverlayAlign(const char* align) override
+    {
         if (_overlayAlign == align) return;
         _overlayAlignChanged = true;
         _overlayAlign = align;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayFontSize(int fontSize) override {
+    void SetOverlayFontSize(int fontSize) override
+    {
         if (_overlayFontSize == fontSize) return;
         _overlayFontSizeChanged = true;
         _overlayFontSize = fontSize;
@@ -281,8 +301,8 @@ public:
         return _imgOverride;
     }
 
-    virtual nlohmann::json save() const;
-    virtual bool load(nlohmann::json& j);
+    nlohmann::json save() const;
+    bool load(nlohmann::json& j);
     
 protected:
     
@@ -290,12 +310,9 @@ protected:
     
 protected: // Lua interface implementation
     
-    static constexpr const char Lua_Name[] = "JsonItem";
-    static const LuaInterface::MethodMap Lua_Methods;
+    static constexpr char Lua_Name[] = "JsonItem";
+    static const MethodMap Lua_Methods;
     
-    virtual int Lua_Index(lua_State *L, const char* key) override;
-    virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
+    int Lua_Index(lua_State *L, const char* key) override;
+    bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
-
-#endif /* _CORE_JSONITEM_H */
-

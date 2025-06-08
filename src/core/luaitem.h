@@ -1,65 +1,72 @@
-#ifndef _CORE_LUAITEM_H
-#define _CORE_LUAITEM_H
+#pragma once
 
 #include <string>
 #include <list>
-#include <vector>
-#include <algorithm>
 #include <nlohmann/json.hpp>
 #include "baseitem.h"
 #include <luaglue/luainterface.h>
 #include <luaglue/luavariant.h>
 
+
 class LuaItem final : public LuaInterface<LuaItem>, public BaseItem {
     friend class LuaInterface;
 
 public:
-    LuaItem() {_type = BaseItem::Type::CUSTOM;}
-    
+    LuaItem()
+    {
+        _type = Type::CUSTOM;
+    }
+
     void Set(const char* key, LuaVariant value);
     LuaVariant Get(const char* key);
-    
-    virtual bool canProvideCode(const std::string& code) const override;
+
+    bool canProvideCode(const std::string& code) const override;
     int providesCode(const std::string& code) const override;
-    virtual bool changeState(Action action) override;
-    
-    virtual void SetOverlay(const char* text) override {
+    bool changeState(Action action) override;
+
+    void SetOverlay(const char* text) override
+    {
         if (_overlay == text) return;
         _overlay = text;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayBackground(const char* text) override {
+    void SetOverlayBackground(const char* text) override
+    {
         if (_overlayBackground == text) return;
         _overlayBackground = text;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayAlign(const char* align) override {
+    void SetOverlayAlign(const char* align) override
+    {
         if (_overlayAlign == align) return;
         _overlayAlign = align;
         onChange.emit(this);
     }
 
-    virtual void SetOverlayFontSize(int fontSize) override {
+    void SetOverlayFontSize(int fontSize) override
+    {
         if (_overlayFontSize == fontSize) return;
         _overlayFontSize = fontSize;
         onChange.emit(this);
     }
 
-    void SetOverlayColor(const char* text) override {
+    void SetOverlayColor(const char* text) override
+    {
         if (_overlayColor == text)
             return;
         _overlayColor = text;
         onChange.emit(this);
     }
 
-    virtual bool setState(int state, int stage=-1) override {
+    bool setState(int state, int stage=-1) override
+    {
         return false; // TODO: implement this?
     }
 
-    virtual nlohmann::json save() const;
-    virtual bool load(nlohmann::json& j);
+    nlohmann::json save() const;
+    bool load(nlohmann::json& j);
     
 private:
     lua_State *_L = nullptr; // FIXME: fix this
@@ -84,11 +91,9 @@ private:
 
 protected: // Lua interface implementation
     
-    static constexpr const char Lua_Name[] = "LuaItem";
-    static const LuaInterface::MethodMap Lua_Methods;
+    static constexpr char Lua_Name[] = "LuaItem";
+    static const MethodMap Lua_Methods;
     
-    virtual int Lua_Index(lua_State *L, const char* key) override;
-    virtual bool Lua_NewIndex(lua_State *L, const char *key) override;
+    int Lua_Index(lua_State *L, const char* key) override;
+    bool Lua_NewIndex(lua_State *L, const char *key) override;
 };
-
-#endif // _CORE_LUAITEM_H
