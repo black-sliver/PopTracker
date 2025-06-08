@@ -1,5 +1,4 @@
-#ifndef _CORE_BASEITEM_H
-#define _CORE_BASEITEM_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -7,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include "signal.h"
+
 
 class BaseItem { // TODO: move stuff over to JsonItem; TODO: make some stuff pure virtual?
 public:
@@ -97,11 +97,11 @@ public:
     virtual const std::string& getCurrentName() const { return _name; }
     const std::string& getID() const { return _id; }
     const std::string& getBaseItem() const { return _baseItem; }
-    const Type getType() const { return _type; }
-    const bool getCapturable() const { return _capturable; }
-    const bool getLoop() const { return _loop; } 
-    const bool getAllowDisabled() const { return _allowDisabled; }
-    
+    Type getType() const { return _type; }
+    bool getCapturable() const { return _capturable; }
+    bool getLoop() const { return _loop; }
+    bool getAllowDisabled() const { return _allowDisabled; }
+
     void setID(const std::string& id) { _id = id; }
     void setID(uint64_t id) { setID(std::to_string(id)); }
     
@@ -135,7 +135,7 @@ public:
         if (std::find(_codes.begin(), _codes.end(), code) != _codes.end()) return true;
         return false;
     }
-    
+
     virtual std::string getCodesString() const;
     virtual int getState() const { return _allowDisabled ? _stage1 : 1; }
     virtual int getActiveStage() const { return _stage2; }
@@ -159,5 +159,3 @@ public:
     virtual void SetOverlayFontSize(int fontSize) = 0;
     virtual void SetOverlayColor(const char* text) = 0;
 };
-
-#endif // _CORE_BASEITEM_H

@@ -187,7 +187,7 @@ bool Tracker::AddItems(const std::string& file) {
         auto& item = _jsonItems.back();
         item.setID(++_lastItemID);
         item.onChange += {this, [this](void* sender) {
-            JsonItem* i = (JsonItem*)sender;
+            const auto* i = static_cast<JsonItem*>(sender);
             if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
                 _providerCountCache.clear();
                 _accessibilityStale = true;
@@ -1034,12 +1034,12 @@ bool Tracker::isVisible(const Location& location)
 
 LuaItem * Tracker::CreateLuaItem()
 {
-    _luaItems.push_back({});
+    _luaItems.emplace_back();
     _objectCache.clear();
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     i.onChange += {this, [this](void* sender) {
-        LuaItem* i = (LuaItem*)sender;
+        const auto* i = static_cast<LuaItem*>(sender);
         if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
             if (!_bulkUpdate)
                 _providerCountCache.clear();
