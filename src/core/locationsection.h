@@ -25,12 +25,15 @@ std::string_view HighlightToString(Highlight highlight);
 class LocationSection final : public LuaInterface<LocationSection> {
     friend class LuaInterface;
 public:
-    static LocationSection FromJSON(nlohmann::json& j,
-            const std::string& parentId,
-            const std::list< std::list<std::string> >& parentAccessRules={},
-            const std::list< std::list<std::string> >& parentVisibilityRules={},
-            const std::string& closedImg="", const std::string& openedImg="",
-            const std::string& overlayBackground="");
+    static LocationSection FromJSON(
+        nlohmann::json& j,
+        const std::string& parentId,
+        bool glitchedScoutableAsGlitched = false,
+        const std::list< std::list<std::string> >& parentAccessRules={},
+        const std::list< std::list<std::string> >& parentVisibilityRules={},
+        const std::string& closedImg="",
+        const std::string& openedImg="",
+        const std::string& overlayBackground="");
     Signal<> onChange;
 
 protected:
@@ -46,6 +49,7 @@ protected:
     std::list< std::list<std::string> > _visibilityRules;
     std::string _overlayBackground;
     std::string _ref; // path to actual section if it's just a reference
+    bool _glitchedScoutableAsGlitched = false;
     Highlight _highlight = Highlight::NONE;
     LayoutNode::Size _itemSize;
 
@@ -66,6 +70,7 @@ public:
     const std::string& getParentID() const { return _parentId; }
     std::string getFullID() const { return _parentId + "/" + _name; }
     const std::string& getRef() const { return _ref; }
+    bool getGlitchedScoutableAsGlitched() const { return _glitchedScoutableAsGlitched; }
     Highlight getHighlight() const { return _highlight; }
     const LayoutNode::Size& getItemSize() const { return _itemSize; }
 

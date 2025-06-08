@@ -131,6 +131,10 @@
                             "description": "Width of the items.",
                             "type": "number",
                             "minimum": 0
+                        },
+                        "inspectable_sequence_break": {
+                            "description": "Restores old behavior of showing sequence-break-inspectable locations as sequence break. Inherits from parent if undefined.",
+                            "type": "boolean"
                         }
                     },
                     "additionalProperties": false
@@ -338,6 +342,10 @@
                     "items": {
                         "$ref": "#/$defs/section"
                     }
+                },
+                "inspectable_sequence_break": {
+                    "description": "Restores old behavior of showing sequence-break-inspectable locations as sequence break. Inherits from parent if undefined.",
+                    "type": "boolean"
                 }
             },
             "additionalProperties": false

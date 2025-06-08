@@ -57,12 +57,16 @@ public:
         const std::list<std::list<std::string>>& getInvisibilityRules() const { return _invisibilityRules; }
     };
 
-    static std::list<Location> FromJSON(nlohmann::json& j,
+    static std::list<Location> FromJSON(
+        nlohmann::json& j,
         const std::list<Location>& parentLookup,
+        bool glitchedScoutableAsGlitched = false,
         const std::list< std::list<std::string> >& parentAccessRules={},
         const std::list< std::list<std::string> >& parentVisibilityRules={},
-        const std::string& parentName="", const std::string& closedImg="",
-        const std::string& openedImg="", const std::string& overlayBackground="");
+        const std::string& closedImg="",
+        const std::string& openedImg="",
+        const std::string& overlayBackground="",
+        const std::string& parentName="");
 
 protected:
     std::string _name;
@@ -72,6 +76,7 @@ protected:
     std::list<LocationSection> _sections;
     std::list< std::list<std::string> > _accessRules; // this is only used if referenced through @-Rules
     std::list< std::list<std::string> > _visibilityRules;
+    bool _glitchedScoutableAsGlitched = false;
 
 public:
     const std::string& getName() const { return _name; }
@@ -84,6 +89,7 @@ public:
     const std::list< std::list<std::string> >& getAccessRules() const { return _accessRules; }
     std::list< std::list<std::string> >& getVisibilityRules() { return _visibilityRules; }
     const std::list< std::list<std::string> >& getVisibilityRules() const { return _visibilityRules; }
+    bool getGlitchedScoutableAsGlitched() const { return _glitchedScoutableAsGlitched; }
     void merge(const Location& other);
 
 #ifndef NDEBUG
