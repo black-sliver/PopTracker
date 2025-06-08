@@ -5,6 +5,7 @@
 #include <string_view>
 #include <luaglue/luainterface.h>
 #include <nlohmann/json.hpp>
+#include "layoutnode.h" // Size
 #include "../core/signal.h"
 
 
@@ -46,6 +47,7 @@ protected:
     std::string _overlayBackground;
     std::string _ref; // path to actual section if it's just a reference
     Highlight _highlight = Highlight::NONE;
+    LayoutNode::Size _itemSize;
 
 public:
     // getters
@@ -65,6 +67,7 @@ public:
     std::string getFullID() const { return _parentId + "/" + _name; }
     const std::string& getRef() const { return _ref; }
     Highlight getHighlight() const { return _highlight; }
+    const LayoutNode::Size& getItemSize() const { return _itemSize; }
 
     void setParentID(const std::string& id) { _parentId = id; }
 

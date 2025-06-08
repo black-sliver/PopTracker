@@ -25,7 +25,7 @@ public:
     struct Size final {
         int x;
         int y;
-        constexpr Size(int w, int h) : x(w), y(h) {}
+        constexpr Size(const int w, const int h) : x(w), y(h) {}
         constexpr Size() : x(0), y(0) {}
     };
 
@@ -36,13 +36,16 @@ public:
         int right;
         int bottom;
         constexpr Spacing() : left(0), top(0), right(0), bottom(0) {}
-        constexpr Spacing(int s) : left(s), top(s), right(s), bottom(s) {}
+        constexpr explicit Spacing(int s) : left(s), top(s), right(s), bottom(s) {}
         constexpr Spacing(int x, int y) : left(x), top(y), right(x), bottom(y) {}
         constexpr Spacing(int l, int t, int r, int b) : left(l), top(t), right(r), bottom(b) {}
         bool operator==(const Spacing& other) const { return left==other.left && top==other.top && right==other.right && bottom==other.bottom; }
         bool operator!=(const Spacing& other) const { return !(*this == other); }
         static const Spacing UNDEFINED;
     };
+
+    static Size to_size(const nlohmann::json& j, Size dflt);
+    static Size to_pixel(const Size& size);
 
     static LayoutNode FromJSON(nlohmann::json& j);
     static LayoutNode FromJSON(nlohmann::json&& j);

@@ -501,6 +501,8 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 
 `ref` make this section a reference to another section, ignoring all other properties defined here. This can be used to have the same section in detailed and overworld maps.
 
+`item_size`, `item_width` and `item_height`, since 0.32.0, works the same as with Layouts. See below.
+
 **Tracker Lua Interface:**
 
 * `Tracker:FindObjectForCode('@location_name/section_name')` returns a Section or nil
