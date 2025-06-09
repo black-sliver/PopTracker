@@ -1,11 +1,16 @@
 #ifndef _VERSION_H
 #define _VERSION_H
 
-#define APP_VERSION_MAJOR      0 /**< semver <major> of PopTracker */
-#define APP_VERSION_MINOR     32 /**< semver <minor> of PopTracker */
-#define APP_VERSION_REVISION   0 /**< semver <patch> of PopTracker */
-#define APP_VERSION_EXTRA     "-rc1" /**< semver "-" <pre-release> and/or "+" <build> of PopTracker */
-#define APP_VERSION_PRERELEASE 1 /**< set to 1 for any pre-release or 0 for release and post-release */
+/// semver <major> of PopTracker
+#define APP_VERSION_MAJOR      0
+/// semver <minor> of PopTracker
+#define APP_VERSION_MINOR     32
+/// semver <patch> of PopTracker
+#define APP_VERSION_REVISION   0
+/// semver "-" <pre-release> and/or "+" <build> of PopTracker
+#define APP_VERSION_EXTRA     "-rc1"
+/// set to 1 for any pre-release or 0 for release and post-release
+#define APP_VERSION_PRERELEASE 1
 
 #ifndef XSTR
 #define XSTR(s) STR(s)
