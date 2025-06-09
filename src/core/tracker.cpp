@@ -170,7 +170,11 @@ int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
 bool Tracker::AddItems(const std::string& file) {
     printf("Loading items from \"%s\"...\n", file.c_str());
     std::string s;
-    if (!_pack->ReadFile(file, s)) return false; // TODO: throw lua error?
+    if (!_pack->ReadFile(file, s)) {
+        // TODO: throw lua error?
+        fprintf(stderr, "WARNING: unable to read file\n");
+        return false;
+    }
     json j = parse_jsonc(s);
     
     if (j.type() != json::value_t::array) {
@@ -353,7 +357,11 @@ bool Tracker::AddItems(const std::string& file) {
 bool Tracker::AddLocations(const std::string& file) {
     printf("Loading locations from \"%s\"...\n", file.c_str());
     std::string s;
-    if (!_pack->ReadFile(file, s)) return false; // TODO: throw lua error?
+    if (!_pack->ReadFile(file, s)) {
+        // TODO: throw lua error?
+        fprintf(stderr, "WARNING: unable to read file\n");
+        return false;
+    }
     json j = parse_jsonc(s);
     
     if (j.type() != json::value_t::array) {
@@ -441,7 +449,11 @@ bool Tracker::AddLocations(const std::string& file) {
 bool Tracker::AddMaps(const std::string& file) {
     printf("Loading maps from \"%s\"...\n", file.c_str());
     std::string s;
-    if (!_pack->ReadFile(file, s)) return false; // TODO: throw lua error?
+    if (!_pack->ReadFile(file, s)) {
+        // TODO: throw lua error?
+        fprintf(stderr, "WARNING: unable to read file\n");
+        return false;
+    }
     json j = parse_jsonc(s);
     
     if (j.type() != json::value_t::array) {
@@ -463,7 +475,11 @@ bool Tracker::AddMaps(const std::string& file) {
 bool Tracker::AddLayouts(const std::string& file) {
     printf("Loading layouts from \"%s\"...\n", file.c_str());
     std::string s;
-    if (!_pack->ReadFile(file, s)) return false; // TODO: throw lua error?
+    if (!_pack->ReadFile(file, s)) {
+        // TODO: throw lua error?
+        fprintf(stderr, "WARNING: unable to read file\n");
+        return false;
+    }
     json j = parse_jsonc(s);
     
     if (j.type() != json::value_t::object) {
