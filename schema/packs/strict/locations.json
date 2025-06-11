@@ -260,7 +260,10 @@
                                 "type": "number",
                                 "minimum": -1
                             },
-                            "shape": true,
+                            "shape": {
+                                "description": "Overrides the location shape defined on the map.",
+                                "enum": [null, "rect", "diamond", "trapezoid"]
+                            },
                             "restrict_visibility_rules": {
                                 "example": [
                                     "rule1,rule2",
