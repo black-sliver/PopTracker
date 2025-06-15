@@ -186,12 +186,12 @@ bool LocationSection::load(json& j)
 {
     if (j.type() == json::value_t::object) {
         bool changed = false;
-        int val = to_int(j["cleared"], _itemCleared);
+        const int val = j.value("cleared", 0);
         if (val != _itemCleared) {
             _itemCleared = val;
             changed = true;
         }
-        const auto highlight = HighlightFromString(to_string(j, "highlight", ""));
+        const auto highlight = HighlightFromString(j.value("highlight", ""));
         if (highlight != _highlight) {
             _highlight = highlight;
             changed = true;
