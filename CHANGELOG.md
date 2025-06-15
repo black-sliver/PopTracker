@@ -1,5 +1,11 @@
 # PopTracker Changelog
 
+## v0.32.1-rc1
+
+* Fixes
+  * Fix load state and reset button not un-clearing already-cleared location sections
+  * Fix indirect connection detection for $-rules not always working
+
 ## v0.32.0
 
 * App Features
