@@ -1,10 +1,14 @@
 # PopTracker Changelog
 
-## v0.32.1-rc1
+## v0.32.1
 
+* App Features
+  * Print/log if a JSON file could not be loaded from pack
+  * Archipelago: don't stop updating locations for certain errors
 * Fixes
   * Fix load state and reset button not un-clearing already-cleared location sections
   * Fix indirect connection detection for $-rules not always working
+  * Fix some syntax variations of inspect-only rules not being handled correctly
 
 ## v0.32.0
 
