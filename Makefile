@@ -511,6 +511,10 @@ test: $(EXE) $(TEST_EXE)
 	@echo "Running $(TEST_EXE)"
 	@$(TEST_EXE)
 	@echo "Checking $(EXE)"
+ifdef IS_WIN
+	@echo "VersionInfo: "
+	-@powershell -NoLogo -NoProfile -Command "(Get-Item -Path '$(EXE)').VersionInfo | Format-List -Force"
+endif
 	@echo -n "Size: "
 	@du -h $(EXE) | cut -f -1
 	@echo -n "Version: "
