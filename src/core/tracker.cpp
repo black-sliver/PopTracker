@@ -515,12 +515,16 @@ int Tracker::ProviderCountForCode(const std::string& code)
     auto it = _providerCountCache.find(code);
     if (it != _providerCountCache.end())
         return it->second;
+
     int res = 0;
-    _isIndirectConnection = false;
     // "codes" starting with $ run Lua functions
     if (!code.empty() && code[0] == '$') {
-        res = Tracker::runLuaFunction(_L, code);
-        goto done;
+        _luaCodesStack.emplace_back(code);
+        res = runLuaFunction(_L, code);
+        if (!_indirectlyConnectedLuaCodes.count(code))
+            _providerCountCache[code] = res;
+        _luaCodesStack.pop_back();
+        return res;
     }
 
     // other codes count items
@@ -544,9 +548,7 @@ int Tracker::ProviderCountForCode(const std::string& code)
         res += item.providesCode(code);
     }
 
-done:
-    if (!_isIndirectConnection)
-        _providerCountCache[code] = res;
+    _providerCountCache[code] = res;
     return res;
 }
 
@@ -555,7 +557,7 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
     const auto it = _objectCache.find(std::string_view(code));
     if (it != _objectCache.end()) {
         if (*code == '@')
-            _isIndirectConnection = true; // if called during rule resolution, this skips the cache
+            markAsIndirectlyConnected();  // if called during rule resolution, this skips the cache
         return it->second;
     }
     if (*code == '@') { // location section
@@ -569,7 +571,7 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
             for (auto& sec: loc.getSections()) {
                 if (sec.getName() != secname)
                     continue;
-                _isIndirectConnection = true; // if called during rule resolution, this skips the cache
+                markAsIndirectlyConnected();  // if called during rule resolution, this skips the cache
                 return _objectCache.emplace(code, &sec).first->second;
             }
         }
@@ -578,7 +580,7 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
         const char *start = code+1;
         auto& loc = getLocation(start, true);
         if (!loc.getID().empty()) {
-            _isIndirectConnection = true;
+            markAsIndirectlyConnected();  // if called during rule resolution, this skips the cache
             return _objectCache.emplace(code, &loc).first->second;
         }
     } else {
@@ -1213,6 +1215,14 @@ void Tracker::cacheVisibility()
 
     _updatingCache = false;
     _itemChangesDuringCacheUpdate.clear();
+}
+
+void Tracker::markAsIndirectlyConnected()
+{
+    if (_updatingCache) {
+        for (const auto& code: _luaCodesStack)
+            _indirectlyConnectedLuaCodes.emplace(code);
+    }
 }
 
 json Tracker::saveState() const
