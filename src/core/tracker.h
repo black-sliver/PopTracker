@@ -1,23 +1,23 @@
-#ifndef _CORE_TRACKER_H
-#define _CORE_TRACKER_H
+#pragma once
 
-#include <luaglue/luatype.h>
-#include <luaglue/luainterface.h>
-#include "accessibilitylevel.h"
-#include "pack.h"
-#include "luaitem.h"
-#include "jsonitem.h"
-#include "map.h"
-#include "location.h"
-#include "locationsection.h"
-#include "layoutnode.h"
-#include "signal.h"
-#include <string>
+#include <cstddef> // nullptr_t
+#include <functional>
 #include <list>
 #include <set>
-#include <functional>
-#include <cstddef> // nullptr_t
+#include <string>
+#include <unordered_set>
+#include <luaglue/luainterface.h>
+#include <luaglue/luatype.h>
 #include <nlohmann/json.hpp>
+#include "accessibilitylevel.h"
+#include "jsonitem.h"
+#include "layoutnode.h"
+#include "location.h"
+#include "locationsection.h"
+#include "luaitem.h"
+#include "map.h"
+#include "pack.h"
+#include "signal.h"
 
 
 class Tracker;
@@ -138,7 +138,8 @@ protected:
     bool _allowDeferredLogicUpdate = false; ///< opt-in flag to use onBulkUpdate to update state just once at the end
     bool _accessibilityStale = false;
     bool _visibilityStale = false;
-    bool _isIndirectConnection = false; ///< flag to skip cache for codes that depend on locations
+    std::vector<std::string_view> _luaCodesStack; ///< stack of $-codes currently being evaluated
+    std::unordered_set<std::string> _indirectlyConnectedLuaCodes; ///< set of $-codes that can not be cached
     bool _updatingCache = false; ///< true while cache*() is running
     std::set<std::string> _itemChangesDuringCacheUpdate;
     std::map<std::string, std::vector<std::string>> _missingBaseItemConnection;
@@ -161,6 +162,7 @@ protected:
     void rebuildSectionRefs();
     void cacheAccessibility();
     void cacheVisibility();
+    void markAsIndirectlyConnected();
 
     static int mordoria(lua_State* L);
 
@@ -171,6 +173,3 @@ protected: // Lua interface implementation
     virtual int Lua_Index(lua_State *L, const char* key) override;
     virtual bool Lua_NewIndex(lua_State *L, const char* key) override;
 };
-
-
-#endif // _CORE_TRACKER_H
