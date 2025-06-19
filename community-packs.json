@@ -73,12 +73,12 @@
     },
     "pokemonrb_ap": {
         "name": "Pokemon Red/Blue Archipelago Poptracker",
-        "author": "Coveleski & palex00",
+        "author": "palex00",
         "platform": "poptracker",
-        "homepage": "https://github.com/coveleski/rb_tracker",
-        "versions_url": "https://raw.githubusercontent.com/coveleski/rb2/versions/versions.json",
-        "icon_url": "https://raw.githubusercontent.com/coveleski/rb2/main/images/items/itemicon.png",
-        "description":  "Pokemon Red/Blue autotracker pack for PopTracker"
+        "homepage": "https://github.com/palex00/rb_tracker",
+        "versions_url": "https://raw.githubusercontent.com/palex00/rb_tracker/refs/heads/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/palex00/rb_tracker/main/images/items/itemicon.png",
+        "description":  "Pokémon Red & Blue autotracker pack for PopTracker"
     },
     "ape_escape_tracker":{
         "name" : "Ape Escape Tracker",
