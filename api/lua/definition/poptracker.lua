@@ -86,6 +86,7 @@ function Tracker:FindObjectForCode(code) end
 function Tracker:UiHint(name, value) end
 
 ---pause evaluating logic rules when set to true
+---NOTE: Since failing to set BulkUpdate back to false will stop PopTracker from updating, make sure your code between setting BulkUpdate is error resistant (for example by using pcall).
 ---@type boolean
 Tracker.BulkUpdate = false
 
