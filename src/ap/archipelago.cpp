@@ -49,6 +49,7 @@ bool Archipelago::AddClearHandler(const std::string& name, LuaRef callback)
             printf("Error calling Archipelago ClearHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
             lua_pop(_L, 1);
+            luaL_dostring(_L, "Tracker.BulkUpdate = false");
         }
     }};
     return true;
