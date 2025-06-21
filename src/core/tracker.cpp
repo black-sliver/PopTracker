@@ -925,22 +925,21 @@ AccessibilityLevel Tracker::resolveRules(
         for (const auto& rule: ruleset) { //<-- these are all to be ANDed
             if (rule.empty()) continue; // empty/missing code is true
             std::string s = rule;
+            // '{' ... '}' means required to check (i.e. the rule never returns "reachable", but "checkable" instead)
+            if (!s.empty() && s[0] == '{') {
+                inspectOnly = true;
+                s = s.substr(1,s.length()-1);
+            }
+            if (inspectOnly && !s.empty() && s[s.length()-1] == '}') {
+                s = s.substr(0, s.length()-1);
+            }
             // '[' ... ']' means optional/glitches required (different color)
             bool optional = false;
             if (s.length() > 1 && s[0] == '[' && s[s.length()-1]==']') {
                 optional = true;
                 s = s.substr(1,s.length()-2);
             }
-            // '{' ... '}' means required to check (i.e. the rule never returns "reachable", but "checkable" instead)
-            if (s.length() > 1 && s[0] == '{') {
-                inspectOnly = true;
-                s = s.substr(1,s.length()-1);
-            }
-            if (inspectOnly && s.length() > 0 && s[s.length()-1] == '}') {
-                s = s.substr(0, s.length()-1);
-            }
             if (inspectOnly && s.empty()) {
-                inspectOnlyReachable = true;
                 continue;
             }
             // '^$func' gives direct accessibility level rather than an integer code count
