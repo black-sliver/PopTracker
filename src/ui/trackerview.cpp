@@ -25,39 +25,56 @@ namespace Ui {
 
 constexpr int TOOL_MAX_DISPLACEMENT=5; // can be off by this amount
 
-std::list<ImageFilter> imageModsToFilters(Tracker* tracker, const std::list<std::string>& mods)
+static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const std::list<std::string>& mods)
 {
+    const std::vector<std::string> disabledFilters = tracker->getPack()->getDisabledImageFilter();
     std::list<ImageFilter> filters;
-    for (auto& mod: mods) {
-        std::string name;
-        std::vector<std::string> args;
-        size_t p = mod.find('|');
-        if (p == mod.npos) name = mod;
-        else {
-            name = mod.substr(0,p);
-            while (true) {
-                auto q = mod.find('|', p+1);
-                if (q == mod.npos) {
-                    args.push_back(mod.substr(p+1));
-                    break;
+    std::vector<std::string> actualMods;
+    for (auto& originalMod: mods) {
+        if (originalMod == "@disable" || originalMod == "@disabled") {
+            actualMods = disabledFilters;
+        } else {
+            actualMods = {originalMod};
+        }
+        for (auto& mod: actualMods) {
+            std::string name;
+            std::vector<std::string> args;
+            size_t p = mod.find('|');
+            if (p == std::string::npos) {
+                name = mod;
+            } else {
+                name = mod.substr(0,p);
+                while (true) {
+                    auto q = mod.find('|', p+1);
+                    if (q == std::string::npos) {
+                        args.push_back(mod.substr(p+1));
+                        break;
+                    }
+                    args.push_back(mod.substr(p+1, q-p-1));
+                    p = q;
                 }
-                args.push_back(mod.substr(p+1, q-p-1));
-                p = q;
             }
+            if (name == "overlay") {
+                // read actual image data into arg instead of filename
+                std::string tmp = std::move(args[0]);
+                tracker->getPack()->ReadFile(tmp, args[0]);
+                for (size_t i=1; i<args.size(); ++i) {
+                    if (args[i] == "@disable" || args[i] == "@disabled") {
+                        if (disabledFilters.empty()) {
+                            args.erase(args.begin() + static_cast<ssize_t>(i));
+                            i--;
+                        } else {
+                            args[i] = disabledFilters[0];
+                            for (size_t j=1; j<disabledFilters.size(); ++j) {
+                                i++;
+                                args.insert(args.begin() + static_cast<ssize_t>(i), disabledFilters[j]);
+                            }
+                        }
+                    }
+                }
+            }
+            filters.push_back({name,args});
         }
-        if (name == "overlay") {
-            // read actual image data into arg instead of filename
-            std::string tmp = std::move(args[0]);
-            tracker->getPack()->ReadFile(tmp, args[0]);
-            for (size_t i=1; i<args.size(); i++)
-                if (args[i] == "@disable" || args[i] == "@disabled")
-                    args[i] = "grey";
-        }
-        if (name == "@disable" || name == "@disabled")
-        {
-            name = "grey";
-        }
-        filters.push_back({name,args});
     }
     return filters;
 }
