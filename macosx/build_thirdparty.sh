@@ -71,6 +71,9 @@ LIB_FREETYPE_TARGET="objs/.libs/libfreetype.6.dylib"
 LIB_OPENSSL_TARGET="libssl.3.dylib"
 LIB_CRYPTO_TARGET="libcrypto.3.dylib"
 
+# TODO: decide what to do with webp
+LIB_SDL_IMAGE_FEATURE_FLAGS="--disable-sdltest --disable-stb-image --enable-bmp --enable-gif --enable-jpg --enable-png --disable-avif --disable-jpg-shared --disable-save-jpg --disable-jxl --disable-jxl-shared --disable-lbm --disable-pcx --disable-png-shared --disable-save-png --disable-pnm --disable-svg --disable-tga --disable-tif --disable-tif-shared --disable-xcf --disable-xpm --disable-xv --disable-goi"
+
 REGEX="s/^.*\/\([^\/]*\).git$/\1/"
 
 LIB_SDL_DEST_DIR="$BUILD_DIR/`echo $LIB_SDL_URL | sed $REGEX`"
@@ -172,7 +175,7 @@ else
 fi
 
 ./autogen.sh
-./configure $CONFIGURE_FLAGS
+./configure $CONFIGURE_FLAGS $LIB_SDL_IMAGE_FEATURE_FLAGS
 make -j3
 
 [ -f $LIB_SDL_IMAGE_TARGET ] || { echo "Missing $LIB_SDL_IMAGE_TARGET..." ; exit 1; }
