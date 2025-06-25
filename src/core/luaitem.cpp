@@ -177,7 +177,9 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
 
 bool LuaItem::canProvideCode(const std::string& code) const
 {
-    if (!_canProvideCodeFunc.valid()) return false;
+    // TODO: cache result for performance reasons
+    if (!_canProvideCodeFunc.valid())
+        return false;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _canProvideCodeFunc.ref);
     Lua_Push(_L); // arg1: this
     lua_pushstring(_L, code.c_str()); // arg2: code
@@ -186,37 +188,38 @@ bool LuaItem::canProvideCode(const std::string& code) const
         lua_pop(_L, 1);
         return false;
     }
-    bool res = lua_toboolean(_L, -1);
-    lua_pop(_L,1);
+    const bool res = lua_toboolean(_L, -1);
+    lua_pop(_L, 1);
     return res;
 }
 
 int LuaItem::providesCode(const std::string& code) const
 {
-    if (!_providesCodeFunc.valid()) return false;
+    if (!_providesCodeFunc.valid())
+        return 0;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _providesCodeFunc.ref);
     Lua_Push(_L); // arg1: this
     lua_pushstring(_L, code.c_str()); // arg2: code
     if (lua_pcall(_L, 2, 1, 0)) {
         printf("Error calling Item:ProvidesCode: %s\n", lua_tostring(_L, -1));
         lua_pop(_L, 1);
-        return false;
+        return 0;
     }
 
     int res;
 
     if (lua_isinteger(_L, -1)) {
-        res = (int)lua_tointeger(_L, -1);
+        res = static_cast<int>(lua_tointeger(_L, -1));
     } else if (lua_isboolean(_L, -1)) {
         res = lua_toboolean(_L, -1) ? 1 : 0;
     } else if (lua_isnumber(_L, -1)) {
-        res = (int)lua_tonumber(_L, -1);
+        res = static_cast<int>(lua_tonumber(_L, -1));
     } else {
         res = 0;
         printf("Item:ProvidesCode returned unexpected type %s for %s\n",
                 lua_typename(_L, lua_type(_L, -1)), sanitize_print(_name).c_str());
     }
-    lua_pop(_L,1);
+    lua_pop(_L, 1);
 
     return res;
 }
