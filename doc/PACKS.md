@@ -78,6 +78,7 @@ Configures behavior of the pack.
         "smooth_scaling": true|false|null, // configure the image scaling method. null = default = currently crisp
         "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
         "allow_deferred_logic_update": true|false|null, // set initial value of Tracker.AllowDeferredLogicUpdate
+        "disabled_image_filter": "...", // set the meaning of @disabled in img_mods, defaults to "grey", since 0.33.0
     }
 
 NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
@@ -284,7 +285,9 @@ a table representing an enum with the following constants: \
         ]
     
   + img_mods filter to be applied on the img
-    - `@disabled`: grey-scale
+    - `@disabled`: as defined in `settings.json`'s "disabled_image_filter"; defaults to `grey`
+    - `grey`: 0% saturation + 67% brightness
+    - `disable`: same as `grey`
     - `overlay|path/to/img.png|overlay_filters...`: draw a second image over it; overlay_filters are applied to overlay (since 0.25.6)
     - NOTE: order matters, applied left to right
   + inherit_codes: true will make stage3 provide codes for item, stage1, 2 and 3 (default true)
