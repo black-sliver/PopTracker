@@ -18,6 +18,11 @@
             "description": "Set to enable/disable deferred (faster) logic update. Can be overwritten from Lua as Tracker.AllowDeferredLogicUpdate.",
             "type": ["boolean", "null"],
             "default": null
+        },
+        "disabled_image_filter": {
+            "description": "Set meaning of @disabled in image mods.",
+            "type": ["string"],
+            "default": "grey"
         }
     }
 }

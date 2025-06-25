@@ -320,6 +320,9 @@ void Pack::setVariant(const std::string& variant)
             }
         }
     }
+
+    const std::string filter = _settings.value("disabled_image_filter", "grey");
+    commasplit(filter, _disabledImageFilter);
 }
 
 std::string Pack::getPlatform() const

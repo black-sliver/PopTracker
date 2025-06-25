@@ -50,6 +50,7 @@ public:
     const Version& getMinPopTrackerVersion() const { return _minPopTrackerVersion; }
     const Version& getTargetPopTrackerVersion() const { return _targetPopTrackerVersion; }
     const nlohmann::json& getSettings() const { return _settings; }
+    const std::vector<std::string>& getDisabledImageFilter() const { return _disabledImageFilter; }
 
     Info getInfo() const;
     
@@ -98,6 +99,7 @@ private:
     nlohmann::json _manifest;
     nlohmann::json _settings;
     Override* _override;
+    std::vector<std::string> _disabledImageFilter;
 
     std::chrono::system_clock::time_point _loaded;
 
