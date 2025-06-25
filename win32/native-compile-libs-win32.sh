@@ -12,8 +12,9 @@ TTF_URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.24.0/
 
 ARCH=`gcc -dumpmachine | sed "s/-.*$//"`
 OUTPUT_FLAGS="--enable-static --disable-shared" # --with-gnu-ld"
-IMAGE_FEATURE_FLAGS="--disable-sdltest --disable-freetypetest"
-TTF_FEATURE_FLAGS="--disable-sdltest --disable-avif --disable-jpg-shared --disable-save-jpg --disable-jxl --disable-jxl-shared --disable-lbm --disable-pcx --disable-png-shared --disable-save-png --disable-pnm --disable-svg --disable-tga --disable-tif --disable-tif-shared --disable-xcf --disable-xpm --disable-xv --disable-goi"
+# TODO: decide what to do with webp
+IMAGE_FEATURE_FLAGS="--disable-sdltest --disable-stb-image --enable-bmp --enable-gif --enable-jpg --enable-png --disable-avif --disable-jpg-shared --disable-save-jpg --disable-jxl --disable-jxl-shared --disable-lbm --disable-pcx --disable-png-shared --disable-save-png --disable-pnm --disable-svg --disable-tga --disable-tif --disable-tif-shared --disable-xcf --disable-xpm --disable-xv --disable-goi"
+TTF_FEATURE_FLAGS="--disable-sdltest --disable-freetypetest"
 SDL_FEATURE_FLAGS="--disable-alsatest --disable-esdtest --disable-audio --disable-joystick --disable-haptic --disable-sensor --disable-power --disable-filesystem --disable-cpuinfo --disable-jack --disable-esd --disable-pipewire --disable-pulseaudio --disable-arts --disable-nas --disable-sndio --disable-fusionsound --disable-diskaudio --disable-dummyaudio --disable-libsamplerate --disable-libudev"
 #RELEASE_FLAGS="-ffunction-sections -fdata-sections -Wl,--gc-sections -Os -s"
 RELEASE_FLAGS="-ffunction-sections -fdata-sections -Os"
