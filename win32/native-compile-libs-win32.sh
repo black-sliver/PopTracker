@@ -1,11 +1,11 @@
 #!/bin/bash
 
-SDL_SRC=SDL2-2.30.10
-SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz"
-IMAGE_SRC=SDL2_image-2.8.4
-IMAGE_URL="https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.4/SDL2_image-2.8.4.tar.gz"
-TTF_SRC=SDL2_ttf-2.22.0
-TTF_URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/SDL2_ttf-2.22.0.tar.gz"
+SDL_SRC=SDL2-2.32.8
+SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-2.32.8/SDL2-2.32.8.tar.gz"
+IMAGE_SRC=SDL2_image-2.8.8
+IMAGE_URL="https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.8/SDL2_image-2.8.8.tar.gz"
+TTF_SRC=SDL2_ttf-2.24.0
+TTF_URL="https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.24.0/SDL2_ttf-2.24.0.tar.gz"
 
 # IMPORTANT: dynapi has to be disabled in SDL2-*/src/dynapi/SDL_dynapi.h, see sed -i below.
 #            loadso is now required for hardware renderers
