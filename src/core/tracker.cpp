@@ -545,10 +545,15 @@ int Tracker::ProviderCountForCode(const std::string& code)
 
     for (const auto& item : _luaItems)
     {
-        res += item.providesCode(code);
+        if (item.canProvideCode(code)) {
+            _luaCodesStack.emplace_back(code);
+            res += item.providesCode(code);
+            _luaCodesStack.pop_back();
+        }
     }
 
-    _providerCountCache[code] = res;
+    if (!_indirectlyConnectedLuaCodes.count(code))
+        _providerCountCache[code] = res;
     return res;
 }
 
