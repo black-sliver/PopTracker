@@ -110,6 +110,11 @@ namespace fs {
         {
             return boost::filesystem::path::parent_path();
         }
+
+        path filename() const
+        {
+            return boost::filesystem::path::filename();
+        }
     };
 
     inline path operator/(path lhs, boost::filesystem::path const& rhs)
