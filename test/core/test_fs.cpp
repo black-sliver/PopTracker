@@ -1,3 +1,4 @@
+#include <type_traits>
 #include <gtest/gtest.h>
 #include "../../src/core/fs.h"
 
@@ -75,6 +76,13 @@ TEST(FsTest, IdenticalSubPath) {
 
 TEST(FsTest, MissingSubPath) {
     EXPECT_FALSE(fs::is_sub_path(fs::path("missing") / "file", "missing"));
+}
+
+TEST(FsPath, Filename) {
+    // ReSharper disable once CppUseTypeTraitAlias
+    static_assert(std::is_same<std::decay_t<decltype(fs::path{}.filename())>, fs::path>::value,
+                  "fs::path::filename does not return fs::path");
+    EXPECT_EQ((fs::path("assets") / "icon.png").filename().u8string(), "icon.png");
 }
 
 TEST(FsTest, AppPath) {
