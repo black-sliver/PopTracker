@@ -1,7 +1,7 @@
-#ifndef _UILIB_SIMPLECONTAINER_H
-#define _UILIB_SIMPLECONTAINER_H
+#pragma once
 
 #include "container.h"
+
 
 namespace Ui {
 
@@ -12,7 +12,7 @@ public:
         : Container(x,y,w,h)
     {}
 
-    virtual void setSize(Size size) override
+    void setSize(Size size) override
     {
         if (size == _size) return;
         Container::setSize(size);
@@ -30,7 +30,8 @@ public:
             break; // only the first child for now; TODO: only container-sized widgets?
         }
     }
-    virtual void addChild(Widget* child) override
+
+    void addChild(Widget* child) override
     {
         if (!child) return;
         Container::addChild(child);
@@ -39,7 +40,8 @@ public:
         if (fireMin) onMinSizeChanged.emit(this);
         if (fireMax) onMaxSizeChanged.emit(this);
     }
-    virtual void removeChild(Widget* child) override
+
+    void removeChild(Widget* child) override
     {
         if (!child) return;
         Container::removeChild(child);
@@ -74,7 +76,7 @@ public:
         }
         return res;
     }
-    
+
     Signal<> onMinSizeChanged; // TODO: make split between simplecontainer and container more logical
     Signal<> onMaxSizeChanged;
 
@@ -88,6 +90,7 @@ private:
         if (minh>_minSize.height) _minSize.height = minh;
         return (old != _minSize);
     }
+
     bool calculateMaxSize(Widget* child)
     {
         int maxw = child->getMaxWidth();
@@ -104,5 +107,3 @@ private:
 };
 
 } // namespace
-
-#endif // _UILIB_SIMPLECONTAINER_H
