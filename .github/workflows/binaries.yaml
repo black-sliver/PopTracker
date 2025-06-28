@@ -50,7 +50,12 @@ jobs:
     steps:
     - name: Set env
       shell: bash
-      run: echo "ARCH=`uname -m`" >> $GITHUB_ENV
+      run: |
+        OS=`uname -s | tr A-Z a-z`
+        ARCH=`uname -m`
+        echo "OS=$OS" >> $GITHUB_ENV
+        echo "ARCH=$ARCH" >> $GITHUB_ENV
+        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       run: |
         sudo apt-get update -y -qq
@@ -64,8 +69,10 @@ jobs:
       run: make test CONF=RELEASE
     - name: Get version
       run: |
-        echo "POP_VERSION=`./build/linux-${{ env.ARCH }}/poptracker --version`" >> $GITHUB_ENV
-        echo "POP_NAME=poptracker_`./build/linux-${{ env.ARCH }}/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
+        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
+        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
+        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
     - name: Build DIST # this builds a release ZIP, maybe .deb in the future
       run: make CONF=DIST
     - name: Attest Build and Archive
@@ -73,7 +80,7 @@ jobs:
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          build/linux-${{ env.ARCH }}/poptracker
+          build/${{ env.UNAME }}/poptracker
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v7.0.0
@@ -88,7 +95,12 @@ jobs:
     steps:
     - name: Set env
       shell: bash
-      run: echo "ARCH=`uname -m`" >> $GITHUB_ENV
+      run: |
+        OS=`uname -s | tr A-Z a-z`
+        ARCH=`uname -m`
+        echo "OS=$OS" >> $GITHUB_ENV
+        echo "ARCH=$ARCH" >> $GITHUB_ENV
+        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       run: |
         sudo apt-get update -y -qq
@@ -151,7 +163,7 @@ jobs:
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          appimage-build/linux-x86_64/poptracker
+          appimage-build/${{ env.UNAME }}/poptracker
           *.AppImage*
     - name: Store AppImage
       uses: actions/upload-artifact@v7.0.0
@@ -164,6 +176,14 @@ jobs:
     runs-on: macos-15-intel
     
     steps:
+    - name: Set env
+      shell: bash
+      run: |
+        OS=darwin
+        ARCH=x86_64
+        echo "OS=$OS" >> $GITHUB_ENV
+        echo "ARCH=$ARCH" >> $GITHUB_ENV
+        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake libtool autoconf googletest || true
@@ -183,14 +203,16 @@ jobs:
       run: make test CONF=RELEASE
     - name: Get version
       run: |
-        echo "POP_VERSION=`./build/darwin-x86_64/poptracker --version`" >> $GITHUB_ENV
-        echo "POP_NAME=poptracker_`./build/darwin-x86_64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV 
+        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
+        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
+        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
+        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: make CONF=DIST
     - name: Check DIST
       run: |
-        du -sh ./build/darwin-x86_64/poptracker.app
-        cd ./build/darwin-x86_64/poptracker.app/Contents/MacOS
+        du -sh ./build/${{ env.UNAME }}/poptracker.app
+        cd ./build/${{ env.UNAME }}/poptracker.app/Contents/MacOS
         otool -L ./poptracker
         ./poptracker --version
         ./poptracker --list-packs
@@ -199,7 +221,7 @@ jobs:
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
+          build/${{ env.UNAME }}/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Store ZIP/DMG
       uses: actions/upload-artifact@v7.0.0
@@ -212,6 +234,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
+    - name: Set env
+      shell: bash
+      run: |
+        echo "UNAME=win64" >> $GITHUB_ENV
     - uses: msys2/setup-msys2@4f806de0a5a7294ffabaff804b38a9b435a73bda  # v2.30.0
       with:
         update: true
@@ -260,8 +286,10 @@ jobs:
     - name: Get version
       shell: msys2 {0}
       run: |
-        echo "POP_VERSION=`./build/win64/poptracker --version`" >> $GITHUB_ENV
-        echo "POP_NAME=poptracker_`./build/win64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
+        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
+        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
+        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
     - name: Download Updater
       shell: msys2 {0}
       env:
@@ -282,7 +310,7 @@ jobs:
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          build/win64/poptracker.exe
+          build/${{ env.UNAME }}/poptracker.exe
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v7.0.0
@@ -295,14 +323,14 @@ jobs:
       run: |
         make clean
         make native CONF=DEBUG -j4
-        7z a -mx=9 dist/poptracker-win64-debug.zip build/win64/poptracker.exe
+        7z a -mx=9 dist/poptracker-${{ env.UNAME }}-debug.zip build/${{ env.UNAME }}/poptracker.exe
     - name: Attest Debug Build and Archive
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          build/win64/poptracker.exe
-          dist/poptracker-win64-debug.zip
+          build/${{ env.UNAME }}/poptracker.exe
+          dist/poptracker-${{ env.UNAME }}-debug.zip
     - name: Store DEBUG
       uses: actions/upload-artifact@v7.0.0
       with:

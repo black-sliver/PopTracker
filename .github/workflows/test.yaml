@@ -41,9 +41,9 @@ jobs:
           - os: windows-latest
             shell: msys2 {0}
             extra_make_args: ''
-          - os:  windows-11-arm
-            shell: msys2 {0}
-            extra_make_args: ''
+          #- os:  windows-11-arm  # platform detection in Makefile doesn't work currently
+          #  shell: msys2 {0}
+          #  extra_make_args: ''
           - os: macos-15-intel
             shell: bash
             # we now require 10.15 by default, but 10.13 should work with an extra dependency
