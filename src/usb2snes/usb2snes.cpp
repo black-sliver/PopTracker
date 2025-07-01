@@ -580,8 +580,8 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
                 if (offs < 0x2000)
                     // WRAM
                     return 0xf50000 + offs;
-                break; // unmapped or SA-1 registers
             }
+            break; // unmapped or SA-1 registers
 
         case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
             return addr&0x3ffff; // NOTE: this can not access SRAM
