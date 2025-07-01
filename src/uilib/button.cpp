@@ -86,7 +86,7 @@ void Button::render(Renderer renderer, int offX, int offY)
     int h = _iconSize.height;
     int x = _padding + (ICON_SIZE - w)/2;
     int y = (_autoSize.height - h)/2;
-    SDL_Rect dest = {.x = offX + _pos.left + x, .y = offY + _pos.top + y, .w = w, .h = h};
+    SDL_Rect dest = {offX + _pos.left + x, offY + _pos.top + y, w, h};
     SDL_RenderCopy(renderer, _iconTex, NULL, &dest);
 
     _autoSize.width -= 2*_padding;
