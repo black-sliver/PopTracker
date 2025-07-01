@@ -190,7 +190,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     }
 
     std::string id = origItem.getID();
-    w->onClick += {this, [this,id] (void *s, int x, int y, int btn) {
+    w->onClick += {this, [this,id] (void*, int, int, int btn) {
         printf("Item %s: \"%s\" clicked w/ btn %d!\n",
             id.c_str(), sanitize_print(_tracker->getItemById(id).getName()).c_str(), btn);
         if (btn == BUTTON_LEFT) {
@@ -206,13 +206,13 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         }
     }};
     if (!id.empty() && !origItem.getName().empty()) { // skip hover for non-item items
-        w->onMouseEnter += {this, [this,id] (void *s, int x, int y, unsigned btns) {
+        w->onMouseEnter += {this, [this,id] (void*, int, int, unsigned) {
             onItemHover.emit(this, id);
             _tooltipItem = id;
             _tooltipTimer = getTicks();
             _tooltipTriggered = false;
         }};
-        w->onMouseLeave += {this, [this] (void *s) {
+        w->onMouseLeave += {this, [this] (void*) {
             onItemHover.emit(this, "");
             _tooltipItem = "";
             if (_tooltipTriggered) {
@@ -253,20 +253,20 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
         if (itScaling != settings.end() && itScaling.value().is_boolean())
             _defaultMapQuality = itScaling.value() ? 2 : 0;
     }
-    _tracker->onLayoutChanged += {this, [this](void *s, const std::string& layout) {
+    _tracker->onLayoutChanged += {this, [this](void*, const std::string& layout) {
         updateLayout(layout);
     }};
-    _tracker->onStateChanged += {this, [this](void *s, const std::string& check) {
+    _tracker->onStateChanged += {this, [this](void*, const std::string& check) {
         updateState(check);
     }};
-    _tracker->onDisplayChanged += {this, [this](void *s, const std::string& check) {
+    _tracker->onDisplayChanged += {this, [this](void*, const std::string& check) {
         updateDisplay(check);
     }};
-    _tracker->onBulkUpdateDone += { this, [this](void *s) {
+    _tracker->onBulkUpdateDone += { this, [this](void*) {
         if (_tracker->allowDeferredLogicUpdate())
             updateLocations();
     }};
-    _tracker->onLocationSectionChanged += {this, [this](void *s, const LocationSection& sec) {
+    _tracker->onLocationSectionChanged += {this, [this](void*, const LocationSection& sec) {
         if (_tracker->isBulkUpdate() && _tracker->allowDeferredLogicUpdate())
             return; // will update on bulk update done
         updateLocation(sec.getParentID());
@@ -398,7 +398,7 @@ void TrackerView::updateLayout(const std::string& layout)
     _relayoutRequired = true;
     
     // record "missed" hints during update to replay them later
-    _tracker->onUiHint += { this, [this] (void* s, const std::string& name, const std::string& value) {
+    _tracker->onUiHint += { this, [this] (void*, const std::string& name, const std::string& value) {
         _missedHints.push_back({name,value});
     }};
 }
@@ -712,7 +712,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         }
         container->addChild(w);
         _tabs.push_back(w);
-        _tracker->onUiHint += { this, [this,w](void* s, const std::string& name, const std::string& value) {
+        _tracker->onUiHint += { this, [w](void*, const std::string& name, const std::string& value) {
             if (name == "ActivateTab") {
                 w->setActiveTab(value);
             } else if (name =="reset") {
@@ -926,7 +926,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 _hoverChild = _mapTooltip;
                 map->onMouseLeave.emit(sender);
                 
-                _mapTooltip->onMouseLeave += { this, [this](void* sender) {
+                _mapTooltip->onMouseLeave += { this, [this](void*) {
                     if (_mapTooltip) {
                         _mapTooltipScrollOffsets[_mapTooltipName] = _mapTooltip->getScrollY();
                         _mapTooltipOwner = nullptr;
@@ -940,7 +940,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         }
                     }
                 }};
-                _mapTooltip->onClick += { this, [this](void* sender, int x, int y, int btn) {
+                _mapTooltip->onClick += { this, [this](void*, int x, int y, int btn) {
                     if (!_mapTooltip) return;
                     // right click in a corner or on the first label clears all checks
                     if (btn != MouseButton::BUTTON_RIGHT) return;

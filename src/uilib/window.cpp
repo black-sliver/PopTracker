@@ -182,7 +182,7 @@ Position Window::getPlacementPosition() const
     int offX=0, offY=0;
     SDL_GetWindowPosition(_win, &pos.left, &pos.top);
     
-    SDL_SysWMinfo wminfo = {0};
+    SDL_SysWMinfo wminfo = {};
     SDL_VERSION(&wminfo.version);
     if (SDL_GetWindowWMInfo(_win, &wminfo) && wminfo.subsystem == SDL_SYSWM_X11) {
         SDL_GetWindowBordersSize(_win, &offY, &offX, nullptr, nullptr);
@@ -221,7 +221,7 @@ std::string Window::getDisplayName() const
 
 Position Window::getPositionOnDisplay() const
 {
-    SDL_Rect rect = {0};
+    SDL_Rect rect = {};
     SDL_GetDisplayBounds(getDisplay(), &rect);
     auto pos = getPosition();
     return { pos.left - rect.x, pos.top - rect.y };

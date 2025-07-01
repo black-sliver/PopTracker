@@ -158,7 +158,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
                 if (sec.getClearAsGroup()) {
                     // override onClick to clear everything
                     w->onClick.clear();
-                    w->onClick += {w, [tracker, name, ogName, locid](void*, int x, int y, int btn) {
+                    w->onClick += {w, [tracker, name, ogName, locid](void*, int, int, int btn) {
                         auto& loc = tracker->getLocation(locid);
                         for (auto& ogSec: loc.getSections()) {
                             if (ogSec.getName() != ogName)
@@ -243,7 +243,7 @@ Item* MapTooltip::MakeLocationIcon(int x, int y, int width, int height, FONT fon
     }
 
     auto name = sec.getName(); // TODO: id instead of name
-    w->onClick += {w, [w,locid,name,compact,tracker](void*,int x, int y, int btn) {
+    w->onClick += {w, [w,locid,name,compact,tracker](void*, int, int, int btn) {
         if (!compact && btn == BUTTON_RIGHT && w->getStage1()<1)
             return;
         if (!compact && btn != BUTTON_RIGHT && w->getStage1()>0)

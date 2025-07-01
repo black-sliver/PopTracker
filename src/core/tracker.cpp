@@ -315,11 +315,11 @@ bool Tracker::AddItems(const std::string& file) {
                 }
             };
             if (o.type == Object::RT::JsonItem) {
-                o.jsonItem->onChange += {this, [update](void* sender) {
+                o.jsonItem->onChange += {this, [update](void*) {
                     update();
                 }};
             } else if (o.type == Object::RT::LuaItem) {
-                o.luaItem->onChange += {this, [update](void* sender) {
+                o.luaItem->onChange += {this, [update](void*) {
                     update();
                 }};
             } else {
@@ -336,7 +336,7 @@ bool Tracker::AddItems(const std::string& file) {
                 auto it = _missingBaseItemConnection.find(JsonItem::toLower(code));
                 if (it != _missingBaseItemConnection.end()) {
                     for (const auto& targetId: it->second) {
-                        item.onChange += {this, [this, targetId](void* sender) {
+                        item.onChange += {this, [this, targetId](void*) {
                             for (auto& i : _jsonItems) {
                                 if (i.getID() == targetId) {
                                     i.onChange.emit(&i);
@@ -1051,7 +1051,7 @@ AccessibilityLevel Tracker::resolveRules(
                AccessibilityLevel::NONE;
 }
 
-AccessibilityLevel Tracker::isReachable(const Location& location, const LocationSection& section)
+AccessibilityLevel Tracker::isReachable(const Location&, const LocationSection& section)
 {
     cacheAccessibility();
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
@@ -1059,7 +1059,7 @@ AccessibilityLevel Tracker::isReachable(const Location& location, const Location
     return _accessibilityCache[id];
 }
 
-bool Tracker::isVisible(const Location& location, const LocationSection& section)
+bool Tracker::isVisible(const Location&, const LocationSection& section)
 {
     const LocationSection& realSection = section.getRef().empty() ? section : getLocationSection(section.getRef());
     std::string id = realSection.getFullID();

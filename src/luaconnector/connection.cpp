@@ -140,9 +140,10 @@ void Connection::ReadHeaderAsync()
 {
     try {
         asio::async_read(_socket, asio::buffer(&_msgTemporaryIn.header, sizeof(MessageHeader)),
-            [this](std::error_code ec, std::size_t length)
+            [this](std::error_code ec, const std::size_t length)
             {
-                if (!ec) {
+                // TODO: handle length < sizeof(MessageHeader)
+                if (!ec && length == sizeof(MessageHeader)) {
                     // use network byte order
                     _msgTemporaryIn.header.size = ntohl(_msgTemporaryIn.header.size);
 
@@ -172,10 +173,12 @@ void Connection::ReadHeaderAsync()
 void Connection::ReadBodyAsync()
 {
     try {
-        asio::async_read(_socket, asio::buffer(_msgTemporaryIn.body.data(), _msgTemporaryIn.header.size),
-            [this](std::error_code ec, std::size_t length)
+        const size_t dataLength = _msgTemporaryIn.header.size;
+        asio::async_read(_socket, asio::buffer(_msgTemporaryIn.body.data(), dataLength),
+            [this, dataLength](std::error_code ec, const std::size_t length)
             {
-                if (!ec) {
+                // TODO: handle length < dataLength
+                if (!ec && length == dataLength) {
                     AddToIncomingMessageQueue();
                 }
                 else {
@@ -194,10 +197,11 @@ void Connection::WriteHeaderAsync()
 {
     try {
         asio::async_write(_socket, asio::buffer(&_qMessagesOut.front().header, sizeof(MessageHeader)),
-            [this](std::error_code ec, std::size_t length)
+            [this](std::error_code ec, std::size_t written)
             {
-                if (!ec) {
-                    if (_qMessagesOut.front().body.size() > 0) {
+                // TODO: handle written < sizeof(MessageHeader)
+                if (!ec && written == sizeof(MessageHeader)) {
+                    if (!_qMessagesOut.front().body.empty()) {
                         WriteBodyAsync();
                     }
                     else {
@@ -223,10 +227,12 @@ void Connection::WriteHeaderAsync()
 void Connection::WriteBodyAsync()
 {
     try {
-        asio::async_write(_socket, asio::buffer(_qMessagesOut.front().body.data(), _qMessagesOut.front().body.size()),
-            [this](std::error_code ec, std::size_t length)
+        const size_t dataLength = _qMessagesOut.front().body.size();
+        asio::async_write(_socket, asio::buffer(_qMessagesOut.front().body.data(), dataLength),
+            [this, dataLength](std::error_code ec, const std::size_t written)
             {
-                if (!ec) {
+                // TODO: handle written < dataLen
+                if (!ec && written == dataLength) {
                     bool isNowEmpty = _qMessagesOut.remove_front();
 
                     if (!isNowEmpty) {

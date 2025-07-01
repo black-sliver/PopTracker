@@ -60,7 +60,7 @@ public:
         onChange.emit(this);
     }
 
-    bool setState(int state, int stage=-1) override
+    bool setState([[maybe_unused]] int state, [[maybe_unused]] int stage=-1) override
     {
         return false; // TODO: implement this?
     }

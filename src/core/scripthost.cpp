@@ -69,7 +69,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
             }
         }
     }};
-    _autoTracker->onDataChange += {this, [this](void* sender) {
+    _autoTracker->onDataChange += {this, [this](void*) {
         DEBUG_printf("AutoTracker: Data changed!\n");
         for (size_t i=0; i<_memoryWatches.size(); i++) {
             // NOTE: since watches can change in a callback, we use vector
@@ -122,7 +122,7 @@ ScriptHost::ScriptHost(Pack* pack, lua_State *L, Tracker *tracker)
     _autoTracker->Lua_Push(_L);
     lua_setglobal(_L, "AutoTracker");
     
-    _tracker->onStateChanged += { this, [this](void* s, const std::string& id) {
+    _tracker->onStateChanged += { this, [this](void*, const std::string& id) {
         const auto& item = _tracker->getItemById(id);
         for (size_t i=0; i<_codeWatches.size(); i++) {
             // NOTE: since watches can change in a callback, we use vector
@@ -237,7 +237,7 @@ std::string ScriptHost::AddMemoryWatch(const std::string& name, unsigned int add
     RemoveMemoryWatch(name);
     
     if (!callback.valid()) return ""; // TODO: somehow return nil instead
-    if (addr<0 || len<1) {
+    if (len<1) {
         luaL_unref(_L, LUA_REGISTRYINDEX, callback.ref);
         return ""; // TODO: somehow return nil instead
     }
@@ -659,13 +659,13 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
 
     _thread = std::thread(
         [this, script, name]() {
-            static const char this_key = 'k';
+            static constexpr char this_key = 'k';
 
             // hook to be able to check the _stop flag
-            auto hook = [](lua_State *L, lua_Debug *ar) {
-                lua_pushlightuserdata(L, (void *)&this_key); // static address value as key
+            auto hook = [](lua_State *L, lua_Debug*) {
+                lua_pushlightuserdata(L, const_cast<char*>(&this_key)); // static address value as key
                 lua_gettable(L, LUA_REGISTRYINDEX);  // retrieve stored this
-                ScriptHost::ThreadContext* self = static_cast<ScriptHost::ThreadContext*>(
+                const auto* self = static_cast<ScriptHost::ThreadContext*>(
                     lua_touserdata(L, -1)
                 );
                 lua_pop(L, 1);
