@@ -50,7 +50,7 @@ public:
             LocationSection *section;
             Location *location;
         };
-        Object (std::nullptr_t val) : type(RT::NIL) {}
+        Object (std::nullptr_t) : type(RT::NIL), jsonItem(nullptr) {}
         Object (JsonItem *val) : type(RT::JsonItem), jsonItem(val) {}
         Object (LuaItem *val) : type(RT::LuaItem), luaItem(val) {}
         Object (LocationSection *val) : type(RT::Section), section(val) {}

@@ -14,7 +14,7 @@ static T* getFromVector(const std::vector<T*>& vec, int index)
         // positive index = Nth from front
         return vec[index];
     }
-    if (index < 0 && likely(std::abs(index) <= vec.size())) {
+    if (index < 0 && likely(static_cast<size_t>(std::abs(index)) <= vec.size())) {
         // negative index = Nth from back
         return vec[vec.size() + index];
     }
@@ -60,7 +60,7 @@ void Tabs::addChild(Widget* w)
         _hGrow = w->getHGrow();
     Button* btn = new Button(0,0,0,0,_font,"Tab");
     btn->setSize(btn->getMinSize());
-    btn->onClick += {this, [this](void* sender,int x, int y, int btn) {
+    btn->onClick += {this, [this](void* sender,int, int, int) {
         if ((void*)_tabButton == sender)
             return; // already selected
         int n=0;

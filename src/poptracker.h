@@ -70,7 +70,7 @@ private:
     void loadState(const fs::path& filename);
     void showBroadcast();
     
-    void updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets);
+    void updateAvailable(const std::string& version, const std::string& url);
     static bool isNewer(const Version& v);
 
     const fs::path& getPackInstallDir() const;

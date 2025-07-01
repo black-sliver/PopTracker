@@ -158,7 +158,7 @@ LuaPackIO::File::~File()
     close();
 }
 
-void LuaPackIO::File::Lua_GC(lua_State* L)
+void LuaPackIO::File::Lua_GC(lua_State*)
 {
     delete this;
 }
@@ -300,7 +300,7 @@ int LuaPackIO::File::read(lua_State* L, int n)
     return res;
 }
 
-int LuaPackIO::File::write(lua_State* L, int n)
+int LuaPackIO::File::write(lua_State* L, int)
 {
     if (!_open) {
         luaL_error(L, "attempt to use a closed file");

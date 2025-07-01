@@ -29,7 +29,7 @@ int Location::Lua_Index(lua_State *L, const char *key)
     return 0;
 }
 
-bool Location::Lua_NewIndex(lua_State *L, const char *key)
+bool Location::Lua_NewIndex([[maybe_unused]] lua_State *L, [[maybe_unused]] const char *key)
 {
     return false;
 }

@@ -38,7 +38,7 @@ public:
             int apIndex = _lastBackendIndex;
             _backendIndex[_ap] = apIndex;
             _state.push_back(State::Disabled);
-            _ap->onError += {this, [this, apIndex](void* sender, const std::string& msg) {
+            _ap->onError += {this, [this, apIndex](void*, const std::string& msg) {
                 if (_state[apIndex] != State::Disabled && _state[apIndex] != State::Disconnected) {
                     _state[apIndex] = State::Disconnected;
                     onStateChange.emit(this, apIndex, _state[apIndex]);
@@ -47,7 +47,7 @@ public:
                     onError.emit(this, "AP: " + msg);
                 }
             }};
-            _ap->onStateChanged += {this, [this, apIndex](void* sender, auto state) {
+            _ap->onStateChanged += {this, [this, apIndex](void*, auto state) {
                 State newstate =
                         state == APClient::State::SLOT_CONNECTED ? State::ConsoleConnected :
                         state == APClient::State::ROOM_INFO ? State::BridgeConnected :
@@ -57,7 +57,7 @@ public:
                     onStateChange.emit(this, apIndex, _state[apIndex]);
                 }
             }};
-            _ap->onRoomUpdate += {this, [this, apIndex](void* sender) {
+            _ap->onRoomUpdate += {this, [this, apIndex](void*) {
                 auto newAlias = _ap->getPlayerAlias(_ap->getPlayerNumber());
                 if (_apAlias != newAlias) {
                     _apAlias = newAlias;
@@ -343,12 +343,11 @@ public:
     
     bool addWatch(unsigned addr, unsigned len)
     {
-        if (len<0) return false;
         if (addr<=0xffffff && _snes) {
             _snes->addWatch((uint32_t)addr, len);
             return true;
         }
-        else if (_provider) {
+        if (_provider) {
             _provider->addWatch((uint32_t)addr, len);
             return true;
         }
@@ -357,12 +356,11 @@ public:
 
     bool removeWatch(unsigned addr, unsigned len)
     {
-        if (len<0) return false;
         if (addr<=0xffffff && _snes) {
             _snes->removeWatch((uint32_t)addr, len);
             return true;
         }
-        else if (_provider) {
+        if (_provider) {
             _provider->removeWatch((uint32_t)addr, len);
             return true;
         }
@@ -392,20 +390,15 @@ public:
     {
         std::vector<uint8_t> res;
         if (_snes) {
-            uint8_t buf[len];
-            _snes->read((uint32_t)addr, len, buf);
-            for (size_t i=0; i<len; i++)
-                res.push_back(buf[i]);
-        }
-        if (_provider) {
-            uint8_t buf[len];
-            _provider->readFromCache(buf, (uint32_t)addr, len);
-            for (size_t i = 0; i < len; i++)
-                res.push_back(buf[i]);
+            res.resize(len);
+            _snes->read((uint32_t)addr, len, res.data());
+        } else if (_provider) {
+            res.resize(len);
+            _provider->readFromCache(res.data(), (uint32_t)addr, len);
         }
         return res;
     }
-    
+
     int ReadU8(int segment, int offset=0)
     {
         if (_provider) {

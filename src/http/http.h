@@ -74,7 +74,7 @@ public:
 
         int res = -1;
         if (!GetAsync(io_context, uri, headers, [&response, &res, headers, redirect_limit]
-                (int code, const std::string& r, HTTP::Headers h)
+                (const int code, const std::string& r, const Headers&)
         {
             if (code == REDIRECT && redirect_limit != 0) {
                 // NOTE: 302 puts location into r to make life easier
@@ -355,20 +355,22 @@ private:
         template<typename AsyncWriteStream>
         void send_request(AsyncWriteStream& socket_)
         {
-            asio::async_write(socket_,
-            asio::buffer(request.data(), request.length()),
-                    [this, &socket_](const asio::error_code& error, std::size_t length)
-            {
-                if (!error)
+            size_t requestLength = request.length();
+            asio::async_write(
+                socket_,
+                asio::buffer(request.data(), requestLength),
+                [this, requestLength, &socket_](const asio::error_code& error, std::size_t written)
                 {
-                    receive_response(socket_);
+                    // TODO: handle written < requestLength
+                    if (!error && written == requestLength) {
+                        receive_response(socket_);
+                    } else {
+                        std::cout << "HTTP: Write failed: " << error.message() << "\n";
+                        if (fail_handler)
+                            fail_handler();
+                    }
                 }
-                else
-                {
-                    std::cout << "HTTP: Write failed: " << error.message() << "\n";
-                    if (fail_handler) fail_handler();
-                }
-            });
+            );
         }
 
         template<typename AsyncWriteStream>

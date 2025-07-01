@@ -15,7 +15,7 @@ LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore)
     _smallFont = _fontStore->getFont(DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE - 2);
     if (_font && !_smallFont) _smallFont = _font;
     
-    onClick += {this, [this](void *s, int x, int y, int button) {
+    onClick += {this, [this](void*, int, int, int button) {
         if (button == MouseButton::BUTTON_RIGHT) {
             setVisible(false); // TODO: fire onAbort ?
         }
@@ -62,7 +62,7 @@ void LoadPackWidget::update()
         lbl->setBackground(PACK_BG_DEFAULT);
         _packs->addChild(lbl);
 
-        lbl->onMouseEnter += {this,[this,pack](void* s, int x, int y, unsigned buttons) {
+        lbl->onMouseEnter += {this,[this,pack](void* s, int, int, unsigned) {
             if (_curPackHover != s) {
                 if (_curPackHover == _curPackLabel && _disableHoverSelect)
                     _curPackHover->setBackground(PACK_BG_ACTIVE);
@@ -97,13 +97,13 @@ void LoadPackWidget::update()
                     _curVariantLabel = nullptr;
                 }};
                 auto path = pack.path;
-                lbl->onMouseEnter += {this,[this](void *s, int x, int y, unsigned buttons) {
+                lbl->onMouseEnter += {this,[this](void *s, int, int, unsigned) {
                     if (!s || s==_curVariantLabel) return;
                     if (_curVariantLabel) _curVariantLabel->onMouseLeave.emit(_curVariantLabel);
                     _curVariantLabel = (Label*)s;
                     _curVariantLabel->setBackground(VARIANT_BG_HOVER);
                 }};
-                lbl->onClick += {this,[this,path,variant](void *s, int x, int y, int button) {
+                lbl->onClick += {this,[this,path,variant](void*, int, int, int button) {
                     if (button == MouseButton::BUTTON_LEFT) {
                         onPackSelected.emit(this,path,variant.variant);
                     }
@@ -126,7 +126,7 @@ void LoadPackWidget::update()
         }};
     }
 
-    _packs->onMouseLeave += {this, [this](void* s) {
+    _packs->onMouseLeave += {this, [this](void*) {
         if (_disableHoverSelect && _curPackHover) {
             if (_curPackHover == _curPackLabel) {
                 _curPackHover->setBackground(PACK_BG_ACTIVE);

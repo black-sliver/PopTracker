@@ -35,7 +35,7 @@ void SettingsWindow::setTracker(Tracker* tracker)
                 } else {
                     showTooltip(text);
                     _tooltipItemId = itemid;
-                    item.onChange += {this, [this, tracker, itemid](void* sender) {
+                    item.onChange += {this, [this, tracker, itemid](void*) {
                         const auto& item = tracker->getItemById(itemid);
                         const auto& text = (item.getBaseItem().empty() || item.getState()) ?
                             item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();

@@ -172,7 +172,7 @@ void UATClient::on_message(websocketpp::connection_hdl hdl, WSClient::message_pt
     if (!vars.empty() && _onVar) _onVar(vars);
 }
 
-void UATClient::on_open(websocketpp::connection_hdl hdl)
+void UATClient::on_open(websocketpp::connection_hdl)
 {
     log("open");
     if (_state == State::CONNECTING) {
@@ -180,14 +180,14 @@ void UATClient::on_open(websocketpp::connection_hdl hdl)
     }
 }
 
-void UATClient::on_close(websocketpp::connection_hdl hdl)
+void UATClient::on_close(websocketpp::connection_hdl)
 {
     log("close");
     _state = State::DISCONNECTED;
     _conn = nullptr;
 }
 
-void UATClient::on_fail(websocketpp::connection_hdl hdl)
+void UATClient::on_fail(websocketpp::connection_hdl)
 {
 #ifndef MINIMAL_LOGGING
     log("connect failed");

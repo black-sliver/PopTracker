@@ -309,7 +309,7 @@ USB2SNES::USB2SNES(const std::string& name)
         client.send(hdl,jGETVERSION.dump(),websocketpp::frame::opcode::text);
     });
     
-    client.set_fail_handler([this] (websocketpp::connection_hdl hdl)
+    client.set_fail_handler([this] (websocketpp::connection_hdl)
     {
         std::lock_guard<std::mutex> lock(workmutex);
 #ifdef VERBOSE // will generate an error in websocket's logging facility anyway
@@ -496,7 +496,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             if ((addr>>16) >= 0x20 && (addr>>16) <= 0x3f && (addr&0xffff) >= 0x6000 && (addr&0xffff) <= 0x7fff)
                 return 0xe00000 + ((addr>>16)-0x20) * 0x2000 + (addr&0xffff)-0x6000;
             // WRAM in lower banks
-            if (addr>=0x000000 && addr<=0x3fffff && (addr&0xffff) < 0x2000)
+            if (/*addr>=0x000000 && */addr<=0x3fffff && (addr&0xffff) < 0x2000)
                 return 0xf50000 + (addr&0x1fff);
             // ROM
             return addr & 0x3fffff;
@@ -528,7 +528,7 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             // ROM2
             if (addr>=0x400000 && addr<0x7e0000)
                 return 0x400000 + (addr & 0x3ffff);
-            if (addr>=0x000000 && addr<=0x3fffff && (addr&0x8000))
+            if (/*addr>=0x000000 && */addr<=0x3fffff && (addr&0x8000))
                 return 0x400000 + (addr & 0x3f7fff); // this may be wrong
             // SRAM
             if (addr>=0xa00000 && addr<=0xbfffff && (addr&0x7fff)>=0x6000)
@@ -561,12 +561,12 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
                 break; // unmapped?
             }
             if (addr>=0x440000) {
-		// BW-RAM image dynamically selects a single $2000 sized block
-		return 0xe00000 + (addr & 0x1FFF);
+                // BW-RAM image dynamically selects a single $2000 sized block
+                return 0xe00000 + (addr & 0x1FFF);
             }
             if (addr>=0x400000) {
-		// BW-RAM area: linearly mapped
-		return 0xe00000 + addr - 0x400000;
+                // BW-RAM area: linearly mapped
+                return 0xe00000 + addr - 0x400000;
             }
             // MIXED slow
             if (addr<0x400000) {
@@ -585,7 +585,6 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
 
         case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
             return addr&0x3ffff; // NOTE: this can not access SRAM
-            break;
     }
 
     // unmapped
