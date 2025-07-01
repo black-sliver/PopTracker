@@ -5,6 +5,7 @@
 
 #if defined WIN32 || defined _WIN32
 
+#include <utility>
 #include <windows.h>
 
 void EnableVisualStyles(void)
@@ -124,9 +125,9 @@ int main(int argc, char** argv)
 #if defined WIN32 || defined _WIN32
     // enable stdout on windows
     if (!noConsole && (AttachConsole(ATTACH_PARENT_PROCESS) || (openConsole && AllocConsole()))) {
-        freopen("CONOUT$", "w", stdout);
+        std::ignore = freopen("CONOUT$", "w", stdout);
         setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
-        freopen("CONOUT$", "w", stderr);
+        std::ignore = freopen("CONOUT$", "w", stderr);
         setvbuf(stderr, NULL, _IONBF, 0);
     }
     EnableVisualStyles();
