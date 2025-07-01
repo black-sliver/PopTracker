@@ -178,9 +178,10 @@ LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),4)
 COMMON_WARNING_FLAGS = \
 	-Wall -Wextra -Werror # -Wshadow -Wconversion
 C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
-LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -D_REENTRANT -x c++ # we actually use C++ for Lua now
+LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow \
+	-D_REENTRANT -x c++ # we actually use C++ for Lua now
 CPP_FLAGS = $(COMMON_WARNING_FLAGS) -Wpedantic \
-	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -Wno-c++20-extensions \
+	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations \
 	-Wno-null-pointer-subtraction -Wno-shift-count-overflow  # TODO: fix those
 ifeq ($(CONF), DEBUG) # DEBUG
   C_FLAGS += -Og -g -fno-omit-frame-pointer -fstack-protector-strong -fstack-clash-protection -fno-common -ftrapv
@@ -208,6 +209,14 @@ else # RELEASE or DIST
     CPP_FLAGS += -fstack-protector-strong -fstack-clash-protection -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=$(LTO_JOBS) -pthread
     LD_FLAGS = -Wl,--gc-sections -fstack-protector-strong -fstack-clash-protection -O2 -s -flto=$(LTO_JOBS) -pthread
   endif
+endif
+
+ifdef IS_LLVM
+LUA_C_FLAGS += -Wno-error=unused-command-line-argument
+CPP_FLAGS += -Wno-error=unused-command-line-argument
+LD_FLAGS += -Wno-error=unused-command-line-argument
+else
+LUA_C_FLAGS += -Wno-error=maybe-uninitialized
 endif
 
 ifdef WITH_ASAN
