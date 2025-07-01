@@ -178,7 +178,7 @@ LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),4)
 COMMON_WARNING_FLAGS = \
 	-Wall -Wextra -Werror # -Wshadow -Wconversion
 C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
-LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -D_REENTRANT  # we actually use C++ for lua now
+LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -D_REENTRANT -x c++ # we actually use C++ for Lua now
 CPP_FLAGS = $(COMMON_WARNING_FLAGS) -Wpedantic \
 	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations -Wno-c++20-extensions \
 	-Wno-null-pointer-subtraction -Wno-shift-count-overflow  # TODO: fix those
