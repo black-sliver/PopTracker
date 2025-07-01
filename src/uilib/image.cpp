@@ -137,14 +137,14 @@ void Image::render(Renderer renderer, int offX, int offY)
             finalw = _size.width;
         }
         SDL_Rect dest = {
-            .x = offX+_pos.left + (_size.width-finalw+1)/2,
-            .y = offY+_pos.top  + (_size.height-finalh+1)/2,
-            .w = finalw,
-            .h = finalh
+            offX+_pos.left + (_size.width-finalw+1)/2,
+            offY+_pos.top  + (_size.height-finalh+1)/2,
+            finalw,
+            finalh
         };
         SDL_RenderCopy(renderer, tex, NULL, &dest);
     } else {
-        SDL_Rect dest = {.x = offX+_pos.left, .y = offY+_pos.top, .w = _size.width, .h = _size.height};
+        SDL_Rect dest = {offX+_pos.left, offY+_pos.top, _size.width, _size.height};
         SDL_RenderCopy(renderer, tex, NULL, &dest);
     }
 }

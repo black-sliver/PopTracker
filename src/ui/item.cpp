@@ -201,7 +201,7 @@ void Item::render(Renderer renderer, int offX, int offY)
         _renderSize = _size;
         _renderPos = _pos;
     }
-    SDL_Rect dest = {.x = offX+_renderPos.left, .y = offY+_renderPos.top, .w = _renderSize.width, .h = _renderSize.height};
+    SDL_Rect dest = {offX+_renderPos.left, offY+_renderPos.top, _renderSize.width, _renderSize.height};
     SDL_RenderCopy(renderer, tex, NULL, &dest);
     if (!_overlay.empty() && _font && !_overlayTex) {
         // text
@@ -222,7 +222,7 @@ void Item::render(Renderer renderer, int offX, int offY)
         if (tsurf && lsurf && ssurf) {
             surf = SDL_CreateRGBSurfaceWithFormat(0, tsurf->w+2, tsurf->h+2, tsurf->format->BitsPerPixel, tsurf->format->format);
             if (surf) {
-                SDL_Rect d = { .x=0, .y=0, .w=tsurf->w, .h=tsurf->h };
+                SDL_Rect d = { 0, 0, tsurf->w, tsurf->h };
                 if (_overlayBackgroundColor.a)
                     SDL_FillRect(lsurf, &d, SDL_MapRGBA(lsurf->format,
                             _overlayBackgroundColor.r, _overlayBackgroundColor.g,
@@ -258,26 +258,26 @@ void Item::render(Renderer renderer, int offX, int offY)
             if (_overlayAlign == Label::HAlign::CENTER) {
                 int center = offX+_pos.left+_size.width/2;
                 dest = {
-                    .x = center-ow/2,
-                    .y = bottom-oh,
-                    .w = ow,
-                    .h = oh
+                    center-ow/2,
+                    bottom-oh,
+                    ow,
+                    oh
                 };
             } else if (_overlayAlign == Label::HAlign::LEFT) {
                 int left = offX+_pos.left;
                 dest = {
-                    .x = left,
-                    .y = bottom-oh,
-                    .w = ow,
-                    .h = oh
+                    left,
+                    bottom-oh,
+                    ow,
+                    oh
                 };
             } else {
                 int right = offX+_pos.left+_size.width-1;
                 dest = {
-                    .x = right-ow,
-                    .y = bottom-oh,
-                    .w = ow,
-                    .h = oh
+                    right-ow,
+                    bottom-oh,
+                    ow,
+                    oh
                 };
             }
             SDL_RenderCopy(renderer, _overlayTex, NULL, &dest);
