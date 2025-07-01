@@ -1,4 +1,6 @@
 #include "log.h"
+#include <cstdio>
+#include <utility>
 #include "fs.h"
 #include "util.h"
 
@@ -17,7 +19,6 @@ int Log::_newErr = -1;
 #endif
 
 #include <fcntl.h>
-#include <stdio.h>
 
 bool Log::RedirectStdOut(const fs::path& file, bool truncate) {
     fflush(stdout);
@@ -40,9 +41,9 @@ bool Log::RedirectStdOut(const fs::path& file, bool truncate) {
     // if stdout has no underlying handle, use freopen (fileno(stdout) is -2 on windows)
     if (_oldOut < 0) {
 #ifdef _WIN32
-        _wfreopen(_logFile.c_str(), L"w", stdout);
+        std::ignore = _wfreopen(_logFile.c_str(), L"w", stdout);
 #else
-        freopen(_logFile.c_str(), "w", stdout);
+        std::ignore = freopen(_logFile.c_str(), "w", stdout);
 #endif
         setvbuf(stdout, NULL, _IONBF, 0); // _IOLBF
         close(_newOut);
@@ -69,9 +70,9 @@ bool Log::RedirectStdOut(const fs::path& file, bool truncate) {
     // if stderr has no underlying handle, use freopen
     if (_oldErr < 0 || _newErr < 0) {
 #ifdef _WIN32
-        _wfreopen(_logFile.c_str(), L"w", stderr);
+        std::ignore = _wfreopen(_logFile.c_str(), L"w", stderr);
 #else
-        freopen(_logFile.c_str(), "w", stderr);
+        std::ignore = freopen(_logFile.c_str(), "w", stderr);
 #endif
         setvbuf(stderr, NULL, _IONBF, 0);
         close(_newErr);
