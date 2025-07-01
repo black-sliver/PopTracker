@@ -133,7 +133,7 @@ protected:
     Container(int x=0, int y=0, int w=0, int h=0)
         : Widget(x,y,w,h)
     {
-        onClick += { this, [this](void* s, int x, int y, int button) {
+        onClick += { this, [this](void*, int x, int y, int button) {
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
                 auto& child = *childIt;
                 if (child->getVisible() && child->isHit(x, y)) {
@@ -142,7 +142,7 @@ protected:
                 }
             }
         }};
-        onMouseMove += { this, [this](void* s, int x, int y, unsigned buttons) {
+        onMouseMove += { this, [this](void*, int x, int y, unsigned buttons) {
             auto oldHoverChild = _hoverChild;
             bool match = false;
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
@@ -171,14 +171,14 @@ protected:
             if (oldHoverChild && !_hoverChild)
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
         }};
-        onMouseLeave += { this, [this](void* s) {
+        onMouseLeave += { this, [this](void*) {
             auto oldHoverChild = _hoverChild;
             if (oldHoverChild) {
                 _hoverChild = nullptr;
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
             }
         }};
-        onScroll += { this, [this](void* s, int x, int y, unsigned mod) {
+        onScroll += { this, [this](void*, int x, int y, unsigned mod) {
             if (_hoverChild)
                 _hoverChild->onScroll.emit(_hoverChild, x, y, mod);
         }};

@@ -123,17 +123,17 @@ public:
     
     virtual size_t getStageCount() const { return 0; }
     
-    virtual const std::string& getImage(size_t stage) const {
+    virtual const std::string& getImage([[maybe_unused]] size_t stage) const {
         return _img;
     }
-    virtual const std::string& getDisabledImage(size_t stage) const {
+    virtual const std::string& getDisabledImage([[maybe_unused]] size_t stage) const {
         return _disabledImg;
     }
     
-    virtual const std::list<std::string>& getImageMods(int stage) const {
+    virtual const std::list<std::string>& getImageMods([[maybe_unused]] int stage) const {
         return _imgMods;
     }
-    virtual const std::list<std::string>& getDisabledImageMods(int stage) const {
+    virtual const std::list<std::string>& getDisabledImageMods([[maybe_unused]] int stage) const {
         return _disabledImgMods;
     }
     
@@ -153,7 +153,7 @@ public:
     virtual std::string getCodesString() const;
     virtual int getState() const { return _allowDisabled ? _stage1 : 1; }
     virtual int getActiveStage() const { return _stage2; }
-    virtual bool changeState(Action action) { return false; }
+    virtual bool changeState(Action) { return false; }
     
     int getCount() const { return _count; }
     int getMinCount() const { return _minCount; }

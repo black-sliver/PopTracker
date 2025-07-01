@@ -118,7 +118,7 @@ void MapWidget::calculateSizes(int left, int top, int& srcw, int& srch, int& dst
 
 void MapWidget::connectSignals()
 {
-    this->onMouseMove += { this, [this](void* s, int x, int y, unsigned buttons) {
+    this->onMouseMove += { this, [this](void*, int x, int y, unsigned) {
         int absX = _absX + x;
         int absY = _absY + y;
         int srcw, srch, dstx, dsty, dstw, dsth;
@@ -159,7 +159,7 @@ void MapWidget::connectSignals()
         _locationHover = "";
     }};
 
-    this->onMouseLeave += { this, [this](void* s) {
+    this->onMouseLeave += { this, [this](void*) {
         _locationHover = "";
     }};
 }

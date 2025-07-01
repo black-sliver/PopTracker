@@ -13,7 +13,7 @@ public:
     ScrollVBox(int x, int y, int w, int h)
         : Container(x,y,w,h)
     {
-        onScroll += {this, [this](void*, int x, int y, unsigned mod) {
+        onScroll += {this, [this](void*, int x, int y, unsigned) {
             scrollBy(x, y);
         }};
     }

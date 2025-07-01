@@ -19,28 +19,28 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnLoad = new ImageButton(0,0,32-4,32-4, asset("load.png"));
     _btnLoad->setDarkenGreyscale(false);
     hbox->addChild(_btnLoad);
-    _btnLoad->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnLoad->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_LOAD, 0);
     }};
     
     _btnReload = new ImageButton(0,0,32-4,32-4, asset("reload.png"));
     _btnReload->setVisible(false);
     hbox->addChild(_btnReload);
-    _btnReload->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnReload->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_RELOAD, 0);
     }};
     
     _btnImport = new ImageButton(0,0,32-4,32-4, asset("import.png"));
     _btnImport->setVisible(false);
     hbox->addChild(_btnImport);
-    _btnImport->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnImport->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_LOAD_STATE, 0);
     }};
 
     _btnExport = new ImageButton(0,0,32-4,32-4, asset("export.png"));
     _btnExport->setVisible(false);
     hbox->addChild(_btnExport);
-    _btnExport->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnExport->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_SAVE_STATE, 0);
     }};
 
@@ -48,7 +48,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnBroadcast = new ImageButton(0,0,32-4,32-4, asset("broadcast.png"));
     _btnBroadcast->setVisible(false);
     hbox->addChild(_btnBroadcast);
-    _btnBroadcast->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnBroadcast->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_BROADCAST, 0);
     }};
 #endif
@@ -56,7 +56,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png"));
     _btnPackSettings->setVisible(false);
     hbox->addChild(_btnPackSettings);
-    _btnPackSettings->onClick += { this, [this](void*, int x, int y, int button) {
+    _btnPackSettings->onClick += { this, [this](void*, int, int, int) {
         onMenuPressed.emit(this, MENU_PACK_SETTINGS, 0);
     }};
 
@@ -89,7 +89,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     _loadPackWidget->setVisible(false);
     addChild(_loadPackWidget);
     
-    _loadPackWidget->onPackSelected += {this,[this](void *s, const fs::path& pack, const std::string& variant) {
+    _loadPackWidget->onPackSelected += {this,[this](void *, const fs::path& pack, const std::string& variant) {
         onPackSelected.emit(this,pack,variant);
     }};
     
@@ -105,13 +105,13 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         pair.first->setDarkenGreyscale(false);
         pair.first->setEnabled(false); // make greyscale
         const char* text = pair.second; // pointer to program memory
-        pair.first->onMouseEnter += {this, [this,text](void *s, int x, int y, unsigned buttons)
+        pair.first->onMouseEnter += {this, [this,text](void *s, int, int, unsigned)
         {
             ImageButton* btn = (ImageButton*)s;
             btn->setEnabled(true); // disable greyscale
             _lblTooltip->setText(text);
         }};
-        pair.first->onMouseLeave += {this, [this,text](void *s)
+        pair.first->onMouseLeave += {this, [this](void *s)
         {
             ImageButton* btn = (ImageButton*)s;
             btn->setEnabled(false); // enable greyscale
@@ -156,12 +156,12 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
     if (tracker) {
         hideMessage();
         tracker->onLayoutChanged -= this;
-        tracker->onLayoutChanged += {this, [this,tracker](void *s, const std::string& layout) {
+        tracker->onLayoutChanged += {this, [this,tracker](void*, const std::string&) {
             if (_btnBroadcast) _btnBroadcast->setVisible(tracker->hasLayout("tracker_broadcast"));
             if (_btnPackSettings) _btnPackSettings->setVisible(tracker->hasLayout("settings_popup"));
             setTracker(tracker); // reevaluate preferred and fall-back layout
         }};
-        _view->onItemHover += {this, [this, tracker](void *s, const std::string& itemid) {
+        _view->onItemHover += {this, [this, tracker](void*, const std::string& itemid) {
             if (!_lastHoverItem.empty()) {
                 auto& item = tracker->getItemById(itemid);
                 item.onChange -= this;
@@ -172,7 +172,7 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
                 const auto& text = (item.getBaseItem().empty() || item.getState()) ?
                     item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
                 _lblTooltip->setText(text);
-                item.onChange += {this, [this, tracker, itemid](void* sender) {
+                item.onChange += {this, [this, tracker, itemid](void*) {
                     const auto& item = tracker->getItemById(itemid);
                     const auto& text = (item.getBaseItem().empty() || item.getState()) ?
                         item.getCurrentName() : tracker->getItemByCode(item.getBaseItem()).getCurrentName();
@@ -259,14 +259,14 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
         lbl = new Label(0,0,0,32-4,_font, name);
         lbl->setWidth(lbl->getAutoWidth());
         lbl->setTextColor({0,0,0});
-        lbl->onClick += {this, [this,index](void*, int x, int y, int button) {
+        lbl->onClick += {this, [this,index](void*, int, int, int button) {
             if (button == BUTTON_RIGHT) {
                 onMenuPressed.emit(this, MENU_CYCLE_AUTOTRACKER, index);
             } else {
                 onMenuPressed.emit(this, MENU_TOGGLE_AUTOTRACKER, index);
             }
         }};
-        lbl->onMouseEnter += {this, [this,index](void *s, int x, int y, unsigned buttons)
+        lbl->onMouseEnter += {this, [this,index](void*, int, int, unsigned)
         {
             auto state = _autoTrackerStates[index];
             const char* text = state == AutoTracker::State::Disconnected ? "Offline" :
@@ -284,7 +284,7 @@ void DefaultTrackerWindow::setAutoTrackerState(int index, AutoTracker::State sta
                 _lblTooltip->setText(name + ": " + text);
             }
         }};
-        lbl->onMouseLeave += {this, [this](void *s)
+        lbl->onMouseLeave += {this, [this](void*)
         {
             _lblTooltip->setText("");
         }};

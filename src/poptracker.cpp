@@ -136,7 +136,7 @@ static json windowToJson(Ui::Window* win)
     };
 }
 
-PopTracker::PopTracker(int argc, char** argv, bool cli, const json& args)
+PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, bool cli, const json& args)
 {
     _args = args;
 
@@ -399,7 +399,7 @@ bool PopTracker::start()
         auto requestHeaders = _httpDefaultHeaders;
         auto includePrerelease = _config.value<bool>("update_to_prerelease", false);
         if (!HTTP::GetAsync(*_asio, url, requestHeaders,
-                [this, includePrerelease](int code, const std::string& content, HTTP::Headers)
+                [this, includePrerelease](int code, const std::string& content, const HTTP::Headers&)
                 {
                     if (code == 200) {
                         try {
@@ -423,7 +423,7 @@ bool PopTracker::start()
                                 version.clear();
                             }
                             if (!version.empty())
-                                updateAvailable(version, url, assets);
+                                updateAvailable(version, url);
                             else
                                 printf("Update: already up to date\n");
                         } catch (...) {
@@ -724,7 +724,7 @@ bool PopTracker::start()
         }
     }};
 
-    _win->onPackSelected += {this, [this](void *s, const fs::path& pack, const std::string& variant) {
+    _win->onPackSelected += {this, [this](void*, const fs::path& pack, const std::string& variant) {
         printf("Pack selected: %s:%s\n", sanitize_print(pack).c_str(), sanitize_print(variant).c_str());
         if (!scheduleLoadTracker(pack, variant)) {
             fprintf(stderr, "Error scheduling load of tracker/pack!");
@@ -733,7 +733,7 @@ bool PopTracker::start()
         _win->hideOpen();
     }};
 
-    _win->onDrop += {this, [this](void *s, int x, int y, Ui::DropType type, const std::string& data) {
+    _win->onDrop += {this, [this](void*, int, int, Ui::DropType type, const std::string& data) {
         if (type == Ui::DropType::FILE && data.length()>=5 && strcasecmp(data.c_str()+data.length()-5, ".json") == 0) {
             loadState(data);
         } else if ((type == Ui::DropType::FILE && data.length()>=4 && strcasecmp(data.c_str()+data.length()-4, ".zip") == 0)
@@ -853,7 +853,7 @@ bool PopTracker::start()
             _packManager->tempIgnoreSourceVersion(uid, _pack->getVersion());
         }
     }};
-    _packManager->onUpdateProgress += {this, [this](void*, const std::string& url, int received, int total) {
+    _packManager->onUpdateProgress += {this, [this](void*, const std::string&, int received, int total) {
         // NOTE: total is 0 if size is unknown
         _win->showProgress("Downloading ...", received, total);
     }};
@@ -1053,17 +1053,17 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
     bool done = false;
     bool res = false;
     if (confirm) _packManager->setConfirmationHandler(confirm);
-    _packManager->onUpdateProgress += {this, [](void*, const std::string& url, int received, int total) {
+    _packManager->onUpdateProgress += {this, [](void*, const std::string&, int received, int total) {
         int percent = total>0 ? received*100/total : 0;
         printf("%3d%% [%s/%s]        \r", percent, format_bytes(received).c_str(), format_bytes(total).c_str());
     }};
-    _packManager->onUpdateComplete += {this, [&done, &res](void*, const std::string& url, const fs::path& local, const std::string&) {
+    _packManager->onUpdateComplete += {this, [&done, &res](void*, const std::string&, const fs::path& local, const std::string&) {
         printf("\nDownload complete.\n");
         printf("Pack installed as %s\n", sanitize_print(local).c_str());
         res = false;
         done = true;
     }};
-    _packManager->onUpdateFailed += {this, [&done, &res](void*, const std::string& url, const std::string& msg) {
+    _packManager->onUpdateFailed += {this, [&done, &res](void*, const std::string&, const std::string& msg) {
         printf("\nDownload failed: %s\n", sanitize_print(msg).c_str());
         res = false;
         done = true;
@@ -1521,7 +1521,7 @@ void PopTracker::showBroadcast()
 #endif
 }
 
-void PopTracker::updateAvailable(const std::string& version, const std::string& url, const std::list<std::string> assets)
+void PopTracker::updateAvailable(const std::string& version, const std::string& url)
 {
     std::string ignoreData;
     auto ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json", _isPortable);
