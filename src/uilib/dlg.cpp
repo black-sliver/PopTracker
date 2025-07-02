@@ -1,13 +1,16 @@
 #include "dlg.h"
 
 #if defined __WIN32__
+#include <cassert>
+#include <cstdint>
 #include <windows.h>
-#include <assert.h>
+
 #include <commdlg.h>
 #else
+#include <cstdio>
 #include <tinyfiledialogs.h>
+
 #include <tinyfiledialogs.cpp>
-#include <stdio.h>
 #endif
 
 
@@ -28,7 +31,7 @@ bool Dlg::_hasGUISet = false;
 #define  EDIT_CLASS         0x0081
 #define  STATIC_CLASS       0x0082
 
-static BOOL CALLBACK InputBoxDlgProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
+static intptr_t CALLBACK InputBoxDlgProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 {
     static char* buf = nullptr;
     static size_t buflen = 0;
