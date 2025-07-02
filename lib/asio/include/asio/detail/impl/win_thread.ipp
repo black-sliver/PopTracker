@@ -2,7 +2,7 @@
 // detail/impl/win_thread.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -30,19 +30,6 @@
 
 namespace asio {
 namespace detail {
-
-#ifdef __cpp_lib_unreachable
-  using unreachable = std::unreachable;
-#else
-  [[noreturn]] static inline void unreachable()
-  {
-#    if defined(_MSC_VER) && !defined(__clang__) // MSVC
-    __assume(false);
-#    else // GCC, Clang
-    __builtin_unreachable();
-#    endif
-  }
-#endif
 
 win_thread::~win_thread()
 {
@@ -85,9 +72,7 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
     delete arg;
     asio::error_code ec(last_error,
         asio::error::get_system_category());
-    assert(ec);
     asio::detail::throw_error(ec, "thread.entry_event");
-    unreachable();
   }
 
   arg->exit_event_ = exit_event_ = ::CreateEventW(0, true, false, 0);
@@ -97,9 +82,7 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
     delete arg;
     asio::error_code ec(last_error,
         asio::error::get_system_category());
-    assert(ec);
     asio::detail::throw_error(ec, "thread.exit_event");
-    unreachable();
   }
 
   unsigned int thread_id = 0;
@@ -115,9 +98,7 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
       ::CloseHandle(exit_event_);
     asio::error_code ec(last_error,
         asio::error::get_system_category());
-    assert(ec);
     asio::detail::throw_error(ec, "thread");
-    unreachable();
   }
 
   if (entry_event)
