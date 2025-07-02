@@ -2,7 +2,7 @@
 // basic_socket_streambuf.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -28,58 +28,14 @@
 #include "asio/detail/throw_error.hpp"
 #include "asio/io_context.hpp"
 
-#if defined(ASIO_ENABLE_OLD_SERVICES)
-# include "asio/stream_socket_service.hpp"
-#endif // defined(ASIO_ENABLE_OLD_SERVICES)
-
 #if defined(ASIO_HAS_BOOST_DATE_TIME) \
   && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
-# if defined(ASIO_ENABLE_OLD_SERVICES)
-#  include "asio/deadline_timer_service.hpp"
-# else // defined(ASIO_ENABLE_OLD_SERVICES)
-#  include "asio/detail/deadline_timer_service.hpp"
-# endif // defined(ASIO_ENABLE_OLD_SERVICES)
+# include "asio/detail/deadline_timer_service.hpp"
 #else // defined(ASIO_HAS_BOOST_DATE_TIME)
       // && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
 # include "asio/steady_timer.hpp"
 #endif // defined(ASIO_HAS_BOOST_DATE_TIME)
        // && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
-
-#if !defined(ASIO_HAS_VARIADIC_TEMPLATES)
-
-# include "asio/detail/variadic_templates.hpp"
-
-// A macro that should expand to:
-//   template <typename T1, ..., typename Tn>
-//   basic_socket_streambuf* connect(T1 x1, ..., Tn xn)
-//   {
-//     init_buffers();
-//     typedef typename Protocol::resolver resolver_type;
-//     resolver_type resolver(socket().get_executor().context());
-//     connect_to_endpoints(
-//         resolver.resolve(x1, ..., xn, ec_));
-//     return !ec_ ? this : 0;
-//   }
-// This macro should only persist within this file.
-
-# define ASIO_PRIVATE_CONNECT_DEF(n) \
-  template <ASIO_VARIADIC_TPARAMS(n)> \
-  basic_socket_streambuf* connect(ASIO_VARIADIC_BYVAL_PARAMS(n)) \
-  { \
-    init_buffers(); \
-    typedef typename Protocol::resolver resolver_type; \
-    resolver_type resolver(socket().get_executor().context()); \
-    connect_to_endpoints( \
-        resolver.resolve(ASIO_VARIADIC_BYVAL_ARGS(n), ec_)); \
-    return !ec_ ? this : 0; \
-  } \
-  /**/
-
-#endif // !defined(ASIO_HAS_VARIADIC_TEMPLATES)
-
-#if !defined(ASIO_ENABLE_OLD_SERVICES)
-# define ASIO_SVC_T1 detail::deadline_timer_service<traits_helper>
-#endif // !defined(ASIO_ENABLE_OLD_SERVICES)
 
 #include "asio/detail/push_options.hpp"
 
@@ -124,18 +80,15 @@ protected:
 #define ASIO_BASIC_SOCKET_STREAMBUF_FWD_DECL
 
 // Forward declaration with defaulted arguments.
-template <typename Protocol
-    ASIO_SVC_TPARAM_DEF1(= stream_socket_service<Protocol>),
+template <typename Protocol,
 #if defined(ASIO_HAS_BOOST_DATE_TIME) \
   && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
     typename Clock = boost::posix_time::ptime,
-    typename WaitTraits = time_traits<Clock>
-    ASIO_SVC_TPARAM1_DEF2(= deadline_timer_service<Clock, WaitTraits>)>
+    typename WaitTraits = time_traits<Clock>>
 #else // defined(ASIO_HAS_BOOST_DATE_TIME)
       // && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
     typename Clock = chrono::steady_clock,
-    typename WaitTraits = wait_traits<Clock>
-    ASIO_SVC_TPARAM1_DEF1(= steady_timer::service_type)>
+    typename WaitTraits = wait_traits<Clock>>
 #endif // defined(ASIO_HAS_BOOST_DATE_TIME)
        // && defined(ASIO_USE_BOOST_DATE_TIME_FOR_SOCKET_IOSTREAM)
 class basic_socket_streambuf;
@@ -146,19 +99,18 @@ class basic_socket_streambuf;
 #if defined(GENERATING_DOCUMENTATION)
 template <typename Protocol,
     typename Clock = chrono::steady_clock,
-    typename WaitTraits = wait_traits<Clock> >
+    typename WaitTraits = wait_traits<Clock>>
 #else // defined(GENERATING_DOCUMENTATION)
-template <typename Protocol ASIO_SVC_TPARAM,
-    typename Clock, typename WaitTraits ASIO_SVC_TPARAM1>
+template <typename Protocol, typename Clock, typename WaitTraits>
 #endif // defined(GENERATING_DOCUMENTATION)
 class basic_socket_streambuf
   : public std::streambuf,
     private detail::socket_streambuf_io_context,
     private detail::socket_streambuf_buffers,
 #if defined(ASIO_NO_DEPRECATED) || defined(GENERATING_DOCUMENTATION)
-    private basic_socket<Protocol ASIO_SVC_TARG>
+    private basic_socket<Protocol>
 #else // defined(ASIO_NO_DEPRECATED) || defined(GENERATING_DOCUMENTATION)
-    public basic_socket<Protocol ASIO_SVC_TARG>
+    public basic_socket<Protocol>
 #endif // defined(ASIO_NO_DEPRECATED) || defined(GENERATING_DOCUMENTATION)
 {
 private:
@@ -207,17 +159,16 @@ public:
   /// Construct a basic_socket_streambuf without establishing a connection.
   basic_socket_streambuf()
     : detail::socket_streambuf_io_context(new io_context),
-      basic_socket<Protocol ASIO_SVC_TARG>(*default_io_context_),
+      basic_socket<Protocol>(*default_io_context_),
       expiry_time_(max_expiry_time())
   {
     init_buffers();
   }
 
-#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Construct a basic_socket_streambuf from the supplied socket.
   explicit basic_socket_streambuf(basic_stream_socket<protocol_type> s)
     : detail::socket_streambuf_io_context(0),
-      basic_socket<Protocol ASIO_SVC_TARG>(std::move(s)),
+      basic_socket<Protocol>(std::move(s)),
       expiry_time_(max_expiry_time())
   {
     init_buffers();
@@ -226,7 +177,7 @@ public:
   /// Move-construct a basic_socket_streambuf from another.
   basic_socket_streambuf(basic_socket_streambuf&& other)
     : detail::socket_streambuf_io_context(other),
-      basic_socket<Protocol ASIO_SVC_TARG>(std::move(other.socket())),
+      basic_socket<Protocol>(std::move(other.socket())),
       ec_(other.ec_),
       expiry_time_(other.expiry_time_)
   {
@@ -257,7 +208,6 @@ public:
     other.init_buffers();
     return *this;
   }
-#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destructor flushes buffered data.
   virtual ~basic_socket_streambuf()
@@ -281,7 +231,6 @@ public:
     return !ec_ ? this : 0;
   }
 
-#if defined(GENERATING_DOCUMENTATION)
   /// Establish a connection.
   /**
    * This function automatically establishes a connection based on the supplied
@@ -291,21 +240,15 @@ public:
    * @return \c this if a connection was successfully established, a null
    * pointer otherwise.
    */
-  template <typename T1, ..., typename TN>
-  basic_socket_streambuf* connect(T1 t1, ..., TN tn);
-#elif defined(ASIO_HAS_VARIADIC_TEMPLATES)
   template <typename... T>
   basic_socket_streambuf* connect(T... x)
   {
     init_buffers();
     typedef typename Protocol::resolver resolver_type;
-    resolver_type resolver(socket().get_executor().context());
+    resolver_type resolver(socket().get_executor());
     connect_to_endpoints(resolver.resolve(x..., ec_));
     return !ec_ ? this : 0;
   }
-#else
-  ASIO_VARIADIC_GENERATE(ASIO_PRIVATE_CONNECT_DEF)
-#endif
 
   /// Close the connection.
   /**
@@ -322,7 +265,7 @@ public:
   }
 
   /// Get a reference to the underlying socket.
-  basic_socket<Protocol ASIO_SVC_TARG>& socket()
+  basic_socket<Protocol>& socket()
   {
     return *this;
   }
@@ -575,9 +518,9 @@ protected:
 
 private:
   // Disallow copying and assignment.
-  basic_socket_streambuf(const basic_socket_streambuf&) ASIO_DELETED;
+  basic_socket_streambuf(const basic_socket_streambuf&) = delete;
   basic_socket_streambuf& operator=(
-      const basic_socket_streambuf&) ASIO_DELETED;
+      const basic_socket_streambuf&) = delete;
 
   void init_buffers()
   {
@@ -693,14 +636,6 @@ private:
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"
-
-#if !defined(ASIO_ENABLE_OLD_SERVICES)
-# undef ASIO_SVC_T1
-#endif // !defined(ASIO_ENABLE_OLD_SERVICES)
-
-#if !defined(ASIO_HAS_VARIADIC_TEMPLATES)
-# undef ASIO_PRIVATE_CONNECT_DEF
-#endif // !defined(ASIO_HAS_VARIADIC_TEMPLATES)
 
 #endif // !defined(ASIO_NO_IOSTREAM)
 

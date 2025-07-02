@@ -2,7 +2,7 @@
 // detail/reactive_socket_accept_op.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,8 +17,9 @@
 
 #include "asio/detail/config.hpp"
 #include "asio/detail/bind_handler.hpp"
-#include "asio/detail/buffer_sequence_adapter.hpp"
 #include "asio/detail/fenced_block.hpp"
+#include "asio/detail/handler_alloc_helpers.hpp"
+#include "asio/detail/handler_work.hpp"
 #include "asio/detail/memory.hpp"
 #include "asio/detail/reactor_op.hpp"
 #include "asio/detail/socket_holder.hpp"
@@ -33,10 +34,12 @@ template <typename Socket, typename Protocol>
 class reactive_socket_accept_op_base : public reactor_op
 {
 public:
-  reactive_socket_accept_op_base(socket_type socket,
-      socket_ops::state_type state, Socket& peer, const Protocol& protocol,
-      typename Protocol::endpoint* peer_endpoint, func_type complete_func)
-    : reactor_op(&reactive_socket_accept_op_base::do_perform, complete_func),
+  reactive_socket_accept_op_base(const asio::error_code& success_ec,
+      socket_type socket, socket_ops::state_type state, Socket& peer,
+      const Protocol& protocol, typename Protocol::endpoint* peer_endpoint,
+      func_type complete_func)
+    : reactor_op(success_ec,
+        &reactive_socket_accept_op_base::do_perform, complete_func),
       socket_(socket),
       state_(state),
       peer_(peer),
@@ -48,6 +51,7 @@ public:
 
   static status do_perform(reactor_op* base)
   {
+    ASIO_ASSUME(base != 0);
     reactive_socket_accept_op_base* o(
         static_cast<reactive_socket_accept_op_base*>(base));
 
@@ -85,21 +89,27 @@ private:
   std::size_t addrlen_;
 };
 
-template <typename Socket, typename Protocol, typename Handler>
+template <typename Socket, typename Protocol,
+    typename Handler, typename IoExecutor>
 class reactive_socket_accept_op :
   public reactive_socket_accept_op_base<Socket, Protocol>
 {
 public:
+  typedef Handler handler_type;
+  typedef IoExecutor io_executor_type;
+
   ASIO_DEFINE_HANDLER_PTR(reactive_socket_accept_op);
 
-  reactive_socket_accept_op(socket_type socket,
-      socket_ops::state_type state, Socket& peer, const Protocol& protocol,
-      typename Protocol::endpoint* peer_endpoint, Handler& handler)
-    : reactive_socket_accept_op_base<Socket, Protocol>(socket, state, peer,
-        protocol, peer_endpoint, &reactive_socket_accept_op::do_complete),
-      handler_(ASIO_MOVE_CAST(Handler)(handler))
+  reactive_socket_accept_op(const asio::error_code& success_ec,
+      socket_type socket, socket_ops::state_type state, Socket& peer,
+      const Protocol& protocol, typename Protocol::endpoint* peer_endpoint,
+      Handler& handler, const IoExecutor& io_ex)
+    : reactive_socket_accept_op_base<Socket, Protocol>(
+        success_ec, socket, state, peer, protocol, peer_endpoint,
+        &reactive_socket_accept_op::do_complete),
+      handler_(static_cast<Handler&&>(handler)),
+      work_(handler_, io_ex)
   {
-    handler_work<Handler>::start(handler_);
   }
 
   static void do_complete(void* owner, operation* base,
@@ -107,15 +117,22 @@ public:
       std::size_t /*bytes_transferred*/)
   {
     // Take ownership of the handler object.
+    ASIO_ASSUME(base != 0);
     reactive_socket_accept_op* o(static_cast<reactive_socket_accept_op*>(base));
     ptr p = { asio::detail::addressof(o->handler_), o, o };
-    handler_work<Handler> w(o->handler_);
 
     // On success, assign new connection to peer socket object.
     if (owner)
       o->do_assign();
 
     ASIO_HANDLER_COMPLETION((*o));
+
+    // Take ownership of the operation's outstanding work.
+    handler_work<Handler, IoExecutor> w(
+        static_cast<handler_work<Handler, IoExecutor>&&>(
+          o->work_));
+
+    ASIO_ERROR_LOCATION(o->ec_);
 
     // Make a copy of the handler so that the memory can be deallocated before
     // the upcall is made. Even if we're not about to make an upcall, a
@@ -138,30 +155,72 @@ public:
     }
   }
 
+  static void do_immediate(operation* base, bool, const void* io_ex)
+  {
+    // Take ownership of the handler object.
+    ASIO_ASSUME(base != 0);
+    reactive_socket_accept_op* o(static_cast<reactive_socket_accept_op*>(base));
+    ptr p = { asio::detail::addressof(o->handler_), o, o };
+
+    // On success, assign new connection to peer socket object.
+    o->do_assign();
+
+    ASIO_HANDLER_COMPLETION((*o));
+
+    // Take ownership of the operation's outstanding work.
+    immediate_handler_work<Handler, IoExecutor> w(
+        static_cast<handler_work<Handler, IoExecutor>&&>(
+          o->work_));
+
+    ASIO_ERROR_LOCATION(o->ec_);
+
+    // Make a copy of the handler so that the memory can be deallocated before
+    // the upcall is made. Even if we're not about to make an upcall, a
+    // sub-object of the handler may be the true owner of the memory associated
+    // with the handler. Consequently, a local copy of the handler is required
+    // to ensure that any owning sub-object remains valid until after we have
+    // deallocated the memory here.
+    detail::binder1<Handler, asio::error_code>
+      handler(o->handler_, o->ec_);
+    p.h = asio::detail::addressof(handler.handler_);
+    p.reset();
+
+    ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_));
+    w.complete(handler, handler.handler_, io_ex);
+    ASIO_HANDLER_INVOCATION_END;
+  }
+
 private:
   Handler handler_;
+  handler_work<Handler, IoExecutor> work_;
 };
 
-#if defined(ASIO_HAS_MOVE)
-
-template <typename Protocol, typename Handler>
+template <typename Protocol, typename PeerIoExecutor,
+    typename Handler, typename IoExecutor>
 class reactive_socket_move_accept_op :
-  private Protocol::socket,
-  public reactive_socket_accept_op_base<typename Protocol::socket, Protocol>
+  private Protocol::socket::template rebind_executor<PeerIoExecutor>::other,
+  public reactive_socket_accept_op_base<
+    typename Protocol::socket::template rebind_executor<PeerIoExecutor>::other,
+    Protocol>
 {
 public:
+  typedef Handler handler_type;
+  typedef IoExecutor io_executor_type;
+
   ASIO_DEFINE_HANDLER_PTR(reactive_socket_move_accept_op);
 
-  reactive_socket_move_accept_op(io_context& ioc, socket_type socket,
+  reactive_socket_move_accept_op(const asio::error_code& success_ec,
+      const PeerIoExecutor& peer_io_ex, socket_type socket,
       socket_ops::state_type state, const Protocol& protocol,
-      typename Protocol::endpoint* peer_endpoint, Handler& handler)
-    : Protocol::socket(ioc),
-      reactive_socket_accept_op_base<typename Protocol::socket, Protocol>(
-        socket, state, *this, protocol, peer_endpoint,
+      typename Protocol::endpoint* peer_endpoint, Handler& handler,
+      const IoExecutor& io_ex)
+    : peer_socket_type(peer_io_ex),
+      reactive_socket_accept_op_base<peer_socket_type, Protocol>(
+        success_ec, socket, state, *this, protocol, peer_endpoint,
         &reactive_socket_move_accept_op::do_complete),
-      handler_(ASIO_MOVE_CAST(Handler)(handler))
+      handler_(static_cast<Handler&&>(handler)),
+      work_(handler_, io_ex)
   {
-    handler_work<Handler>::start(handler_);
   }
 
   static void do_complete(void* owner, operation* base,
@@ -169,16 +228,23 @@ public:
       std::size_t /*bytes_transferred*/)
   {
     // Take ownership of the handler object.
+    ASIO_ASSUME(base != 0);
     reactive_socket_move_accept_op* o(
         static_cast<reactive_socket_move_accept_op*>(base));
     ptr p = { asio::detail::addressof(o->handler_), o, o };
-    handler_work<Handler> w(o->handler_);
 
     // On success, assign new connection to peer socket object.
     if (owner)
       o->do_assign();
 
     ASIO_HANDLER_COMPLETION((*o));
+
+    // Take ownership of the operation's outstanding work.
+    handler_work<Handler, IoExecutor> w(
+        static_cast<handler_work<Handler, IoExecutor>&&>(
+          o->work_));
+
+    ASIO_ERROR_LOCATION(o->ec_);
 
     // Make a copy of the handler so that the memory can be deallocated before
     // the upcall is made. Even if we're not about to make an upcall, a
@@ -187,9 +253,9 @@ public:
     // to ensure that any owning sub-object remains valid until after we have
     // deallocated the memory here.
     detail::move_binder2<Handler,
-      asio::error_code, typename Protocol::socket>
-        handler(0, ASIO_MOVE_CAST(Handler)(o->handler_), o->ec_,
-          ASIO_MOVE_CAST(typename Protocol::socket)(*o));
+      asio::error_code, peer_socket_type>
+        handler(0, static_cast<Handler&&>(o->handler_), o->ec_,
+          static_cast<peer_socket_type&&>(*o));
     p.h = asio::detail::addressof(handler.handler_);
     p.reset();
 
@@ -203,11 +269,51 @@ public:
     }
   }
 
-private:
-  Handler handler_;
-};
+  static void do_immediate(operation* base, bool, const void* io_ex)
+  {
+    // Take ownership of the handler object.
+    ASIO_ASSUME(base != 0);
+    reactive_socket_move_accept_op* o(
+        static_cast<reactive_socket_move_accept_op*>(base));
+    ptr p = { asio::detail::addressof(o->handler_), o, o };
 
-#endif // defined(ASIO_HAS_MOVE)
+    // On success, assign new connection to peer socket object.
+    o->do_assign();
+
+    ASIO_HANDLER_COMPLETION((*o));
+
+    // Take ownership of the operation's outstanding work.
+    immediate_handler_work<Handler, IoExecutor> w(
+        static_cast<handler_work<Handler, IoExecutor>&&>(
+          o->work_));
+
+    ASIO_ERROR_LOCATION(o->ec_);
+
+    // Make a copy of the handler so that the memory can be deallocated before
+    // the upcall is made. Even if we're not about to make an upcall, a
+    // sub-object of the handler may be the true owner of the memory associated
+    // with the handler. Consequently, a local copy of the handler is required
+    // to ensure that any owning sub-object remains valid until after we have
+    // deallocated the memory here.
+    detail::move_binder2<Handler,
+      asio::error_code, peer_socket_type>
+        handler(0, static_cast<Handler&&>(o->handler_), o->ec_,
+          static_cast<peer_socket_type&&>(*o));
+    p.h = asio::detail::addressof(handler.handler_);
+    p.reset();
+
+    ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_, "..."));
+    w.complete(handler, handler.handler_, io_ex);
+    ASIO_HANDLER_INVOCATION_END;
+  }
+
+private:
+  typedef typename Protocol::socket::template
+    rebind_executor<PeerIoExecutor>::other peer_socket_type;
+
+  Handler handler_;
+  handler_work<Handler, IoExecutor> work_;
+};
 
 } // namespace detail
 } // namespace asio

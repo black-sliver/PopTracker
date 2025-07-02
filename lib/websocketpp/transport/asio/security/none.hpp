@@ -169,7 +169,7 @@ protected:
         }
 
         m_socket = lib::make_shared<lib::asio::ip::tcp::socket>(
-            lib::ref(*service));
+            *service);
 
         if (m_socket_init_handler) {
             m_socket_init_handler(m_hdl, *m_socket);

@@ -1,5 +1,7 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include "../src/core/assets.h"
+#include "../src/http/http.h"
 
 #ifdef _WIN32 // define macro function to setup mocking of Windows APIs
 #    include <gmock-win32.h>
@@ -11,6 +13,8 @@
 
 int main(int argc, char **argv) {
     printf("Running main() from %s\n", __FILE__);
+
+    HTTP::certfile = asset("cacert.pem").u8string();
 
     SETUP_MOCK();
 
