@@ -1,14 +1,14 @@
 #include "zip.h"
-
-// as long as we only use miniz here, we can just #include it
-//extern "C" {
-#include <miniz.c>
-//}
-
 #include <algorithm>
+#include <cstring>
+
+// embed miniz, compile as C++
+#ifdef WIN32_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN // miniz defines stuff itself
+#endif
+#include <miniz.c>
 
 #include "fs.h"
-#include "string.h"
 
 
 Zip::Zip(const fs::path& filename)
