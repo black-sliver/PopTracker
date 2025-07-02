@@ -61,8 +61,8 @@ TEST(TabsTest, Reserve) {
     auto reservedTabs = Tabs(0, 0, 800, 600, font);
     reservedTabs.reserve(2);
 
-    EXPECT_EQ(defaultTabs.getChildren().size(), 0);
-    EXPECT_EQ(reservedTabs.getChildren().size(), 0);
+    EXPECT_EQ(defaultTabs.getChildren().size(), 0UL);
+    EXPECT_EQ(reservedTabs.getChildren().size(), 0UL);
 
     for (size_t i = 0; i < 3; ++i) {
         // use reserved memory
