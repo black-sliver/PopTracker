@@ -522,7 +522,7 @@ bool Dlg::hasGUI()
     if (_hasGUISet)
         return _hasGUI;
 #if defined __WIN32__ || defined __APPLE__
-    // assume yes for windows an mac
+    // assume yes for windows and mac
     _hasGUI = true;
 #else
     _hasGUI = tryRun("which zenity &>/dev/null") == 0 ||
