@@ -180,7 +180,7 @@ COMMON_WARNING_FLAGS = \
 C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
 LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow \
 	-D_REENTRANT -x c++ # we actually use C++ for Lua now
-CPP_FLAGS = $(COMMON_WARNING_FLAGS) -Wpedantic \
+CPP_FLAGS = $(COMMON_WARNING_FLAGS) \
 	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations \
 	-Wno-null-pointer-subtraction -Wno-shift-count-overflow  # TODO: fix those
 ifeq ($(CONF), DEBUG) # DEBUG
