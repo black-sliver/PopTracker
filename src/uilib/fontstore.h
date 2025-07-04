@@ -1,9 +1,7 @@
-#ifndef _UILIB_FONTSTORE_H
-#define _UILIB_FONTSTORE_H
+#pragma once
 
-
-#include <string>
 #include <map>
+#include <string>
 #include <SDL2/SDL_ttf.h>
 
 
@@ -18,7 +16,7 @@ public:
     using FONT = TTF_Font*;
     FONT getFont(const char* name, int size);
     FontStore();
-    virtual ~FontStore();
+    ~FontStore();
     
     static int sizeFromData(int dflt, int val) {
         // helper to get font size from default + json
@@ -29,5 +27,3 @@ protected:
 };
 
 } // namespace Ui
-
-#endif // _UILIB_WIDGET_H
