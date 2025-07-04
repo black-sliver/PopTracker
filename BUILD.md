@@ -110,3 +110,4 @@ gnu toolchain for development.
 * Autotools could probably be used to strip down the Makefile, feel free to provide an example.
 * An additional VS solution could be maintained by someone, feel free to fork, PR and document.
 * An additional XCode project could be maintained by someone, feel free to fork, PR and document.
+* Check [CONTRIBUTING.md](CONTRIBUTING.md#compiler-configuration) to see why we ignore your CFLAGS.
