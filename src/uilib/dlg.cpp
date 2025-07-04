@@ -222,6 +222,8 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     // Allocate buffer for dialog template
     ULONG_PTR dlgbuflen = 1024;
     LPVOID dlgbuf = malloc(dlgbuflen);
+    if (!dlgbuf)
+        return 0;
     memset(dlgbuf, 0, dlgbuflen);
     LPVOID bufp = dlgbuf;
     LPVOID endp = (uint8_t*)bufp + dlgbuflen;
