@@ -354,6 +354,8 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
 
     // TODO: implement multi-select
     assert(!multi);
+    if (multi)
+        return false; // not implemented
     bool res = false;
     wchar_t buf[MAX_PATH];
     memset(buf, 0, sizeof(buf));
