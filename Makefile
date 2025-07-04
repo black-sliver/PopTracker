@@ -226,6 +226,11 @@ CPP_FLAGS += -fsanitize=address
 LD_FLAGS += -fsanitize=address
 endif
 
+ifdef WITH_UBSAN
+CPP_FLAGS += -fsanitize=undefined
+LD_FLAGS += -fsanitize=undefined
+endif
+
 CPP_FLAGS += -DLUA_CPP
 
 # os-specific tool config
