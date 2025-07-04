@@ -173,15 +173,24 @@ public:
     Signal<> onDataChange;
     Signal<const std::list<std::string>&> onVariablesChanged;
     Signal<const std::string&> onError;
-    State getState(int index) const
+
+    State getState(const int index) const
     {
-        return _state.size() <= (size_t)index ? State::Unavailable : _state[index];
+        return index < 0 || _state.size() <= static_cast<size_t>(index)
+                ? State::Unavailable
+                : _state[index];
     }
-    State getState(const std::string& name) {
-        if (name == BACKEND_AP_NAME)  return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
-        if (name == BACKEND_UAT_NAME) return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
-        if (name == BACKEND_SNES_NAME)  return _snes ? getState(_backendIndex[_snes]) : State::Unavailable;
-        if (_provider && name == _provider->getName()) return _provider ? getState(_backendIndex[_provider]) : State::Unavailable;
+
+    State getState(const std::string& name)
+    {
+        if (name == BACKEND_AP_NAME)
+            return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
+        if (name == BACKEND_UAT_NAME)
+            return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
+        if (name == BACKEND_SNES_NAME)
+            return _snes ? getState(_backendIndex[_snes]) : State::Unavailable;
+        if (_provider && name == _provider->getName())
+            return _provider ? getState(_backendIndex[_provider]) : State::Unavailable;
         return State::Unavailable;
     }
 
@@ -511,9 +520,9 @@ public:
         return (int)getState(backend);
     }
 
-    bool enable(int index, const std::string& uri="", const std::string& slot="", const std::string& password="")
+    bool enable(const int index, const std::string& uri="", const std::string& slot="", const std::string& password="")
     {
-        if (_state.size() <= (size_t)index)
+        if (index < 0 || _state.size() <= static_cast<size_t>(index))
             return false;
         if (_state[index] != State::Disabled)
             return true;
