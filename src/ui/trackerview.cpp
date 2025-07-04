@@ -925,23 +925,25 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 // since we do not update mouse enter/leave in addChild (yet), do it by hand
                 _hoverChild = _mapTooltip;
                 map->onMouseLeave.emit(sender);
-                
+
                 _mapTooltip->onMouseLeave += { this, [this](void*) {
-                    if (_mapTooltip) {
-                        _mapTooltipScrollOffsets[_mapTooltipName] = _mapTooltip->getScrollY();
-                        _mapTooltipOwner = nullptr;
-                        // removing a child may fire a signal, so we need to make sure not to double-free
-                        removeChild(_mapTooltip);
-                        if (_mapTooltip) {
-                            // run destructor after removing reference since delete may also fire
-                            auto tmp = _mapTooltip;
-                            _mapTooltip = nullptr;
-                            delete tmp;
-                        }
-                    }
+                    if (!_mapTooltip)
+                        return;
+                    _mapTooltipScrollOffsets[_mapTooltipName] = _mapTooltip->getScrollY();
+                    _mapTooltipOwner = nullptr;
+                    // removing a child may fire a signal, so check for null again
+                    removeChild(_mapTooltip);
+                    if (!_mapTooltip)
+                        return;
+                    // run destructor after removing reference since delete may also fire
+                    const auto tmp = _mapTooltip;
+                    _mapTooltip = nullptr;
+                    delete tmp;
                 }};
+                assert(_mapTooltip); // silence cppcheck
                 _mapTooltip->onClick += { this, [this](void*, int x, int y, int btn) {
-                    if (!_mapTooltip) return;
+                    if (!_mapTooltip)
+                        return;
                     // right click in a corner or on the first label clears all checks
                     if (btn != MouseButton::BUTTON_RIGHT) return;
                     int x1 = 4;

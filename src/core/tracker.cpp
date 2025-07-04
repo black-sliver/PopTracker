@@ -782,6 +782,7 @@ std::pair<Location&, LocationSection&> Tracker::getLocationAndSection(const std:
 
 LocationSection& Tracker::getLocationSection(const std::string& id)
 {
+    // cppcheck-suppress returnTempReference
     return getLocationAndSection(id).second;
 }
 
