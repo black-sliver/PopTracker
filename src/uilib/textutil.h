@@ -16,21 +16,30 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
         SDL_Color color, Label::HAlign halign,
         int passes=2, int* w=nullptr, int* h=nullptr, int* result=nullptr)
 {
-    if (w) *w = 0;
-    if (h) *h = 0;
-    if (result) *result = 0;
+    if (w)
+        *w = 0;
+    if (h)
+        *h = 0;
+    if (result)
+        *result = 0;
+
     const char* firstlf = strchr(text, '\n');
     SDL_Surface* surf = nullptr;
     if (!firstlf && passes>1) {
         surf = TTF_RenderUTF8_Blended(font, text, color);
-        if (surf && w) *w = surf->w;
-        if (surf && h) *h = surf->h;
+        if (surf && w)
+            *w = surf->w;
+        if (surf && h)
+            *h = surf->h;
         return surf;
-    } else if (!firstlf) {
+    }
+    if (!firstlf) {
         int res = TTF_SizeUTF8(font, text, w, h);
-        if (result) *result = res;
+        if (result)
+            *result = res;
         return nullptr;
     }
+
     char* buf = strdup(text);
     if (!buf)
         return nullptr;
@@ -56,20 +65,20 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
             }
             if (pass == 0) {
                 // pass0: measure text
-                int w=0,h=0;
+                int lineW = 0 , lineH = 0;
                 if (*p) {
-                    res = TTF_SizeUTF8(font, p, &w, &h);
+                    res = TTF_SizeUTF8(font, p, &lineW, &lineH);
                 } else if (!blankHeight) {
-                    res = TTF_SizeUTF8(font, " ", &w, &h);
-                    w = 0;
-                    blankHeight = h;
+                    res = TTF_SizeUTF8(font, " ", &lineW, &lineH);
+                    lineW = 0;
+                    blankHeight = lineH;
                 } else {
-                    w = 0;
-                    h = blankHeight;
+                    lineW = 0;
+                    lineH = blankHeight;
                 }
                 if (res != 0) goto err;
-                if (w>maxW) maxW=w;
-                totalH += h + linespace;
+                if (lineW>maxW) maxW=lineW;
+                totalH += lineH + linespace;
             } else {
                 // pass1: render text
                 SDL_Surface* line = TTF_RenderUTF8_Blended(font, p, color);
