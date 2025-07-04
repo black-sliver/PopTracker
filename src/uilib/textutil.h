@@ -31,6 +31,8 @@ static inline SDL_Surface* _RenderText(Label::FONT font, const char* text,
             *w = surf->w;
         if (surf && h)
             *h = surf->h;
+        if (surf)
+            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
         return surf;
     }
     if (!firstlf) {
