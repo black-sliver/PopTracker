@@ -73,7 +73,7 @@ static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const s
                     }
                 }
             }
-            filters.push_back({name,args});
+            filters.emplace_back(name, args);
         }
     }
     return filters;
