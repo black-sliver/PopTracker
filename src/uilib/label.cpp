@@ -28,7 +28,7 @@ void Label::render(Renderer renderer, int offX, int offY)
         SDL_RenderFillRect(renderer, &r);
     }
     if (!_tex && !_text.empty() && _font) {
-        SDL_Color color = {_textColor.r, _textColor.g, _textColor.b, 0xff};
+        SDL_Color color = {_textColor.r, _textColor.g, _textColor.b, _textColor.a};
         SDL_Surface* surf = RenderText(_font, _text.c_str(), color, _halign);
         if (surf) {
             _tex = SDL_CreateTextureFromSurface(renderer, surf);
