@@ -12,6 +12,12 @@ brew's clang++ + gcc-compat on macOS.
 
 We do not use MSVC.
 
+### Compiler Configuration
+
+We aim to run untrusted packs at some point, so we use `-Werror` and enable a lot of warnings and some extra protection
+features to find potential mistakes and/or safely crash.
+PRs to clean up the Makefile are welcome.
+
 ## IDE Support
 
 *Currently only CLion is tested/used. PRs for other IDEs and detailed setup are welcome.*

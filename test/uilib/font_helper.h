@@ -11,7 +11,6 @@ static Ui::FontStore::FONT getDefaultFont() {
     static Ui::FontStore::FONT res = nullptr;
     if (!res) {
         Assets::addSearchPath("assets");
-        TTF_Init();
         res = fontStore.getFont(Ui::DEFAULT_FONT_NAME, Ui::DEFAULT_FONT_SIZE);
     }
     return res;

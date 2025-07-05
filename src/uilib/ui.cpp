@@ -43,9 +43,6 @@ Ui::Ui(const char *name, bool fallbackRenderer)
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "Error initializing SDL: %s\n", SDL_GetError());
     }
-    if (TTF_Init() != 0) {
-        fprintf(stderr, "Error initializing SDL_TTF: %s\n", TTF_GetError());
-    }
 
     if (_fallbackRenderer) {
         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
@@ -95,7 +92,6 @@ Ui::~Ui()
     // TODO: DelEventWatch?
     SDL_SetEventFilter(nullptr, nullptr);
 #endif
-    TTF_Quit();
     SDL_Quit();
 }
 

@@ -1,13 +1,16 @@
 #include "dlg.h"
 
 #if defined __WIN32__
+#include <cassert>
+#include <cstdint>
 #include <windows.h>
-#include <assert.h>
+
 #include <commdlg.h>
 #else
+#include <cstdio>
 #include <tinyfiledialogs.h>
+
 #include <tinyfiledialogs.cpp>
-#include <stdio.h>
 #endif
 
 
@@ -28,7 +31,7 @@ bool Dlg::_hasGUISet = false;
 #define  EDIT_CLASS         0x0081
 #define  STATIC_CLASS       0x0082
 
-static BOOL CALLBACK InputBoxDlgProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
+static intptr_t CALLBACK InputBoxDlgProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 {
     static char* buf = nullptr;
     static size_t buflen = 0;
@@ -219,6 +222,8 @@ static int InputBoxU(HWND hwnd, LPCSTR prompt, LPCSTR title, LPSTR textbuf, size
     // Allocate buffer for dialog template
     ULONG_PTR dlgbuflen = 1024;
     LPVOID dlgbuf = malloc(dlgbuflen);
+    if (!dlgbuf)
+        return 0;
     memset(dlgbuf, 0, dlgbuflen);
     LPVOID bufp = dlgbuf;
     LPVOID endp = (uint8_t*)bufp + dlgbuflen;
@@ -349,6 +354,8 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
 
     // TODO: implement multi-select
     assert(!multi);
+    if (multi)
+        return false; // not implemented
     bool res = false;
     wchar_t buf[MAX_PATH];
     memset(buf, 0, sizeof(buf));
@@ -522,7 +529,7 @@ bool Dlg::hasGUI()
     if (_hasGUISet)
         return _hasGUI;
 #if defined __WIN32__ || defined __APPLE__
-    // assume yes for windows an mac
+    // assume yes for windows and mac
     _hasGUI = true;
 #else
     _hasGUI = tryRun("which zenity &>/dev/null") == 0 ||

@@ -21,7 +21,8 @@ class ImageFilterSuite : public testing::TestWithParam<std::string_view>
 static std::string getSampleOverlayData() {
     static std::string res;
     if (res.empty()) {
-        bool ok = readFile(asset("open.png"), res);
+        [[maybe_unused]]
+        const bool ok = readFile(asset("open.png"), res);
         assert(ok);
     }
     return res;

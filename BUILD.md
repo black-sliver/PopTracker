@@ -36,6 +36,9 @@ Assets will have to be in one of the search paths. Read below.
 Run `git clone --recurse-submodules https://github.com/black-sliver/PopTracker.git`
 or download the latest "full-source.tar.xz" from [Releases](https://github.com/black-sliver/PopTracker/releases).
 
+If you forgot the `--recurse-submodules`, use `git submodule update --init --recursive`.
+After pulling, if submodules changed, use `git submodule update --recursive`.
+
 ## Build on Arch Linux
 
 ### Native
@@ -110,3 +113,4 @@ gnu toolchain for development.
 * Autotools could probably be used to strip down the Makefile, feel free to provide an example.
 * An additional VS solution could be maintained by someone, feel free to fork, PR and document.
 * An additional XCode project could be maintained by someone, feel free to fork, PR and document.
+* Check [CONTRIBUTING.md](CONTRIBUTING.md#compiler-configuration) to see why we ignore your CFLAGS.

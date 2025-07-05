@@ -16,22 +16,22 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
         Widget::Color topC, Widget::Color leftC, Widget::Color botC, Widget::Color rightC)
 {
     SDL_Rect inner = {
-        .x = pos.left, .y = pos.top, .w = size.width, .h = size.height
+        pos.left, pos.top, size.width, size.height
     };
     SDL_Rect outer = {
-        .x = pos.left-borderWidth, .y = pos.top-borderWidth, .w = size.width + 2*borderWidth, .h = size.height + 2*borderWidth
+        pos.left-borderWidth, pos.top-borderWidth, size.width + 2*borderWidth, size.height + 2*borderWidth
     };
     SDL_Rect outerTop = {
-        .x = outer.x, .y = outer.y, .w = outer.w, .h = borderWidth
+        outer.x, outer.y, outer.w, borderWidth
     };
     SDL_Rect outerBot = {
-        .x = outer.x, .y = outer.y + outer.h - borderWidth, .w = outer.w, .h = borderWidth
+        outer.x, outer.y + outer.h - borderWidth, outer.w, borderWidth
     };
     SDL_Rect outerLeft = {
-        .x = outer.x, .y = outer.y, .w = borderWidth, .h = outer.h
+        outer.x, outer.y, borderWidth, outer.h
     };
     SDL_Rect outerRight = {
-        .x = outer.x + outer.w - borderWidth, .y = outer.y, .w = borderWidth, .h = outer.h
+        outer.x + outer.w - borderWidth, outer.y, borderWidth, outer.h
     };
 
     bool hasAlpha = topC.a != 0xff || leftC.a != 0xff || botC.a != 0xff || rightC.a != 0xff;

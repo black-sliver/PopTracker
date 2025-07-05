@@ -32,7 +32,7 @@ TrackerWindow::~TrackerWindow()
     _view = nullptr;
 }
 
-void TrackerWindow::setTracker(Tracker* tracker)
+void TrackerWindow::setTracker([[maybe_unused]] Tracker* tracker)
 {
 }
 
@@ -55,7 +55,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
         _rendered = false;
         addChild(_view);
 
-        _view->onMinSizeChanged += {this, [this](void *s) {
+        _view->onMinSizeChanged += {this, [this](void*) {
             //Size curSize = Size::FromPosition(_view->getPosition()+_view->getSize());
             Size curSize = getSize();
             Size minSize = Size::FromPosition(_view->getPosition()+_view->getMinSize());
@@ -76,7 +76,7 @@ void TrackerWindow::setTracker(Tracker* tracker, const std::string& layout)
     }
 }
 
-void TrackerWindow::setAutoTrackerState(int index, AutoTracker::State state, const std::string& name, const std::string& subname)
+void TrackerWindow::setAutoTrackerState(int, AutoTracker::State, const std::string&, const std::string&)
 {
 }
 

@@ -145,7 +145,7 @@ void LuaConnector::setWatchUpdateInterval(size_t interval)
     _watchRefreshMilliseconds = interval;
 }
 
-void LuaConnector::setMapping(const std::set<std::string>& flags)
+void LuaConnector::setMapping([[maybe_unused]] const std::set<std::string>& flags)
 {
 }
 

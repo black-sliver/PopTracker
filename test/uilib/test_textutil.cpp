@@ -15,6 +15,14 @@ TEST(UiTextUtilTest, RenderBasicText) {
     SDL_FreeSurface(surf);
 }
 
+TEST(UiTextUtilTest, RenderMultiLineText) {
+    auto font = getDefaultFont();
+    ASSERT_TRUE(font);
+    auto surf = RenderText(font, "Hello\nWorld!", {0, 0, 0, 255}, Label::HAlign::CENTER);
+    EXPECT_TRUE(surf);
+    SDL_FreeSurface(surf);
+}
+
 TEST(UiTextUtilTest, SizeTextHorizontal) {
     auto font = getDefaultFont();
     ASSERT_TRUE(font);
