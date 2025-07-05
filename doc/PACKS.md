@@ -289,6 +289,10 @@ a table representing an enum with the following constants: \
     - `grey`: 0% saturation + 67% brightness
     - `disable`: same as `grey`
     - `overlay|path/to/img.png|overlay_filters...`: draw a second image over it; overlay_filters are applied to overlay (since 0.25.6)
+    - `brightness|x`: set image brightness by multiplying all colors with `x` (decimal); since 0.32.2
+    - `dim`: same as `brightness|0.5`; since 0.32.2
+    - `saturation|x|colorspace`: set saturation to `x`, if colorspace is `bt601` emulate brightness levels, otherwise average r, g, b; since 0.32.2
+    - `greyscale`: same as `saturation|0`; since 0.32.2
     - NOTE: order matters, applied left to right
   + inherit_codes: true will make stage3 provide codes for item, stage1, 2 and 3 (default true)
 

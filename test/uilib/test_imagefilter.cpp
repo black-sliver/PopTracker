@@ -12,6 +12,10 @@ using namespace Ui;
 #define ALL_KNOWN_FILTERS \
 "grey", \
 "disable", \
+"saturation", \
+"greyscale", \
+"brightness", \
+"dim", \
 "overlay"
 
 class ImageFilterSuite : public testing::TestWithParam<std::string_view>
@@ -67,7 +71,78 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(ALL_KNOWN_FILTERS)
 );
 
-TEST(ImageFilterTest, UnknownFilterUnmodied) {
+TEST(ImageFilterTest, GreyscaleIsSaturation0) {
+    auto surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    const ImageFilter filter1("greyscale");
+    SDL_Surface *surf1 = filter1.apply(surf0);
+    ASSERT_TRUE(surf1);
+    surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    const ImageFilter filter2("saturation", "0");
+    SDL_Surface *surf2 = filter2.apply(surf0);
+    ASSERT_TRUE(surf2);
+    const std::string data1(static_cast<const char *>(surf1->pixels), surf1->h * surf1->pitch);
+    const std::string data2(static_cast<const char *>(surf2->pixels), surf2->h * surf2->pitch);
+    EXPECT_EQ(data1, data2);
+    if (surf1->format->palette) {
+        ASSERT_TRUE(surf2->format->palette);
+        EXPECT_EQ(getPaletteData(surf1), getPaletteData(surf2));
+    } else {
+        EXPECT_FALSE(surf2->format->palette);
+    }
+    SDL_FreeSurface(surf1);
+    SDL_FreeSurface(surf2);
+}
+
+TEST(ImageFilterTest, DimIsHalfBrightness) {
+    auto surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    const ImageFilter filter1("dim");
+    SDL_Surface *surf1 = filter1.apply(surf0);
+    ASSERT_TRUE(surf1);
+    surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    const ImageFilter filter2("brightness", "0.5");
+    SDL_Surface *surf2 = filter2.apply(surf0);
+    ASSERT_TRUE(surf2);
+    const std::string data1(static_cast<const char *>(surf1->pixels), surf1->h * surf1->pitch);
+    const std::string data2(static_cast<const char *>(surf2->pixels), surf2->h * surf2->pitch);
+    EXPECT_EQ(data1, data2);
+    if (surf1->format->palette) {
+        ASSERT_TRUE(surf2->format->palette);
+        EXPECT_EQ(getPaletteData(surf1), getPaletteData(surf2));
+    } else {
+        EXPECT_FALSE(surf2->format->palette);
+    }
+    SDL_FreeSurface(surf1);
+    SDL_FreeSurface(surf2);
+}
+
+TEST(ImageFilterTest, BT601IsNotDefault) {
+    auto surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    std::vector<std::string> args{"0", "bt601"};
+    const ImageFilter filter1("saturation", args);
+    SDL_Surface *surf1 = filter1.apply(surf0);
+    ASSERT_TRUE(surf1);
+    surf0 = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf0);
+    const ImageFilter filter2("saturation", "0");
+    SDL_Surface *surf2 = filter2.apply(surf0);
+    ASSERT_TRUE(surf2);
+    const std::string data1(static_cast<const char *>(surf1->pixels), surf1->h * surf1->pitch);
+    const std::string data2(static_cast<const char *>(surf2->pixels), surf2->h * surf2->pitch);
+    if (data1 == data2) {
+        ASSERT_TRUE(surf1->format->palette);
+        ASSERT_TRUE(surf2->format->palette);
+        EXPECT_NE(getPaletteData(surf1), getPaletteData(surf2));
+    }
+    SDL_FreeSurface(surf1);
+    SDL_FreeSurface(surf2);
+}
+
+TEST(ImageFilterTest, UnknownFilterUnmodified) {
     auto surf = IMG_Load(asset("closed.png").u8string().c_str());
     ASSERT_TRUE(surf);
     std::string originalData((const char*)surf->pixels, surf->h * surf->pitch);
