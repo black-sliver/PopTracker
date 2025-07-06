@@ -4,7 +4,7 @@
 * Everything a pack provides is done through Lua, starting at scripts/init.lua.
 * Data (that is loaded through Lua) is stored as JSON inside the pack.
 * Images (that are referenced in JSON) are PNGs, GIFs or JPEGs inside the pack.
-* Most strings/identifiers are case sensitive.
+* Most strings/identifiers are case-sensitive.
 
 
 ### Manifest
@@ -55,7 +55,7 @@ Currently supported flags:
 * `"exlorom"`: (SNES) game has ExLoROM mapping
 * `"exhirom"`: (SNES) game has ExHiROM mapping
 * `"sa-1"`: (SNES) game has SA-1 mapping
-* `"luaconnector"`: Connect to (Bizhawk) LuaConnector (crowd control version)
+* `"luaconnector"`: Connect to (BizHawk) LuaConnector (crowd control version)
 
 `versions_url` can be used for automatic updates. Information from global `packs.json` takes precedence.
 See https://github.com/black-sliver/PopTracker/tree/packlist for more information.
@@ -192,7 +192,7 @@ a table representing an enum with the following constants: \
 * `closure(LuaItem) .OnMiddleClickFunc`: called when middle-clicking, since 0.25.8
 * **TODO**: Forward, Backward or a generalized onClick(button)
 * `closure(LuaItem,string code) .CanProvideCodeFunc`: called to determine if item has code
-* `closure(LuaItem,string code) .ProvidesCodeFunc`: called to track progress, closure should returns 1 if code is provided (can provide && active)
+* `closure(LuaItem,string code) .ProvidesCodeFunc`: called to track progress, closure should return 1 if code is provided (can provide && active)
 * `closure(LuaItem,string code) .AdvanceToCodeFunc`: called to change item's stage to provide code (not in use yet)
 * `closure(LuaItem) .SaveFunc`: called when saving, closure should return a lua object that works in LoadFunc
 * `closure(LuaItem,object data) .LoadFunc`: called when loading, data as returned by `SaveFunc`
@@ -468,7 +468,7 @@ The return value has to be a number (count) or boolean (since v0.20.4).
 
 Rules inside `[` `]` are optional (i.e. glitches work around this rule).
 
-Rule-goups inside `{` `}` are a different set of rules to mark the section as "checkable but not collectible", marked blue on the map.
+Rule-groups inside `{` `}` are a different set of rules to mark the section as "checkable but not collectible", marked blue on the map.
 
 `<rule1>-<rule4>` in example above are combined as: `(<rule1> AND <rule2>) OR (<rule3> AND <rule4>)` have to be met to collect.
 
@@ -514,12 +514,12 @@ Sections can be addressed from Lua with `Tracker:FindObjectForCode("@location_na
 * `.Owner`: probably points to location, but we return an empty table at the moment. `.Owner.ModifiedByUser` is `nil`.
 * `.ChestCount`: read how many chests are in the section
 * `.AvailableChestCount`: read/write how many chests are NOT checked
-* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants
+* `.AccessibilityLevel`: read-only, giving one of the AccessibilityLevel constants
 * `.Highlight`: Highlight the location as one of the states in Highlight constants, since 0.32.0
 
 **Location Lua Interface:**
 
-* `.AccessibilityLevel`: read-only, giving one of the AccssibilityLevel constants, since 0.25.5
+* `.AccessibilityLevel`: read-only, giving one of the AccessibilityLevel constants, since 0.25.5
 
 **Future:**
 We probably want to add a different (additional) interface to Pop for this:
