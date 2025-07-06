@@ -71,7 +71,8 @@
             "description": "Modifiers to apply to the image. Multiple values are comma separated.",
             "examples": [
                 "@disabled",
-                "overlay|path/to/img.png"
+                "overlay|path/to/img.png",
+                "saturation|0|bt601,brightness|0.5"
             ],
             "type": "string"
         },
@@ -83,7 +84,8 @@
             "description": "Modifiers to apply to the image when disabled. Multiple values are comma separated.",
             "examples": [
                 "@disabled",
-                "overlay|path/to/img.png"
+                "overlay|path/to/img.png",
+                "saturation|0|bt601,brightness|0.5"
             ],
             "type": "string"
         },

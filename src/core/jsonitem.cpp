@@ -41,7 +41,7 @@ JsonItem JsonItem::FromJSONString(const std::string& j)
     return FromJSON(json::parse(j, nullptr, true, true));
 }
 
-JsonItem JsonItem::FromJSON(nlohmann::json&& j)
+JsonItem JsonItem::FromJSON(json&& j)
 {
     auto tmp = j;
     return FromJSON(tmp);
@@ -146,7 +146,7 @@ JsonItem::Stage JsonItem::Stage::FromJSONString(const std::string& j)
     return FromJSON(json::parse(j, nullptr, true, true));
 }
 
-JsonItem::Stage JsonItem::Stage::FromJSON(nlohmann::json&& j)
+JsonItem::Stage JsonItem::Stage::FromJSON(json&& j)
 {
     auto tmp = j;
     return FromJSON(tmp);
