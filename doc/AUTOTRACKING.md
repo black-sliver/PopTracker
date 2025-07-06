@@ -25,7 +25,7 @@ If you find a non-working case, please report.
 
 For snes, the interface uses bus addresses, a valid address mapping has to be
 provided, either through auto-detection (not implemented), variant's flags
-"lorom", "hirom", "exlorom", "exhirom" or "sa-1", or the internal game-name table.
+`"lorom"`, `"hirom"`, `"exlorom"`, `"exhirom"` or `"sa-1"`, or the internal game-name table.
 
 For n64, Lua connector is automatically enabled.
 
@@ -157,9 +157,9 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `:AddSetReplyHandler(name, callback)` called when a watched data storage value is changed; args: key, value, old_value
 * `:Get(keys)` ask the server for values from data storage, run this from a ClearHandler, keys is an array of strings
 * `:SetNotify(keys)` ask the server to notify when a data storage value is changed, run this from a ClearHandler, keys is an array of strings
-* `:LocationChecks(locations)` Send locations as checked to the server, since 0.26.2, only allowed if "apmanual" flag is set in manifest.
-* `:LocationScouts(locations, sendAsHint)` Send locations as scouted to the server, since 0.26.2, only allowed if "apmanual" or "aphintgame" flag is set in manifest.
-* `:StatusUpdate(statusCode)` Send client status (Archipelago.ClientStatus enum) to the server. This is used to send the goal / win condition for apmanual, since 0.27.1.
+* `:LocationChecks(locations)` Send locations as checked to the server, since 0.26.2, only allowed if `"apmanual"` flag is set in manifest.
+* `:LocationScouts(locations, sendAsHint)` Send locations as scouted to the server, since 0.26.2, only allowed if `"apmanual"` or `"aphintgame"` flag is set in manifest.
+* `:StatusUpdate(statusCode)` Send client status (Archipelago.ClientStatus enum) to the server. This is used to send the goal / win condition for AP Manuals, since 0.27.1.
 * `:GetPlayerAlias(slot)` gets the player display name for a slot number, since 0.28.1.
 * `:GetPlayerGame(slot)` gets the game name a player is playing from slot number, since 0.28.1.
 * `:GetItemName(id, game)` gets the item name for a given id and game name, since 0.28.1.
@@ -169,9 +169,9 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 ## Other Stuff
 in addition to above interfaces, the tracker will call
 * `autotracker_started` when a game is connected (currently memory only)
-* `autotracker_stopped` when a auto-tracking is disabled by the user (currently memory only)
+* `autotracker_stopped` when auto-tracking is disabled by the user (currently memory only)
 
 in addition, the following back-end agnostic functions are provided
 * `AutoTracker:GetConnectionState(backend_name)` will return an integer corresponding to the current state (since 0.20.2).
-  * Valid backend names are: `"SNES"`, `"UAT"`, `"AP"` (case sensitive)
+  * Valid backend names are: `"SNES"`, `"UAT"`, `"AP"` (case-sensitive)
   * States are: -1: Unavailable, 0: Disabled, 1: Disconnected, 2: Socket Connected (not ready), 3: Game/Console Connected (ready)
