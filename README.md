@@ -85,7 +85,7 @@ or [usb2snes](https://github.com/RedGuyyyy/sd2snes/releases) (flash cart only).
 See their respective documentation.
 
 ### PC Games
-We do not allow direct access to process memory or sockets from Lua. Instead
+We do not allow direct access to process memory or sockets from Lua. Instead,
 [UAT](https://github.com/black-sliver/UAT) can be used to receive "variables".
 
 ### Archipelago Multiworld
@@ -93,7 +93,7 @@ We do not allow direct access to process memory or sockets from Lua. Instead
 tracker. Click on the grey "AP" to connect to a server if the pack supports it.
 See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md) for more details.
 
-### Bizhawk Connector
+### BizHawk Connector
 Preview, currently only tested with GBA and N64.
 See [doc/AUTOTRACKING.md](./doc/AUTOTRACKING.md#supported-interfaces) for details.
 
@@ -133,8 +133,8 @@ any one of `Documents/PopTracker`, `%home%/PopTracker` or `AppPath`.
 
 ## Portable Mode
 
-When creating a file called `portable.txt` next to the program (not macos) or
-next to poptracker **inside** the AppBundle (macos-only), the app runs in
+When creating a file called `portable.txt` next to the program (not macOS) or
+next to `poptracker` **inside** the AppBundle (macos-only), the app runs in
 portable mode, which changes the default pack folder to be next to the program
 (not in home folder) and disables asset and pack overrides from home folder
 (only allows overrides from program folder).

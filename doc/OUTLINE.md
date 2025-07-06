@@ -38,7 +38,7 @@ We do not use the data directly, but instead load it into objects via
 Class::FromJSON, which are then used for to the actual (UI) implementation.
 
 ## WASM support
-At some point PopTracker should be able to run inside a webbrowser using
+At some point PopTracker should be able to run inside a web-browser using
 [WASM](https://en.wikipedia.org/wiki/WebAssembly).
 Most or all dependencies should work with emcc, but UI/window handling is not done yet nor is a virtual file system.
 
@@ -59,8 +59,8 @@ Most or all dependencies should work with emcc, but UI/window handling is not do
 
 ### Desktop ZIP
 - Optimized ZIP (zopfli, advzip, 7z -mx=9, ...) for fastest download/disk loading
-- Optimized PNGs (zopflipng, optipng, pngcrush, ...) for fastes decompression
-- Store uncompressable/precompressed files (PNG, JPG) uncompressed in ZIP
+- Optimized PNGs (zopflipng, optipng, pngcrush, ...) for fastest decompression
+- Store incompressible/precompressed files (PNG, JPG) uncompressed in ZIP
 - Use zipalign to align all uncompressed files for direct consumption (mmap)
 
 ### Web ZIP
