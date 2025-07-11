@@ -1,4 +1,6 @@
 #include "uatclient.h"
+
+#ifdef WITH_UATCLIENT
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace chrono = std::chrono;
@@ -227,3 +229,5 @@ void UATClient::sync(const std::string& slot)
         _conn->send(sync.dump(), websocketpp::frame::opcode::text);
     }
 }
+
+#endif // WITH_UATCLIENT

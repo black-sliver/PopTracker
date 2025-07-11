@@ -1,7 +1,6 @@
-#ifndef _UATCLIENT_H_INCLUDED
-#define _UATCLIENT_H_INCLUDED
+#pragma once
 
-
+#ifdef WITH_UATCLIENT
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 #include <nlohmann/json.hpp>
@@ -160,4 +159,4 @@ protected:
     }
 };
     
-#endif // _UATCLIENT_H_INCLUDED
+#endif // WITH_UATCLIENT

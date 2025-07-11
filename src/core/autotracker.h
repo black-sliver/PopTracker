@@ -96,6 +96,7 @@ public:
             _state.push_back(State::Disabled);
             _provider->setMapping(flags);
         }
+#ifdef WITH_UATCLIENT
         if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
             _lastBackendIndex++;
@@ -122,6 +123,7 @@ public:
                 onVariablesChanged.emit(this, varNames);
             });
         }
+#endif
         if (_state.empty()) {
             printf("No auto-tracking back-end for %s%s\n",
                     platform.c_str(),
@@ -146,9 +148,10 @@ public:
         }
         _snes = nullptr;
 #endif
-
+#ifdef WITH_UATCLIENT
         if (_uat) delete _uat;
         _uat = nullptr;
+#endif
 
         if (_ap) delete _ap;
         _ap = nullptr;
@@ -189,8 +192,10 @@ public:
     {
         if (name == BACKEND_AP_NAME)
             return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
+#ifdef WITH_UATCLIENT
         if (name == BACKEND_UAT_NAME)
             return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
+#endif
 #ifdef WITH_USB2SNES
         if (name == BACKEND_SNES_NAME)
             return _snes ? getState(_backendIndex[_snes]) : State::Unavailable;
@@ -205,8 +210,10 @@ public:
         for (int index = 0; index < (int)_state.size(); ++index) {
             if (_ap && _backendIndex[_ap] == index)
                 continue; // AP doesn't have memory
+#ifdef WITH_UATCLIENT
             if (_uat && _backendIndex[_uat] == index)
                 continue; // UAT doesn't have memory
+#endif
             if (getState(index) >= State::ConsoleConnected)
                 return true;
         }
@@ -216,7 +223,9 @@ public:
     const std::string& getName(int index)
     {
         if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;
+#ifdef WITH_UATCLIENT
         if (_uat && _backendIndex[_uat] == index) return BACKEND_UAT_NAME;
+#endif
 #ifdef WITH_USB2SNES
         if (_snes && _backendIndex[_snes] == index) return BACKEND_SNES_NAME;
 #endif
@@ -309,6 +318,7 @@ public:
         }
 #endif
 
+#ifdef WITH_UATCLIENT
         // UAT AUTOTRACKING
         if (_uat && backendEnabled(_uat)) {
             _uat->connect();
@@ -325,6 +335,7 @@ public:
                 res = true;
             }
         }
+#endif
 
         // AP AUTOTRACKING
         if (_ap && backendEnabled(_ap)) {
@@ -410,8 +421,10 @@ public:
         if (_snes)
             _snes->clearCache();
 #endif
+#ifdef WITH_UATCLIENT
         if (_uat)
             _uat->sync(_slot);
+#endif
         if (_provider)
             _provider->clearCache();
     }
@@ -568,12 +581,14 @@ public:
             return true;
         }
 #endif
+#ifdef WITH_UATCLIENT
         if (_uat && _backendIndex[_uat] == index) {
             // UAT will auto-connect when polling (doStuff())
             _state[index] = State::Disconnected;
             onStateChange.emit(this, index, _state[index]);
             return true;
         }
+#endif
         if (_ap && _backendIndex[_ap] == index) {
             // ap requires explicit connection to a server
             if (_ap->connect(uri, slot, password)) {
@@ -623,11 +638,13 @@ public:
                     _snes->setUpdateInterval(_interval);
             }
 #endif
+#ifdef WITH_UATCLIENT
             if (_uat && _backendIndex[_uat] == index
                     && _uat->getState() != UATClient::State::DISCONNECTED
                     && _uat->getState() != UATClient::State::DISCONNECTING) {
                 _uat->disconnect(websocketpp::close::status::going_away);
             }
+#endif
             if (_ap && _backendIndex[_ap] == index)
                 _ap->disconnect();
             if (_provider && _backendIndex[_provider] == index) {
@@ -688,7 +705,9 @@ protected:
 #ifdef WITH_USB2SNES
     USB2SNES *_snes = nullptr;
 #endif
+#ifdef WITH_UATCLIENT
     UATClient *_uat = nullptr;
+#endif
     APTracker *_ap = nullptr;
     IAutotrackProvider* _provider = nullptr;
     std::string _slot; // selected slot for UAT
