@@ -23,19 +23,11 @@
 #include "util.h"
 #include <cwchar>
 
-#if defined(__APPLE__) && !defined(MACOS)
-#define MACOS
-#endif
 
 #if defined(_WIN32) && !defined(WIN32)
 #define WIN32
 #endif
 
-#if defined(MACOS) || defined(__FreeBSD__)
-#include <copyfile.h>
-#elif !defined(WIN32)
-#include <sys/sendfile.h>
-#endif
 
 static bool readFile(const fs::path& file, std::string& out)
 {
