@@ -1,6 +1,6 @@
-#ifndef _USB2SNES_H_INCLUDED
-#define _USB2SNES_H_INCLUDED
+#pragma once
 
+#ifdef WITH_USB2SNES
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 #include <thread>
@@ -194,5 +194,4 @@ static inline bool operator!(USB2SNES::Change e) {
 }
 
 
-#endif // _USB2SNES_H_INCLUDED
-
+#endif // WITH_USB2SNES

@@ -65,6 +65,7 @@ public:
                 }
             }};
         }
+#ifdef WITH_USB2SNES
         if (strcasecmp(platform.c_str(), "snes")==0) {
             _snes = new USB2SNES(_name);
             _lastBackendIndex++;
@@ -83,6 +84,7 @@ public:
                 _snes->setMapping(USB2SNES::Mapping::SA1);
             _snesMapping = _snes->getMapping();
         }
+#endif
         bool isN64 = strcasecmp(platform.c_str(), "n64") == 0;
         if (isN64 || flags.find("luaconnector") != flags.end()) {
             LuaConnector::LuaConnector::optional<std::string> defaultDomain;
@@ -130,7 +132,8 @@ public:
     virtual ~AutoTracker()
     {
         bool spawnedWorkers = false;
-        
+
+#ifdef WITH_USB2SNES
         if (_snes) {
             if (_snes->mayBlockOnExit()) {
                 // delete() may wait for socket timeout -> run destructor in another thread
@@ -142,7 +145,8 @@ public:
             }
         }
         _snes = nullptr;
-        
+#endif
+
         if (_uat) delete _uat;
         _uat = nullptr;
 
@@ -187,8 +191,10 @@ public:
             return _ap ? getState(_backendIndex[_ap]) : State::Unavailable;
         if (name == BACKEND_UAT_NAME)
             return _uat ? getState(_backendIndex[_uat]) : State::Unavailable;
+#ifdef WITH_USB2SNES
         if (name == BACKEND_SNES_NAME)
             return _snes ? getState(_backendIndex[_snes]) : State::Unavailable;
+#endif
         if (_provider && name == _provider->getName())
             return _provider ? getState(_backendIndex[_provider]) : State::Unavailable;
         return State::Unavailable;
@@ -211,15 +217,19 @@ public:
     {
         if (_ap && _backendIndex[_ap] == index) return BACKEND_AP_NAME;
         if (_uat && _backendIndex[_uat] == index) return BACKEND_UAT_NAME;
+#ifdef WITH_USB2SNES
         if (_snes && _backendIndex[_snes] == index) return BACKEND_SNES_NAME;
+#endif
         if (_provider && _backendIndex[_provider] == index) return _provider->getName();
         return BACKEND_NONE_NAME;
     }
 
     std::string getSubName(int index)
     {
+#ifdef WITH_USB2SNES
         if (_snes && _backendIndex[_snes] == index)
             return _snes->getDeviceName();
+#endif
         if (_ap && _backendIndex[_ap] == index) {
             auto player = _ap->getPlayerAlias(_ap->getPlayerNumber());
             if (player != "Unknown")
@@ -228,8 +238,9 @@ public:
         return "";
     }
 
-    bool cycle(int index)
+    bool cycle([[maybe_unused]] const int index)
     {
+#ifdef WITH_USB2SNES
         if (_snes && _backendIndex[_snes] == index) {
             if (getState(index) == AutoTracker::State::Disabled) {
                 enable(index);
@@ -242,6 +253,7 @@ public:
             }
             return true;
         }
+#endif
         return false;
     }
 
@@ -255,6 +267,7 @@ public:
                 onStateChange.emit(this, i, _state[i]);
         }
 
+#ifdef WITH_USB2SNES
         // USB2SNES AUTOTRACKING
         if (_snes && backendEnabled(_snes)) {
             if (_snesAddresses.empty())
@@ -294,6 +307,7 @@ public:
                 res = true;
             }
         }
+#endif
 
         // UAT AUTOTRACKING
         if (_uat && backendEnabled(_uat)) {
@@ -352,10 +366,12 @@ public:
     
     bool addWatch(unsigned addr, unsigned len)
     {
+#ifdef WITH_USB2SNES
         if (addr<=0xffffff && _snes) {
             _snes->addWatch((uint32_t)addr, len);
             return true;
         }
+#endif
         if (_provider) {
             _provider->addWatch((uint32_t)addr, len);
             return true;
@@ -365,10 +381,12 @@ public:
 
     bool removeWatch(unsigned addr, unsigned len)
     {
+#ifdef WITH_USB2SNES
         if (addr<=0xffffff && _snes) {
             _snes->removeWatch((uint32_t)addr, len);
             return true;
         }
+#endif
         if (_provider) {
             _provider->removeWatch((uint32_t)addr, len);
             return true;
@@ -379,15 +397,19 @@ public:
     void setInterval(unsigned ms)
     {
         _interval = ms;
+#ifdef WITH_USB2SNES
         if (_snes)
             _snes->setUpdateInterval(ms);
+#endif
         if (_provider)
             _provider->setWatchUpdateInterval(ms);
     }
 
     void clearCache() {
+#ifdef WITH_USB2SNES
         if (_snes)
             _snes->clearCache();
+#endif
         if (_uat)
             _uat->sync(_slot);
         if (_provider)
@@ -398,10 +420,13 @@ public:
     std::vector<uint8_t> read(unsigned addr, unsigned len)
     {
         std::vector<uint8_t> res;
+#ifdef WITH_USB2SNES
         if (_snes) {
             res.resize(len);
             _snes->read((uint32_t)addr, len, res.data());
-        } else if (_provider) {
+        } else
+#endif
+        if (_provider) {
             res.resize(len);
             _provider->readFromCache(res.data(), (uint32_t)addr, len);
         }
@@ -446,6 +471,7 @@ public:
     int ReadUInt8(int addr)
     {
         // NOTE: this is Segment:ReadUint8. we only have 1 segment, that is AutoTracker
+#ifdef WITH_USB2SNES
         if (_snes) {
             auto res = _snes->read(addr);
             if (res == 0) _snes->addWatch(addr); // we don't read snes memory on the main thread.
@@ -453,7 +479,8 @@ public:
             //printf("$%06x = %02x\n", a, res);
             return res;
         }
-        else if (_provider) {
+#endif
+        if (_provider) {
             uint8_t res = 0;
             _provider->readUInt8FromCache(res, addr);
             return res;
@@ -463,12 +490,14 @@ public:
 
     int ReadUInt16(int addr)
     {
+#ifdef WITH_USB2SNES
         if (_snes) {
             auto res = _snes->readInt<uint16_t>(addr);
             if (res == 0) _snes->addWatch(addr,2);
             return res;
         }
-        else if (_provider) {
+#endif
+        if (_provider) {
             uint16_t res = 0;
             _provider->readUInt16FromCache(res, addr);
             return res;
@@ -478,12 +507,14 @@ public:
 
     int ReadUInt24(int addr)
     {
+#ifdef WITH_USB2SNES
         if (_snes) {
             auto res = _snes->readInt<uint32_t>(addr)&0xffffff;
             if (res == 0) _snes->addWatch(addr,3);
             return res;
         }
-        else if (_provider) {
+#endif
+        if (_provider) {
             uint32_t res = 0;
             _provider->readUInt32FromCache(res, addr);
             return res & 0xffffff;
@@ -493,12 +524,14 @@ public:
 
     int ReadUInt32(int addr)
     {
+#ifdef WITH_USB2SNES
         if (_snes) {
             auto res = _snes->readInt<uint32_t>(addr);
             if (res == 0) _snes->addWatch(addr,4);
             return res;
         }
-        else if (_provider) {
+#endif
+        if (_provider) {
             uint32_t res = 0;
             _provider->readUInt32FromCache(res, addr);
             return res;
@@ -526,22 +559,31 @@ public:
             return false;
         if (_state[index] != State::Disabled)
             return true;
+#ifdef WITH_USB2SNES
         if ((_snes && _backendIndex[_snes] == index)
                 || (_uat && _backendIndex[_uat] == index)) {
-            // snes and uat will auto-connect when polling (doStuff())
+            // snes will auto-connect when polling (doStuff())
             _state[index] = State::Disconnected;
             onStateChange.emit(this, index, _state[index]);
             return true;
         }
-        else if (_ap && _backendIndex[_ap] == index) {
+#endif
+        if (_uat && _backendIndex[_uat] == index) {
+            // UAT will auto-connect when polling (doStuff())
+            _state[index] = State::Disconnected;
+            onStateChange.emit(this, index, _state[index]);
+            return true;
+        }
+        if (_ap && _backendIndex[_ap] == index) {
             // ap requires explicit connection to a server
             if (_ap->connect(uri, slot, password)) {
                 _state[index] = State::Disconnected;
                 onStateChange.emit(this, index, _state[index]);
                 return true;
             }
+            return false;
         }
-        else if (_provider && _backendIndex[_provider] == index) {
+        if (_provider && _backendIndex[_provider] == index) {
             _state[index] = State::Disconnected;
             onStateChange.emit(this, index, _state[index]);
             _provider->start();
@@ -561,6 +603,7 @@ public:
             if (_state[index] == State::Unavailable)
                 continue;
             _state[index] = State::Disabled;
+#ifdef WITH_USB2SNES
             if (_snes && _backendIndex[_snes] == index) {
                 // connect() after disconnect() needs to join the worker thread,
                 // which may block. as a work-around we start a new USB2SNES and
@@ -579,6 +622,7 @@ public:
                 if (_interval != INTERVAL_UNSET)
                     _snes->setUpdateInterval(_interval);
             }
+#endif
             if (_uat && _backendIndex[_uat] == index
                     && _uat->getState() != UATClient::State::DISCONNECTED
                     && _uat->getState() != UATClient::State::DISCONNECTING) {
@@ -605,8 +649,9 @@ public:
         return _provider;
     }
 
-    void setSnesAddresses(const std::vector<std::string>& addresses)
+    void setSnesAddresses([[maybe_unused]] const std::vector<std::string>& addresses)
     {
+#ifdef WITH_USB2SNES
         _snesAddresses = addresses;
         // fix up addresses:
         // 1. add ws:// if missing
@@ -625,6 +670,7 @@ public:
                 _snesAddresses.push_back(legacy); // this invalidates addr ref
             }
         }
+#endif
     }
 
     bool sync()
@@ -639,7 +685,9 @@ protected:
     std::map<void*, int> _backendIndex;
     int _lastBackendIndex = -1;
     std::vector<State> _state;
+#ifdef WITH_USB2SNES
     USB2SNES *_snes = nullptr;
+#endif
     UATClient *_uat = nullptr;
     APTracker *_ap = nullptr;
     IAutotrackProvider* _provider = nullptr;
@@ -647,9 +695,11 @@ protected:
     std::map<std::string, nlohmann::json> _vars; // variable store for UAT
     std::string _name;
     bool _sentState = false;
-    std::vector<std::string> _snesAddresses;
     unsigned _interval = INTERVAL_UNSET;
+#ifdef WITH_USB2SNES
+    std::vector<std::string> _snesAddresses;
     USB2SNES::Mapping _snesMapping;
+#endif
     std::string _apAlias;
 
     static constexpr unsigned INTERVAL_UNSET = std::numeric_limits<unsigned>::max();

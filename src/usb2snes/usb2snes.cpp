@@ -1,4 +1,6 @@
 #include "usb2snes.h"
+
+#ifdef WITH_USB2SNES
 #include <cstdio>
 #include <thread>
 #include <mutex>
@@ -16,7 +18,6 @@ using json = nlohmann::json;
 //#define VERBOSE
 //#define TIME_READ
 //#ifndef DETACH_THREAD_ON_EXIT // avoid blocking on delete(). not yet implemented
-
 
 bool USB2SNES::wsConnected()
 {
@@ -715,3 +716,5 @@ void USB2SNES::nextDevice()
     last_dev++;
     snes_connected = false;
 }
+
+#endif // WITH_USB2SNES
