@@ -211,16 +211,6 @@ else # RELEASE or DIST
   endif
 endif
 
-ifndef IS_LLVM
-LUA_C_FLAGS += -Wno-error=maybe-uninitialized
-endif
-
-ifndef IS_OSX
-C_FLAGS += -fstack-clash-protection
-CPP_FLAGS += -fstack-clash-protection
-LUA_C_FLAGS += -fstack-clash-protection
-endif
-
 ifdef WITH_ASAN
 CPP_FLAGS += -fsanitize=address
 LD_FLAGS += -fsanitize=address
@@ -242,6 +232,16 @@ WIN64_LD_FLAGS = $(LD_FLAGS)
 NIX_LD_FLAGS = $(LD_FLAGS)
 NIX_C_FLAGS = $(C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
 NIX_LUA_C_FLAGS = $(LUA_C_FLAGS) -DLUA_USE_READLINE -DLUA_USE_LINUX
+
+ifndef IS_OSX
+NIX_C_FLAGS += -fstack-clash-protection
+NIX_CPP_FLAGS += -fstack-clash-protection
+NIX_LUA_C_FLAGS += -fstack-clash-protection
+endif
+
+ifndef IS_LLVM
+NIX_LUA_C_FLAGS += -Wno-error=maybe-uninitialized
+endif
 
 ifdef IS_OSX
 BREW_PREFIX := $(shell brew --prefix)
