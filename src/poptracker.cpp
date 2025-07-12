@@ -365,6 +365,7 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
         Assets::addSearchPath(appPath / "assets"); // system assets
     }
 
+#ifdef WITH_HTTP
     _asio = new asio::io_service();
     HTTP::certfile = asset("cacert.pem").u8string(); // https://curl.se/docs/caextract.html
 
@@ -372,6 +373,9 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     // TODO: move repositories to config?
     _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
     // NOTE: signals are connected later to allow gui and non-gui interaction
+#else
+    _packManager = new PackManager(getConfigPath(APPNAME, "", _isPortable), _httpDefaultHeaders);
+#endif
 
     StateManager::setDir(getConfigPath(APPNAME, "saves", _isPortable));
 }
@@ -380,7 +384,9 @@ PopTracker::~PopTracker()
 {
     unloadTracker();
     delete _packManager;
+#ifdef WITH_HTTP
     delete _asio;
+#endif
     _win = nullptr;
     delete _ui;
 }
@@ -390,7 +396,7 @@ bool PopTracker::start()
     Ui::Position pos = WINDOW_DEFAULT_POSITION;
     Ui::Size size = {0,0};
 
-#ifndef WITHOUT_UPDATE_CHECK
+#if defined(WITH_HTTP) && !defined(WITHOUT_UPDATE_CHECK)
     if (_config.value<bool>("check_for_updates", false)) {
         printf("Checking for update...\n");
         std::string s;
@@ -909,11 +915,13 @@ bool PopTracker::start()
 
 bool PopTracker::frame()
 {
+#ifdef WITH_HTTP
     if (_asio) {
         _asio->poll();
         // when all tasks are done, poll() will stop(). Reset for next request.
         if (_asio->stopped()) _asio->restart();
     }
+#endif
     if (_scriptHost)
         _scriptHost->onFrame();
 
@@ -1010,9 +1018,11 @@ bool PopTracker::ListPacks(PackManager::confirmation_callback confirm, bool inst
             installablePacks = j;
         });
 
+#ifdef WITH_HTTP
         while (!done) {
             _asio->poll();
         }
+#endif
 
         printf("\n");
     }
@@ -1077,9 +1087,11 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
         res = false;
         done = true;
     });
+#ifdef WITH_HTTP
     while (!done) {
         _asio->poll();
     }
+#endif
     return res;
 }
 

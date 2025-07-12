@@ -1,4 +1,6 @@
 #include "httpcache.h"
+
+#ifdef WITH_HTTP
 #include "../core/fileutil.h"
 #include "../core/util.h"
 #include <random>
@@ -152,3 +154,4 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
         cb(false, ""); // always fulfill promise
     };
 }
+#endif

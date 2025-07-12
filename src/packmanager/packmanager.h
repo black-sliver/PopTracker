@@ -1,15 +1,14 @@
-#ifndef _PACKMANAGER_PACKMANAGER_H
-#define _PACKMANAGER_PACKMANAGER_H
+#pragma once
 
-
+#include <functional>
+#include <list>
+#include <map>
+#include <string>
 #include <nlohmann/json.hpp>
 #include <valijson/adapters/nlohmann_json_adapter.hpp>
 #include <valijson/schema.hpp>
 #include <valijson/schema_parser.hpp>
 #include <valijson/validator.hpp>
-#include <map>
-#include <string>
-#include <functional>
 #include "../http/http.h"
 #include "../http/httpcache.h"
 #include "../core/fs.h"
@@ -25,7 +24,11 @@ public:
     typedef std::function<void(const std::string&)> no_update_available_callback;
     typedef std::function<void(std::string, std::function<void(bool)>)> confirmation_callback;
 
+#ifdef WITH_HTTP
     PackManager(asio::io_service *asio, const fs::path& workdir, const std::list<std::string>& httpDefaultHeaders={});
+#else
+    PackManager(const fs::path& workdir, const std::list<std::string>& httpDefaultHeaders={});
+#endif
     PackManager(const PackManager&) = delete;
     virtual ~PackManager();
 
@@ -161,5 +164,3 @@ private:
         "required": [ "versions" ]
     })"_json;
 };
-
-#endif /* _PACKMANAGER_PACKMANAGER_H */

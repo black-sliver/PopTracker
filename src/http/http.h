@@ -1,14 +1,15 @@
-#ifndef _HTTP_HTTP_H
-#define _HTTP_HTTP_H
+#pragma once
 
-#include <asio.hpp>
-#include <asio/ssl.hpp>
-#include <string>
-#include <iostream>
-#include <functional>
 #include <cstring>
 #include <list>
 #include <set>
+#include <string>
+
+#ifdef WITH_HTTP
+#include <asio.hpp>
+#include <asio/ssl.hpp>
+#include <iostream>
+#include <functional>
 #include <map>
 
 #ifdef _MSC_VER 
@@ -100,6 +101,7 @@ public:
     {
         return GetAsync(io_context, uri, {}, cb, fail, f, progress);
     }
+
     static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, response_callback cb, fail_callback fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
     {
         std::string proto, host, port, path;
@@ -729,4 +731,64 @@ private:
     };
 };
 
-#endif // _HTTP_HTTP_H
+#else
+
+class HTTP {
+public:
+    static std::string certfile; // https://curl.se/docs/caextract.html
+    static std::set<std::string> dnt_trusted_hosts; // try not to send trackable headers to hosts other than these
+
+    enum {
+        INTERNAL_ERROR = -1,
+        OK = 200,
+        REDIRECT = 302,
+        NOT_MODIFIED = 304
+    };
+
+    static int Get(const std::string& uri, std::string& response,
+            const std::list<std::string>& headers = {}, int redirect_limit = 3)
+    {
+        return -1;
+    }
+
+    static bool is_uri(const std::string& uri)
+    {
+        std::string proto, host, port, path;
+        return parse_uri(uri, proto, host, port, path);
+    }
+
+    static bool parse_uri(const std::string& uri, std::string& proto, std::string& host, std::string& port, std::string& path)
+    {
+        auto allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+        for (const auto c: uri)
+            if (!strchr(allowed, c))
+                return false;
+        std::string::size_type pos = uri.find("://");
+        if (pos == uri.npos)
+            return false;
+        proto = uri.substr(0, pos);
+        std::string::size_type pos2 = uri.find("/", pos+3);
+        std::string::size_type pos3 = uri.find(":", pos+3);
+        if (pos2 == uri.npos && pos3 == uri.npos) {
+            host = uri.substr(pos+3);
+            port = "";
+            path = "";
+        } else if (pos2 < pos3) {
+            host = uri.substr(pos+3, pos2-(pos+3));
+            port = "";
+            path = uri.substr(pos2);
+        } else {
+            host = uri.substr(pos+3, pos3-(pos+3));
+            if (pos2 == uri.npos) {
+                port = uri.substr(pos3+1);
+                path = "";
+            } else {
+                port = uri.substr(pos3+1, pos2-pos3-1);
+                path = uri.substr(pos2);
+            }
+        }
+        return true;
+    }
+};
+
+#endif

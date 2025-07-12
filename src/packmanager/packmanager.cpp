@@ -1,8 +1,9 @@
 #include "packmanager.h"
-#include "../core/util.h"
+#include <list>
 #include "../core/fileutil.h"
-#include "../core/version.h"
 #include "../core/sha256.h"
+#include "../core/util.h"
+#include "../core/version.h"
 
 
 #ifndef O_CLOEXEC
@@ -10,8 +11,13 @@
 #endif
 
 
+#ifdef WITH_HTTP
 PackManager::PackManager(asio::io_service *asio, const fs::path& workdir, const std::list<std::string>& httpDefaultHeaders)
     : HTTPCache(asio, workdir / "pack-cache.json", workdir / "pack-cache", httpDefaultHeaders)
+#else
+PackManager::PackManager(const fs::path& workdir, [[maybe_unused]] const std::list<std::string>& httpDefaultHeaders)
+    : HTTPCache()
+#endif
 {
     valijson::SchemaParser parser;
     parser.populateSchema(JsonSchemaAdapter(_packsSchemaJson), _packsSchema);

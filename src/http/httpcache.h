@@ -1,14 +1,12 @@
-#ifndef _HTTP_HTTPCACHE_H
-#define _HTTP_HTTPCACHE_H
+#pragma once
 
-
+#ifdef WITH_HTTP
 #include "http.h"
 #include <string>
 #include <list>
 #include <nlohmann/json.hpp>
 
 #include "../core/fs.h"
-
 
 class HTTPCache {
     typedef nlohmann::json json;
@@ -29,4 +27,10 @@ protected:
     int _minAge = 60; // don't fetch if less than X seconds old
 };
 
-#endif /* _HTTP_HTTPCACHE_H */
+#else
+
+class HTTPCache {
+
+};
+
+#endif // WITH_HTTP

@@ -40,7 +40,9 @@ private:
     ImageReference _imageReference;
     bool _autoTrackerAllDisabled = false;
     std::map<std::string, bool> _autoTrackerDisabled;
+#ifdef WITH_HTTP
     asio::io_service *_asio = nullptr;
+#endif
     std::list<std::string> _httpDefaultHeaders;
     PackManager *_packManager = nullptr;
     fs::path _exportFile;
