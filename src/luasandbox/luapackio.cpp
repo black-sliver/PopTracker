@@ -330,10 +330,14 @@ int LuaPackIO::File::seek(lua_State* L, int n)
         luaL_error(L, "bad argument #%d to 'seek' ('cur', 'set' or 'end' expected)", n);
         return 0;
     }
-    if (_pointer <= std::numeric_limits<LUA_INTEGER>::max())
-        lua_pushinteger(L, (LUA_INTEGER)_pointer);
-    else
-        lua_pushnumber(L, (LUA_NUMBER)_pointer);
+    if constexpr (sizeof(_pointer) <= sizeof(LUA_INTEGER)) {
+        lua_pushinteger(L, static_cast<LUA_INTEGER>(_pointer));
+    } else {
+        if (_pointer <= std::numeric_limits<LUA_INTEGER>::max())
+            lua_pushinteger(L, static_cast<LUA_INTEGER>(_pointer));
+        else
+            lua_pushnumber(L, static_cast<LUA_NUMBER>(_pointer));
+    }
     return 1;
 }
 

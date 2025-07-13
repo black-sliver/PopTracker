@@ -32,6 +32,7 @@ PackManager::~PackManager()
 
 void PackManager::updateRepository(const std::string& url, std::function<void(bool)> cb, bool alreadyModified)
 {
+#ifdef WITH_HTTP
     GetCached(url, [this, url, cb, alreadyModified](bool ok, std::string data)
     {
         // complete handler (success or fail)
@@ -67,6 +68,7 @@ void PackManager::updateRepository(const std::string& url, std::function<void(bo
             updateRepository(nextURL, cb, ok || alreadyModified);
         }
     });
+#endif
 }
 
 void PackManager::updateRepositories(std::function<void(bool)> cb)
@@ -156,6 +158,7 @@ void PackManager::getAvailablePacks(std::function<void(const json&)> cb)
 void PackManager::checkForUpdateFrom(const std::string& uid, const std::string& version, const std::string url,
         update_available_callback cb, no_update_available_callback ncb)
 {
+#ifdef WITH_HTTP
     GetCached(url, [this, uid, version, url, cb, ncb](bool ok, std::string data) {
         bool hasUpdate = false;
         if (ok) {
@@ -204,6 +207,7 @@ void PackManager::checkForUpdateFrom(const std::string& uid, const std::string& 
         }
         if (!hasUpdate && ncb) ncb(uid);
     });
+#endif
 }
 
 void PackManager::askConfirmation(const std::string& message, std::function<void(bool)> cb)
@@ -230,6 +234,7 @@ void PackManager::GetFile(const std::string& url, const fs::path& dest,
         std::function<void(bool,const std::string&)> cb,
         std::function<void(int,int)> progress, int followRedirect)
 {
+#ifdef WITH_HTTP
 #ifdef _WIN32
     FILE* f = _wfopen(dest.c_str(), L"wb");
 #else
@@ -249,11 +254,13 @@ void PackManager::GetFile(const std::string& url, const fs::path& dest,
         fclose(f);
         cb(false, "");
     }, f, progress);
+#endif
 }
 
 void PackManager::downloadUpdate(const std::string& url, const fs::path& install_dir,
         const std::string& validate_uid, const std::string& validate_version, const std::string& validate_sha256)
 {
+#ifdef WITH_HTTP
     fs::path path;
     int fd = -1;
     for (int i=0; i<5; i++) {
@@ -340,6 +347,7 @@ void PackManager::downloadUpdate(const std::string& url, const fs::path& install
     }, [this, url](int transferred, int total) {
         onUpdateProgress.emit(this, url, transferred, total);
     });
+#endif
 }
 
 void PackManager::loadConf()

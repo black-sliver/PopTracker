@@ -1,10 +1,11 @@
-#ifndef _CORE_AUTOTRACKER_H
-#define _CORE_AUTOTRACKER_H
+#pragma once
 
 #include "../usb2snes/usb2snes.h"
 #include "../uat/uatclient.h"
 #include "../ap/aptracker.h"
+#ifdef WITH_LUA_CONNECTOR
 #include "../luaconnector/luaconnector.h"
+#endif
 #include "autotrackprovider.h"
 #include "signal.h"
 #include <string>
@@ -85,6 +86,7 @@ public:
             _snesMapping = _snes->getMapping();
         }
 #endif
+#ifdef WITH_LUA_CONNECTOR
         bool isN64 = strcasecmp(platform.c_str(), "n64") == 0;
         if (isN64 || flags.find("luaconnector") != flags.end()) {
             LuaConnector::LuaConnector::optional<std::string> defaultDomain;
@@ -96,6 +98,7 @@ public:
             _state.push_back(State::Disabled);
             _provider->setMapping(flags);
         }
+#endif
 #ifdef WITH_UATCLIENT
         if (flags.find("uat") != flags.end()) {
             _uat = new UATClient();
@@ -741,5 +744,3 @@ protected: // Lua interface implementation
 
     virtual int Lua_Index(lua_State *L, const char* key) override;
 };
-
-#endif //_CORE_AUTOTRACKER_H

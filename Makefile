@@ -15,9 +15,9 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
-      $(wildcard $(SRC_DIR)/luaconnector/*.cpp) \
       $(wildcard $(SRC_DIR)/http/*.cpp) \
       $(wildcard $(SRC_DIR)/packmanager/*.cpp)
+      #$(wildcard $(SRC_DIR)/luaconnector/*.cpp) \
       #lib/gifdec/gifdec.c
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
@@ -372,7 +372,7 @@ $(HTML): $(SRC) $(WASM_BUILD_DIR)/liblua.a $(HDR) | $(WASM_BUILD_DIR)
     # TODO: add preloads as dependencies
 	# -s ASSERTIONS=1 
 	# -fexceptions is required for fixing up jsonc->json
-	$(EMPP) $(SRC) $(WASM_BUILD_DIR)/liblua.a -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs -o $@
+	$(EMPP) -DLUA_CPP -flto -s WASM=1 $(SRC) $(WASM_BUILD_DIR)/liblua.a --bind -std=c++17 -fexceptions $(INCLUDE_DIRS) -Os -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["png","gif"]' -s ALLOW_MEMORY_GROWTH=1 --preload-file assets --preload-file packs/Oracle-of-Seasons-AP-Poptracker-Pack -o $@ # --preload-file packs
 
 $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CXX) -std=c++1z $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
@@ -467,7 +467,7 @@ $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
 	mkdir -p $(WASM_BUILD_DIR)/lib
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
-	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMPP) AR="$(EMAR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMPP) AR="$(EMAR) rc" CFLAGS="$(LUA_C_FLAGS) -s LINKABLE=1 -flto" MYCFLAGS="" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WASM_BUILD_DIR)/lib/lua
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)

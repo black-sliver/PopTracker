@@ -1,5 +1,6 @@
 #include "sha256.h"
 #include <string>
+#ifdef WITH_OPENSSL
 #include <stdio.h>
 #include <openssl/evp.h>
 
@@ -40,11 +41,19 @@ std::string SHA256_File(const fs::path& file)
         res += hex[hash[i]&0x0f];
     }
 
-err_read:
-err_hash:
-    EVP_MD_CTX_free(context);
-err_alloc:
-    fclose(f);
-err_fopen:
-    return res;
+    err_read:
+    err_hash:
+        EVP_MD_CTX_free(context);
+    err_alloc:
+        fclose(f);
+    err_fopen:
+        return res
 }
+
+#else
+
+std::string SHA256_File(const fs::path& file)
+{;
+    return "";
+}
+#endif
