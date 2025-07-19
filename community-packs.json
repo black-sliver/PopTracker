@@ -98,7 +98,7 @@
         "icon_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/main/images/items/maiamai.png",
         "description": "This is a PopTracker pack meant for tracking items and checks in The Legend of Zelda: A Link Between Worlds Randomizer runs, with AP integration for auto-tracking."
     },
-    "lunacid_ap": {
+    "1f1dbd3f-bf6c-45a4-9ff7-f841a0b0ebe2": {
         "name": "Lunacid AP - Map & Item Tracker",
         "author": "ScorpioGameKing & Miracee",
         "platform": "PC",
