@@ -1,0 +1,9 @@
+# venv
+/.venv*/
+/venv*/
+
+# IDE files
+/.idea/
+
+# Temp files
+*~

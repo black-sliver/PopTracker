@@ -9,7 +9,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Checkout original
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/checkout@v4
+      with:
+        repository: '${{ github.event.pull_request.base.repo.full_name }}'
+        ref: '${{ github.event.pull_request.base.sha }}'
+        path: '.base'
     - name: Install dependencies
       run: |
         sudo apt-get install -y python3-pip
@@ -19,5 +27,14 @@ jobs:
         python3 util/validate-packs.py examples/packs.json
         python3 util/validate-versions.py examples/versions.json
     - name: Validate community-packs.json
-      run: |
-        python3 util/validate-packs.py --follow-links community-packs.json
+      run: python3 util/validate-packs.py community-packs.json
+    - name: Validate community-packs.json diff
+      if: ${{ github.event_name == 'pull_request' }}
+      run: >
+        python3 util/validate-packs.py
+        --follow-links --recursive --only-first
+        --diff .base/community-packs.json
+        community-packs.json
+    - name: Validate community-packs.json content
+      if: ${{ github.repository == 'black-sliver/PopTracker' && github.event_name != 'pull_request' }}
+      run: python3 util/validate-packs.py --follow-links --recursive --only-first community-packs.json
