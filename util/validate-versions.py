@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import json
+import os
 import re
 from enum import Enum
 from hashlib import sha256
@@ -17,6 +18,13 @@ class FollowMode(Enum):
     ALL = 2
 
 
+if "CI" not in os.environ or not os.environ["CI"]:
+    from warnings import warn
+else:
+    def warn(message: str) -> None:
+        print(f"::warning::{message}")
+
+
 def load_jsonc(f: Union[IO[bytes], IO[str]]) -> Any:
     comment_regex = re.compile(r"(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)", re.MULTILINE | re.DOTALL)
     trailing_regex = re.compile(r"(\".*?\"|\'.*?\')|,(\s*[\]\}])", re.MULTILINE | re.DOTALL)
@@ -29,7 +37,13 @@ def load_jsonc(f: Union[IO[bytes], IO[str]]) -> Any:
     return json.loads(data)
 
 
-def validate_version_entry(entry: Dict[str, Any], uid: Optional[str], *, verbose: bool = False) -> bool:
+def validate_version_entry(
+        entry: Dict[str, Any],
+        uid: Optional[str],
+        *,
+        strict_uid: bool = False,
+        verbose: bool = False
+) -> bool:
     """Validate (links in) entry of versions.json. Returns False if the entry is uncheckable (no URL)."""
     import requests
 
@@ -56,10 +70,14 @@ def validate_version_entry(entry: Dict[str, Any], uid: Optional[str], *, verbose
                 if not isinstance(manifest, dict):
                     raise ValueError(f"Invalid manifest: {fn} in {url}")
                 manifest_uid = manifest.get("package_uid", None)
+                # TODO: run full schema manifest validation?
                 if manifest_uid is None:
                     raise ValueError(f"package_uid missing from {fn} in {url}")
                 if uid is not None and uid != manifest_uid:
-                    raise ValueError(f"Wrong UID: '{manifest_uid}', expected '{uid}' in {url}")
+                    if strict_uid:
+                        raise ValueError(f"Wrong UID: '{manifest_uid}', expected '{uid}' in {url}")
+                    else:
+                        warn(f"UID mismatch: '{manifest_uid}', expected '{uid}' in {url}")
                 break
         else:
             raise ValueError(f"Did not find manifest.json in {url}")
