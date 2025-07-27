@@ -106,5 +106,14 @@
         "versions_url": "https://raw.githubusercontent.com/ScorpioGameKing/Lunacid-Poptracker/main/versions.json",
         "icon_url": "https://raw.githubusercontent.com/ScorpioGameKing/Lunacid-Poptracker/refs/heads/main/images/items/lock_ballroom.png",
         "description":  "Archipelago Lunacid tracker pack for PopTracker."
+    },
+    "AP_Man_Powerwash_Jas": {
+        "name": "Powerwash Simulator Manual Tracker",
+        "author": "skipperki1",
+        "platform": "PC",
+        "homepage": "https://github.com/skipperki1/manual_powerwashsimulator_hallojasper_PopTracker",
+        "versions_url": "https://raw.githubusercontent.com/skipperki1/manual_powerwashsimulator_hallojasper_PopTracker/main/Manual%20Powerwash%20Simulator%20Poptracker/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/skipperki1/manual_powerwashsimulator_hallojasper_PopTracker/main/Manual%20Powerwash%20Simulator%20Poptracker/images/items/Trident.png",
+        "description":  "Archipelago Map/Item Tracker and Manual Client for Powerwash Simulator."
     }
 }
