@@ -42,7 +42,7 @@ jobs:
                 git commit --amend -m "$PR_MESSAGE"
                 git push -f
                 # reopen PR in case it was closed/merged and the branch not deleted
-                gh pr create -B ${{ github.ref_name }} --title "$PR_TITLE" --body "$PR_BODY"
+                gh pr create -B ${{ github.ref_name }} --title "$PR_TITLE" --body "$PR_BODY" || true
               fi
             else
               # new branch
