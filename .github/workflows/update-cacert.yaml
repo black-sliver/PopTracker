@@ -35,12 +35,12 @@ jobs:
               else
                 # update branch
                 git stash
-                git checkout "$PR_BRANCH"
-                git rebase ${{ github.ref_name }}
+                git branch -D "$PR_BRANCH"
+                git checkout -b "$PR_BRANCH"
                 git stash pop
                 git add .
-                git commit --amend -m "$PR_MESSAGE"
-                git push -f
+                git commit -m "$PR_MESSAGE"
+                git push -f -u origin "$PR_BRANCH"
                 # reopen PR in case it was closed/merged and the branch not deleted
                 gh pr create -B ${{ github.ref_name }} --title "$PR_TITLE" --body "$PR_BODY" || true
               fi
