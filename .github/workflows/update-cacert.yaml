@@ -17,16 +17,39 @@ jobs:
       - name: Check for cacert update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BRANCH: 'bot/update-cacert-${{ github.ref_name }}'
+          PR_MESSAGE: 'Update cacert.pem'
+          PR_TITLE: '[Bot] Update cacert.pem'
+          PR_BODY: 'Update cacert.pem to latest from curl.se'
         run: |
           make update-cacert
           if git diff --quiet; then
             echo "Already up to date"
           else
-            git checkout -b bot/update-cacert-${{ github.ref_name }}
-            git add .
             git config --global user.name "github-actions[bot]"
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Update cacert.pem"
-            git push -u origin bot/update-cacert-${{ github.ref_name }}
-            gh pr create -B ${{ github.ref_name }} --title '[Bot] Update cacert.pem' --body 'Update cacert.pem to latest from curl.se'
+            if git fetch --no-tags --depth=1 origin "$PR_BRANCH:$PR_BRANCH" 2> /dev/null; then
+              # branch already exists -> update
+              if git diff --quiet "$PR_BRANCH"; then
+                echo "PR branch already up to date"
+              else
+                # update branch
+                git stash
+                git branch -D "$PR_BRANCH"
+                git checkout -b "$PR_BRANCH"
+                git stash pop
+                git add .
+                git commit -m "$PR_MESSAGE"
+                git push -f -u origin "$PR_BRANCH"
+                # reopen PR in case it was closed/merged and the branch not deleted
+                gh pr create -B ${{ github.ref_name }} --title "$PR_TITLE" --body "$PR_BODY" || true
+              fi
+            else
+              # new branch
+              git checkout -b "$PR_BRANCH"
+              git add .
+              git commit -m "$PR_MESSAGE"
+              git push -u origin "$PR_BRANCH"
+              gh pr create -B ${{ github.ref_name }} --title "$PR_TITLE" --body "$PR_BODY"
+            fi
           fi
