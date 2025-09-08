@@ -208,7 +208,7 @@ function ScriptHost:RemoveOnFrameHandler(name) end
 ---@return string reference for RemoveOnLocationSectionChangedHandler
 function ScriptHost:AddOnLocationSectionChangedHandler(name, callback) end
 
----Remove a handler/callback added by RemoveOnLocationSectionChangedHandler.
+---Remove a handler/callback added by AddOnLocationSectionChangedHandler.
 ---Available since 0.26.2.
 ---@param name string identifier/name of the handler to remove
 ---@return boolean true on success
