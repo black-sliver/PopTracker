@@ -159,7 +159,7 @@ function ScriptHost:RemoveMemoryWatch(name) end
 ---Only available in PopTracker, since 0.11.0,
 ---@param name string identifier/name of this watch
 ---@param code string Code to watch for. Use `"*"` for *all* codes since 0.25.5.
----@param callback fun(code:string):nil called when warched (item) code changes
+---@param callback fun(code:string):nil called when watched (item) code changes
 ---@return string reference for RemoveWatchForCode since 0.18.2
 function ScriptHost:AddWatchForCode(name, code, callback) end
 
