@@ -80,7 +80,7 @@ bool PackManager::checkForUpdate(const std::string& uid, const std::string& vers
         update_available_callback cb, no_update_available_callback ncb)
 {
     if (_tempIgnoredSourceVersion[uid].count(version)) {
-        printf("PackaManager: Skipping update check for %s %s\n",
+        printf("PackManager: Skipping update check for %s %s\n",
                 sanitize_print(uid).c_str(), sanitize_print(version).c_str());
         if (ncb) ncb(uid);
         return false;
