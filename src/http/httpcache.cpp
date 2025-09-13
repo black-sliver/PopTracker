@@ -94,7 +94,7 @@ void HTTPCache::GetCached(const std::string& url, std::function<void(bool, std::
                     name = GetRandomName();
                     auto path = _cachedir / name;
 #ifdef _WIN32
-                    fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
+                    fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL | O_BINARY, 0600);
 #else
                     fd = open(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
 #endif
