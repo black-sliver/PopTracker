@@ -68,6 +68,14 @@ After pulling, if submodules changed, use `git submodule update --recursive`.
 - run binary with working directory set to the source directory, copy assets + binary into a single folder
   or copy assets to `~/PopTracker/assets`
 
+## Build on NixOS
+
+### Native
+- `nix-shell`
+- run `make native CONF=RELEASE` to generate `./build/<platform>/poptracker` binary
+- run binary with working directory set to the source directory, copy assets + binary into a single folder
+  or copy assets to `~/PopTracker/assets`
+
 ## Build on Windows
 
 ### GCC / MSYS2
