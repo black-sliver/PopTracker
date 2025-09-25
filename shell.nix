@@ -11,7 +11,7 @@ pkgs.mkShell {
     pkgs.openssl
 
     # X11 dependencies
-    pkgs.libx11
+    pkgs.xorg.libX11
   ];
 
   shellHook = ''
