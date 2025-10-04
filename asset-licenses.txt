@@ -1,5 +1,5 @@
-Vera Font
-see assets/Vera.txt
+DejaVuSans Font
+see assets/DejaVuSans.txt
 
 2D - Chests And Coins
 see assets/chest-icon.txt
