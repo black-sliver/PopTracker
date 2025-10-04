@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SDL_SRC=SDL2-2.32.8
-SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-2.32.8/SDL2-2.32.8.tar.gz"
+SDL_SRC=SDL2-2.32.10
+SDL_URL="https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz"
 IMAGE_SRC=SDL2_image-2.8.8
 IMAGE_URL="https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.8/SDL2_image-2.8.8.tar.gz"
 TTF_SRC=SDL2_ttf-2.24.0
