@@ -7,7 +7,7 @@
 
 namespace Ui {
 
-constexpr static char DEFAULT_FONT_NAME[] = "VeraBd.ttf";
+constexpr static char DEFAULT_FONT_NAME[] = "DejaVuSans-Bold.ttf";
 constexpr static int DEFAULT_FONT_SIZE = 11; // actually ~10px
 constexpr static tick_t DEFAULT_TOOLTIP_DELAY = 1000; // 1 sec
 
