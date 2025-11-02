@@ -77,7 +77,40 @@ jobs:
         echo -e '#/bin/sh\n./squashfs-root/AppRun "$@"' > appimage-builder
     - name: Build AppImage
       run: |
+        APPIMAGE_RUNTIME_URL='https://github.com/PopTracker/type2-runtime/releases/download/r-2025-08-11/runtime-x86_64'
+        APPIMAGE_RUNTIME_HASH='e70ffa9b69b211574d0917adc482dd66f25a0083427b5945783965d55b0b0a8b'
+        APPIMAGE_RUNTIME_NAME='runtime-x86_64'
+        APPRUN_URL='https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/AppRun-Debug-x86_64'
+        APPRUN_HASH='b19b10ffe0f0e1af7344a6d733d95a1097c00ee5730cb17c97bdfd6c409d80a5'
+        APPRUN_NAME='AppRun-Release-x86_64'
+        APPRUN_HOOKS_URL='https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/libapprun_hooks-Release-x86_64.so'
+        APPRUN_HOOKS_HASH='1f64dd2161be3242f106c891b2daf27bbdd2103c20b28f57f61a56cdccb1eb6a'
+        APPRUN_HOOKS_NAME='libapprun_hooks-Release-x86_64.so'
+
+        # download specific runtime
+        mkdir -p appimage-build/prime
+        wget -q -O "appimage-build/prime/$APPIMAGE_RUNTIME_NAME" "$APPIMAGE_RUNTIME_URL"
+        echo "$APPIMAGE_RUNTIME_HASH appimage-build/prime/$APPIMAGE_RUNTIME_NAME" | sha256sum -c
+
+        # download specific AppRun
+        mkdir -p appimage-build/AppRun/v2.0.0
+        wget -q -O "appimage-build/AppRun/v2.0.0/$APPRUN_NAME" "$APPRUN_URL"
+        echo "$APPRUN_HASH appimage-build/AppRun/v2.0.0/$APPRUN_NAME" | sha256sum -c
+        wget -q -O "appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" "$APPRUN_HOOKS_URL"
+        echo "$APPRUN_HOOKS_HASH appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" | sha256sum -c
+
+        # actually build it
         ./appimage-builder --recipe linux/AppImageBuilder.yml
+
+        # verify we have not accidentally downloaded another runtime
+        echo "$APPIMAGE_RUNTIME_HASH appimage-build/prime/$APPIMAGE_RUNTIME_NAME" | sha256sum -c
+        [ "$(ls -1q appimage-build/prime/ | wc -l)" == "1" ] || exit 1
+
+        # verify we have not accidentally downloaded another AppRun
+        echo "$APPRUN_HASH appimage-build/AppRun/v2.0.0/$APPRUN_NAME" | sha256sum -c
+        echo "$APPRUN_HOOKS_HASH appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" | sha256sum -c
+        [ "$(ls -1q appimage-build/AppRun/ | wc -l)" == "1" ] || exit 1
+        [ "$(ls -1q appimage-build/AppRun/v2.0.0/ | wc -l)" == "2" ] || exit 1
     - name: Attest Build, AppImage and zsync
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest-build-provenance@v2
