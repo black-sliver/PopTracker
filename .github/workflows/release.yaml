@@ -10,6 +10,21 @@ permissions:
   attestations: 'write'
   contents: 'write'
 
+env:
+  APPIMAGE_BUILDER_URL: 'https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage'
+  APPIMAGE_BUILDER_HASH: '4b4f99cae9291d78ba12dbdabca7c0a67c72aa61eb2e5d424089171a9485e96f'
+  APPIMAGETOOL_URL: 'https://github.com/PopTracker/appimagetool/releases/download/r-2025-10-19/appimagetool-x86_64.AppImage'
+  APPIMAGETOOL_HASH: '9493a6b253a01f84acb9c624c38810ecfa11d99daa829b952b0bff43113080f9'
+  APPIMAGE_RUNTIME_URL: 'https://github.com/PopTracker/type2-runtime/releases/download/r-2025-08-11/runtime-x86_64'
+  APPIMAGE_RUNTIME_HASH: 'e70ffa9b69b211574d0917adc482dd66f25a0083427b5945783965d55b0b0a8b'
+  APPIMAGE_RUNTIME_NAME: 'runtime-x86_64'
+  APPRUN_URL: 'https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/AppRun-Debug-x86_64'
+  APPRUN_HASH: 'b19b10ffe0f0e1af7344a6d733d95a1097c00ee5730cb17c97bdfd6c409d80a5'
+  APPRUN_NAME: 'AppRun-Release-x86_64'
+  APPRUN_HOOKS_URL: 'https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/libapprun_hooks-Release-x86_64.so'
+  APPRUN_HOOKS_HASH: '1f64dd2161be3242f106c891b2daf27bbdd2103c20b28f57f61a56cdccb1eb6a'
+  APPRUN_HOOKS_NAME: 'libapprun_hooks-Release-x86_64.so'
+
 jobs:
   release-main:
     runs-on: ubuntu-latest
@@ -54,23 +69,17 @@ jobs:
     - name: Set version
       run: |
         sed -i "s/version: latest/version: ${{ env.RELEASE_VERSION }}/g" linux/AppImageBuilder.yml
-    - name: Get appimage-builder
+    - name: Get appimage-builder, appimagetool, runtime, AppRun and hooks
       run: |
-        wget -q -O appimage-builder https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+        # download appimage-builder
+        wget -q -O appimage-builder "$APPIMAGE_BUILDER_URL"
+        echo "$APPIMAGE_BUILDER_HASH appimage-builder" | sha256sum -c
         chmod +x appimage-builder
-        ./appimage-builder --appimage-extract
-        echo -e '#/bin/sh\n./squashfs-root/AppRun "$@"' > appimage-builder
-    - name: Build AppImage
-      run: |
-        APPIMAGE_RUNTIME_URL='https://github.com/PopTracker/type2-runtime/releases/download/r-2025-08-11/runtime-x86_64'
-        APPIMAGE_RUNTIME_HASH='e70ffa9b69b211574d0917adc482dd66f25a0083427b5945783965d55b0b0a8b'
-        APPIMAGE_RUNTIME_NAME='runtime-x86_64'
-        APPRUN_URL='https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/AppRun-Debug-x86_64'
-        APPRUN_HASH='b19b10ffe0f0e1af7344a6d733d95a1097c00ee5730cb17c97bdfd6c409d80a5'
-        APPRUN_NAME='AppRun-Release-x86_64'
-        APPRUN_HOOKS_URL='https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/libapprun_hooks-Release-x86_64.so'
-        APPRUN_HOOKS_HASH='1f64dd2161be3242f106c891b2daf27bbdd2103c20b28f57f61a56cdccb1eb6a'
-        APPRUN_HOOKS_NAME='libapprun_hooks-Release-x86_64.so'
+
+        # download appimagetool
+        wget -q -O appimagetool "$APPIMAGETOOL_URL"
+        echo "$APPIMAGETOOL_HASH appimagetool" | sha256sum -c
+        chmod +x appimagetool
 
         # download specific runtime
         mkdir -p appimage-build/prime
@@ -83,9 +92,10 @@ jobs:
         echo "$APPRUN_HASH appimage-build/AppRun/v2.0.0/$APPRUN_NAME" | sha256sum -c
         wget -q -O "appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" "$APPRUN_HOOKS_URL"
         echo "$APPRUN_HOOKS_HASH appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" | sha256sum -c
-
-        # actually build it
-        ./appimage-builder --recipe linux/AppImageBuilder.yml
+    - name: Build AppDir
+      run: |
+        # build AppDir
+        ./appimage-builder --appimage-extract-and-run --skip-appimage --recipe linux/AppImageBuilder.yml
 
         # verify we have not accidentally downloaded another runtime
         echo "$APPIMAGE_RUNTIME_HASH appimage-build/prime/$APPIMAGE_RUNTIME_NAME" | sha256sum -c
@@ -96,6 +106,19 @@ jobs:
         echo "$APPRUN_HOOKS_HASH appimage-build/AppRun/v2.0.0/$APPRUN_HOOKS_NAME" | sha256sum -c
         [ "$(ls -1q appimage-build/AppRun/ | wc -l)" == "1" ] || exit 1
         [ "$(ls -1q appimage-build/AppRun/v2.0.0/ | wc -l)" == "2" ] || exit 1
+    - name: Build AppImage
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # currently required to automatically get update info
+      run: |
+        # extract recipe version for appimagetool
+        export VERSION=$(cat linux/AppImageBuilder.yml \
+          | sed -n '/AppDir:/,$p' \
+          | sed -nr 's/\s*version:\s*(.*)/\1/p' \
+          | head -n 1)
+        # package AppDir into AppImage with appimagetool
+        ./appimagetool --appimage-extract-and-run \
+          -g --runtime-file "appimage-build/prime/$APPIMAGE_RUNTIME_NAME" \
+          AppDir
     - name: Attest Build, AppImage and zsync
       uses: actions/attest-build-provenance@v2
       with:
