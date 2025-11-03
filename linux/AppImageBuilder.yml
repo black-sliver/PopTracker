@@ -121,6 +121,8 @@ AppDir:
 #      command: ./AppRun --list-packs
 AppImage:
   arch: x86_64
+  # comp: "zstd"  # this feature is not in the stable release.
+  # For latest runtime + stable builder, use --skip-appimage and package with appimagetool instead.
   update-information: guess
 script: |
   rm -rf "$TARGET_APPDIR" | true
