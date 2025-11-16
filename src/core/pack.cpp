@@ -137,8 +137,8 @@ Pack::Pack(const fs::path& path) : _zip(nullptr), _path(path), _override(nullptr
         _name = to_string(_manifest,"name", _uid);
         _gameName = to_string(_manifest,"game_name", _name);
         _versionsURL = to_string(_manifest,"versions_url", "");
-        _minPopTrackerVersion = to_string(_manifest, "min_poptracker_version", "");
-        _targetPopTrackerVersion = to_string(_manifest, "target_poptracker_version", "");
+        _minPopTrackerVersion = Version{to_string(_manifest, "min_poptracker_version", "")};
+        _targetPopTrackerVersion = Version{to_string(_manifest, "target_poptracker_version", "")};
     }
 
     if (!_uid.empty()) {
