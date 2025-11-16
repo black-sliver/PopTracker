@@ -1,1 +1,4 @@
 *.rc linguist-language=C
+
+# minisign pub keys use LF
+*.pub text eol=lf
