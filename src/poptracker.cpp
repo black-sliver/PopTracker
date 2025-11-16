@@ -412,7 +412,7 @@ bool PopTracker::start()
                                 if (rls["prerelease"].get<bool>() && !includePrerelease)
                                     continue;
                                 version = rls["tag_name"].get<std::string>();
-                                if ((version[0]=='v' || version[0]=='V') && isNewer(version)) {
+                                if ((version[0]=='v' || version[0]=='V') && isNewer(Version{version})) {
                                     version = version.substr(1);
                                     url = rls["html_url"].get<std::string>();
                                     for (auto val: rls["assets"]) {

@@ -1,18 +1,19 @@
 #include "version.h"
 #include <algorithm>
+#include <utility>
 
 
-Version::Version(int ma, int mi, int r, const std::string& e)
-        : Major(ma), Minor(mi), Revision(r), Extra(e)
+Version::Version(const int major, const int minor, const int revision, std::string  extra)
+        : Major(major), Minor(minor), Revision(revision), Extra(std::move(extra))
 {
     sanitize();
 }
 
-Version::Version(int ma, int mi, int r, int e)
-        : Major(ma), Minor(mi), Revision(r)
+Version::Version(const int major, const int minor, const int revision, const int extra)
+        : Major(major), Minor(minor), Revision(revision)
 {
-    if (e)
-        Extra = "." + std::to_string(e);
+    if (extra)
+        Extra = "." + std::to_string(extra);
 }
 
 Version::Version(const std::string& s)
@@ -20,9 +21,9 @@ Version::Version(const std::string& s)
     char* next = nullptr;
     const char* start = s.c_str();
     if (*start == 'v' || *start == 'V') start++;
-    Major = (int)strtol(start, &next, 10);
-    Minor = (next && *next) ? (int)strtol(next+1, &next, 10) : 0;
-    Revision = (next && *next) ? (int)strtol(next+1, &next, 10) : 0;
+    Major = static_cast<int>(strtol(start, &next, 10));
+    Minor = (next && *next) ? static_cast<int>(strtol(next + 1, &next, 10)) : 0;
+    Revision = (next && *next) ? static_cast<int>(strtol(next + 1, &next, 10)) : 0;
     Extra = (next && *next) ? next : "";
     sanitize();
 }
@@ -42,24 +43,26 @@ bool Version::operator <(const Version& other) const
     if (Revision > other.Revision) return false;
     if ((!Extra.empty() && Extra[0] == '.') || (!other.Extra.empty() && other.Extra[0] == '.')) {
         char* next = nullptr;
-        auto numericExtra = Extra.empty() ? 0 : strtol(Extra.c_str() + 1, &next, 10);
+        const auto numericExtra = Extra.empty() ? 0 : strtol(Extra.c_str() + 1, &next, 10);
         char* otherNext = nullptr;
-        auto otherNumericExtra = other.Extra.empty() ? 0 : strtol(other.Extra.c_str() + 1, &otherNext, 10);
+        const auto otherNumericExtra = other.Extra.empty() ? 0 : strtol(other.Extra.c_str() + 1, &otherNext, 10);
         if ((next == nullptr || *next == 0) && (otherNext == nullptr || *otherNext == 0)) {
             // not semver; only use result if BOTH are "a.b.c[.d]"
             return numericExtra < otherNumericExtra;
         }
     }
-    auto plusPos = Extra.find('+');
-    auto otherPlusPos = other.Extra.find('+');
-    auto npos = std::string::npos;
-    std::string_view cutExtra(Extra.c_str(), plusPos == npos ? Extra.length() : plusPos);
-    std::string_view otherCutExtra(other.Extra.c_str(), otherPlusPos == npos ? other.Extra.length() : otherPlusPos);
-    if (cutExtra.empty())
+    // remove build identifier (+...) for comparison of pre-release identifier (-...)
+    const auto plusPos = Extra.find('+');
+    const auto otherPlusPos = other.Extra.find('+');
+    const auto relevantExtraLen = plusPos == std::string::npos ? Extra.length() : plusPos;
+    const auto otherRelevantExtraLen = otherPlusPos == std::string::npos ? other.Extra.length() : otherPlusPos;
+    const std::string_view relevantExtra(Extra.c_str(), relevantExtraLen);
+    const std::string_view otherRelevantExtra(other.Extra.c_str(), otherRelevantExtraLen);
+    if (relevantExtra.empty())
         return false;
-    if (otherCutExtra.empty())
+    if (otherRelevantExtra.empty())
         return true;
-    if (cutExtra.compare(otherCutExtra) < 0)
+    if (relevantExtra.compare(otherRelevantExtra) < 0)
         return true;
     return false;
 }
@@ -82,7 +85,7 @@ std::string Version::to_string() const
 void Version::sanitize()
 {
     // we are a bit more lax than semver here, but this should still allow to compare
-    auto invalid = [&](char c) { return c < '(' || c > '~' || (c > '_' && c < 'a'); };
+    auto invalid = [&](const char c) { return c < '(' || c > '~' || (c > '_' && c < 'a'); };
     Extra.erase(std::remove_if(Extra.begin(), Extra.end(), invalid), Extra.end());
     if (!Extra.empty() && Extra[0] != '-' && Extra[0] != '+' && Extra[0] != '.')
         Extra = "-" + Extra;
