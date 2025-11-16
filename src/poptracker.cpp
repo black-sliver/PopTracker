@@ -373,6 +373,17 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     _packManager->addRepository("https://raw.githubusercontent.com/black-sliver/PopTracker/packlist/community-packs.json");
     // NOTE: signals are connected later to allow gui and non-gui interaction
 
+#ifndef WITHOUT_UPDATE_CHECK
+    _appUpdater = std::make_unique<pop::AppUpdater>(
+        *_asio,
+        _httpDefaultHeaders,
+        "black-sliver",
+        "PopTracker",
+        _config.value<bool>("update_to_prerelease", false),
+        getConfigPath(APPNAME, "ignored-versions.json", _isPortable)
+    );
+#endif
+
     StateManager::setDir(getConfigPath(APPNAME, "saves", _isPortable));
 }
 
@@ -392,54 +403,7 @@ bool PopTracker::start()
 
 #ifndef WITHOUT_UPDATE_CHECK
     if (_config.value<bool>("check_for_updates", false)) {
-        printf("Checking for update...\n");
-        std::string s;
-        const std::string url = "https://api.github.com/repos/black-sliver/PopTracker/releases?per_page=8";
-        // .../releases/latest would be better, but does not return pre-releases
-        auto requestHeaders = _httpDefaultHeaders;
-        auto includePrerelease = _config.value<bool>("update_to_prerelease", false);
-        if (!HTTP::GetAsync(*_asio, url, requestHeaders,
-                [this, includePrerelease](int code, const std::string& content, const HTTP::Headers&)
-                {
-                    if (code == 200) {
-                        try {
-                            auto j = json::parse(content);
-                            std::string version;
-                            std::list<std::string> assets;
-                            std::string url;
-                            for (size_t i=0; i<j.size(); i++) {
-                                auto rls = j[i];
-                                if (rls["prerelease"].get<bool>() && !includePrerelease)
-                                    continue;
-                                version = rls["tag_name"].get<std::string>();
-                                if ((version[0]=='v' || version[0]=='V') && isNewer(Version{version})) {
-                                    version = version.substr(1);
-                                    url = rls["html_url"].get<std::string>();
-                                    for (auto val: rls["assets"]) {
-                                        assets.push_back(val["browser_download_url"].get<std::string>());
-                                    }
-                                    break; // found an update
-                                }
-                                version.clear();
-                            }
-                            if (!version.empty())
-                                updateAvailable(version, url);
-                            else
-                                printf("Update: already up to date\n");
-                        } catch (...) {
-                            fprintf(stderr, "Update: error parsing json\n");
-                        }
-                    } else {
-                        fprintf(stderr, "Update: server returned code %d\n", code);
-                    }
-                },
-                [](...)
-                {
-                    fprintf(stderr, "Update: error getting response\n");
-                }))
-        {
-            fprintf(stderr, "Update: error starting request\n");
-        }
+        _appUpdater->checkForUpdate();
     }
 #endif
 
@@ -1519,67 +1483,6 @@ void PopTracker::showBroadcast()
         _broadcast->setCenterPosition(pos); // this will reposition the window after rendering
     }
 #endif
-}
-
-void PopTracker::updateAvailable(const std::string& version, const std::string& url)
-{
-    std::string ignoreData;
-    auto ignoreFilename = getConfigPath(APPNAME, "ignored-versions.json", _isPortable);
-    json ignore;
-    if (readFile(ignoreFilename, ignoreData)) {
-        ignore = parse_jsonc(ignoreData);
-        if (ignore.is_array()) {
-            if (std::find(ignore.begin(), ignore.end(), version) != ignore.end()) {
-                printf("Update: %s is in ignore list\n", version.c_str());
-                return;
-            }
-        } else {
-            ignore = json::array();
-        }
-    }
-    
-    std::string msg = "Update to PopTracker " + version + " available. Download?";
-    if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
-    {
-#if defined _WIN32 || defined WIN32
-        ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-#else
-        auto pid = fork();
-        if (pid == -1) {
-            fprintf(stderr, "Update: fork failed\n");
-        } else if (pid == 0) {
-#if defined __APPLE__ || defined MACOS
-            const char* exe = "open";
-#else
-            const char* exe = "xdg-open";
-#endif
-            execlp(exe, exe, url.c_str(), (char*)nullptr);
-            std::string msg = "Could not launch browser!\n";
-            msg += exe;
-            msg += ": ";
-            msg += strerror(errno);
-            fprintf(stderr, "Update: %s\n", msg.c_str());
-            Dlg::MsgBox("PopTracker", msg,
-                    Dlg::Buttons::OK, Dlg::Icon::Error);
-            exit(0);
-        }
-#endif
-    }
-    else {
-        msg = "Skip version " + version + "?";
-        if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
-        {
-            printf("Update: ignoring %s\n", version.c_str());
-            ignore.push_back(version);
-            writeFile(ignoreFilename, ignore.dump(0));
-        }
-    }
-}
-
-bool PopTracker::isNewer(const Version& v)
-{
-    // returns true if v is newer than current PopTracker
-    return v > VERSION;
 }
 
 bool PopTracker::saveConfig()

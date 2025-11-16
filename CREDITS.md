@@ -27,3 +27,4 @@
 * [libjpeg](https://www.ijg.org/)
 * [zlib](https://zlib.net/)
 * [freetype](https://freetype.org/)
+* [fmt](https://github.com/fmtlib/fmt)
