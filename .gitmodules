@@ -19,3 +19,6 @@
 [submodule "lib/sltbench"]
 	path = lib/sltbench
 	url = https://github.com/ivafanas/sltbench.git
+[submodule "lib/fmt"]
+	path = lib/fmt
+	url = https://github.com/fmtlib/fmt.git

@@ -14,6 +14,7 @@
 #include "core/imagereference.h"
 #include "core/version.h"
 #include "ap/archipelago.h"
+#include "appupdater/appupdater.hpp"
 #include "packmanager/packmanager.h"
 #include "luasandbox/luapackio.h"
 #include <chrono>
@@ -43,6 +44,9 @@ private:
     asio::io_service *_asio = nullptr;
     std::list<std::string> _httpDefaultHeaders;
     PackManager *_packManager = nullptr;
+#ifndef WITHOUT_UPDATE_CHECK
+    std::unique_ptr<pop::AppUpdater> _appUpdater;
+#endif
     fs::path _exportFile;
     std::string _exportUID;
     fs::path _exportDir;
@@ -69,9 +73,6 @@ private:
     void reloadTracker(bool force=false);
     void loadState(const fs::path& filename);
     void showBroadcast();
-    
-    void updateAvailable(const std::string& version, const std::string& url);
-    static bool isNewer(const Version& v);
 
     const fs::path& getPackInstallDir() const;
 

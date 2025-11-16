@@ -11,18 +11,23 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(wildcard $(SRC_DIR)/uilib/*.cpp) \
       $(wildcard $(SRC_DIR)/ui/*.cpp) \
       $(wildcard $(SRC_DIR)/core/*.cpp) \
+      $(wildcard $(SRC_DIR)/appupdater/*.cpp) \
+      $(wildcard $(SRC_DIR)/gh/api/*.cpp) \
       $(wildcard $(SRC_DIR)/luasandbox/*.cpp) \
       $(wildcard $(SRC_DIR)/usb2snes/*.cpp) \
       $(wildcard $(SRC_DIR)/uat/*.cpp) \
       $(wildcard $(SRC_DIR)/ap/*.cpp) \
       $(wildcard $(SRC_DIR)/luaconnector/*.cpp) \
       $(wildcard $(SRC_DIR)/http/*.cpp) \
-      $(wildcard $(SRC_DIR)/packmanager/*.cpp)
-      #lib/gifdec/gifdec.c
+      $(wildcard $(SRC_DIR)/packmanager/*.cpp) \
+      $(LIB_DIR)/fmt/src/format.cc \
+      #$(LIB_DIR)/gifdec/gifdec.c)
 HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uilib/*.h) \
       $(wildcard $(SRC_DIR)/ui/*.h) \
       $(wildcard $(SRC_DIR)/core/*.h) \
+      $(wildcard $(SRC_DIR)/appupdater/*.hpp) \
+      $(wildcard $(SRC_DIR)/gh/api/*.hpp) \
       $(wildcard $(SRC_DIR)/luasandbox/*.h) \
       $(wildcard $(SRC_DIR)/usb2snes/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h) \
@@ -30,15 +35,22 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/luaconnector/*.h) \
       $(wildcard $(SRC_DIR)/http/*.h) \
       $(wildcard $(SRC_DIR)/packmanager/*.h) \
+      $(wildcard $(LIB_DIR)/fmt/include/fmt/*.h) \
       $(wildcard $(LIB_DIR)/tinyfiledialogs/*)
 TEST_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
       $(wildcard $(TEST_DIR)/*.cpp) \
-      $(wildcard $(TEST_DIR)/*/*.cpp)
+      $(wildcard $(TEST_DIR)/*/*.cpp) \
+      $(wildcard $(TEST_DIR)/*/*/*.cpp)
+TEST_HDR = $(wildcard $(TEST_DIR)/*.h) \
+      $(wildcard $(TEST_DIR)/*/*.h) \
+      $(wildcard $(TEST_DIR)/*/*/*.hpp)
 BENCH_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
       $(wildcard $(BENCH_DIR)/*.cpp) \
       $(wildcard $(BENCH_DIR)/*/*.cpp) \
       $(wildcard $(LIB_DIR)/sltbench/src/*.cpp)
-INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include -Ilib/sltbench/include #-Ilib/gifdec
+INCLUDE_DIRS = -Ilib -Ilib/lua -Ilib/asio/include -DASIO_STANDALONE -Ilib/miniz -Ilib/json/include -Ilib/valijson/include -Ilib/tinyfiledialogs -Ilib/wswrap/include -Ilib/sltbench/include \
+ -Ilib/fmt/include \
+ #-Ilib/gifdec
 WIN32_INCLUDE_DIRS =  -DWIN32_LEAN_AND_MEAN -Iwin32-lib/i686/include -Ilib/gmock-win32/include
 WIN32_LIB_DIRS = -L./win32-lib/i686/bin -L./win32-lib/i686/lib
 WIN64_INCLUDE_DIRS = -DWIN32_LEAN_AND_MEAN -Iwin32-lib/x86_64/include -Ilib/gmock-win32/include
@@ -83,6 +95,7 @@ endif
 
 ifdef IS_WIN
   TEST_SRC += $(wildcard $(LIB_DIR)/gmock-win32/src/*.cpp)
+  TEST_HDR += $(wildcard $(LIB_DIR)/gmock-win32/include/*.h)
 endif
 
 # output
@@ -123,17 +136,28 @@ WIN64_ZIP := $(DIST_DIR)/poptracker_$(VS)_win64.zip
 endif
 
 # fragments
-NIX_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC))
-NIX_TEST_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(TEST_SRC))
-NIX_BENCH_OBJ := $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(BENCH_SRC))
+NIX_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
+           $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC)))
+NIX_TEST_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
+                $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(TEST_SRC)))
+NIX_BENCH_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
+                 $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(BENCH_SRC)))
 NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)) $(dir $(NIX_TEST_OBJ)) $(dir $(NIX_BENCH_OBJ)))
-WIN32_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC))
-WIN32_TEST_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(TEST_SRC))
-WIN32_BENCH_OBJ := $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(BENCH_SRC))
+
+WIN32_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
+             $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC)))
+WIN32_TEST_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
+                  $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(TEST_SRC)))
+WIN32_BENCH_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
+                   $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(BENCH_SRC)))
 WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)) $(dir $(WIN32_TEST_OBJ)) $(dir $(WIN32_BENCH_OBJ)))
-WIN64_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC))
-WIN64_TEST_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC))
-WIN64_BENCH_OBJ := $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(BENCH_SRC))
+
+WIN64_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
+             $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC)))
+WIN64_TEST_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
+                  $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC)))
+WIN64_BENCH_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
+                   $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(BENCH_SRC)))
 WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)) $(dir $(WIN64_BENCH_OBJ)))
 
 # tools
@@ -516,14 +540,20 @@ $(DIST_DIR):
 # Fragments
 $(NIX_OBJ_DIRS): | $(NIX_BUILD_DIR)
 	mkdir -p $@
+$(NIX_BUILD_DIR)/test/%.o: %.c* $(HDR) $(TEST_HDR) | $(NIX_OBJ_DIRS)
+	$(CXX) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(NIX_BUILD_DIR)/%.o: %.c* $(HDR) | $(NIX_OBJ_DIRS)
 	$(CXX) -std=c++1z $(INCLUDE_DIRS) $(NIX_CPP_FLAGS) `sdl2-config --cflags` -c $< -o $@
 $(WIN32_OBJ_DIRS): | $(WIN32_BUILD_DIR)
 	mkdir -p $@
+$(WIN32_BUILD_DIR)/test/%.o: %.c* $(HDR) $(TEST_HDR) | $(WIN32_OBJ_DIRS)
+	$(WIN32CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN32_INCLUDE_DIRS) $(WIN32_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 $(WIN32_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN32_OBJ_DIRS)
 	$(WIN32CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN32_INCLUDE_DIRS) $(WIN32_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 $(WIN64_OBJ_DIRS): | $(WIN64_BUILD_DIR)
 	mkdir -p $@
+$(WIN64_BUILD_DIR)/test/%.o: %.c* $(HDR) $(TEST_HDR) | $(WIN64_OBJ_DIRS)
+	$(WIN64CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN64_INCLUDE_DIRS) $(WIN64_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 $(WIN64_BUILD_DIR)/%.o: %.c* $(HDR) | $(WIN64_OBJ_DIRS)
 	$(WIN64CPP) -std=c++17 $(INCLUDE_DIRS) $(WIN64_INCLUDE_DIRS) $(WIN64_CPP_FLAGS) -D_REENTRANT -c $< -o $@
 
