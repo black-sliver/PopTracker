@@ -69,22 +69,28 @@ TEST(GHAPIRelease, bodyContainsPubKey)
         pubKeyDir = fs::current_path() / "key";
     for (auto& entry: fs::directory_iterator(pubKeyDir)) {
         if (entry.is_regular_file()) {
-            if (rls.bodyContains(entry.path().filename().c_str())) {
+            if (rls.bodyContains(entry.path().filename())) {
                 fileNameMatch = true;
             }
             std::string keyData;
             if (readFile(entry.path(), keyData)) {
                 const auto p1 = keyData.find('\n');
                 if (p1 != std::string::npos) {
-                    const auto p2 = keyData.find_first_of("\r\n");
+                    const auto p2 = keyData.find_first_of("\r\n", p1 + 1);
                     keyData = keyData.substr(
-                        p1,
-                        p2 == std::string::npos ? std::string::npos : p2 - p1
+                        p1 + 1,
+                        p2 == std::string::npos ? std::string::npos : (p2 - p1 - 1)
                     );
+                    EXPECT_FALSE(keyData.empty());
+                    EXPECT_TRUE(keyData.find_first_of("\r\n") == std::string::npos);
                     if (rls.bodyContains(keyData)) {
                         fileContentMatch = true;
                     }
+                } else {
+                    ADD_FAILURE() << "could not parse" << sanitize_print(entry.path());
                 }
+            } else {
+                ADD_FAILURE() << "could not read" << sanitize_print(entry.path());
             }
         }
         if (fileNameMatch && fileContentMatch)

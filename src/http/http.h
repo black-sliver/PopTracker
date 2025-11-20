@@ -22,11 +22,11 @@
 
 //#define HTTP_DEBUG
 #ifndef HTTP_DEBUG
-#define debug \
+#define http_debug \
     if (true) {} \
     else std::cout
 #else
-#define debug std::cout
+#define http_debug std::cout
 #endif
 
 using asio::ip::tcp;
@@ -156,7 +156,7 @@ public:
 
             bool load_system_certs = true;
             if (!certfile.empty()) {
-                debug << "HTTP: loading " << certfile << "\n";
+                http_debug << "HTTP: loading " << certfile << "\n";
                 asio::error_code ec;
                 ctx.load_verify_file(certfile, ec);
                 if (ec) {
@@ -164,17 +164,17 @@ public:
                               << certfile << ": "
                               << ec.message() << "\n";
                 } else {
-                    debug << "HTTP: loaded certs from "
+                    http_debug << "HTTP: loaded certs from "
                           << certfile << "\n";
                     load_system_certs = false;
                 }
             }
             if (load_system_certs) {
 #ifdef _WIN32
-                debug << "HTTP: loading windows cert store\n";
+                http_debug << "HTTP: loading windows cert store\n";
                 add_windows_root_certs(ctx);
 #else
-                debug << "HTTP: adding system certs\n";
+                http_debug << "HTTP: adding system certs\n";
                 ctx.set_default_verify_paths();
 #endif
             }
@@ -424,7 +424,7 @@ private:
                     // handle status line
                     auto pos = data.find("\r\n");
                     if (pos != data.npos) {
-                        debug << "HTTP: Status: " << data.substr(0, pos) << "\n";
+                        http_debug << "HTTP: Status: " << data.substr(0, pos) << "\n";
                         if (strncasecmp(data.c_str(), "HTTP/1.", 7) == 0) {
                             char* next = nullptr;
                             code = (int)strtol(data.c_str() + 9, &next, 10);
@@ -463,7 +463,7 @@ private:
                             code = -1;
                             return true;
                         }
-                        debug << "HTTP: HDR: " << name << ": " << value << "\n";
+                        http_debug << "HTTP: HDR: " << name << ": " << value << "\n";
                         headers[name] = value;
                         if (strcasecmp(name.c_str(), "Transfer-Encoding") == 0) {
                             if (strcasecmp(value.c_str(), "chunked") == 0) {
@@ -629,7 +629,7 @@ private:
             {
                 if (!error)
                 {
-                    debug << "HTTP: Connected" << "\n";
+                    http_debug << "HTTP: Connected" << "\n";
                     send_request(socket_);
                 }
                 else
@@ -677,7 +677,7 @@ private:
             socket_.shutdown(ec);
             // if we get an error here, SSL connection probably just failed
             if (ec) {
-                debug << "HTTP: ssl shutdown failed: " << ec.message() << "\n";
+                http_debug << "HTTP: ssl shutdown failed: " << ec.message() << "\n";
                 // if SSL was not up, try to close the underlying socket
                 socket_.lowest_layer().close(ec);
             }
@@ -692,7 +692,7 @@ private:
             {
                 if (!error)
                 {
-                    debug << "HTTP: Connected" << "\n";
+                    http_debug << "HTTP: Connected" << "\n";
                     handshake();
                 }
                 else

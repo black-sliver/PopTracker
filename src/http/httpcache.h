@@ -19,7 +19,18 @@ public:
 
 protected:
     void GetCached(const std::string& url, std::function<void(bool, std::string)> cb);
-    static std::string GetRandomName(const std::string& suffix="", int len=12);
+
+    static std::string GetRandomName(std::string_view suffix = "", int len=12);
+
+    static std::string GetRandomName(const std::string& suffix, const int len=12)
+    {
+        return GetRandomName(std::string_view{suffix}, len);
+    }
+
+    static std::string GetRandomName(const char* suffix, const int len=12)
+    {
+        return GetRandomName(std::string_view{suffix}, len);
+    }
 
     asio::io_service *_asio = nullptr;
     fs::path _cachefile;

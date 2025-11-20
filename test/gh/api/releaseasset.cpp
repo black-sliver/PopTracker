@@ -16,3 +16,21 @@ TEST(GHAPIReleaseAsset, endsWithCI) {
     EXPECT_TRUE(a1.nameEndsWithCI(".MiniSig"));
     EXPECT_FALSE(a1.nameEndsWithCI(".AppImage"));
 }
+
+TEST(GHAPIReleaseAsset, updatedAtGood) {
+    // 2025-06-21T09:24:27Z -> 1750497867
+    const auto j = nlohmann::json::parse(releasesData);
+    gh::api::ReleaseAsset a;
+    gh::api::from_json(j[0]["assets"][0], a);
+    EXPECT_EQ(a.updatedAt(), 1750497867u);
+}
+
+TEST(GHAPIReleaseAsset, updatedAtBad) {
+    // 1234 -> exception
+    auto j = nlohmann::json::parse(releasesData);
+    j[0]["assets"][0]["updated_at"] = "1234";
+    gh::api::ReleaseAsset a;
+    EXPECT_THROW({
+        gh::api::from_json(j[0]["assets"][0], a);
+    }, std::exception);
+}

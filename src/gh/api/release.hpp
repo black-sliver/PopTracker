@@ -3,6 +3,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "releaseasset.hpp"
+#include "../../core/fs.h"
 
 
 namespace gh::api {
@@ -46,6 +47,11 @@ namespace gh::api {
         bool bodyContains(const std::string& s) const
         {
             return _body.find(s) != std::string::npos;
+        }
+
+        bool bodyContains(const fs::path& path) const
+        {
+            return bodyContains(path.u8string());
         }
 
     private:

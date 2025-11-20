@@ -9,11 +9,11 @@
 #endif
 
 
-std::string HTTPCache::GetRandomName(const std::string& suffix, int len)
+std::string HTTPCache::GetRandomName(const std::string_view suffix, const int len)
 {
     std::string res;
-    const char chars[] = "0123456789abcdef"
-                         "ghijklmnopqrstuvwxyz";
+    constexpr char chars[] = "0123456789abcdef"
+                             "ghijklmnopqrstuvwxyz";
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist(0,strlen(chars)-1);

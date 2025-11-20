@@ -28,3 +28,4 @@
 * [zlib](https://zlib.net/)
 * [freetype](https://freetype.org/)
 * [fmt](https://github.com/fmtlib/fmt)
+* [date](https://github.com/HowardHinnant/date)

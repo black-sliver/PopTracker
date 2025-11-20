@@ -15,11 +15,17 @@ namespace gh::api {
             return _browserDownloadUrl;
         }
 
+        uint64_t updatedAt() const
+        {
+            return _updatedAt;
+        }
+
         bool nameEndsWithCI(const std::string& s) const;
 
     private:
         std::string _name;
         std::string _browserDownloadUrl;
+        uint64_t _updatedAt = 0;
     };
 
     void from_json(const nlohmann::json& j, ReleaseAsset& r);

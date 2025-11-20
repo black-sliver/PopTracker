@@ -52,6 +52,8 @@ int main(int argc, char** argv)
     const char* packPath = nullptr;
     const char* packVersion = nullptr;
     const char* packVariant = nullptr;
+    bool updateAttempt = false;
+    bool updateSuccess = false;
 
     while (argc > 1) {
         if (strcasecmp("--console", argv[1])==0) {
@@ -110,6 +112,12 @@ int main(int argc, char** argv)
             packVariant = argv[2];
             argv++;
             argc--;
+        } else if (strcasecmp("--update-failed", argv[1]) == 0) {
+            updateAttempt = true;
+            updateSuccess = false;
+        } else if (strcasecmp("--updated", argv[1]) == 0) {
+            updateAttempt = true;
+            updateSuccess = true;
         } else if (argc==2) {
             packPath = argv[1];
         } else {
@@ -181,6 +189,11 @@ int main(int argc, char** argv)
     }
     if (loadPack && packVersion) {
         args["pack"]["version"] = packVersion;
+    }
+    if (updateAttempt) {
+        args["update"] = {
+            { "success", updateSuccess },
+        };
     }
 
     PopTracker popTracker(argc, argv, cli, args);
