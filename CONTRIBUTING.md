@@ -31,7 +31,8 @@ or use clang + gcc-compat for dev (and g++ only in CI).
 
 ## C++ Style
 
-- cpp and h filenames are all lowercase, named after the class name
+- cpp and hpp filenames are all lowercase, named after the class name
+- new C++-only header files should end in .hpp rather than .h
 - 120 chars per line
 - new code should mostly follow [WebKit C++ style](https://webkit.org/code-style-guidelines/),
   except for
