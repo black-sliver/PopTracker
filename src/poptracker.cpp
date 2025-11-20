@@ -380,8 +380,23 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
         "black-sliver",
         "PopTracker",
         _config.value<bool>("update_to_prerelease", false),
-        getConfigPath(APPNAME, "ignored-versions.json", _isPortable)
+        getConfigPath(APPNAME, "ignored-versions.json", _isPortable),
+        getConfigPath(APPNAME, "", _isPortable)
     );
+    _appUpdater->onUpdateProgress += {this, [this](void*, const std::string&, const int received, const int total) {
+        // NOTE: total is 0 if size is unknown
+        _win->showProgress("Downloading ...", received, total);
+    }};
+    _appUpdater->onUpdateFailed += {this, [this](void*, const std::string&, const std::string& reason) {
+        Dlg::MsgBox("PopTracker", "Update failed: " + reason);
+        _win->hideProgress();
+    }};
+    _appUpdater->onInstallStarted += {this, [](void*) {
+#ifdef _WIN32
+        SDL_Event event{SDL_QUIT};
+        SDL_PushEvent(&event);
+#endif
+    }};
 #endif
 
     StateManager::setDir(getConfigPath(APPNAME, "saves", _isPortable));
@@ -400,6 +415,36 @@ bool PopTracker::start()
 {
     Ui::Position pos = WINDOW_DEFAULT_POSITION;
     Ui::Size size = {0,0};
+
+    {
+        const auto itUpdate = _args.find("update");
+        if (itUpdate != _args.end()) {
+            if (!itUpdate.value().value<bool>("success", false)) {
+                Dlg::MsgBox("PopTracker", "Update failed!", Dlg::Buttons::OK, Dlg::Icon::Error);
+            } else {
+                printf("Update successful!\n");
+            }
+        }
+    }
+
+    {
+        // if both PopUpdater.exe and PopUpdater.new.exe exist, keep the newer one
+#ifdef _WIN32
+        auto updaterPath = fs::app_path() / "PopUpdater.exe";
+        auto newUpdaterPath = fs::app_path() / "PopUpdater.new.exe";
+#else
+        auto updaterPath = fs::app_path() / "PopUpdater";
+        auto newUpdaterPath = fs::app_path() / "PopUpdater.new";
+#endif
+        if (fs::is_regular_file(updaterPath) && fs::is_regular_file(newUpdaterPath)) {
+            fs::error_code ec;
+            if (fs::last_write_time(updaterPath) > fs::last_write_time(newUpdaterPath)) {
+                fs::remove(newUpdaterPath, ec);
+            } else {
+                fs::rename(newUpdaterPath, updaterPath, ec);
+            }
+        }
+    }
 
 #ifndef WITHOUT_UPDATE_CHECK
     if (_config.value<bool>("check_for_updates", false)) {

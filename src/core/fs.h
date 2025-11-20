@@ -51,6 +51,7 @@ namespace fs {
     using std::filesystem::recursive_directory_iterator;
     using std::filesystem::copy;
     using std::filesystem::copy_options;
+    using std::filesystem::file_size;
     using std::filesystem::temp_directory_path;
     using std::error_code;
 }
@@ -77,6 +78,7 @@ namespace fs {
     using boost::filesystem::recursive_directory_iterator;
     using boost::filesystem::copy;
     using boost::filesystem::copy_options;
+    using boost::filesystem::file_size;
     using boost::system::error_code;
 
     class path : public boost::filesystem::path {
