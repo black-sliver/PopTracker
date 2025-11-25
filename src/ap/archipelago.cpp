@@ -342,6 +342,15 @@ int Archipelago::Lua_Index(lua_State *L, const char* key) {
         }).Lua_Push(_L);
         return 1;
     }
+    if (strcmp(key, "Seed") == 0) {
+        // seed and player number are valid at the same time, so we can just check that here
+        if (_ap && _ap->getPlayerNumber() >= 0) {
+            lua_pushstring(L, _ap->getSeed().c_str());
+        } else {
+            lua_pushnil(L);
+        }
+        return 1;
+    }
     printf("Get Archipelago.%s unknown\n", key);
     return 0;
 }
