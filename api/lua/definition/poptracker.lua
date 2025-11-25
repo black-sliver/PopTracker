@@ -20,7 +20,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.32.0"
+PopVersion = "0.33.0"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true or an array of strings to get more error or debug output.
@@ -342,6 +342,11 @@ Archipelago.CheckedLocations = {}
 ---Supported since 0.25.2.
 ---@type integer[]
 Archipelago.MissingLocations = {}
+
+---The seed name of the connected room or nil if not connected.
+---Supported since v0.33.0
+---@type string?
+Archipelago.Seed = nil
 
 ---Add callback to be called when connecting to a (new) server and state should be cleared.
 ---@param name string identifier/name of this handler (for debugging)
