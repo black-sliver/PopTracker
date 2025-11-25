@@ -8,7 +8,8 @@
             "properties": {
                 "smooth_scaling": true,
                 "smooth_map_scaling": true,
-                "allow_deferred_logic_update": true
+                "allow_deferred_logic_update": true,
+                "disabled_image_filter": true
             },
             "additionalProperties": false
         }
