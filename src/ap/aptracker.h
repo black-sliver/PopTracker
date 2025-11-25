@@ -242,6 +242,12 @@ public:
         return _ap ? _ap->get_team_number() : -1;
     }
 
+    const std::string& getSeed() const
+    {
+        static std::string blank;
+        return _ap ? _ap->get_seed() : blank;
+    }
+
     const std::set<int64_t>& getCheckedLocations() const
     {
         return _checkedLocations;
