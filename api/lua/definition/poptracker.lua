@@ -548,7 +548,7 @@ LuaItem.OnMiddleClickFunc = nil
 ---@type fun(self:LuaItem):any
 LuaItem.SaveFunc = nil
 
----Callend when loading, data as returned by `SaveFunc`.
+---Called when loading, data as returned by `SaveFunc`.
 ---@type fun(self:LuaItem, data:any):nil
 LuaItem.LoadFunc = nil
 
