@@ -309,7 +309,8 @@ void PackManager::downloadUpdate(const std::string& url, const fs::path& install
                 fs::error_code ec;
                 fs::rename(path, newPath, ec);
                 if (ec) {
-                    fs::remove(path, ec);
+                    fs::error_code ignore;
+                    fs::remove(path, ignore);
                     onUpdateFailed.emit(this, url, "Error moving: " + ec.message());
                     return;
                 }
