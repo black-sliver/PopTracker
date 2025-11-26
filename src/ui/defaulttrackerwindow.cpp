@@ -365,7 +365,7 @@ void DefaultTrackerWindow::showProgress(const std::string& text, int progress, i
         _lblProgressTitle->setSize(_lblProgressTitle->getAutoSize());
         _lblProgressTitle->setTextAlignment(Label::HAlign::CENTER, Label::VAlign::TOP);
         _vboxProgress->addChild(_lblProgressTitle);
-        _pgbProgress = new ProgressBar(1,0,w-2,20, progress, max);
+        _pgbProgress = new ProgressBar(1, 0, w-2, 20, max, progress);
         _vboxProgress->addChild(_pgbProgress);
         _hboxProgressTexts = new HBox(0,0,w,0);
         _vboxProgress->addChild(_hboxProgressTexts);
