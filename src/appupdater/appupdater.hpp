@@ -23,7 +23,7 @@ namespace pop {
               _ignoreVersionsPath(std::move(ignoreVersionsPath))
         {
             _repo = fmt::format("{}/{}", owner, repo);
-            _url = fmt::format("https://api.github.com/repos/{}/releases?per_page=8", _repo);
+            _url = fmt::format("http://localhost/repos/{}/releases?per_page=8", _repo);
         }
 
         /// Start checking for app updates
