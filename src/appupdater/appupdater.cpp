@@ -28,9 +28,8 @@ namespace pop {
 
 void AppUpdater::checkForUpdate()
 {
-    printf("Checking for update...\n");
+    printf("Update: Checking for app update...\n");
     std::string s;
-    // .../releases/latest would be better, but does not return pre-releases
     if (!HTTP::GetAsync(_ioService, _url, _headers,
         [this](const int code, const std::string& content, const HTTP::Headers&)
         {
@@ -58,7 +57,7 @@ void AppUpdater::releasesResponse(const std::string &content)
         std::string altBrowserUrl;
         bool newerVersionExists = false;
         for (const auto& rls: gh::api::Releases(content)) {
-            if (rls.tagName()[0] != 'v' && rls.tagName()[0] != 'V')
+            if ((rls.tagName()[0] != 'v' && rls.tagName()[0] != 'V') || sanitize_print(rls.tagName()) != rls.tagName())
                 continue; // unexpected tag
             versionStr = rls.tagName().substr(1);
             const auto v = Version{versionStr};
@@ -114,7 +113,7 @@ void AppUpdater::releasesResponse(const std::string &content)
             if (altVersionStr.empty()) {
                 altVersionStr = std::move(versionStr);
                 versionStr.clear();
-                altBrowserUrl = browserUrl;
+                altBrowserUrl = std::move(browserUrl);
             }
         }
         if (!versionStr.empty())
