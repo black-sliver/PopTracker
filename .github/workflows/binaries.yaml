@@ -165,6 +165,7 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           p7zip
+          wget
           mingw-w64-x86_64-advancecomp
     - uses: actions/checkout@v4
       with:
@@ -197,6 +198,18 @@ jobs:
       run: |
         echo "POP_VERSION=`./build/win64/poptracker --version`" >> $GITHUB_ENV
         echo "POP_NAME=poptracker_`./build/win64/poptracker --version | tr '.' '-'`" >> $GITHUB_ENV
+    - name: Download Updater
+      shell: msys2 {0}
+      env:
+        UPDATER_VERSION: 'v0.1.0'
+        UPDATER_OS: ${{ runner.os }}
+        UPDATER_ARCH: ${{ runner.arch }}
+        UPDATER_ZIP_HASH: 'ce13f20d494f27912b8f7ca5f375e040b1b793b70060ad1c3ddf44342bc42fb5'
+      run: |
+        wget -O updater.zip \
+          "https://github.com/black-sliver/PopUpdater/releases/download/${UPDATER_VERSION}/PopUpdater_${UPDATER_VERSION}_${UPDATER_OS}-${UPDATER_ARCH}.zip"
+        echo "${UPDATER_ZIP_HASH} updater.zip" | sha256sum -c
+        7z e -obuild/win64 updater.zip
     - name: Build DIST # this builds a release ZIP
       shell: msys2 {0}
       run: make CONF=DIST
