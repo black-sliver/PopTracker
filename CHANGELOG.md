@@ -1,5 +1,24 @@
 # PopTracker Changelog
 
+## v0.33.0-rc1
+
+* App Features
+  * Better Unicode support
+  * Auto-updating on Windows
+  * Updated dependencies and bundled SSL
+  * Linux: Use a newer AppImage runtime that should be compatible with more Distributions
+  * Linux: Use faster compression for AppImage (updated appimagetool)
+* Pack Features
+  * Allow alpha component in Label text color
+  * Make `@disabled` filter configurable via `settings.json`
+  * Add Image filters `saturation`, `brightness`, `greyscale`, `dim`
+  * Archipelago: add .Seed
+* Fixes
+  * A bunch of typos
+  * Fix indirect connection detection for LuaItems
+  * Show correct error when moving a pack update download fails
+  * Some theoretical bugs in SNES auto-tracking (should not affect any real pack)
+
 ## v0.32.1
 
 * App Features
