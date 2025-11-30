@@ -68,8 +68,10 @@ VERSION_MAJOR := $(shell grep '.define APP_VERSION_MAJOR' $(SRC_DIR)/version.h |
 VERSION_MINOR := $(shell grep '.define APP_VERSION_MINOR' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
 VERSION_REVISION := $(shell grep '.define APP_VERSION_REVISION' $(SRC_DIR)/version.h | rev | cut -d' ' -f 1 | rev )
 VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
+VERSION_NO_EXTRA := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
 VS := $(subst .,-,$(VERSION))
-$(info Version $(VERSION))
+$(info Version   $(VERSION))
+$(info w/o extra $(VERSION_NO_EXTRA))
 
 # detect OS and compiler
 ifeq ($(OS),Windows_NT)
@@ -514,7 +516,7 @@ $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_
 	rm -rf $(WIN64_BUILD_DIR)/lib/lua
 
 $(BUILD_DIR)/poptracker.exe.manifest: win32/exe.manifest.template.xml | $(BUILD_DIR)
-	sed 's/{{VERSION}}/$(VERSION).0/g;s/{{NAME}}/poptracker/g;s/{{DESCRIPTION}}/PopTracker/g' $< > $@
+	sed 's/{{VERSION}}/$(VERSION_NO_EXTRA).0/g;s/{{NAME}}/poptracker/g;s/{{DESCRIPTION}}/PopTracker/g' $< > $@
 
 $(WIN32_BUILD_DIR)/app.res: $(SRC_DIR)/app.rc $(SRC_DIR)/version.h assets/icon.ico $(BUILD_DIR)/poptracker.exe.manifest | $(WIN32_BUILD_DIR)
 	$(WIN32WINDRES) $(WINDRES_FLAGS) $< -O coff $@
