@@ -257,10 +257,10 @@ jobs:
     - name: Download Updater
       shell: msys2 {0}
       env:
-        UPDATER_VERSION: 'v0.1.0'
+        UPDATER_VERSION: 'v0.2.0'
         UPDATER_OS: ${{ runner.os }}
         UPDATER_ARCH: ${{ runner.arch }}
-        UPDATER_ZIP_HASH: 'ce13f20d494f27912b8f7ca5f375e040b1b793b70060ad1c3ddf44342bc42fb5'
+        UPDATER_ZIP_HASH: 'b67945e229c05e15eee4665b145921cfa20d4a9605bc41f936ad38143bb57285'
       run: |
         wget -O updater.zip \
           "https://github.com/black-sliver/PopUpdater/releases/download/${UPDATER_VERSION}/PopUpdater_${UPDATER_VERSION}_${UPDATER_OS}-${UPDATER_ARCH}.zip"
