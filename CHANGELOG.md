@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.33.0-rc3
+## v0.33.0-rc3, -rc4
 
 * Fixes
   * Windows: Updater would not work on older CPU models
