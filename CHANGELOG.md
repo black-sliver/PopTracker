@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.33.0-rc1
+## v0.33.0-rc2
 
 * App Features
   * Better Unicode support
