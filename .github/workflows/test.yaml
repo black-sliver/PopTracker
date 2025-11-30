@@ -29,11 +29,18 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # , macos-13  # for tests, only do special macos-13 build below
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          # - macos-13  # for tests, only do special macos-13 build below
         shell: [bash]
         extra_make_args: ['']  # default build
         include:
           - os: windows-latest
+            shell: msys2 {0}
+            extra_make_args: ''
+          - os:  windows-11-arm
             shell: msys2 {0}
             extra_make_args: ''
           - os: macos-13
@@ -62,8 +69,8 @@ jobs:
       if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_make_args, 'MACOS_DEPLOYMENT_TARGET') }}
       run: |
         brew install boost || true
-    - name: Install dependencies (msys2)
-      if: ${{ startsWith(matrix.os, 'windows') }}
+    - name: Install dependencies (msys2, x86_64)
+      if: ${{ startsWith(matrix.os, 'windows') && !endsWith(matrix.os, 'arm')}}
       uses: msys2/setup-msys2@v2
       with:
         release: false
@@ -79,6 +86,25 @@ jobs:
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
+          p7zip
+    - name: Install dependencies (msys2, arm)
+      if: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.os, 'arm')}}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANGARM64
+        update: true
+        install: >-
+          base-devel
+          coreutils
+          make
+          mingw-w64-clang-aarch64-toolchain
+          clangarm64/mingw-w64-clang-aarch64-gcc-compat
+          clangarm64/mingw-w64-clang-aarch64-SDL2
+          clangarm64/mingw-w64-clang-aarch64-SDL2_image
+          clangarm64/mingw-w64-clang-aarch64-SDL2_ttf
+          clangarm64/mingw-w64-clang-aarch64-freetype
+          clangarm64/mingw-w64-clang-aarch64-openssl
+          clangarm64/mingw-w64-clang-aarch64-gtest
           p7zip
     - uses: actions/checkout@v4
       with:
