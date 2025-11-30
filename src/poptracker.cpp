@@ -1294,6 +1294,10 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
     Lua(_L).Push("Lua 5.3");
     lua_setglobal(_L, "_VERSION");
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress" // broken in GCC 15.2.0-8
+#endif
     if (const auto dashP = strchr(VERSION_STRING, '-')) {
         // cut away "-alpha", etc for PopVersion
         Lua(_L).Push(std::string{VERSION_STRING}.substr(0, dashP - VERSION_STRING));
@@ -1301,7 +1305,10 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
         Lua(_L).Push(VERSION_STRING);
     }
     lua_setglobal(_L, "PopVersion");
-    
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
     // enums
     LuaEnum<AccessibilityLevel>({
         {"None", AccessibilityLevel::NONE},
