@@ -40,7 +40,8 @@ namespace pop {
         void updateAvailable(const std::string& version, const std::string& url,
             const std::vector<gh::api::ReleaseAsset>& assets);
         /// Download and install an app update
-        void installUpdate(const std::string& url, const fs::path& updater, bool asAdmin, uint64_t timestamp);
+        void installUpdate(const std::string& url, const fs::path& updater, bool asAdmin, uint64_t timestamp,
+            const std::string& browserUrl="");
 
         /// Download a file
         void getFile(const std::string& url, const fs::path& dest,

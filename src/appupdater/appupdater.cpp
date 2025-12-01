@@ -26,6 +26,67 @@ using namespace Ui;
 
 namespace pop {
 
+#ifdef _WIN32
+static std::string GetWindowsErrorString(const DWORD errorCode)
+{
+    LPWSTR messageBuffer = nullptr;
+    try {
+    size_t size = FormatMessageW(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        errorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPWSTR)&messageBuffer,
+        0,
+        nullptr);
+
+        if (size == 0) {
+            return "Unknown";
+        }
+
+        const auto utf8Size = WideCharToMultiByte(CP_UTF8, 0, messageBuffer, size, nullptr, 0, nullptr, nullptr);
+        std::string utf8Message(utf8Size, '\0');
+        if (WideCharToMultiByte(CP_UTF8, 0, messageBuffer, size, utf8Message.data(), utf8Size, nullptr, nullptr) < 1) {
+            return "Unknown";
+        }
+
+        LocalFree(messageBuffer);
+
+        return utf8Message;
+    } catch (...) {
+        LocalFree(messageBuffer);
+        throw;
+    }
+}
+#endif
+
+static void openWebsite(const std::string& url)
+{
+#if defined _WIN32 || defined WIN32
+    ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#else
+    const auto pid = fork();
+    if (pid == -1) {
+        fprintf(stderr, "Update: fork failed\n");
+    } else if (pid == 0) {
+#if defined __APPLE__ || defined MACOS
+        const char* exe = "open";
+#else
+        const auto exe = "xdg-open";
+#endif
+        execlp(exe, exe, url.c_str(), nullptr);
+        std::string msg = "Could not launch browser!\n";
+        msg += exe;
+        msg += ": ";
+        msg += strerror(errno);
+        fprintf(stderr, "Update: %s\n", msg.c_str());
+        Dlg::MsgBox("PopTracker", msg,
+                Dlg::Buttons::OK, Dlg::Icon::Error);
+        exit(0);
+    }
+#endif
+}
+
 void AppUpdater::checkForUpdate()
 {
     printf("Update: Checking for app update...\n");
@@ -154,7 +215,7 @@ void AppUpdater::updateAvailable(const std::string& version, const std::string& 
     constexpr std::string_view updatePattern; // none
 #endif
 
-    auto autoUpdateIt = std::find_if(assets.begin(), assets.end(), [updatePattern](const auto& asset) {
+    const auto autoUpdateIt = std::find_if(assets.begin(), assets.end(), [updatePattern](const auto& asset) {
         const auto& download = asset.browserDownloadUrl();
         return !updatePattern.empty() && download.length() > updatePattern.length()
             && download.rfind(updatePattern, download.length() - updatePattern.length()) != std::string::npos;
@@ -218,32 +279,15 @@ void AppUpdater::updateAvailable(const std::string& version, const std::string& 
     if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
     {
         if (!updater.empty()) {
-            installUpdate(autoUpdateIt->browserDownloadUrl(), updater, !userWritable, autoUpdateIt->updatedAt());
+            installUpdate(
+                autoUpdateIt->browserDownloadUrl(),
+                updater,
+                !userWritable,
+                autoUpdateIt->updatedAt(),
+                url);
             return;
         }
-#if defined _WIN32 || defined WIN32
-        ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-#else
-        const auto pid = fork();
-        if (pid == -1) {
-            fprintf(stderr, "Update: fork failed\n");
-        } else if (pid == 0) {
-#if defined __APPLE__ || defined MACOS
-            const char* exe = "open";
-#else
-            const auto exe = "xdg-open";
-#endif
-            execlp(exe, exe, url.c_str(), nullptr);
-            msg = "Could not launch browser!\n";
-            msg += exe;
-            msg += ": ";
-            msg += strerror(errno);
-            fprintf(stderr, "Update: %s\n", msg.c_str());
-            Dlg::MsgBox("PopTracker", msg,
-                    Dlg::Buttons::OK, Dlg::Icon::Error);
-            exit(0);
-        }
-#endif
+        openWebsite(url);
     }
     else {
         msg = "Skip version " + version + "?";
@@ -257,7 +301,7 @@ void AppUpdater::updateAvailable(const std::string& version, const std::string& 
 }
 
 void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, const bool asAdmin,
-    const uint64_t timestamp)
+    const uint64_t timestamp, const std::string& browserUrl)
 {
     fs::path path;
     int fd = -1;
@@ -304,7 +348,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                     std::wstring wRepo(repoSize, '\0');
                     if (MultiByteToWideChar(CP_UTF8, 0, _repo.c_str(), _repo.size(), wRepo.data(), repoSize) < 1
                             && _repo.size() > 0) {
-                        throw std::runtime_error("Could not string");
+                        throw std::runtime_error("Could not convert string");
                     }
                     auto pid = GetCurrentProcessId();
                     auto param = fmt::format(LR"(-a "{}" -t {} -k {} -s poptracker.exe "{}" "{}" "{}")",
@@ -322,15 +366,28 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                     auto resInt = reinterpret_cast<uintptr_t>(res);
                     if (resInt > 32) {
                         onInstallStarted.emit(this);
+                        return;
                     } else {
-                        onUpdateFailed.emit(this, url, fmt::format("Could not start updater ({}) !", resInt));
+                        const auto lastError = GetLastError();
+                        onUpdateFailed.emit(this, url, fmt::format("Could not start updater: {}  ({}, {})!",
+                            GetWindowsErrorString(lastError), resInt, lastError));
                     }
 #else
-                    onUpdateFailed.emit(this, url, "auto-updating not implemented for this platform!");
+                    onUpdateFailed.emit(this, url, "Auto-updating not implemented for this platform!");
                     (void)updater;
                     (void)asAdmin;
                     (void)timestamp;
 #endif
+                    if (!browserUrl.empty()) {
+                        if (Dlg::MsgBox(
+                            "PopTracker",
+                            "Open website instead?",
+                            Dlg::Buttons::YesNo,
+                            Dlg::Icon::Question) == Dlg::Result::Yes)
+                        {
+                            openWebsite(browserUrl);
+                        }
+                    }
                 } else {
                     onUpdateFailed.emit(this, url, msg);
                 }
