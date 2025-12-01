@@ -355,22 +355,23 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                         wRepo, timestamp, pid,
                         fs::app_path().c_str(), path.c_str(), sigPath.c_str());
                     wprintf(L"Update: starting %S %S %S\n", op, updater.c_str(), param.c_str());
-                    auto res = ShellExecuteW(
-                        nullptr,
-                        op,
-                        updater.c_str(),
-                        param.c_str(),
-                        nullptr,
-                        SW_SHOWDEFAULT
-                    );
-                    auto resInt = reinterpret_cast<uintptr_t>(res);
-                    if (resInt > 32) {
+                    SHELLEXECUTEINFOW execInfo = {};
+                    // NOTE: Our main loop may not continue long enough for ASYNC
+                    // NOTE: Zone checks is checking mark of the web, which could fail depending on UAC settings
+                    execInfo.fMask = SEE_MASK_NOASYNC | SEE_MASK_NOZONECHECKS;
+                    execInfo.cbSize = sizeof(execInfo);
+                    execInfo.lpVerb = op;
+                    execInfo.lpFile = updater.c_str();
+                    execInfo.lpParameters = param.c_str();
+                    execInfo.nShow = SW_SHOWDEFAULT;
+                    const auto res = ShellExecuteExW(&execInfo);
+                    if (res) {
                         onInstallStarted.emit(this);
                         return;
                     } else {
                         const auto lastError = GetLastError();
-                        onUpdateFailed.emit(this, url, fmt::format("Could not start updater: {}  ({}, {})!",
-                            GetWindowsErrorString(lastError), resInt, lastError));
+                        onUpdateFailed.emit(this, url, fmt::format("Could not start updater: ({}) {}",
+                            lastError, GetWindowsErrorString(lastError)));
                     }
 #else
                     onUpdateFailed.emit(this, url, "Auto-updating not implemented for this platform!");

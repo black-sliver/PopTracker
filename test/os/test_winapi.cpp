@@ -7,6 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <shellapi.h>
 
 
 // Assume we get terminating NUL when we don't supply len
@@ -45,6 +46,14 @@ TEST(WinAPI, MultiByteToWideCharWithLenReturnValue3) {
     wchar_t buf[5];
     auto res = MultiByteToWideChar(CP_UTF8, 0, "test", 4, buf, 3);
     EXPECT_EQ(res, 0);
+}
+
+TEST(WinAPI, HasSEE_MASK_NOZONECHECKS) {
+#ifndef SEE_MASK_NOZONECHECKS
+    #error "SEE_MASK_NOZONECHECKS is not defined"
+#else
+    EXPECT_NE(SEE_MASK_NOZONECHECKS, 0) << "SEE_MASK_NOZONECHECKS has an unexpected value";
+#endif
 }
 
 #endif
