@@ -173,7 +173,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-macos:
-    runs-on: macos-13
+    runs-on: macos-15-intel
 
     steps:
     - name: Install dependencies
