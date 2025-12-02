@@ -473,6 +473,8 @@ Rules starting with `^` interpret the value as AccessibilityLevel instead of cou
 For `$` rules, arguments can be supplied with `|`. `$test|a|b` will call `test("a","b")`.
 The return value has to be a number (count) or boolean (since v0.20.4).
 
+Rules containing a `:` will check the count instead of boolean. `<rule>:<count>` can be used with `$` rules and item codes (e.g. consumables) but will have no effect for `^` and `@` rules
+
 Rules inside `[` `]` are optional (i.e. glitches work around this rule).
 
 Rule-groups inside `{` `}` are a different set of rules to mark the section as "checkable but not collectible", marked blue on the map.
