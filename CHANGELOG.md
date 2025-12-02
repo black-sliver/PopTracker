@@ -1,5 +1,10 @@
 # PopTracker Changelog
 
+## v0.33.0-rc5
+
+* Fixes
+  * Windows: Updater could not be started under some circumstances (error 5)
+
 ## v0.33.0-rc3, -rc4
 
 * Fixes
