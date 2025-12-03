@@ -1,18 +1,6 @@
 # PopTracker Changelog
 
-## v0.33.0-rc5
-
-* Fixes
-  * Windows: Updater could not be started under some circumstances (error 5)
-
-## v0.33.0-rc3, -rc4
-
-* Fixes
-  * Windows: Updater would not work on older CPU models
-    * rc2 -> rc3 update may fail
-    * rc3 -> rc4 update should now work
-
-## v0.33.0-rc2
+## v0.33.0
 
 * App Features
   * Better Unicode support
