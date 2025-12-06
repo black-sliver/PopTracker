@@ -303,18 +303,20 @@ void LuaItem::Set(const char* s, LuaVariant v)
     } else {
         _properties[s] = v;
     }
-    if (!_propertyChangedFunc.valid()) return;
-    lua_rawgeti(_L, LUA_REGISTRYINDEX, _propertyChangedFunc.ref);
-    Lua_Push(_L);          // arg1: this
-    lua_pushstring(_L, s); // arg2: key
-    v.Lua_Push(_L);        // arg3: value
-    if (lua_pcall(_L, 3, 0, 0)) {
-        printf("Error calling Item:propertyChanged for \"%s\": %s\n",
-                sanitize_print(_name).c_str(), lua_tostring(_L, -1));
-        lua_pop(_L, 1);
-        return;
+    if (_propertyChangedFunc.valid()) {
+        lua_rawgeti(_L, LUA_REGISTRYINDEX, _propertyChangedFunc.ref);
+        Lua_Push(_L);          // arg1: this
+        lua_pushstring(_L, s); // arg2: key
+        v.Lua_Push(_L);        // arg3: value
+        if (lua_pcall(_L, 3, 0, 0)) {
+            printf("Error calling Item:propertyChanged for \"%s\": %s\n",
+                    sanitize_print(_name).c_str(), lua_tostring(_L, -1));
+            lua_pop(_L, 1);
+            return;
+        }
+        DEBUG_printf("LuaItem(\"%s\"):propertyChanged(\"%s\",%s) called\n", _name.c_str(), s, v.toString().c_str());
     }
-    DEBUG_printf("LuaItem(\"%s\"):propertyChanged(\"%s\",%s) called\n", _name.c_str(), s, v.toString().c_str());
+    onChange.emit(this);
 }
 
 json LuaItem::save() const
