@@ -17,7 +17,7 @@ public:
         _type = Type::CUSTOM;
     }
 
-    void Set(const char* key, LuaVariant value);
+    void Set(const char* key, const LuaVariant& value);
     LuaVariant Get(const char* key);
 
     bool canProvideCode(const std::string& code) const override;

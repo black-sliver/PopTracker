@@ -268,18 +268,20 @@ bool LuaItem::changeState(Action action)
 }
 
 
-LuaVariant LuaItem::Get(const char* s)
+LuaVariant LuaItem::Get(const char* key)
 {
-    if (_itemState.valid()) { // grab property from .itemState
+    if (_itemState.valid()) {
+        // if .itemState is a lua table, grab property from it
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _itemState.ref);
-        lua_getfield(_L, -1, s);
+        lua_getfield(_L, -1, key);
         LuaVariant v;
         v.Lua_Get(_L, -1);
         DEBUG_printf("LuaItem(\"%s\"):Get(\"%s\") = %s\n", _name.c_str(), s, v.toString().c_str());
         // TODO: we probably need to pop from lua stack
         return v;
-    } else { // grab property from internal map
-        const auto& it = _properties.find(s);
+    } else {
+        // otherwise grab property from an internal map
+        const auto& it = _properties.find(key);
         if (it == _properties.end()) {
             DEBUG_printf("LuaItem(\"%s\"):Get(\"%s\") = none\n", _name.c_str(), s);
             return {};
@@ -289,25 +291,27 @@ LuaVariant LuaItem::Get(const char* s)
     }
 }
 
-void LuaItem::Set(const char* s, LuaVariant v)
+void LuaItem::Set(const char* key, const LuaVariant& value)
 {
     DEBUG_printf("LuaItem(\"%s\"):Set(\"%s\",%s)\n  ", _name.c_str(), s, v.toString().c_str());
 
-    if (Get(s) == v) return;
+    if (Get(key) == value) return;
     if (_itemState.valid()) {
+        // if .itemState is a lua table, add/update the entry
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _itemState.ref);
-        v.Lua_Push(_L);
-        lua_setfield(_L, -2, s);
+        value.Lua_Push(_L);
+        lua_setfield(_L, -2, key);
         DEBUG_printf("itemState[%s] = %s\n", s, v.toString().c_str());
         // TODO: we probably need to pop from lua stack
     } else {
-        _properties[s] = v;
+        // otherwise keep track in an internal map
+        _properties[key] = value;
     }
     if (_propertyChangedFunc.valid()) {
         lua_rawgeti(_L, LUA_REGISTRYINDEX, _propertyChangedFunc.ref);
-        Lua_Push(_L);          // arg1: this
-        lua_pushstring(_L, s); // arg2: key
-        v.Lua_Push(_L);        // arg3: value
+        Lua_Push(_L);            // arg1: this
+        lua_pushstring(_L, key); // arg2: key
+        value.Lua_Push(_L);      // arg3: value
         if (lua_pcall(_L, 3, 0, 0)) {
             printf("Error calling Item:propertyChanged for \"%s\": %s\n",
                     sanitize_print(_name).c_str(), lua_tostring(_L, -1));
