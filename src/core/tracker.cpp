@@ -1116,8 +1116,7 @@ LuaItem * Tracker::CreateLuaItem()
     i.onChange += {this, [this](void* sender) {
         const auto* i = static_cast<LuaItem*>(sender);
         if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
-            if (!_bulkUpdate)
-                _providerCountCache.clear();
+            _providerCountCache.clear();
             _accessibilityStale = true;
             _visibilityStale = true;
             if (_updatingCache)
