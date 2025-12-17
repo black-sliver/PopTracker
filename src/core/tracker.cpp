@@ -390,6 +390,10 @@ bool Tracker::AddLocations(const std::string& file) {
                 for (auto& sec : other.getSections()) {
                     sec.onChange -= this;
                     sec.onChange += {this,[this,&sec](void*) {
+                        // TODO: only touch caches and stale if sec's AvailableChestCount is involved in logic
+                        _providerCountCache.clear();
+                        _accessibilityStale = true;
+                        _visibilityStale = true;
                         if (_bulkUpdate)
                             _bulkSectionUpdates.push_back(sec.getFullID());
                         else
@@ -435,6 +439,10 @@ bool Tracker::AddLocations(const std::string& file) {
             if (!sec.getRef().empty())
                 _sectionNameRefs[sec.getRef()].push_back(sec.getFullID());
             sec.onChange += {this,[this,&sec](void*) {
+                // TODO: only touch caches and stale if sec's AvailableChestCount is involved in logic
+                _providerCountCache.clear();
+                _accessibilityStale = true;
+                _visibilityStale = true;
                 if (_bulkUpdate)
                     _bulkSectionUpdates.push_back(sec.getFullID());
                 else
