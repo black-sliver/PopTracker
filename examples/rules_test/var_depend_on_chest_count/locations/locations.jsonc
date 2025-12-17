@@ -1,0 +1,77 @@
+[
+    {
+        "name": "Example Area",
+        "children": [
+            {
+                "name": "A",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 100,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "clear_as_group": false,
+                        "item_count": 2
+                    }
+                ]
+            },
+            {
+                "name": "B",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 200,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ],
+                "access_rules": [
+                    "$TrueIfAUntouched"
+                ]
+            },
+            {
+                "name": "C",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 300,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ],
+                "access_rules": [
+                    "$TrueIfATouched"
+                ]
+            },
+            {
+                "name": "D",
+                "map_locations": [
+                    {
+                        "map": "example",
+                        "x": 400,
+                        "y": 300
+                    }
+                ],
+                "sections": [
+                    {
+                        "item_count": 1
+                    }
+                ],
+                "access_rules": [
+                    "$TrueIfAEmpty"
+                ]
+            }
+        ]
+    }
+]

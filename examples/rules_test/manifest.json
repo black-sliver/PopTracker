@@ -1,22 +1,25 @@
 {
     "name": "rules_test Example",
-	"game_name": "Demo",
-	"platform": "pc",
-	"package_version": "1.0.0",
-	"package_uid": "rules_test-example",
-	"author": "black_sliver",
-	"variants": {
-		"var_at": {
-			"display_name": "@ Example"
-		},
-		"var_visibility": {
-			"display_name": "Visibility Example"
-		},
-		"var_indirect": {
-			"display_name": "Indirect Connection Example"
-		},
-		"var_scoutable_and_glitched": {
-			"display_name": "Scoutable and Glitched Example"
-		}
-	}
+    "game_name": "Demo",
+    "platform": "pc",
+    "package_version": "1.0.0",
+    "package_uid": "rules_test-example",
+    "author": "black_sliver",
+    "variants": {
+        "var_at": {
+            "display_name": "@ Example"
+        },
+        "var_visibility": {
+            "display_name": "Visibility Example"
+        },
+        "var_indirect": {
+            "display_name": "Indirect Connection Example"
+        },
+        "var_scoutable_and_glitched": {
+            "display_name": "Scoutable and Glitched Example"
+        },
+        "var_depend_on_chest_count": {
+            "display_name": "Depend on Chest Count"
+        }
+    }
 }
