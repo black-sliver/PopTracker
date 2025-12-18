@@ -310,20 +310,20 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
     }
 }
 
-void drawRectGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+void drawRectGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
 {
-    constexpr int glowSize = 10;
-    float x1 = pos.left - glowSize;
-    float x2 = pos.left;
-    float x3 = pos.left + size.width;
-    float x4 = pos.left + size.width + glowSize;
-    float y1 = pos.top - glowSize;
-    float y2 = pos.top;
-    float y3 = pos.top + size.height;
-    float y4 = pos.top + size.height + glowSize;
+    constexpr int glowSize = 16;
+    const auto x1 = static_cast<float>(pos.left - glowSize);
+    const auto x2 = static_cast<float>(pos.left);
+    const auto x3 = static_cast<float>(pos.left + size.width);
+    const auto x4 = static_cast<float>(pos.left + size.width + glowSize);
+    const auto y1 = static_cast<float>(pos.top - glowSize);
+    const auto y2 = static_cast<float>(pos.top);
+    const auto y3 = static_cast<float>(pos.top + size.height);
+    const auto y4 = static_cast<float>(pos.top + size.height + glowSize);
 
-    SDL_Color c = {color.r, color.g, color.b, color.a};
-    SDL_Vertex verts[] = {
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    const SDL_Vertex verts[] = {
         {{x1, y1}, c, {0, 0}},
         {{x2, y2}, c, {0.5, 0.5}},
         {{x2, y1}, c, {0.5, 0}},
@@ -345,7 +345,7 @@ void drawRectGlow(Renderer renderer, Position pos, Size size, Widget::Color colo
         {{x1, y4}, c, {0, 1}},
     };
 
-    int indices[] = {
+    const int indices[] = {
         0, 1, 2,
         0, 3, 1,
 
@@ -377,32 +377,32 @@ void drawRectGlow(Renderer renderer, Position pos, Size size, Widget::Color colo
     SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
 }
 
-void drawDiamondGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+void drawDiamondGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
 {
     constexpr float sqrtOf2 = 1.41421356237;
     constexpr int glowSize = 10;
     constexpr float glowDiag = glowSize * sqrtOf2;
-    float x1 = pos.left - glowDiag;
-    float x2 = pos.left - glowDiag / 2;
-    float x3 = pos.left;
-    float x4 = pos.left + size.width / 2 - glowDiag / 2;
-    float x5 = pos.left + size.width / 2;
-    float x6 = pos.left + size.width / 2 + glowDiag / 2;
-    float x7 = pos.left + size.width;
-    float x8 = pos.left + size.width + glowDiag / 2;
-    float x9 = pos.left + size.width + glowDiag;
-    float y1 = pos.top - glowDiag;
-    float y2 = pos.top - glowDiag / 2;
-    float y3 = pos.top;
-    float y4 = pos.top + size.height / 2 - glowDiag / 2;
-    float y5 = pos.top + size.height / 2;
-    float y6 = pos.top + size.height / 2 + glowDiag / 2;
-    float y7 = pos.top + size.height;
-    float y8 = pos.top + size.height + glowDiag / 2;
-    float y9 = pos.top + size.height + glowDiag;
+    const float x1 = static_cast<float>(pos.left) - glowDiag;
+    const float x2 = static_cast<float>(pos.left) - glowDiag / 2;
+    const float x3 = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x4 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2 - glowDiag / 2;
+    const float x5 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2;
+    const float x6 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2 + glowDiag / 2;
+    const float x7 = static_cast<float>(pos.left) + static_cast<float>(size.width);
+    const float x8 = static_cast<float>(pos.left) + static_cast<float>(size.width) + glowDiag / 2;
+    const float x9 = static_cast<float>(pos.left) + static_cast<float>(size.width) + glowDiag;
+    const float y1 = static_cast<float>(pos.top) - glowDiag;
+    const float y2 = static_cast<float>(pos.top) - glowDiag / 2;
+    const float y3 = static_cast<float>(pos.top); // NOLINT(*-use-auto)
+    const float y4 = static_cast<float>(pos.top) + static_cast<float>(size.height) / 2 - glowDiag / 2;
+    const float y5 = static_cast<float>(pos.top) + static_cast<float>(size.height) / 2;
+    const float y6 = static_cast<float>(pos.top) + static_cast<float>(size.height) / 2 + glowDiag / 2;
+    const float y7 = static_cast<float>(pos.top) + static_cast<float>(size.height);
+    const float y8 = static_cast<float>(pos.top) + static_cast<float>(size.height) + glowDiag / 2;
+    const float y9 = static_cast<float>(pos.top) + static_cast<float>(size.height) + glowDiag;
 
-    SDL_Color c = {color.r, color.g, color.b, color.a};
-    SDL_Vertex verts[] = {
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    const SDL_Vertex verts[] = {
         {{x5, y1}, c, {0, 0}},
         {{x5, y3}, c, {0.5, 0.5}},
         {{x6, y2}, c, {0.5, 0}},
@@ -424,7 +424,7 @@ void drawDiamondGlow(Renderer renderer, Position pos, Size size, Widget::Color c
         {{x1, y5}, c, {0, 1}},
     };
 
-    int indices[] = {
+    const int indices[] = {
         0, 1, 2,
         0, 3, 1,
 
@@ -456,33 +456,33 @@ void drawDiamondGlow(Renderer renderer, Position pos, Size size, Widget::Color c
     SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
 }
 
-void drawTrapezoidGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
 {
     constexpr int glowSize = 10;
-    int left2 = pos.left + size.width / 4;
-    int width2 = size.width / 2;
-    int glowOff1 = 12;
-    int glowOff2 = 14;
-    int glowOff3 = 6;
-    float x1 = pos.left - glowOff2;
-    float x2 = pos.left - glowOff1;
-    float x3 = pos.left;
-    float x4 = left2 - glowOff1;
-    float x5 = left2 - glowOff3;
-    float x6 = left2;
-    float x7 = left2 + width2;
-    float x8 = left2 + width2 + glowOff3;
-    float x9 = left2 + width2 + glowOff1;
-    float x10 = pos.left + size.width;
-    float x11 = pos.left + size.width + glowOff1;
-    float x12 = pos.left + size.width + glowOff2;
-    float y1 = pos.top - glowSize;
-    float y2 = pos.top;
-    float y3 = pos.top + size.height;
-    float y4 = pos.top + size.height + glowSize;
+    const float left2 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 4;
+    const float width2 = static_cast<float>(size.width) / 2;
+    constexpr int glowOff1 = 12;
+    constexpr int glowOff2 = 14;
+    constexpr int glowOff3 = 6;
+    const float x1  = static_cast<float>(pos.left) - glowOff2;
+    const float x2  = static_cast<float>(pos.left) - glowOff1;
+    const float x3  = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x4  = left2 - glowOff1;
+    const float x5  = left2 - glowOff3;
+    const float x6  = left2;
+    const float x7  = left2 + width2;
+    const float x8  = left2 + width2 + glowOff3;
+    const float x9  = left2 + width2 + glowOff1;
+    const float x10 = static_cast<float>(pos.left + size.width); // NOLINT(*-use-auto)
+    const float x11 = static_cast<float>(pos.left + size.width) + glowOff1;
+    const float x12 = static_cast<float>(pos.left + size.width) + glowOff2;
+    const float y1  = static_cast<float>(pos.top) - glowSize;
+    const float y2  = static_cast<float>(pos.top); // NOLINT(*-use-auto)
+    const float y3  = static_cast<float>(pos.top + size.height); // NOLINT(*-use-auto)
+    const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
 
-    SDL_Color c = {color.r, color.g, color.b, color.a};
-    SDL_Vertex verts[] = {
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    const SDL_Vertex verts[] = {
         {{x5, y1}, c, {0, 0}},
         {{x6, y2}, c, {0.5, 0.5}},
         {{x6, y1}, c, {0.5, 0}},
@@ -504,7 +504,7 @@ void drawTrapezoidGlow(Renderer renderer, Position pos, Size size, Widget::Color
         {{x1, y4}, c, {0, 1}},
     };
 
-    int indices[] = {
+    const int indices[] = {
         0, 1, 2,
         0, 3, 1,
 
