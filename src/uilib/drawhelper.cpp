@@ -312,7 +312,7 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
 
 void drawRectGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
 {
-    constexpr int glowSize = 16;
+    constexpr int glowSize = 10;
     const auto x1 = static_cast<float>(pos.left - glowSize);
     const auto x2 = static_cast<float>(pos.left);
     const auto x3 = static_cast<float>(pos.left + size.width);
@@ -325,23 +325,23 @@ void drawRectGlow(Renderer renderer, const Position pos, const Size size, const 
     const SDL_Color c = {color.r, color.g, color.b, color.a};
     const SDL_Vertex verts[] = {
         {{x1, y1}, c, {0, 0}},
-        {{x2, y2}, c, {0.5, 0.5}},
-        {{x2, y1}, c, {0.5, 0}},
-        {{x1, y2}, c, {0, 0.5}},
+        {{x2, y2}, c, {0.49, 0.49}},
+        {{x2, y1}, c, {0.49, 0}},
+        {{x1, y2}, c, {0, 0.49}},
 
-        {{x3, y1}, c, {0.5, 0}},
-        {{x4, y2}, c, {1, 0.5}},
+        {{x3, y1}, c, {0.51, 0}},
+        {{x4, y2}, c, {1, 0.49}},
         {{x4, y1}, c, {1, 0}},
-        {{x3, y2}, c, {0.5, 0.5}},
+        {{x3, y2}, c, {0.51, 0.49}},
 
-        {{x3, y3}, c, {0.5, 0.5}},
+        {{x3, y3}, c, {0.51, 0.51}},
         {{x4, y4}, c, {1, 1}},
-        {{x4, y3}, c, {1, 0.5}},
-        {{x3, y4}, c, {0.5, 1}},
+        {{x4, y3}, c, {1, 0.51}},
+        {{x3, y4}, c, {0.51, 1}},
 
-        {{x1, y3}, c, {0, 0.5}},
-        {{x2, y4}, c, {0.5, 1}},
-        {{x2, y3}, c, {0.5, 0.5}},
+        {{x1, y3}, c, {0, 0.51}},
+        {{x2, y4}, c, {0.49, 1}},
+        {{x2, y3}, c, {0.49, 0.51}},
         {{x1, y4}, c, {0, 1}},
     };
 
@@ -484,29 +484,29 @@ void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, c
     const SDL_Color c = {color.r, color.g, color.b, color.a};
     const SDL_Vertex verts[] = {
         {{x5, y1}, c, {0, 0}},
-        {{x6, y2}, c, {0.5, 0.5}},
-        {{x6, y1}, c, {0.5, 0}},
-        {{x4, y2}, c, {0, 0.5}},
+        {{x6, y2}, c, {0.49, 0.49}},
+        {{x6, y1}, c, {0.49, 0}},
+        {{x4, y2}, c, {0, 0.49}},
 
-        {{x7, y1}, c, {0.5, 0}},
-        {{x9, y2}, c, {1, 0.5}},
+        {{x7, y1}, c, {0.51, 0}},
+        {{x9, y2}, c, {1, 0.49}},
         {{x8, y1}, c, {1, 0}},
-        {{x7, y2}, c, {0.5, 0.5}},
+        {{x7, y2}, c, {0.51, 0.49}},
 
-        {{x10, y3}, c, {0.5, 0.5}},
+        {{x10, y3}, c, {0.51, 0.51}},
         {{x12, y4}, c, {1, 1}},
-        {{x11, y3}, c, {1, 0.5}},
-        {{x10, y4}, c, {0.5, 1}},
+        {{x11, y3}, c, {1, 0.51}},
+        {{x10, y4}, c, {0.51, 1}},
 
-        {{x2, y3}, c, {0, 0.5}},
-        {{x3, y4}, c, {0.5, 1}},
-        {{x3, y3}, c, {0.5, 0.5}},
+        {{x2, y3}, c, {0, 0.51}},
+        {{x3, y4}, c, {0.49, 1}},
+        {{x3, y3}, c, {0.49, 0.51}},
         {{x1, y4}, c, {0, 1}},
     };
 
     const int indices[] = {
-        0, 1, 2,
-        0, 3, 1,
+        2, 1, 3,
+        3, 0, 2,
 
         1, 7, 2,
         2, 7, 4,
