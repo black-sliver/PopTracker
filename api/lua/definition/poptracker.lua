@@ -20,7 +20,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.33.0"
+PopVersion = "0.33.1"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true or an array of strings to get more error or debug output.
@@ -208,8 +208,18 @@ function ScriptHost:RemoveOnFrameHandler(name) end
 ---@return string reference for RemoveOnLocationSectionChangedHandler
 function ScriptHost:AddOnLocationSectionChangedHandler(name, callback) end
 
----Remove a handler/callback added by AddOnLocationSectionChangedHandler.
+---Old name of RemoveOnLocationSectionChangedHandler.
 ---Available since 0.26.2.
+---Use RemoveOnLocationSectionChangedHandler instead if you support only PopTracker >= 0.33.1.
+---@see ScriptHost.RemoveOnLocationSectionChangedHandler
+---@param name string identifier/name of the handler to remove
+---@return boolean true on success
+function ScriptHost:RemoveOnLocationSectionHandler(name) end
+
+---Remove a handler/callback added by AddOnLocationSectionChangedHandler.
+---Available since 0.33.1.
+---Use RemoveOnLocationSectionHandler instead if you support PopTracker < 0.33.1.
+---@see ScriptHost.RemoveOnLocationSectionHandler
 ---@param name string identifier/name of the handler to remove
 ---@return boolean true on success
 function ScriptHost:RemoveOnLocationSectionChangedHandler(name) end
