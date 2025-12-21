@@ -25,6 +25,7 @@ const LuaInterface<ScriptHost>::MethodMap ScriptHost::Lua_Methods = {
     LUA_METHOD(ScriptHost, AddOnFrameHandler, const char*, LuaRef),
     LUA_METHOD(ScriptHost, RemoveOnFrameHandler, const char*),
     LUA_METHOD(ScriptHost, AddOnLocationSectionChangedHandler, const char*, LuaRef),
+    LUA_METHOD(ScriptHost, RemoveOnLocationSectionChangedHandler, const char*),
     LUA_METHOD(ScriptHost, RemoveOnLocationSectionHandler, const char*),
     LUA_METHOD(ScriptHost, RunScriptAsync, const char*, json, LuaRef, LuaRef),
     LUA_METHOD(ScriptHost, RunStringAsync, const char*, json, LuaRef, LuaRef),
@@ -408,14 +409,14 @@ bool ScriptHost::RemoveOnFrameHandler(const std::string& name)
 
 const std::string& ScriptHost::AddOnLocationSectionChangedHandler(const std::string& name, LuaRef callback)
 {
-    RemoveOnLocationSectionHandler(name);
+    RemoveOnLocationSectionChangedHandler(name);
     if (!callback.valid())
         luaL_error(_L, "Invalid callback");
     _onLocationSectionChangedHandlers.push_back({callback.ref, name});
     return _onLocationSectionChangedHandlers.back().name;
 }
 
-bool ScriptHost::RemoveOnLocationSectionHandler(const std::string &name)
+bool ScriptHost::RemoveOnLocationSectionChangedHandler(const std::string &name)
 {
     for (auto it = _onLocationSectionChangedHandlers.begin(); it != _onLocationSectionChangedHandlers.end(); ++it) {
         if (it->name == name) {
@@ -425,6 +426,11 @@ bool ScriptHost::RemoveOnLocationSectionHandler(const std::string &name)
         }
     }
     return false;
+}
+
+bool ScriptHost::RemoveOnLocationSectionHandler(const std::string &name)
+{
+    return RemoveOnLocationSectionChangedHandler(name);
 }
 
 json ScriptHost::RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback)

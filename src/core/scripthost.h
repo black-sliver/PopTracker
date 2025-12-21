@@ -78,6 +78,7 @@ public:
     std::string AddOnFrameHandler(const std::string& name, LuaRef callback);
     bool RemoveOnFrameHandler(const std::string& name);
     const std::string& AddOnLocationSectionChangedHandler(const std::string& name, LuaRef callback);
+    bool RemoveOnLocationSectionChangedHandler(const std::string& name);
     bool RemoveOnLocationSectionHandler(const std::string& name);
     json RunScriptAsync(const std::string& file, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
     json RunStringAsync(const std::string& script, const json& arg, LuaRef completeCallback, LuaRef progressCallback);
