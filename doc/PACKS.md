@@ -233,7 +233,7 @@ a table representing an enum with the following constants: \
 * `.Type`: gets the type of the item as string ("toggle", ...), since 0.23.0
 * `.Icon`: override displayed image, including mods, until state changes, since 0.26.2. Prefer stages instead.
 * `.BadgeText`: same as SetOverlay, but a property, since 0.31.0
-* `.BadgeTextColor`: same as SetOverlay, but a property, since 0.31.0
+* `.BadgeTextColor`: same as SetOverlayColor, but a property, since 0.31.0
 
 *Probably more to come.*
 
