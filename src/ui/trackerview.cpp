@@ -283,12 +283,11 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
         if (_tracker->allowDeferredLogicUpdate())
             updateLocations();
     }};
-    _tracker->onLocationSectionChanged += {this, [this](void*, const LocationSection& sec) {
+    _tracker->onLocationSectionChanged += {this, [this](void*, [[maybe_unused]] const LocationSection& sec) {
         if (_tracker->isBulkUpdate() && _tracker->allowDeferredLogicUpdate())
             return; // will update on bulk update done
-        updateLocation(sec.getParentID());
-        for (const auto& pair: _tracker->getReferencingSections(sec))
-            updateLocation(pair.first.get().getID());
+        // TODO: partial update if sec's AvailableChestCount is not involved in logic
+        updateLocations();
         updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
     }};
     updateLayout(layoutRoot);
