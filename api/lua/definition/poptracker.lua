@@ -521,6 +521,10 @@ LuaItem.Name = ""
 ---@type ImageRef?
 LuaItem.Icon = nil
 
+---Icon modifier, see JSON's img_mods. Only available in PopTracker, since 0.11.0.
+---@type string
+LuaItem.IconMods = ""
+
 ---Optional container to store item's state. Keys have to be string for `:Get` and `:Set` to work.
 ---@type table?
 LuaItem.ItemState = nil
