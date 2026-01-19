@@ -18,3 +18,21 @@ function ToggleCodeA()
     a.Active = not a.Active
     return true
 end
+
+function TrueIfAUntouched()
+    local a = Tracker:FindObjectForCode("@A/")
+    ---@cast a LocationSection
+    return a.AvailableChestCount == a.ChestCount
+end
+
+function TrueIfATouched()
+    local a = Tracker:FindObjectForCode("@A/")
+    ---@cast a LocationSection
+    return a.AvailableChestCount ~= a.ChestCount
+end
+
+function TrueIfAEmpty()
+    local a = Tracker:FindObjectForCode("@A/")
+    ---@cast a LocationSection
+    return a.AvailableChestCount == 0
+end
