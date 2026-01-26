@@ -1,6 +1,8 @@
 #include "mapwidget.h"
 #include "../core/util.h" // countOf
 #include "../uilib/drawhelper.h"
+#include "../uilib/colorhelper.h" // makeGreyscale
+#include <algorithm> // std::max, std::min
 
 
 namespace Ui {
@@ -118,15 +120,51 @@ void MapWidget::calculateSizes(int left, int top, int& srcw, int& srch, int& dst
 
 void MapWidget::connectSignals()
 {
-    this->onMouseMove += { this, [this](void*, int x, int y, unsigned) {
-        int absX = _absX + x;
-        int absY = _absY + y;
+    this->onMouseMove += { this, [this](void*, int x, int y, unsigned buttons) {
+        // Track mouse position for scroll zooming
+        _lastMouseX = x;
+        _lastMouseY = y;
+
         int srcw, srch, dstx, dsty, dstw, dsth;
         calculateSizes(0, 0, srcw, srch, dstx, dsty, dstw, dsth);
-        int x1 = x-dstx;
-        int y1 = y-dsty;
-        x1 = (x1*srcw + dstw/2) / dstw;
-        y1 = (y1*srch + dsth/2) / dsth;
+
+        // Handle dragging for pan
+        if (buttons & SDL_BUTTON_LMASK) {
+            if (!_dragging) {
+                // Start drag
+                _dragging = true;
+                _dragStartX = x;
+                _dragStartY = y;
+                _dragStartPanX = _panX;
+                _dragStartPanY = _panY;
+            } else {
+                // During drag: calculate delta and update pan
+                int deltaX = x - _dragStartX;
+                int deltaY = y - _dragStartY;
+                // Convert screen delta to image delta (inverse of zoom)
+                if (dstw > 0 && dsth > 0) {
+                    _panX = _dragStartPanX - (deltaX * srcw) / (dstw * _zoom);
+                    _panY = _dragStartPanY - (deltaY * srch) / (dsth * _zoom);
+                    clampPan();
+                }
+            }
+            return; // Don't process hover while dragging
+        } else {
+            _dragging = false;
+        }
+
+        int absX = _absX + x;
+        int absY = _absY + y;
+
+        // Convert screen coordinates to image coordinates (accounting for zoom and pan)
+        int x1 = x - dstx;
+        int y1 = y - dsty;
+        // Screen to image: imgCoord = panOffset + (screenCoord * imgSize) / (displaySize * zoom)
+        if (dstw > 0 && dsth > 0) {
+            x1 = (int)(_panX + (x1 * srcw) / (dstw * _zoom));
+            y1 = (int)(_panY + (y1 * srch) / (dsth * _zoom));
+        }
+
         for (auto locIt = _locations.rbegin(); locIt!=_locations.rend(); locIt++) {
             const auto& loc = locIt->second;
             for (const auto& pos: loc.pos) {
@@ -161,50 +199,137 @@ void MapWidget::connectSignals()
 
     this->onMouseLeave += { this, [this](void*) {
         _locationHover = "";
+        _dragging = false;
     }};
+
+    this->onScroll += { this, [this](void*, int, int scrollY, unsigned) {
+        // scrollY > 0 = scroll up = zoom in
+        // scrollY < 0 = scroll down = zoom out
+        float zoomFactor = (scrollY > 0) ? 1.25f : 0.8f;
+        float newZoom = _zoom * zoomFactor;
+
+        // Clamp between 1.0 and 8.0
+        newZoom = std::max(1.0f, std::min(8.0f, newZoom));
+
+        if (newZoom != _zoom) {
+            int srcw, srch, dstx, dsty, dstw, dsth;
+            calculateSizes(0, 0, srcw, srch, dstx, dsty, dstw, dsth);
+
+            if (dstw > 0 && dsth > 0) {
+                // Calculate mouse position in image coordinates (before zoom change)
+                // Use last known mouse position from onMouseMove
+                int mouseLocalX = _lastMouseX - dstx;
+                int mouseLocalY = _lastMouseY - dsty;
+                float mouseImgX = _panX + (mouseLocalX * srcw) / (dstw * _zoom);
+                float mouseImgY = _panY + (mouseLocalY * srch) / (dsth * _zoom);
+
+                // Apply new zoom
+                _zoom = newZoom;
+
+                // Adjust pan so that the point under the mouse stays fixed
+                _panX = mouseImgX - (mouseLocalX * srcw) / (dstw * _zoom);
+                _panY = mouseImgY - (mouseLocalY * srch) / (dsth * _zoom);
+                clampPan();
+            } else {
+                _zoom = newZoom;
+                clampPan();
+            }
+        }
+    }};
+}
+
+void MapWidget::clampPan()
+{
+    // Calculate pan limits based on zoom level
+    // At zoom 1.0, pan must be 0 (show entire image)
+    // At higher zoom, we can pan but not beyond image edges
+    float maxPanX = _autoSize.width * (1.0f - 1.0f / _zoom);
+    float maxPanY = _autoSize.height * (1.0f - 1.0f / _zoom);
+    _panX = std::max(0.0f, std::min(maxPanX, _panX));
+    _panY = std::max(0.0f, std::min(maxPanY, _panY));
 }
 
 void MapWidget::render(Renderer renderer, int offX, int offY)
 {
     _absX = offX+_pos.left; // add this to relative mouse coordinates to get absolute
     _absY = offY+_pos.top; // FIXME: we should provide absolute AND relative mouse position through the Event stack
-    Image::render(renderer, offX, offY);
-    
+
+    // Render background color if set
+    if (_backgroundColor.a > 0) {
+        const auto& c = _backgroundColor;
+        SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+        SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, _size.height };
+        SDL_RenderFillRect(renderer, &r);
+    }
+
+    // Create texture from surface if needed (same as Image::render)
+    if (!_tex && _surf) {
+        if (_quality >= 0) {
+            char q[] = { (char)('0'+_quality), 0 };
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, q);
+        }
+        _tex = SDL_CreateTextureFromSurface(renderer, _surf);
+        _surf = makeGreyscale(_surf, _darkenGreyscale);
+        _texBw = SDL_CreateTextureFromSurface(renderer, _surf);
+        SDL_FreeSurface(_surf);
+        if (_quality >= 0) {
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
+        }
+        _surf = nullptr;
+    }
+    auto tex = _enabled ? _tex : _texBw;
+    if (!tex) return;
+
     int srcw, srch, dstx, dsty, dstw, dsth;
     calculateSizes(offX+_pos.left, offY+_pos.top, srcw, srch, dstx, dsty, dstw, dsth);
     if (srcw == 0 || dstw == 0) {
         return; // nothing to do
     }
 
+    // Calculate source rect based on zoom and pan
+    // The visible portion of the image in image coordinates
+    int visibleW = (int)(srcw / _zoom);
+    int visibleH = (int)(srch / _zoom);
+    SDL_Rect srcRect = {
+        (int)_panX,
+        (int)_panY,
+        visibleW,
+        visibleH
+    };
+    SDL_Rect destRect = { dstx, dsty, dstw, dsth };
+    SDL_RenderCopy(renderer, tex, &srcRect, &destRect);
+
+    // Render locations with zoom/pan adjustment
     for (const auto pass: {0, 1}) {
         for (const auto& pair : _locations) {
             const auto& loc = pair.second;
             for (const auto& pos : loc.pos) {
-                // location icon size in screen space
-                int locScreenInnerW  = (pos.size*dstw+srcw/2)/srcw;
-                int locScreenInnerH  = (pos.size*dsth+srch/2)/srch;
-                if (locScreenInnerW<1) locScreenInnerW=1;
-                if (locScreenInnerH<1) locScreenInnerH=1;
-                int borderScreenSize = (pos.borderThickness*dstw+srcw/2)/srcw;
-                if (borderScreenSize<1 && pos.borderThickness>0) borderScreenSize=1;
-                int locScreenOuterW  = locScreenInnerW+2*borderScreenSize;
-                int locScreenOuterH  = locScreenInnerH+2*borderScreenSize;
-                // calculate top left corner of squares
-                int innerx = (pos.x*dstw+srcw/2)/srcw - locScreenInnerW/2;
-                int innery = (pos.y*dsth+srch/2)/srch - locScreenInnerH/2;
-                // fix up locations that are on the edge of the map -- we could also move this to addLocation
-                if (innerx < borderScreenSize) innerx = borderScreenSize;
-                if (innery < borderScreenSize) innery = borderScreenSize;
-                if (innerx > dstw+locScreenOuterW) innerx = dstw-locScreenOuterW;
-                if (innery > dsth+locScreenOuterH) innery = dsth-locScreenOuterH;
-                // move to drawing offset
-                innerx += dstx;
-                innery += dsty;
-
                 int state = (int)pos.state;
                 if (state == -1) continue; // hidden
                 if (state == 0 && _hideClearedLocations) continue;
                 if (state == 2 && _hideUnreachableLocations) continue;
+
+                // location icon size in screen space (scaled by zoom)
+                int locScreenInnerW  = (int)((pos.size * dstw * _zoom + srcw/2) / srcw);
+                int locScreenInnerH  = (int)((pos.size * dsth * _zoom + srch/2) / srch);
+                if (locScreenInnerW<1) locScreenInnerW=1;
+                if (locScreenInnerH<1) locScreenInnerH=1;
+                int borderScreenSize = (int)((pos.borderThickness * dstw * _zoom + srcw/2) / srcw);
+                if (borderScreenSize<1 && pos.borderThickness>0) borderScreenSize=1;
+
+                // Calculate screen position: (imgPos - panOffset) * zoom * scaleFactor
+                // Screen position = dstx + ((imgX - panX) * dstw * zoom) / srcw
+                int innerx = dstx + (int)(((pos.x - _panX) * dstw * _zoom) / srcw) - locScreenInnerW/2;
+                int innery = dsty + (int)(((pos.y - _panY) * dsth * _zoom) / srch) - locScreenInnerH/2;
+
+                // Skip locations that are outside the visible area
+                int locScreenOuterW = locScreenInnerW + 2*borderScreenSize;
+                int locScreenOuterH = locScreenInnerH + 2*borderScreenSize;
+                if (innerx + locScreenOuterW < dstx || innerx > dstx + dstw ||
+                    innery + locScreenOuterH < dsty || innery > dsty + dsth) {
+                    continue;
+                }
+
                 const Highlight highlight = pos.highlight;
 
                 if (pass == 0) {
