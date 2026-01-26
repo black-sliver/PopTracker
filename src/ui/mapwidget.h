@@ -58,9 +58,26 @@ protected:
     bool _hideClearedLocations = false;
     bool _hideUnreachableLocations = false;
 
+    // Zoom state
+    float _zoom = 1.0f;           // Zoom level (1.0 to 4.0)
+    float _panX = 0.0f;           // Pan offset X in image coordinates
+    float _panY = 0.0f;           // Pan offset Y in image coordinates
+
+    // Drag state
+    bool _dragging = false;       // Is currently dragging
+    int _dragStartX = 0;          // Mouse position at drag start
+    int _dragStartY = 0;
+    float _dragStartPanX = 0.0f;  // Pan at drag start
+    float _dragStartPanY = 0.0f;
+
+    // Last known mouse position (for scroll zooming)
+    int _lastMouseX = 0;
+    int _lastMouseY = 0;
+
 private:
     void connectSignals();
     void calculateSizes(int left, int top, int& srcw, int& srch, int& dstx, int& dsty, int& dstw, int& dsth);
+    void clampPan();              // Constrain pan to valid bounds
 };
 
 } // namespace Ui
