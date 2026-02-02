@@ -99,14 +99,8 @@ void Image::setImage(const void* data, size_t len)
     }
 }
 
-void Image::render(Renderer renderer, int offX, int offY)
+void Image::ensureTexture(Renderer renderer)
 {
-    if (_backgroundColor.a > 0) {
-        const auto& c = _backgroundColor;
-        SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-        SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, _size.height };
-        SDL_RenderFillRect(renderer, &r);
-    }
     if (!_tex && _surf) {
         if (_quality >= 0) {
             // set Texture filter/quality when creating the texture
@@ -118,13 +112,24 @@ void Image::render(Renderer renderer, int offX, int offY)
         _tex = SDL_CreateTextureFromSurface(renderer, _surf);
         _surf = makeGreyscale(_surf, _darkenGreyscale);
         _texBw = SDL_CreateTextureFromSurface(renderer, _surf);
-        SDL_FreeSurface (_surf);
+        SDL_FreeSurface(_surf);
         if (_quality >= 0) {
             // TODO: have the default somewhere accessible?
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
         }
         _surf = nullptr;
     }
+}
+
+void Image::render(Renderer renderer, int offX, int offY)
+{
+    if (_backgroundColor.a > 0) {
+        const auto& c = _backgroundColor;
+        SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+        SDL_Rect r = { offX+_pos.left, offY+_pos.top, _size.width, _size.height };
+        SDL_RenderFillRect(renderer, &r);
+    }
+    ensureTexture(renderer);
     auto tex = _enabled ? _tex : _texBw;
     if (!tex) return;
     if (_fixedAspect) {

@@ -23,6 +23,8 @@ public:
     void setImage(const void* data, size_t len);
 
 protected:
+    void ensureTexture(Renderer renderer);
+
     SDL_Surface *_surf = nullptr;
     SDL_Texture *_tex = nullptr;
     SDL_Texture *_texBw = nullptr;
