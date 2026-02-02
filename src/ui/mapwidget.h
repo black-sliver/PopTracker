@@ -58,9 +58,30 @@ protected:
     bool _hideClearedLocations = false;
     bool _hideUnreachableLocations = false;
 
+    /// Zoom state
+    float _zoom = 1.0f;           ///< Zoom level (>= 1.0, no maximum)
+    float _panX = 0.0f;           ///< Pan offset X in image coordinates
+    float _panY = 0.0f;           ///< Pan offset Y in image coordinates
+
+    /// Drag state
+    bool _dragging = false;       ///< Is currently dragging
+    int _dragStartX = 0;          ///< Mouse position at drag start
+    int _dragStartY = 0;          ///< Mouse position at drag start
+    float _dragStartPanX = 0.0f;  ///< Pan at drag start
+    float _dragStartPanY = 0.0f;  ///< Pan at drag start
+
+    /// Last known mouse position (for scroll zooming)
+    int _lastMouseX = 0;          ///< Mouse X for scroll zooming
+    int _lastMouseY = 0;          ///< Mouse Y for scroll zooming
+
 private:
     void connectSignals();
     void calculateSizes(int left, int top, int& srcw, int& srch, int& dstx, int& dsty, int& dstw, int& dsth);
+    void calculateZoomedView(int offX, int offY, float& effectiveScale, int& srcVisW, int& srcVisH,
+                             int& dstx, int& dsty, int& dstw, int& dsth);
+    void calculateLocationScreenRect(const Point& pos, int imgScreenX, int imgScreenY,
+                                      float effectiveScale, float baseScale,
+                                      int& innerX, int& innerY, int& innerW, int& innerH, int& borderSize);
 };
 
 } // namespace Ui
