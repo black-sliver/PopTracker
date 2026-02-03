@@ -1,12 +1,15 @@
 #include "usb2snes.h"
-#include <cstdio>
-#include <thread>
-#include <mutex>
-#include <chrono>
 #include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <cstdio>
 #include <ctime>
+#include <mutex>
+#include <thread>
 #include <vector>
 #include <nlohmann/json.hpp>
+
+
 using json = nlohmann::json;
 
 
@@ -606,37 +609,105 @@ USB2SNES::Mapping USB2SNES::getMapping() const
     return mapping;
 }
 
-void USB2SNES::addWatch(uint32_t addr, unsigned len)
-{
-    uint32_t usb2snes_addr = mapaddr(addr);
-    {
-        std::lock_guard<std::mutex> watchlock(watchmutex);
-        for (size_t i=0; i<len; i++) {
-            if (std::find(watchlist.begin(), watchlist.end(), usb2snes_addr+i)==watchlist.end())
-                watchlist.push_back(usb2snes_addr+i);
-        }
-        sort(watchlist.begin(), watchlist.end());
-        for (size_t i=0; i<len; i++) {
-            if (is_rom(usb2snes_addr+i)) continue;
-            if (std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), usb2snes_addr+i)==no_rom_watchlist.end())
-                no_rom_watchlist.push_back(usb2snes_addr+i);
-        }
-        sort(no_rom_watchlist.begin(), no_rom_watchlist.end());
-    }
-}
-void USB2SNES::removeWatch(uint32_t addr, unsigned len)
+void USB2SNES::addWatch(uint32_t addr, const unsigned len)
 {
     addr = mapaddr(addr);
     {
-        std::lock_guard<std::mutex> watchlock(watchmutex);
+        // TODO: only lock if we know that we will modify the watchlist
+        std::lock_guard<std::mutex> watch_lock(watchmutex);
+        bool modified = false;
+        size_t old_size = watchlist.size();
         for (size_t i=0; i<len; i++) {
-            watchlist.erase(std::remove(watchlist.begin(), watchlist.end(), addr+i), watchlist.end());
+            if (std::find(watchlist.begin(), watchlist.end(), addr + i) == watchlist.end()) {
+                watchlist.push_back(addr + i);
+                modified = true;
+            }
         }
+        if (!modified)
+            return;
+
+        // NOTE: sorting is required to read adjacent bytes in one go, but it may break the last_watch variable
+        //       so we have to find out what it's pointing to and update it
+        const auto feature = features.find("NO_ROM_READ");
+        const bool no_rom_read = (feature == features.end()) ? false : feature->second;
+        if (no_rom_read) {
+            sort(watchlist.begin(), watchlist.end());
+        } else if (last_watch < old_size) {
+            const auto last_watch_addr = watchlist[last_watch];
+            sort(watchlist.begin(), watchlist.end());
+            const auto it = std::find(watchlist.begin(), watchlist.end(), last_watch_addr);
+            last_watch = it - watchlist.begin();
+            assert(last_watch <= watchlist.size());
+        } else {
+            sort(watchlist.begin(), watchlist.end());
+            last_watch = watchlist.size(); // will start again at 0
+        }
+
+        modified = false;
+        old_size = no_rom_watchlist.size();
         for (size_t i=0; i<len; i++) {
-            no_rom_watchlist.erase(std::remove(no_rom_watchlist.begin(), no_rom_watchlist.end(), addr+i), no_rom_watchlist.end());
+            if (is_rom(addr + i)) continue;
+            if (std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), addr + i)
+                    == no_rom_watchlist.end()) {
+                no_rom_watchlist.push_back(addr + i);
+                modified = true;
+            }
+        }
+        if (!modified)
+            return;
+
+        if (!no_rom_read) {
+            sort(no_rom_watchlist.begin(), no_rom_watchlist.end());
+        } else if (last_watch < old_size) {
+            const auto last_watch_addr = no_rom_watchlist[last_watch];
+            sort(no_rom_watchlist.begin(), no_rom_watchlist.end());
+            const auto it = std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), last_watch_addr);
+            last_watch = it - no_rom_watchlist.begin();
+            assert(last_watch <= watchlist.size());
+        } else {
+            sort(no_rom_watchlist.begin(), no_rom_watchlist.end());
+            last_watch = watchlist.size(); // will start again at 0
         }
     }
 }
+
+void USB2SNES::removeWatch(uint32_t addr, const unsigned len)
+{
+    addr = mapaddr(addr);
+    {
+        std::lock_guard<std::mutex> watch_lock(watchmutex);
+        const auto feature = features.find("NO_ROM_READ");
+        const bool no_rom_read = (feature == features.end()) ? false : feature->second;
+        const bool has_last_watch_addr = no_rom_read ? (last_watch < no_rom_watchlist.size())
+            : (last_watch < watchlist.size());
+        const uint32_t last_watch_addr = !has_last_watch_addr ? 0
+            : no_rom_read ? no_rom_watchlist[last_watch]
+            : watchlist[last_watch];
+
+        auto pred = [addr, len](const uint32_t a) {
+            return a >= addr && a < addr + len;
+        };
+        watchlist.erase(std::remove_if(watchlist.begin(), watchlist.end(), pred), watchlist.end());
+        no_rom_watchlist.erase(std::remove_if(no_rom_watchlist.begin(), no_rom_watchlist.end(), pred),
+            no_rom_watchlist.end());
+
+        // update the last_watch to point at the same address again
+        if (has_last_watch_addr) {
+            if (pred(last_watch_addr)) {
+                // if we can't, because it was just removed, start at the first one again
+                last_watch = watchlist.size();
+            } else if (no_rom_read) {
+                const auto it = std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), last_watch_addr);
+                last_watch = it - no_rom_watchlist.begin();
+            } else {
+                const auto it = std::find(watchlist.begin(), watchlist.end(), last_watch_addr);
+                last_watch = it - watchlist.begin();
+            }
+            assert(last_watch <= watchlist.size());
+        }
+    }
+}
+
 uint8_t USB2SNES::read(uint32_t addr)
 {
     uint32_t usb2snes_addr = mapaddr(addr);
