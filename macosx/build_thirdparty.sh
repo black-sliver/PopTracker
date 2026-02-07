@@ -61,7 +61,7 @@ LIB_SDL_IMAGE_TAG="release-2.8.8"
 LIB_SDL_TTF_TAG="release-2.24.0"
 LIB_PNG_TAG="v1.6.51"
 LIB_FREETYPE_TAG="VER-2-13-3"
-LIB_OPENSSL_TAG="openssl-3.0.18"
+LIB_OPENSSL_TAG="openssl-3.0.19"
 
 LIB_SDL_TARGET="build/.libs/libSDL2-2.0.0.dylib"
 LIB_SDL_IMAGE_TARGET=".libs/libSDL2_image-2.0.0.dylib"
