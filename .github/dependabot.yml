@@ -6,3 +6,7 @@ updates:
       - dependency-name: "examples/template_pack"
     schedule:
       interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
