@@ -13,7 +13,7 @@ jobs:
   update-cacert:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
       - name: Check for cacert update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

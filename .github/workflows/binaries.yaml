@@ -47,7 +47,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip libgtest-dev libgmock-dev
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - name: Build RELEASE
@@ -68,7 +68,7 @@ jobs:
           build/linux-x86_64/poptracker
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: ubuntu-22-04-dist
         path: dist
@@ -81,7 +81,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - name: Get appimage-builder, appimagetool, runtime, AppRun and hooks
@@ -142,7 +142,7 @@ jobs:
           appimage-build/linux-x86_64/poptracker
           *.AppImage*
     - name: Store AppImage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: AppImage
         path: "*.AppImage*"
@@ -155,11 +155,11 @@ jobs:
     - name: Install dependencies
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake libtool autoconf googletest || true
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - name: Cache/restore macosx-libs
-      uses: actions/cache@v4
+      uses: actions/cache@v5.0.3
       with:
         key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.cache-name }}-${{ hashFiles('macosx/*.sh') }}
         path: |
@@ -190,12 +190,12 @@ jobs:
           build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Store app bundle
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: ${{ env.POP_NAME }}_macos
         path: build/darwin-x86_64/poptracker.app
     - name: Store ZIP/DMG
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: macos-dist
         path: dist
@@ -223,11 +223,11 @@ jobs:
           p7zip
           wget
           mingw-w64-x86_64-advancecomp
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - name: Cache/restore win32-libs
-      uses: actions/cache@v4
+      uses: actions/cache@v5.0.3
       with:
         key: libs-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('win32/*.sh') }}
         path: |
@@ -277,7 +277,7 @@ jobs:
           build/win64/poptracker.exe
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: win64-msys-dist
         path: dist
@@ -295,7 +295,7 @@ jobs:
           build/win64/poptracker.exe
           dist/poptracker-win64-debug.zip
     - name: Store DEBUG
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: win64-msys-debug
         path: dist/poptracker-win64-debug.zip
