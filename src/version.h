@@ -4,11 +4,11 @@
 /// semver <major> of the application
 #define APP_VERSION_MAJOR      0
 /// semver <minor> of the application
-#define APP_VERSION_MINOR     33
+#define APP_VERSION_MINOR     34
 /// semver <patch> of the application
 #define APP_VERSION_REVISION   0
 /// semver "-" <pre-release> and/or "+" <build> of the application
-#define APP_VERSION_EXTRA     ""
+#define APP_VERSION_EXTRA     "-rc1"
 /// set to 1 for any pre-release or 0 for release and post-release
 #define APP_VERSION_PRERELEASE 1
 
