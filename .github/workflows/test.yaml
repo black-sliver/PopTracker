@@ -80,7 +80,7 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           p7zip
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - name: Configure ASAN (macos-latest)
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
     - uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15
