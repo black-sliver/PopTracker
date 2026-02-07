@@ -32,7 +32,7 @@ jobs:
     steps:
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Package source
@@ -61,7 +61,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Set env
@@ -144,7 +144,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Set env
@@ -179,7 +179,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake libtool autoconf googletest || true
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Set env
@@ -230,7 +230,7 @@ jobs:
           p7zip
           wget
           mingw-w64-x86_64-advancecomp
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Build libs
