@@ -68,7 +68,7 @@ jobs:
           build/linux-x86_64/poptracker
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ubuntu-22-04-dist
         path: dist
@@ -142,7 +142,7 @@ jobs:
           appimage-build/linux-x86_64/poptracker
           *.AppImage*
     - name: Store AppImage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: AppImage
         path: "*.AppImage*"
@@ -190,12 +190,12 @@ jobs:
           build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Store app bundle
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.POP_NAME }}_macos
         path: build/darwin-x86_64/poptracker.app
     - name: Store ZIP/DMG
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macos-dist
         path: dist
@@ -277,7 +277,7 @@ jobs:
           build/win64/poptracker.exe
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: win64-msys-dist
         path: dist
@@ -295,7 +295,7 @@ jobs:
           build/win64/poptracker.exe
           dist/poptracker-win64-debug.zip
     - name: Store DEBUG
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: win64-msys-debug
         path: dist/poptracker-win64-debug.zip

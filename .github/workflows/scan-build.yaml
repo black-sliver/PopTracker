@@ -91,7 +91,7 @@ jobs:
             make -j4
       - name: Store report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: scan-build-reports-${{ matrix.os }}
           path: scan-build-reports
