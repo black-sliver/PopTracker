@@ -1,6 +1,7 @@
 #include "pack.h"
 #include "fileutil.h"
 #include "jsonutil.h"
+#include "version.h"
 #include <dirent.h>
 #include <stdlib.h>
 #include "sha256.h"
@@ -421,10 +422,7 @@ std::vector<Pack::Info> Pack::ListAvailable()
             return true;
         if (n>0)
             return false;
-        int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
-        if (m<0)
-            return true;
-        return false;
+        return Version(lhs.version) < Version(rhs.version);
     });
 
     return res;
@@ -457,8 +455,7 @@ Pack::Info Pack::Find(const std::string& uid, const std::string& version, const 
     if (!packs.empty()) {
         // fall back to latest version since an upgrade may have removed it
         std::sort(packs.begin(), packs.end(), [](const Pack::Info& lhs, const Pack::Info& rhs) {
-            int m = strcasecmp(lhs.version.c_str(), rhs.version.c_str());
-            return (m<0);
+            return Version(lhs.version) < Version(rhs.version);
         });
         return packs.back();
     }
