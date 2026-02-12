@@ -33,3 +33,9 @@ pop-pack-create-versions
 # exclude tool chain dependent files
 win32-lib
 win32-lib-src
+
+# fuzzer files
+/corpus/
+/fuzz-*.log
+/oom-*
+/crash-*

@@ -44,6 +44,7 @@ TEST_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
 TEST_HDR = $(wildcard $(TEST_DIR)/*.h) \
       $(wildcard $(TEST_DIR)/*/*.h) \
       $(wildcard $(TEST_DIR)/*/*/*.hpp)
+FUZZ_SRC = $(filter-out $(TEST_DIR)/main.cpp,$(TEST_SRC))
 BENCH_SRC = $(filter-out $(SRC_DIR)/main.cpp,$(SRC)) \
       $(wildcard $(BENCH_DIR)/*.cpp) \
       $(wildcard $(BENCH_DIR)/*/*.cpp) \
@@ -106,6 +107,7 @@ UNAME = $(shell uname -sm | tr -s ' ' '-' | tr A-Z a-z )
 DIST_DIR ?= dist
 BUILD_DIR ?= build
 EXE_NAME = poptracker
+FUZZER_EXE_NAME = fuzzer
 TEST_EXE_NAME = poptracker-test
 BENCH_EXE_NAME = poptracker-benchmark
 NIX_BUILD_DIR = $(BUILD_DIR)/$(UNAME)
@@ -114,12 +116,15 @@ WIN64_BUILD_DIR = $(BUILD_DIR)/win64
 WASM_BUILD_DIR = $(BUILD_DIR)/wasm
 WIN32_EXE = $(WIN32_BUILD_DIR)/$(EXE_NAME).exe
 WIN32_TEST_EXE = $(WIN32_BUILD_DIR)/$(TEST_EXE_NAME).exe
+WIN32_FUZZER_EXE = $(WIN32_BUILD_DIR)/$(FUZZER_EXE_NAME).exe
 WIN32_BENCH_EXE = $(WIN32_BUILD_DIR)/$(BENCH_EXE_NAME).exe
 WIN64_EXE = $(WIN64_BUILD_DIR)/$(EXE_NAME).exe
 WIN64_TEST_EXE = $(WIN64_BUILD_DIR)/$(TEST_EXE_NAME).exe
+WIN64_FUZZER_EXE = $(WIN64_BUILD_DIR)/$(FUZZER_EXE_NAME).exe
 WIN64_BENCH_EXE = $(WIN64_BUILD_DIR)/$(BENCH_EXE_NAME).exe
 NIX_EXE = $(NIX_BUILD_DIR)/$(EXE_NAME)
 NIX_TEST_EXE = $(NIX_BUILD_DIR)/$(TEST_EXE_NAME)
+NIX_FUZZER_EXE = $(NIX_BUILD_DIR)/$(FUZZER_EXE_NAME)
 NIX_BENCH_EXE = $(NIX_BUILD_DIR)/$(BENCH_EXE_NAME)
 HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 
@@ -142,6 +147,8 @@ NIX_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
            $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(SRC)))
 NIX_TEST_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
                 $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(TEST_SRC)))
+NIX_FUZZ_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
+                $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(FUZZ_SRC)))
 NIX_BENCH_OBJ := $(patsubst %.cc, $(NIX_BUILD_DIR)/%.o, \
                  $(patsubst %.cpp, $(NIX_BUILD_DIR)/%.o, $(BENCH_SRC)))
 NIX_OBJ_DIRS := $(sort $(dir $(NIX_OBJ)) $(dir $(NIX_TEST_OBJ)) $(dir $(NIX_BENCH_OBJ)))
@@ -150,6 +157,8 @@ WIN32_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
              $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(SRC)))
 WIN32_TEST_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
                   $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(TEST_SRC)))
+WIN32_FUZZ_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
+                $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(FUZZ_SRC)))
 WIN32_BENCH_OBJ := $(patsubst %.cc, $(WIN32_BUILD_DIR)/%.o, \
                    $(patsubst %.cpp, $(WIN32_BUILD_DIR)/%.o, $(BENCH_SRC)))
 WIN32_OBJ_DIRS := $(sort $(dir $(WIN32_OBJ)) $(dir $(WIN32_TEST_OBJ)) $(dir $(WIN32_BENCH_OBJ)))
@@ -158,6 +167,8 @@ WIN64_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
              $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(SRC)))
 WIN64_TEST_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
                   $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(TEST_SRC)))
+WIN64_FUZZ_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
+                $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(FUZZ_SRC)))
 WIN64_BENCH_OBJ := $(patsubst %.cc, $(WIN64_BUILD_DIR)/%.o, \
                    $(patsubst %.cpp, $(WIN64_BUILD_DIR)/%.o, $(BENCH_SRC)))
 WIN64_OBJ_DIRS := $(sort $(dir $(WIN64_OBJ)) $(dir $(WIN64_TEST_OBJ)) $(dir $(WIN64_BENCH_OBJ)))
@@ -200,7 +211,7 @@ WIN64WINDRES = x86_64-w64-mingw32-windres
 
 # tool config
 LTO_JOBS ?= $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS)))
-LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),4)
+LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),auto)
 COMMON_WARNING_FLAGS = \
 	-Wall -Wextra -Werror # -Wshadow -Wconversion
 C_FLAGS = $(CFLAGS) $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
@@ -229,7 +240,7 @@ else # RELEASE or DIST
     CPP_FLAGS += -fstack-protector-strong -O2 -ffunction-sections -fdata-sections -DNDEBUG -flto -pthread -g
     LD_FLAGS = -Wl,-dead_strip -fstack-protector-strong -O2 -flto
     ifdef IS_LINUX # clang calls regular LD on linux
-      LD_FLAGS = -Wl,--gc-sections -O2 -s -flto=$(LTO_JOBS) -pthread
+      LD_FLAGS = -Wl,--gc-sections -O2 -s -flto -pthread
     endif
   else # RELEASE or DIST with GCC
     CPP_FLAGS += -fstack-protector-strong -O2 -s -ffunction-sections -fdata-sections -DNDEBUG -flto=$(LTO_JOBS) -pthread
@@ -255,6 +266,10 @@ endif
 ifdef WITH_UBSAN
 CPP_FLAGS += -fsanitize=undefined
 LD_FLAGS += -fsanitize=undefined
+endif
+
+ifdef WITH_FUZZER
+CPP_FLAGS += -fsanitize=fuzzer -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 endif
 
 ifdef WITH_GUI_TESTS
@@ -307,6 +322,7 @@ endif
 ifdef IS_WIN32
   EXE = $(WIN32_EXE)
   TEST_EXE = $(WIN32_TEST_EXE)
+  FUZZER_EXE = $(WIN32_FUZZER_EXE)
   BENCH_EXE = $(WIN32_BENCH_EXE)
   WIN32CC = $(CC)
   WIN32CPP = $(CXX)
@@ -323,6 +339,7 @@ ifdef IS_WIN32
 else ifdef IS_WIN64
   EXE = $(WIN64_EXE)
   TEST_EXE = $(WIN64_TEST_EXE)
+  FUZZER_EXE = $(WIN64_FUZZER_EXE)
   BENCH_EXE = $(WIN64_BENCH_EXE)
   WIN64CC = $(CC)
   WIN64CPP = $(CXX)
@@ -339,6 +356,7 @@ else ifdef IS_WIN64
 else ifdef IS_OSX
   EXE = $(NIX_EXE)
   TEST_EXE = $(NIX_TEST_EXE)
+  FUZZER_EXE = $(NIX_FUZZER_EXE)
   BENCH_EXE = $(NIX_BENCH_EXE)
   ifeq ($(CONF), DIST) # TODO dmg?
     native: $(OSX_APP) $(OSX_ZIP) test_osx_app
@@ -350,6 +368,7 @@ else
   WIN64_LIBS +=  -lbrotlidec-static -lbrotlicommon-static
   EXE = $(NIX_EXE)
   TEST_EXE = $(NIX_TEST_EXE)
+  FUZZER_EXE = $(NIX_FUZZER_EXE)
   BENCH_EXE = $(NIX_BENCH_EXE)
   ifeq ($(CONF), DIST) # TODO deb?
     native: $(NIX_XZ)
@@ -410,6 +429,11 @@ $(NIX_EXE): $(NIX_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 $(NIX_TEST_EXE): $(NIX_TEST_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CXX) -std=c++1z $(NIX_TEST_OBJ) -l gtest -l gmock $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
+ifdef WITH_FUZZER
+$(NIX_FUZZER_EXE): $(NIX_FUZZ_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
+	$(CXX) -o $@ -std=c++17 $(NIX_FUZZ_OBJ) -l gtest -l gmock $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -fsanitize=fuzzer,address
+endif
+
 $(NIX_BENCH_EXE): $(NIX_BENCH_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUILD_DIR)
 	$(CXX) -std=c++1z $(NIX_BENCH_OBJ) $(NIX_BUILD_DIR)/liblua.a -ldl $(NIX_LD_FLAGS) `sdl2-config --libs` $(NIX_LIBS) -o $@
 
@@ -423,6 +447,11 @@ endif
 $(WIN32_TEST_EXE): $(WIN32_TEST_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_TEST_OBJ) -l gtest -l gmock $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 
+ifdef WITH_FUZZER
+$(WIN32_FUZZER_EXE): $(WIN32_FUZZ_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
+	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_FUZZ_OBJ) -l gtest -l gmock $(WIN32_BUILD_DIR)/liblua.a $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS) -fsanitize=fuzzer,address
+endif
+
 $(WIN32_BENCH_EXE): $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 
@@ -434,6 +463,11 @@ endif
 
 $(WIN64_TEST_EXE): $(WIN64_TEST_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_TEST_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
+
+ifdef WITH_FUZZER
+$(WIN64_FUZZER_EXE): $(WIN64_FUZZ_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
+	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_FUZZ_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS) -fsanitize=fuzzer,address
+endif
 
 $(WIN64_BENCH_EXE): $(WIN64_BENCH_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
 	$(WIN64CPP) -o $@ -std=c++17 $(WIN64_BENCH_OBJ) -l gtest -l gmock $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
@@ -580,6 +614,10 @@ endif
 	@timeout 5 $(EXE) --version
 	@echo "HTTP Test ..."
 	@timeout 9 $(EXE) --list-packs > /dev/null
+
+ifdef WITH_FUZZER
+fuzzer: $(FUZZER_EXE)
+endif
 
 bench: $(EXE) $(BENCH_EXE)
 	@echo "Running $(BENCH_EXE)"
