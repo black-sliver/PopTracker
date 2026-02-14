@@ -280,15 +280,17 @@ TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std
         updateDisplay(check);
     }};
     _tracker->onBulkUpdateDone += { this, [this](void*) {
-        if (_tracker->allowDeferredLogicUpdate())
+        if (_tracker->allowDeferredLogicUpdate()) {
             updateLocations();
+            updateMapTooltip(); // TODO: move this into updateLocation(s) and detect if the location is hovered
+        }
     }};
     _tracker->onLocationSectionChanged += {this, [this](void*, [[maybe_unused]] const LocationSection& sec) {
         if (_tracker->isBulkUpdate() && _tracker->allowDeferredLogicUpdate())
             return; // will update on bulk update done
         // TODO: partial update if sec's AvailableChestCount is not involved in logic
         updateLocations();
-        updateMapTooltip(); // TODO: move this into updateLocation and detect if the location is hovered
+        updateMapTooltip(); // TODO: move this into updateLocation(s) and detect if the location is hovered
     }};
     updateLayout(layoutRoot);
     updateState("");
@@ -338,6 +340,9 @@ void TrackerView::render(Renderer renderer, int offX, int offY)
     }
     if (_mapsDirty) {
         updateLocationsNow();
+    }
+    if (_mapTooltipDirty) {
+        updateMapTooltipNow();
     }
     // store global coordinates for overlay calculations
     _absX = offX+_pos.left;
@@ -451,7 +456,6 @@ void TrackerView::updateLocationsNow()
             }
         }
     }
-    updateMapTooltip();
     _mapsDirty = false;
 }
 
@@ -489,6 +493,18 @@ void TrackerView::updateLocationNow(const std::string& location)
 
 void TrackerView::updateMapTooltip()
 {
+    if (!_mapTooltip || !_mapTooltipOwner) {
+        return;
+    }
+    if (_tracker->allowDeferredLogicUpdate()) {
+        _mapTooltipDirty = true; // will be updated on next frame render
+    } else {
+        updateMapTooltipNow();
+    }
+}
+
+void TrackerView::updateMapTooltipNow()
+{
     if (_mapTooltip && _mapTooltipOwner) {
         _mapTooltip->update(_tracker, [this](Item* w, const BaseItem& item) { updateItem(w, item); });
         // update size if visibility of an item changed
@@ -499,6 +515,7 @@ void TrackerView::updateMapTooltip()
             _mapTooltip->setHeight(_mapTooltip->getAutoHeight());
         }
     }
+    _mapTooltipDirty = false;
 }
 
 void TrackerView::updateDisplay(const std::string& itemid)
