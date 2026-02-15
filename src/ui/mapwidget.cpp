@@ -132,29 +132,38 @@ void MapWidget::connectSignals()
         int srcVisW, srcVisH, dstx, dsty, dstw, dsth;
         calculateZoomedView(0, 0, effectiveScale, srcVisW, srcVisH, dstx, dsty, dstw, dsth);
 
-        // Handle dragging for pan (only when zoomed in)
-        if ((buttons & SDL_BUTTON_LMASK) && _zoom > 1.001f) {
-            if (!_dragging) {
+        // Handle dragging for pan (only when zoomed in or not at 0,0)
+        if (buttons & SDL_BUTTON_LMASK) {
+            if (!_dragging && (_zoom > 1.0f || _panX != 0.0f || _panY != 0.0f)) {
                 // Start drag
                 _dragging = true;
                 _dragStartX = x;
                 _dragStartY = y;
                 _dragStartPanX = _panX;
                 _dragStartPanY = _panY;
-            } else {
+            } else if (_dragging) {
                 // During drag: calculate delta and update pan
-                int deltaX = x - _dragStartX;
-                int deltaY = y - _dragStartY;
-                // Convert screen delta to image delta
+                const int deltaX = x - _dragStartX;
+                const int deltaY = y - _dragStartY;
                 if (effectiveScale > 0) {
-                    _panX = _dragStartPanX - deltaX / effectiveScale;
-                    _panY = _dragStartPanY - deltaY / effectiveScale;
+                    // Convert screen delta to image delta
+                    float newPanX = _dragStartPanX - static_cast<float>(deltaX) / effectiveScale;
+                    float newPanY = _dragStartPanY - static_cast<float>(deltaY) / effectiveScale;
+                    // if not zoomed, snap to 0 by not allowing to flip sign from drag start
+                    if (_zoom <= 1.0f && ((_dragStartPanX >= 0.0f && newPanX < 0.0f) || (_dragStartPanX <= 0.0f && newPanX > 0.0f))) {
+                        newPanX = 0.0f;
+                    }
+                    if (_zoom <= 1.0f && ((_dragStartPanY >= 0.0f && newPanY < 0.0f) || (_dragStartPanY <= 0.0f && newPanY > 0.0f))) {
+                        newPanY = 0.0f;
+                    }
+                    _panX = newPanX;
+                    _panY = newPanY;
                 }
             }
             return; // Don't process hover while dragging
-        } else {
-            _dragging = false;
         }
+
+        _dragging = false;
 
         int absX = _absX + x;
         int absY = _absY + y;
