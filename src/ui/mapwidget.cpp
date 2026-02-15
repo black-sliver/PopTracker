@@ -8,6 +8,7 @@ namespace Ui {
 
 static constexpr float ZOOM_IN_FACTOR = 1.25f;
 static constexpr float ZOOM_OUT_FACTOR = 0.8f;
+static constexpr float MAX_ZOOM = 1000.0f;
 
 #define _DEFAULT_STATE_COLORS { \
     /* done */ \
@@ -215,8 +216,12 @@ void MapWidget::connectSignals()
         float zoomFactor = (scrollY > 0) ? ZOOM_IN_FACTOR : ZOOM_OUT_FACTOR;
         float newZoom = _zoom * zoomFactor;
 
-        // Clamp to minimum 1.0 (no maximum)
-        newZoom = std::max(1.0f, newZoom);
+        // Clamp to 1.0 - 1000.0
+        if (newZoom < 1.01f) {
+            newZoom = 1.0f;
+        } else if (newZoom > MAX_ZOOM) {
+            newZoom = MAX_ZOOM;
+        }
 
         if (newZoom != _zoom) {
             float effectiveScale;
@@ -240,7 +245,7 @@ void MapWidget::connectSignals()
             } else {
                 _zoom = newZoom;
             }
-        } else if (scrollY < 0 && _zoom <= 1.001f) {
+        } else if (scrollY < 0 && _zoom == 1.0f) {
             // At minimum zoom, scrolling down pans back to center
             // Use percentage of widget size for consistent feel across different image sizes
             constexpr float PAN_STEP_PERCENT = 0.3f; // 30% of widget size per scroll
