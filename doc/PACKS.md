@@ -596,3 +596,7 @@ Hints consist of name and value. The name describes which adjustment to make, va
 
 The following hint names are defined:
 * `"ActivateTab"`: value = tab name, activates tab with tab name, since 0.11.0
+* `"Zoom <MapName>"`: value = `"<new_zoom_factor>"`, change zoom for map to new_zoom_factor, since 0.34.0
+* `"Zoom <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0
+* `"Pan <MapName>"`: value = `"<center_x>,<center_y>"`, pan map to put specific pixel in the center, since 0.34.0
+* `"Pan <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0

@@ -1,4 +1,7 @@
 #include "trackerview.h"
+#include <fmt/format.h>
+#include <string>
+#include <vector>
 #include "../uilib/image.h"
 #include "../uilib/simplecontainer.h"
 #include "../uilib/hbox.h"
@@ -15,8 +18,6 @@
 #include "maptooltip.h"
 #include "mapwidget.h"
 #include "defaults.h" // DEFAULT_FONT_*
-#include <string>
-#include <vector>
 
 #include "../core/jsonutil.h"
 
@@ -355,9 +356,31 @@ std::list< std::pair<std::string,std::string> > TrackerView::getHints() const
 {
     // returns list of hints to restore current Ui/Layout stage
     std::list< std::pair<std::string,std::string> > hints;
-    for (auto& tab: _tabs) {
-        auto name = tab->getActiveTabName();
-        if (!name.empty()) hints.push_back({"ActivateTab", name});
+    for (const auto& tab: _tabs) {
+        const auto& name = tab->getActiveTabName();
+        if (!name.empty()) hints.emplace_back("ActivateTab", name);
+    }
+    for (const auto& [name, widgets]: _maps) {
+        if (name.empty()) {
+            continue;
+        }
+        const bool onlyOne = widgets.size() == 1;
+        int i = 0;
+        for (const auto& widget: widgets) {
+            const float zoom = widget->getZoom();
+            if (zoom < 0.99f || zoom > 1.01f) {
+                hints.emplace_back(onlyOne ? fmt::format("Zoom {}", name) : fmt::format("Zoom {}[{}]", name, i),
+                    std::to_string(zoom));
+            }
+            const auto [panCenterX, panCenterY] = widget->getPanCenter();
+            const float centerX = static_cast<float>(widget->getAutoWidth()) / 2.0f;
+            const float centerY = static_cast<float>(widget->getAutoHeight()) / 2.0f;
+            if (std::abs(panCenterX - centerX) > 0.01f || std::abs(panCenterY - centerY) > 0.01f)  {
+                hints.emplace_back(onlyOne ? fmt::format("Pan {}", name) : fmt::format("Pan {}[{}]", name, i),
+                    fmt::format("{},{}", panCenterX, panCenterY));
+            }
+            i++;
+        }
     }
     for (auto& hint: _missedHints) {
         hints.push_back(hint);
@@ -420,7 +443,7 @@ void TrackerView::updateLayout(const std::string& layout)
     
     // record "missed" hints during update to replay them later
     _tracker->onUiHint += { this, [this] (void*, const std::string& name, const std::string& value) {
-        _missedHints.push_back({name,value});
+        _missedHints.emplace_back(name,value);
     }};
 }
 
@@ -887,6 +910,33 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setBackground({0x00,0x00,0xff});
 #endif
             container->addChild(w);
+            std::string numberedMapName = fmt::format("{}[{}]", mapname, _maps[mapname].size() - 1);
+            _tracker->onUiHint += {
+                    this, [w, mapname, numberedMapName](void *, const std::string &name, const std::string &value) {
+                if (name == "reset") {
+                    w->setZoom(1);
+                    w->setPan(0, 0);
+                } else if (name.rfind("Zoom ", 0) == 0 &&
+                        (name.substr(5) == mapname || name.substr(5) == numberedMapName)) {
+                    size_t next = 0;
+                    const float zoom = std::stof(value, &next);
+                    if (next) {
+                        const auto [panCenterX, panCenterY] = w->getPanCenter();
+                        w->setZoom(zoom);
+                        w->setPanCenter(panCenterX, panCenterY);
+                    }
+                } else if (name.rfind("Pan ", 0) == 0 &&
+                        (name.substr(4) == mapname || name.substr(4) == numberedMapName)) {
+                    size_t next = 0;
+                    const float panCenterX = std::stof(value, &next);
+                    if (next && value[next] == ',') {
+                        const float panCenterY = std::stof(value.substr(next + 1), &next);
+                        if (next) {
+                            w->setPanCenter(panCenterX, panCenterY);
+                        }
+                    }
+                }
+            }};
 
             w->onLocationHover += { this, [this](void* sender, std::string locid, int absX, int absY) {
                 // TODO: move this somewhere to increase readability

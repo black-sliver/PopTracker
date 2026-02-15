@@ -1,10 +1,10 @@
-#ifndef _UI_MAPWIDGET_H
-#define _UI_MAPWIDGET_H
+#pragma once
 
-#include "../uilib/image.h"
 #include "../core/location.h"
 #include "../core/locationsection.h"
+#include "../uilib/image.h"
 #include <map>
+#include <tuple>
 #include <vector>
 
 namespace Ui {
@@ -44,6 +44,13 @@ public:
 
     void setHideClearedLocations(bool hide) { _hideClearedLocations = hide; }
     void setHideUnreachableLocations(bool hide) { _hideUnreachableLocations = hide; }
+
+    float getZoom() const { return _zoom; }
+    void setZoom(const float zoom) { _zoom = zoom; }
+    std::tuple<float, float> getPan() const { return {_panX, _panY}; }
+    void setPan(const float x, const float y) { _panX = x; _panY = y; }
+    std::tuple<float, float> getPanCenter() const;
+    void setPanCenter(float x, float y);
 
     static Color StateColors[17];
     static std::map<Highlight, Color> HighlightColors;
@@ -85,5 +92,3 @@ private:
 };
 
 } // namespace Ui
-
-#endif

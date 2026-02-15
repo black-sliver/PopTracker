@@ -518,5 +518,18 @@ void MapWidget::setLocationHighlight(const std::string& id, Highlight highlight,
     }
 }
 
+std::tuple<float, float> MapWidget::getPanCenter() const
+{
+    return {
+        _panX + static_cast<float>(_autoSize.width) / 2.0f,
+        _panY + static_cast<float>(_autoSize.height) / 2.0f,
+    };
+}
+
+void MapWidget::setPanCenter(const float x, const float y)
+{
+    _panX = x - static_cast<float>(_autoSize.width) / 2.0f;
+    _panY = y - static_cast<float>(_autoSize.height) / 2.0f;
+}
 
 } // namespace
