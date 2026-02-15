@@ -239,8 +239,8 @@ void MapWidget::connectSignals()
 
             if (effectiveScale > 0) {
                 // Calculate mouse position in image coordinates (before zoom change)
-                float mouseImgX = _panX + (_lastMouseX - dstx) / effectiveScale;
-                float mouseImgY = _panY + (_lastMouseY - dsty) / effectiveScale;
+                const float mouseImgX = _panX + static_cast<float>(_lastMouseX - dstx) / effectiveScale;
+                const float mouseImgY = _panY + static_cast<float>(_lastMouseY - dsty) / effectiveScale;
 
                 // Apply new zoom
                 _zoom = newZoom;
@@ -249,8 +249,8 @@ void MapWidget::connectSignals()
                 calculateZoomedView(0, 0, effectiveScale, srcVisW, srcVisH, dstx, dsty, dstw, dsth);
 
                 // Adjust pan so that the point under the mouse stays fixed
-                _panX = mouseImgX - (_lastMouseX - dstx) / effectiveScale;
-                _panY = mouseImgY - (_lastMouseY - dsty) / effectiveScale;
+                _panX = mouseImgX - static_cast<float>(_lastMouseX - dstx) / effectiveScale;
+                _panY = mouseImgY - static_cast<float>(_lastMouseY - dsty) / effectiveScale;
             } else {
                 _zoom = newZoom;
             }
