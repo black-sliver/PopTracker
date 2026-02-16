@@ -230,7 +230,8 @@ void PackManager::GetFile(const std::string& url, const fs::path& dest,
     FILE* f = fopen(dest.c_str(), "wb");
 #endif
     if (!f) cb(false, strerror(errno));
-    HTTP::GetAsync(*_asio, url, _httpDefaultHeaders, [=](int code, const std::string& response, const HTTP::Headers&){
+    const bool started = HTTP::GetAsync(*_asio, url, _httpDefaultHeaders,
+            [=](const int code, const std::string& response, const HTTP::Headers&) {
         fclose(f);
         if (code == HTTP::REDIRECT && followRedirect>0) {
             GetFile(response, dest, cb, progress, followRedirect-1);
@@ -243,6 +244,11 @@ void PackManager::GetFile(const std::string& url, const fs::path& dest,
         fclose(f);
         cb(false, "");
     }, f, progress);
+
+    if (!started) {
+        fclose(f);
+        cb(false, "Could not start download");
+    }
 }
 
 void PackManager::downloadUpdate(const std::string& url, const fs::path& install_dir,
