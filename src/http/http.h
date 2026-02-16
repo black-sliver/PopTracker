@@ -183,7 +183,13 @@ public:
                                 | asio::ssl::verify_fail_if_no_peer_cert
                                 | asio::ssl::verify_client_once);
             ctx.set_verify_callback(asio::ssl::rfc2818_verification(host)); // overwritten later on socket level
-            c = new ssl_client(io_context, ctx, endpoints, request, host);
+            try {
+                c = new ssl_client(io_context, ctx, endpoints, request, host);
+            } catch (std::exception& e) {
+                std::cout << "HTTP: error connecting ssl_client: " << e.what() << "\n";
+                delete resolver;
+                return false;
+            }
         }
         else if (strcasecmp(proto.c_str(), "http") == 0) {
             if (port.empty()) port = "80";
@@ -192,9 +198,16 @@ public:
             auto endpoints = resolver->resolve(host, port, ec);
             if (ec) {
                 std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
+                delete resolver;
                 return false;
             }
-            c = new tcp_client(io_context, endpoints, request);
+            try {
+                c = new tcp_client(io_context, endpoints, request);
+            } catch (std::exception& e) {
+                std::cout << "HTTP: error connecting tcp_client: " << e.what() << "\n";
+                delete resolver;
+                return false;
+            }
         }
         else {
             // unsupported protocol
