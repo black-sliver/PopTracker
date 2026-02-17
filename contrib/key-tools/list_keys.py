@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 import base64
+import subprocess
 import sys
 import typing as t
+from base64 import b64decode
 from datetime import datetime, timedelta
 from pathlib import Path
+from shutil import which
 
 
 def extract_from_comment(comment: str, key: str) -> t.Optional[str]:
@@ -41,10 +44,13 @@ def get_not_after(comment: str) -> t.Optional[datetime]:
 def main() -> None:
     any_error = False
     key_folder_path = Path(__file__).parent.parent.parent / "key"
+    minisign = which("minisign")  # used to check cross-signing
     for item in key_folder_path.iterdir():
         try:
+            if item.name.endswith(".pub.minisig"):
+                continue  # a signature, not a pub key
             if item.is_file():
-                with open(item, encoding="utf8") as f:
+                with open(item, encoding="utf-8") as f:
                     comment, key = f.readlines()
 
                 if key.endswith("\r\n"):
@@ -97,7 +103,24 @@ def main() -> None:
                     expiration = f"becomes valid in {(not_before - now).days} days"
                 else:
                     expiration = f"expires in {(not_after - now).days} days"
-                print(f"{hex_key_id}: {alias} {expiration}")
+
+                # check cross-sig, if any
+                cross_sig_file = item.with_suffix(".pub.minisig")
+                if cross_sig_file.exists():
+                    if minisign:
+                        with open(cross_sig_file, encoding="utf-8") as f:
+                            cross_key_id = b64decode(f.readlines()[1].rstrip("\r\n"))[9:1:-1].hex().upper()
+                        cross_key_file = key_folder_path / f"{cross_key_id}.pub"
+                        res = subprocess.run((minisign, "-VHm", item, "-p", cross_key_file), stdout=subprocess.DEVNULL)
+                        if res.returncode != 0:
+                            raise ValueError(f"Invalid cross-sig by {cross_key_id}")
+                        cross_info = f", cross-signed by {cross_key_id}"
+                    else:
+                        cross_info = ", cross signature exists, but minisign is not available to verify it"
+                else:
+                    cross_info = ""  # root
+
+                print(f"{hex_key_id}: {alias} {expiration}{cross_info}")
 
         except ValueError as e:
             print(f"{item.name}: {e}", file=sys.stderr)
