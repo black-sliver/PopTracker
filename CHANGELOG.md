@@ -1,5 +1,15 @@
 # PopTracker Changelog
 
+## v0.34.0-rc2
+
+* App Features
+  * Improve zoom and pan support
+* Pack Features
+  * Lua: allow changing map zoom and pan via UI hint
+* Fixes
+  * Performance improvement when updating AvailableChestCount multiple times from AutoTracker
+  * Fixed missing error handling in some pack update code paths
+
 ## v0.34.0-rc1
 
 * App Features
