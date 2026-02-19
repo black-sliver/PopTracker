@@ -41,7 +41,7 @@ jobs:
         cd ..
         tar --exclude-vcs -cJvf "${POP_NAME}_full-source.tar.xz" PopTracker
     - name: Create Release
-      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
       with:
         draft: true
         prerelease: true
@@ -126,7 +126,7 @@ jobs:
           appimage-build/linux-x86_64/poptracker
           *.AppImage*
     - name: Create Release
-      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
       with:
         draft: true
         prerelease: true
@@ -162,7 +162,7 @@ jobs:
           build/linux-x86_64/poptracker
           dist/*
     - name: Create Release
-      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
       with:
         draft: true
         prerelease: true
@@ -197,7 +197,7 @@ jobs:
           build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Create Release
-      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
       with:
         draft: true
         prerelease: true
@@ -274,7 +274,7 @@ jobs:
           build/win64/poptracker.exe
           dist/*
     - name: Create Release
-      uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
+      uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
       with:
         draft: true
         prerelease: true
