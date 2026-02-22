@@ -1,28 +1,21 @@
 # PopTracker Changelog
 
-## v0.34.0-rc2
-
-* App Features
-  * Improve zoom and pan support
-* Pack Features
-  * Lua: allow changing map zoom and pan via UI hint
-* Fixes
-  * Performance improvement when updating AvailableChestCount multiple times from AutoTracker
-  * Fixed missing error handling in some pack update code paths
-
-## v0.34.0-rc1
+## v0.34.0
 
 * App Features
   * Add zoom and pan support for maps
   * Commandline: Properly sort multiple of the same pack by version for `--list-packs`
   * Updated dependencies and bundled SSL
 * Pack Features
+  * Lua: allow changing map zoom and pan via UI hint
   * LuaItem: trigger onChange for LuaItem.Set
 * Fixes
   * SNES: avoid partial reads for watches
   * Fix glow rendering slightly wrong (GPU) or horribly wrong (Software renderer)
   * Trigger logic update when AvailableChestCount changes
   * Properly load latest version of a pack when no version was specified or the version was not found
+  * Performance improvement when updating AvailableChestCount multiple times from AutoTracker
+  * Fixed missing error handling in some pack update code paths
 
 ## v0.33.0
 
