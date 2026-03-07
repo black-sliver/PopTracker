@@ -509,11 +509,39 @@ bool Tracker::AddLayouts(const std::string& file) {
         if (_layouts.find(key) != _layouts.end())
             fprintf(stderr, "WARNING: replacing existing layout \"%s\"\n",
                     key.c_str());
-        _layouts[key] = LayoutNode::FromJSON(value);
+        _layouts[key] = LayoutNode::FromJSON(value, _classes);
     }
     
     // TODO: fire for each named layout
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
+    return false;
+}
+bool Tracker::AddClasses(const std::string& file) {
+    printf("Loading classes from \"%s\"...\n", file.c_str());
+    std::string s;
+    if (!_pack->ReadFile(file, s)) {
+        // TODO: throw lua error?
+        fprintf(stderr, "WARNING: unable to read file\n");
+        return false;
+    }
+    json j = parse_jsonc(s);
+    
+    if (j.type() != json::value_t::object) {
+        fprintf(stderr, "Bad json\n"); // TODO: throw lua error?
+        return false;
+    }
+    
+    for (auto& [key,value] : j.items()) {
+        if (value.type() != json::value_t::object) {
+            fprintf(stderr, "Bad class: %s (type %d)\n", key.c_str(), (int)value.type());
+            continue; // ignore
+        }
+        if (_classes.find(key) != _classes.end())
+            fprintf(stderr, "WARNING: replacing existing class \"%s\"\n",
+                    key.c_str());
+        _classes[key] = value;
+    }
+
     return false;
 }
 

@@ -69,6 +69,7 @@ public:
     bool AddLocations(const std::string& file);
     bool AddMaps(const std::string& file);
     bool AddLayouts(const std::string& file);
+    bool AddClasses(const std::string& file);
     int ProviderCountForCode(const std::string& code);
     Object FindObjectForCode(const char* code);
     LuaItem *CreateLuaItem();
@@ -126,6 +127,7 @@ protected:
     std::list<LuaItem> _luaItems;
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
+    std::unordered_map<std::string, LayoutClass> _classes;
     std::map<std::string, Map> _maps;
     std::map<std::string, AccessibilityLevel> _accessibilityCache;
     std::map<std::string, bool> _visibilityCache;

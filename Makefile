@@ -257,7 +257,7 @@ CPP_FLAGS += -fsanitize=undefined
 LD_FLAGS += -fsanitize=undefined
 endif
 
-CPP_FLAGS += -DLUA_CPP
+CPP_FLAGS += -DLUA_CPP -DJSON_HAS_CPP_17
 
 # os-specific tool config
 WIN32_CPP_FLAGS = $(CPP_FLAGS) -D_WIN32_WINNT=0x0601
