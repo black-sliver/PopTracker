@@ -12,12 +12,9 @@ template<typename T>
 struct adl_serializer<std::optional<T> > {
     static void to_json(json &j, const std::optional<T> &opt)
     {
-        if (!opt.has_value()) {
-            // j = nullptr;
-        }
-        else {
-            j = *opt;// this will call adl_serializer<T>::to_json which will
-                     // find the free function to_json in T's namespace!
+        if (opt.has_value()) {
+            j = *opt; // this will call adl_serializer<T>::to_json which will
+                      // find the free function to_json in T's namespace
         }
     }
 
@@ -27,8 +24,7 @@ struct adl_serializer<std::optional<T> > {
             opt = std::nullopt;
         }
         else {
-            opt = j.get<T>();// same as above, but with
-                             // adl_serializer<T>::from_json
+            opt = j.get<T>(); // same as above, but with adl_serializer<T>::from_json
         }
     }
 

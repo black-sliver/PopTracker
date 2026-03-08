@@ -34,7 +34,7 @@ LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const L
     node._background  = to_string(j["background"], classObj.getBackground().value_or(""));
     node._hAlignment  = to_string(j["h_alignment"], classObj.getHAlignment().value_or("")); // TODO: enum
     node._vAlignment  = to_string(j["v_alignment"], classObj.getVAlignment().value_or("")); // TODO: enum
-    node._dock        = to_direction(j["dock"], classObj.getDock().value_or(Direction::UP)); // TODO: default
+    node._dock        = to_direction(j["dock"], classObj.getDock().value_or(Direction::UNDEFINED)); // TODO: default
     node._orientation = LayoutClass::to_orientation(j["orientation"], classObj.getOrientation().value_or(LayoutTypes::Orientation::UNDEFINED));
     node._style       = to_string(j["style"], classObj.getBackground().value_or(""));
     node._maxHeight   = to_int(j["max_height"], classObj.getMaxHeight().value_or(-1));
