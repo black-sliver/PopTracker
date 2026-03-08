@@ -517,6 +517,7 @@ bool Tracker::AddLayouts(const std::string& file) {
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return false;
 }
+
 bool Tracker::AddClasses(const std::string& file) {
     printf("Loading classes from \"%s\"...\n", file.c_str());
     std::string s;
@@ -534,13 +535,13 @@ bool Tracker::AddClasses(const std::string& file) {
     
     for (auto& [key,value] : j.items()) {
         if (value.type() != json::value_t::object) {
-            fprintf(stderr, "Bad class: %s (type %d)\n", key.c_str(), (int)value.type());
+            fprintf(stderr, "Bad class: %s (type %d)\n", sanitize_print(key).c_str(), (int)value.type());
             continue; // ignore
         }
         if (_classes.find(key) != _classes.end())
             fprintf(stderr, "WARNING: replacing existing class \"%s\"\n",
-                    key.c_str());
-        _classes[key] = value;
+                    sanitize_print(key).c_str());
+        _classes.emplace(key, value);
     }
 
     return false;

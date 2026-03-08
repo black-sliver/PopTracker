@@ -13,9 +13,9 @@ class LayoutNode;
 class LayoutNode final {
 public:
 
-    static LayoutNode FromJSON(nlohmann::json& j, std::unordered_map<std::string, LayoutClass>& classes);
+    static LayoutNode FromJSON(nlohmann::json& j, std::unordered_map<std::string, const LayoutClass>& classes);
     static LayoutNode FromJSON(nlohmann::json&& j);
-    static LayoutNode FromJSONString(const std::string& json, std::unordered_map<std::string, LayoutClass>& classes);
+    static LayoutNode FromJSONString(const std::string& json, std::unordered_map<std::string, const LayoutClass>& classes);
     
 protected:
     std::string _type; // TODO: enum class
@@ -58,7 +58,7 @@ public:
     const LayoutTypes::Size& getItemSize() const { return _itemSize; }
     const LayoutTypes::Size& getSize() const { return _size; }
     const LayoutTypes::Size& getMaxSize() const { return _maxSize; }
-    LayoutTypes::Spacing getMargin(const LayoutTypes::Spacing& dflt={5,5,5,5}) const { return _margin==LayoutTypes::Spacing::UNDEFINED ? dflt : _margin; }
+    LayoutTypes::Spacing getMargin(const LayoutTypes::Spacing& dflt=dfltSpc) const { return _margin==LayoutTypes::Spacing::UNDEFINED ? dflt : _margin; }
     LayoutTypes::Orientation getOrientation() const { return _orientation; }
     Direction getDock() const { return _dock; }
     std::string getHAlignment() const { return _hAlignment; }

@@ -1,5 +1,4 @@
-#ifndef _CORE_LAYOUTCLASS_H
-#define _CORE_LAYOUTCLASS_H
+#pragma once
 
 #include <list>
 #include <string>
@@ -56,8 +55,7 @@ protected:
     std::optional<LayoutTypes::Size> _position;
 };
 
-static void from_json(const nlohmann::json& j, LayoutClass& p) {
+static void from_json(const nlohmann::json& j, LayoutClass& p)
+{
     p.from_json(j);
 }
-
-#endif // _CORE_LayoutClass_H

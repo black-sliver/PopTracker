@@ -1,14 +1,15 @@
-#ifndef _CORE_LAYOUTTYPES_H
-#define _CORE_LAYOUTTYPES_H
+#pragma once
 
 #include <nlohmann/json.hpp>
 
 namespace LayoutTypes {
+
 enum class OptionalBool {
     Undefined=-1,
     False=0,
     True=1,
 };
+
 enum class Orientation {
     UNDEFINED=0,
     HORIZONTAL=1,
@@ -37,19 +38,17 @@ struct Spacing final {
     static const Spacing UNDEFINED;
 };
 
-static void from_json(const nlohmann::json& j, Size& s) {
+static void from_json(const nlohmann::json& j, Size& s)
+ {
     s = {-1, -1};
-    if (j.contains("x")) {
+    if (j.contains("x"))
         j.at("x").get_to(s.x);
-    }
-    if (j.contains("y")) {
+    if (j.contains("y"))
         j.at("y").get_to(s.y);
-    }
 }
 
 }
-static const LayoutTypes::Spacing dfltSpc={5,5,5,5};
+
+static const LayoutTypes::Spacing dfltSpc = {5, 5, 5, 5};
 
 constexpr const LayoutTypes::Spacing LayoutTypes::Spacing::UNDEFINED = {INT_MIN, INT_MIN, INT_MIN, INT_MIN};
-
-#endif

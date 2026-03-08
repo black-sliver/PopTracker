@@ -22,13 +22,15 @@ LayoutTypes::Size LayoutClass::to_size(const json& j, LayoutTypes::Size dflt)
     return res;
 }
 
-static int to_pixel(const int size) {
+static int to_pixel(const int size)
+{
     constexpr int icon_sizes[] = {8,16,24,32,48,64,96,128}; // maybe
     return (size < 0) ? size :
            (size < countOf(icon_sizes)) ? icon_sizes[size] : size;
 }
 
-LayoutTypes::Size LayoutClass::to_pixel(const LayoutTypes::Size& size) {
+LayoutTypes::Size LayoutClass::to_pixel(const LayoutTypes::Size& size)
+{
     return {::to_pixel(size.x), ::to_pixel(size.y)};
 }
 
@@ -60,7 +62,8 @@ LayoutTypes::Spacing LayoutClass::to_spacing(const nlohmann::json& j, LayoutType
     return res;
 }
 
-void LayoutClass::from_json(const json& j) {
+void LayoutClass::from_json(const json& j)
+{
     if (j.contains("background"))
         j.at("background").get_to(_background);
     if (j.contains("h_alignment"))
@@ -112,9 +115,8 @@ void LayoutClass::from_json(const json& j) {
     if (j.contains("orientation"))
         _orientation = to_orientation(j["orientation"], LayoutTypes::Orientation::UNDEFINED);
     if (j.contains("item_margin"))
-        _itemMargin = to_size(j["item_margin"],LayoutTypes::Size({5,5})); // this is possibly supposed to be left,top,right,bottom
+        // this is possibly supposed to be left,top,right,bottom
+        _itemMargin = to_size(j["item_margin"],LayoutTypes::Size({5,5}));
     if (j.contains("margin"))
         _margin = to_spacing(j["margin"], LayoutTypes::Spacing::UNDEFINED);
-    if (_margin == LayoutTypes::Spacing::UNDEFINED)
-        _margin = dfltSpc;
 }

@@ -127,7 +127,7 @@ protected:
     std::list<LuaItem> _luaItems;
     std::list<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
-    std::unordered_map<std::string, LayoutClass> _classes;
+    std::unordered_map<std::string, const LayoutClass> _classes;
     std::map<std::string, Map> _maps;
     std::map<std::string, AccessibilityLevel> _accessibilityCache;
     std::map<std::string, bool> _visibilityCache;

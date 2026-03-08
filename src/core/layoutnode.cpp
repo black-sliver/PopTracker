@@ -12,7 +12,7 @@ static LayoutTypes::OptionalBool to_OptionalBool(const json& j)
     return LayoutTypes::OptionalBool::Undefined;
 }
 
-LayoutNode LayoutNode::FromJSONString(const std::string& j, std::unordered_map<std::string, LayoutClass>& classes)
+LayoutNode LayoutNode::FromJSONString(const std::string& j, std::unordered_map<std::string, const LayoutClass>& classes)
 {
     auto tmp = json::parse(j, nullptr, true, true);
     return FromJSON(tmp, classes);
@@ -20,15 +20,15 @@ LayoutNode LayoutNode::FromJSONString(const std::string& j, std::unordered_map<s
 LayoutNode LayoutNode::FromJSON(nlohmann::json&& j)
 {
     auto tmp = j;
-    std::unordered_map<std::string, LayoutClass> tmp2;
+    std::unordered_map<std::string, const LayoutClass> tmp2;
     return FromJSON(tmp, tmp2);
 }
-LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, LayoutClass>& classes)
+LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const LayoutClass>& classes)
 {
     LayoutNode node;
-    std::string className = to_string(j["class"], "");
     LayoutClass defClass = {};
-    LayoutClass& classObj = classes.find(className) != classes.end() ? classes.at(className) : defClass;
+    const auto classObjIt = classes.find(to_string(j["class"], ""));
+    const LayoutClass& classObj = classObjIt != classes.end() ? classObjIt->second : defClass;
 
     node._type        = to_string(j["type"], ""); // TODO: enum
     node._background  = to_string(j["background"], classObj.getBackground().value_or(""));
