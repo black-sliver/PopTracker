@@ -27,12 +27,13 @@ public:
     const std::optional<std::string>& getItemHAlignment() const { return _itemHAlign; }
     const std::optional<std::string>& getItemVAlignment() const { return _itemVAlign; }
     const std::optional<LayoutTypes::Size>& getPosition() const { return _position; }
-    const std::optional<bool>& getDropShadow() const { return _dropShadow; }
+    const std::optional<LayoutTypes::OptionalBool>& getDropShadow() const { return _dropShadow; }
 
     static LayoutTypes::Size to_size(const nlohmann::json& j, LayoutTypes::Size dflt);
     static LayoutTypes::Size to_pixel(const LayoutTypes::Size& size);
     static LayoutTypes::Orientation to_orientation(const nlohmann::json& j, LayoutTypes::Orientation fallback);
     static LayoutTypes::Spacing to_spacing(const nlohmann::json& j, LayoutTypes::Spacing dflt);
+    static LayoutTypes::OptionalBool to_OptionalBool(const nlohmann::json& j, LayoutTypes::OptionalBool fallback);
     
 protected:
     std::optional<std::string> _background; // TODO: RGBA defaulting to (0,0,0,0) ?
@@ -50,8 +51,7 @@ protected:
     std::optional<LayoutTypes::Size> _size;
     std::optional<LayoutTypes::Size> _maxSize;
     std::optional<LayoutTypes::Spacing> _margin;
-    std::optional<bool> _compact;
-    std::optional<bool> _dropShadow;
+    std::optional<LayoutTypes::OptionalBool> _dropShadow;
     std::optional<LayoutTypes::Size> _position;
 };
 

@@ -1,5 +1,5 @@
 {
-    "$id": "https://poptracker.github.io/schema/packs/strict/layouts.json",
+    "$id": "https://poptracker.github.io/schema/packs/layouts.json",
     "title": "PopTracker Pack layouts",
     "description": "Layouts for a PopTracker pack.",
     "type": "object",
@@ -25,7 +25,7 @@
             "$ref": "#/$defs/layout"
         },
         "^tracker_capture_item$": {
-            "description": "Layout used for the capture menu. Not implemented yet.",
+            "description": "Layout used for the capture menu (not implemented yet).",
             "$ref": "#/$defs/layout"
         }
     },
@@ -58,22 +58,8 @@
                                 }
                             }
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "viewbox_type_if_block": {
@@ -100,22 +86,8 @@
                                 }
                             }
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "canvas_type_if_block": {
@@ -133,13 +105,29 @@
                 "properties": {
                     "width": {
                         "description": "Width of the canvas.",
-                        "type": "number",
-                        "minimum": 0
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
+                            }
+                        ]
                     },
                     "height": {
                         "description": "Height of the canvas.",
-                        "type": "number",
-                        "minimum": 0
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
+                            }
+                        ]
                     },
                     "content": {
                         "description": "Content of the canvas.",
@@ -153,46 +141,72 @@
                                     "properties": {
                                         "canvas_depth": {
                                             "description": "Depth/z-index of item in canvas. Not implemented yet.",
-                                            "type": "number"
+                                            "anyOf": [
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "pattern": "^\\s*-?[0-9]*\\s*$"
+                                                }
+                                            ]
                                         },
                                         "canvas_top": {
                                             "description": "Distance to top edge of canvas of the item.",
-                                            "type": "number"
+                                            "anyOf": [
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "pattern": "^\\s*-?[0-9]*\\s*$"
+                                                }
+                                            ]
                                         },
                                         "canvas_left": {
                                             "description": "Distance to left edge of canvas of the item.",
-                                            "type": "number"
+                                            "anyOf": [
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "pattern": "^\\s*-?[0-9]*\\s*$"
+                                                }
+                                            ]
                                         },
                                         "width": {
                                             "description": "Width of item in canvas.",
-                                            "type": "number",
-                                            "minimum": 0
+                                            "anyOf": [
+                                                {
+                                                    "type": "number",
+                                                    "minimum": 0
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "pattern": "^\\s*[0-9]*\\s*$"
+                                                }
+                                            ]
                                         },
                                         "height": {
                                             "description": "Height of item in canvas.",
-                                            "type": "number",
-                                            "minimum": 0
+                                            "anyOf": [
+                                                {
+                                                    "type": "number",
+                                                    "minimum": 0
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "pattern": "^\\s*[0-9]*\\s*$"
+                                                }
+                                            ]
                                         }
                                     }
                                 }
                             ]
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "dock_type_if_block": {
@@ -232,22 +246,8 @@
                                 }
                             ]
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "array_type_if_block": {
@@ -264,35 +264,21 @@
             "then": {
                 "properties": {
                     "content": {
-                        "description": "Content of the array,",
+                        "description": "Content of the array.",
                         "type": "array",
                         "items": {
                             "$ref": "#/$defs/layout"
                         }
                     },
                     "orientation": {
-                        "description": "Orientation of the array,",
+                        "description": "Orientation of the array.",
                         "type": "string",
                         "enum": [
                             "horizontal",
                             "vertical"
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "tabbed_type_if_block": {
@@ -309,14 +295,14 @@
             "then": {
                 "properties": {
                     "tabs": {
-                        "description": "Tabs to display,",
+                        "description": "Tabs to display.",
                         "type": "array",
                         "items": {
                             "description": "A tab",
                             "type": "object",
                             "properties": {
                                 "title": {
-                                    "description": "Title of the tab,",
+                                    "description": "Title of the tab.",
                                     "type": "string"
                                 },
                                 "icon": {
@@ -337,25 +323,10 @@
                                         }
                                     ]
                                 }
-                            },
-                            "additionalProperties": false
+                            }
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "group_type_if_block": {
@@ -422,24 +393,9 @@
                                 "description": "Layout name for the header content. Not implemented yet.",
                                 "type": "string"
                             }
-                        },
-                        "additionalProperties": false
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                        }
+                    }
+                }                
             }
         },
         "item_type_if_block": {
@@ -459,22 +415,8 @@
                     "item": {
                         "description": "Code identifier of the item.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "itemgrid_type_if_block": {
@@ -507,7 +449,12 @@
                             {
                                 "description": "Size of the items in the format of x,y.",
                                 "type": "string",
-                                "pattern": "^([0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                                "pattern": "^(\\s*[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                            },
+                            {
+                                "description": "Size of the items.",
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
                             },
                             {
                                 "description": "Size of the items.",
@@ -518,44 +465,46 @@
                     },
                     "item_height": {
                         "description": "Height of the items.",
-                        "type": "number",
-                        "minimum": 0
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
+                            }
+                        ]
                     },
                     "item_width": {
                         "description": "Width of the items.",
-                        "type": "number",
-                        "minimum": 0
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^\\s*[0-9]*\\s*$"
+                            }
+                        ]
                     },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false,
-                "dependentSchemas": {
-                    "item_size": {
-                        "properties": {
-                            "item_width": false,
-                            "item_height": false
-                        }
-                    },
-                    "item_width": {
-                        "properties": {
-                            "item_size": false
-                        }
-                    },
-                    "item_height": {
-                        "properties": {
-                            "item_size": false
+                    "dependentSchemas": {
+                        "item_size": {
+                            "properties": {
+                                "item_width": false,
+                                "item_height": false
+                            }
+                        },
+                        "item_width": {
+                            "properties": {
+                                "item_size": false
+                            }
+                        },
+                        "item_height": {
+                            "properties": {
+                                "item_size": false
+                            }
                         }
                     }
                 }
@@ -581,22 +530,8 @@
                             "description": "Code identifier of a map.",
                             "type": "string"
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "layout_type_if_block": {
@@ -615,22 +550,8 @@
                     "key": {
                         "description": "Name of the layout to display.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "recentpins_type_if_block": {
@@ -656,7 +577,18 @@
                     },
                     "compact": {
                         "description": "Toggles the compact display for the recent pins. Not implemented yet.",
-                        "type": "boolean"
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ]
                     },
                     "orientation": {
                         "description": "Orientation of the recent pins display. Not implemented yet.",
@@ -665,22 +597,8 @@
                             "horizontal",
                             "vertical"
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "text_type_if_block": {
@@ -699,22 +617,8 @@
                     "text": {
                         "description": "Text to display.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "layout": {
@@ -754,7 +658,7 @@
                     ]
                 },
                 "v_alignment": {
-                    "description": "Vertical alignment of the layout.",
+                    "description": "Vertical alignment of the layout",
                     "type": "string",
                     "enum": [
                         "top",
@@ -764,17 +668,33 @@
                     ]
                 },
                 "max_height": {
-                    "description": "Maximum height for the layout in pixel.",
-                    "type": "number",
-                    "minimum": 0
+                    "description": "Maximum height for the layout in pixel",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
                 },
                 "max_width": {
-                    "description": "Maximum width for the layout in pixel.",
-                    "type": "number",
-                    "minimum": 0
+                    "description": "Maximum width for the layout in pixel",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
                 },
                 "item_h_alignment": {
-                    "description": "Horizontal alignment of the child/item(s).",
+                    "description": "Horizontal alignment of the child/item(s)",
                     "type": "string",
                     "enum": [
                         "left",
@@ -784,7 +704,7 @@
                     ]
                 },
                 "item_v_alignment": {
-                    "description": "Vertical alignment of the child/item(s).",
+                    "description": "Vertical alignment of the child/item(s)",
                     "type": "string",
                     "enum": [
                         "top",
@@ -795,7 +715,18 @@
                 },
                 "dropshadow": {
                     "description": "Enable/disable drop shadow. Only partially implemented.",
-                    "type": "boolean"
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    ]
                 },
                 "margin": {
                     "anyOf": [
@@ -808,6 +739,11 @@
                             "description": "Margin values for the layout in the format of x,y.",
                             "type": "string",
                             "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the layout.",
+                            "type": "string",
+                            "pattern": "^\\s*-?[0-9]*\\s*$"
                         },
                         {
                             "description": "Margin value for the layout.",
@@ -824,13 +760,14 @@
                         },
                         {
                             "description": "Margin value for the child/item(s).",
+                            "type": "string",
+                            "pattern": "^\\s*-?[0-9]*\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the child/item(s).",
                             "type": "number"
                         }
                     ]
-                },
-                "class": {
-                    "description": "Name of class to pull fallback values from.",
-                    "type": "string"
                 }
             },            
             "allOf": [

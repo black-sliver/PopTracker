@@ -5,24 +5,19 @@
 using nlohmann::json;
 
 
-static LayoutTypes::OptionalBool to_OptionalBool(const json& j)
-{
-    if (j.type() == json::value_t::boolean) 
-        return j.get<bool>() ? LayoutTypes::OptionalBool::True : LayoutTypes::OptionalBool::False;
-    return LayoutTypes::OptionalBool::Undefined;
-}
-
 LayoutNode LayoutNode::FromJSONString(const std::string& j, std::unordered_map<std::string, const LayoutClass>& classes)
 {
     auto tmp = json::parse(j, nullptr, true, true);
     return FromJSON(tmp, classes);
 }
+
 LayoutNode LayoutNode::FromJSON(nlohmann::json&& j)
 {
     auto tmp = j;
     std::unordered_map<std::string, const LayoutClass> tmp2;
     return FromJSON(tmp, tmp2);
 }
+
 LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const LayoutClass>& classes)
 {
     LayoutNode node;
@@ -30,7 +25,17 @@ LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const L
     const auto classObjIt = classes.find(to_string(j["class"], ""));
     const LayoutClass& classObj = classObjIt != classes.end() ? classObjIt->second : defClass;
 
-    node._type        = to_string(j["type"], ""); // TODO: enum
+    // Members not overridden by class
+    node._type       = to_string(j["type"], ""); // TODO: enum
+    node._compact    = to_bool(j["compact"], false);
+    node._item       = to_string(j["item"], to_string(j["icon"], "")); // we use the same variable for items and tabs
+    node._header     = to_string(j["header"], to_string(j["title"],"")); // we use the same variable for groups and tabs
+    node._key        = to_string(j["key"],"");
+    node._text       = to_string(j["text"],"");
+    node._position.x = to_int(j["canvas_left"], to_int(j["left"], 0));
+    node._position.y = to_int(j["canvas_top"], to_int(j["top"], 0));
+
+    // Members overridden by class
     node._background  = to_string(j["background"], classObj.getBackground().value_or(""));
     node._hAlignment  = to_string(j["h_alignment"], classObj.getHAlignment().value_or("")); // TODO: enum
     node._vAlignment  = to_string(j["v_alignment"], classObj.getVAlignment().value_or("")); // TODO: enum
@@ -50,15 +55,7 @@ LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const L
     node._maxSize.x   = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
     node._maxSize.y   = to_int(j["max_height"], classObj.getMaxWidth().value_or(-1));
     node._margin      = LayoutClass::to_spacing(j["margin"], classObj.getMargin().value_or(LayoutTypes::Spacing::UNDEFINED));
-        
-    node._compact    = to_bool(j["compact"], false);
-    node._dropShadow = to_OptionalBool(j["dropshadow"]);
-    node._item       = to_string(j["item"], to_string(j["icon"], "")); // we use the same variable for items and tabs
-    node._header     = to_string(j["header"], to_string(j["title"],"")); // we use the same variable for groups and tabs
-    node._key        = to_string(j["key"],"");
-    node._text       = to_string(j["text"],"");
-    node._position.x = to_int(j["canvas_left"], to_int(j["left"], 0));
-    node._position.y = to_int(j["canvas_top"], to_int(j["top"], 0));
+    node._dropShadow  = LayoutClass::to_OptionalBool(j["dropshadow"], classObj.getDropShadow().value_or(LayoutTypes::OptionalBool::Undefined));
 
     if (j["rows"].type() == json::value_t::array) {
         for (auto& r: j["rows"]) {

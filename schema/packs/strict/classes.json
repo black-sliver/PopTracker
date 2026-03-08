@@ -1,0 +1,211 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/strict/layouts.json",
+    "title": "PopTracker Pack layouts",
+    "description": "Layouts for a PopTracker pack.",
+    "type": "object",
+    "patternProperties": {
+        "^tracker_default$": {
+            "description": "Default layout for the tracker pack.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_horizontal$": {
+            "description": "Horizontal layout for the tracker pack. Used when the window is wider then high.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_vertical$": {
+            "description": "Vertical layout for the tracker pack. Used when the window is higher then wide.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_broadcast$": {
+            "description": "Default layout for the broadcast view.",
+            "$ref": "#/$defs/layout"
+        },
+        "^settings_popup$": {
+            "description": "Layout used for the settings menu.",
+            "$ref": "#/$defs/layout"
+        },
+        "^tracker_capture_item$": {
+            "description": "Layout used for the capture menu. Not implemented yet.",
+            "$ref": "#/$defs/layout"
+        }
+    },
+    "additionalProperties": {
+        "description": "A layout.",
+        "$ref": "#/$defs/layout"
+    },
+    "$defs": {
+        "class": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "Type of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "container",
+                        "dock",
+                        "array",
+                        "tabbed",
+                        "group",
+                        "item",
+                        "itemgrid",
+                        "map",
+                        "layout",
+                        "recentpins",
+                        "text",
+                        "canvas"
+                    ]
+                },
+                "background": {
+                    "description": "Background color of the layout.",
+                    "type": "string",
+                    "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                },
+                "h_alignment": {
+                    "description": "Horizontal alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "v_alignment": {
+                    "description": "Vertical alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "max_height": {
+                    "description": "Maximum height for the layout in pixel.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "max_width": {
+                    "description": "Maximum width for the layout in pixel.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "item_h_alignment": {
+                    "description": "Horizontal alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "item_v_alignment": {
+                    "description": "Vertical alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "dropshadow": {
+                    "description": "Enable/disable drop shadow. Only partially implemented.",
+                    "type": "boolean"
+                },
+                "margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin values for the layout in the format of left,top,right,bottom.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){3}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin values for the layout in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the layout.",
+                            "type": "number"
+                        }
+                    ]
+                },
+                "item_margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin value for the child/item(s) in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the child/item(s).",
+                            "type": "number"
+                        }
+                    ]
+                },
+                "dock": {
+                    "description": "Where to dock this child to inside the dock container.",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                "orientation": {
+                    "description": "Orientation of the array,",
+                    "type": "string",
+                    "enum": [
+                        "horizontal",
+                        "vertical"
+                    ]
+                },
+                "item_size": {
+                    "anyOf": [
+                        {
+                            "description": "Size of the items in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^([0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Size of the items.",
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    ]
+                },
+                "item_height": {
+                    "description": "Height of the items.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "item_width": {
+                    "description": "Width of the items.",
+                    "type": "number",
+                    "minimum": 0
+                },
+                "dependentSchemas": {
+                    "item_size": {
+                        "properties": {
+                            "item_width": false,
+                            "item_height": false
+                        }
+                    },
+                    "item_width": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    },
+                    "item_height": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

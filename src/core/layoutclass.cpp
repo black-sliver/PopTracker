@@ -62,6 +62,13 @@ LayoutTypes::Spacing LayoutClass::to_spacing(const nlohmann::json& j, LayoutType
     return res;
 }
 
+LayoutTypes::OptionalBool LayoutClass::to_OptionalBool(const json& j, LayoutTypes::OptionalBool fallback)
+{
+    if (j.type() == json::value_t::boolean)
+        return j.get<bool>() ? LayoutTypes::OptionalBool::True : LayoutTypes::OptionalBool::False;
+    return LayoutTypes::OptionalBool::Undefined;
+}
+
 void LayoutClass::from_json(const json& j)
 {
     if (j.contains("background"))
@@ -92,8 +99,6 @@ void LayoutClass::from_json(const json& j)
         j.at("item_h_alignment").get_to(_itemHAlign);
     if (j.contains("item_v_alignment"))
         j.at("item_v_alignment").get_to(_itemVAlign);
-    if (j.contains("compact"))
-        j.at("compact").get_to(_compact);
     if (j.contains("dropshadow"))
         j.at("dropshadow").get_to(_dropShadow);
     if (j.contains("width") || j.contains("height")) {
@@ -110,6 +115,8 @@ void LayoutClass::from_json(const json& j)
         if (j.contains("max_height"))
             j.at("max_height").get_to(_maxSize->y);
     }
+    if (j.contains("dropShadow"))
+        _dropShadow = LayoutClass::to_OptionalBool(j["dropshadow"], LayoutTypes::OptionalBool::Undefined);
     if (j.contains("dock"))
         _dock = to_direction(j["dock"]); // TODO: default
     if (j.contains("orientation"))

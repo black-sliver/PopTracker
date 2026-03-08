@@ -768,6 +768,10 @@
                             "type": "number"
                         }
                     ]
+                },
+                "class": {
+                    "description": "Name of class to pull fallback values from.",
+                    "type": "string"
                 }
             },            
             "allOf": [
