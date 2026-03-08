@@ -62,24 +62,28 @@ LayoutTypes::Spacing LayoutClass::to_spacing(const nlohmann::json& j, LayoutType
 
 void LayoutClass::from_json(const json& j) {
     if (j.contains("background"))
-        _background = j.at("background");
+        j.at("background").get_to(_background);
     if (j.contains("h_alignment"))
         j.at("h_alignment").get_to(_hAlignment);
+
     if (j.contains("v_alignment"))
         j.at("v_alignment").get_to(_vAlignment);
+
     if (j.contains("style"))
         j.at("style").get_to(_style);
     if (j.contains("max_height"))
         j.at("max_height").get_to(_maxHeight);
     if (j.contains("max_width"))
         j.at("max_width").get_to(_maxWidth);
-    if (j.contains("item_width"))
-        j.at("item_width").get_to(_itemSize->x);
-    if (j.contains("item_height"))
-        j.at("item_height").get_to(_itemSize->y);
+    if (j.contains("item_width") || j.contains("item_height")) {
+        _itemSize = {-1, -1};
+        if (j.contains("item_width"))
+            j.at("item_width").get_to(_itemSize->x);
+        if (j.contains("item_height"))
+            j.at("item_height").get_to(_itemSize->y);
+    }
     if (j.contains("item_size")) {
-        j.at("item_size").at("x").get_to(_itemSize->x);
-        j.at("item_size").at("y").get_to(_itemSize->y);
+        j.at("item_size").get_to(_itemSize);
     }
     if (j.contains("item_h_alignment"))
         j.at("item_h_alignment").get_to(_itemHAlign);
@@ -89,14 +93,20 @@ void LayoutClass::from_json(const json& j) {
         j.at("compact").get_to(_compact);
     if (j.contains("dropshadow"))
         j.at("dropshadow").get_to(_dropShadow);
-    if (j.contains("width"))
-        j.at("width").get_to(_size->x);
-    if (j.contains("height"))
-        j.at("height").get_to(_size->y);
-    if (j.contains("max_width"))
-        j.at("max_width").get_to(_maxSize->x);
-    if (j.contains("max_height"))
-        j.at("max_height").get_to(_maxSize->y);
+    if (j.contains("width") || j.contains("height")) {
+        _size = {-1, -1};
+        if (j.contains("width"))
+            j.at("width").get_to(_size->x);
+        if (j.contains("height"))
+            j.at("height").get_to(_size->y);
+    }
+    if (j.contains("max_width") || j.contains("max_height")) {
+        _maxSize = {-1, -1};
+        if (j.contains("max_width"))
+            j.at("max_width").get_to(_maxSize->x);
+        if (j.contains("max_height"))
+            j.at("max_height").get_to(_maxSize->y);
+    }
     if (j.contains("dock"))
         _dock = to_direction(j["dock"]); // TODO: default
     if (j.contains("orientation"))

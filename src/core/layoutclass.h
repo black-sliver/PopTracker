@@ -56,7 +56,7 @@ protected:
     std::optional<LayoutTypes::Size> _position;
 };
 
-void from_json(const nlohmann::json& j, LayoutClass& p) {
+static void from_json(const nlohmann::json& j, LayoutClass& p) {
     p.from_json(j);
 }
 

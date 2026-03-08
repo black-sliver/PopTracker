@@ -37,6 +37,16 @@ struct Spacing final {
     static const Spacing UNDEFINED;
 };
 
+static void from_json(const nlohmann::json& j, Size& s) {
+    s = {-1, -1};
+    if (j.contains("x")) {
+        j.at("x").get_to(s.x);
+    }
+    if (j.contains("y")) {
+        j.at("y").get_to(s.y);
+    }
+}
+
 }
 static const LayoutTypes::Spacing dfltSpc={5,5,5,5};
 

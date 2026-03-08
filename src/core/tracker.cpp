@@ -15,6 +15,7 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, AddLocations, const char*),
     LUA_METHOD(Tracker, AddMaps, const char*),
     LUA_METHOD(Tracker, AddLayouts, const char*),
+    LUA_METHOD(Tracker, AddClasses, const char*),
     LUA_METHOD(Tracker, ProviderCountForCode, const char*),
     LUA_METHOD(Tracker, FindObjectForCode, const char*),
     LUA_METHOD(Tracker, UiHint, const char*, const char*),

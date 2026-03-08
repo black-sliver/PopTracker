@@ -30,26 +30,26 @@ LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, LayoutC
     LayoutClass defClass = {};
     LayoutClass& classObj = classes.find(className) != classes.end() ? classes.at(className) : defClass;
 
-    node._type            = to_string(j["type"], ""); // TODO: enum
-    node._background      = to_string(j["background"], classObj.getBackground().value_or(""));
-    node._hAlignment      = to_string(j["h_alignment"], classObj.getHAlignment().value_or("")); // TODO: enum
-    node._vAlignment      = to_string(j["v_alignment"], classObj.getVAlignment().value_or("")); // TODO: enum
-    node._dock            = to_direction(j["dock"], classObj.getDock().value_or(Direction::UP)); // TODO: default
-    node._orientation     = LayoutClass::to_orientation(j["orientation"], classObj.getOrientation().value_or(LayoutTypes::Orientation::UNDEFINED));
-    node._style           = to_string(j["style"], classObj.getBackground().value_or(""));
-    node._maxHeight       = to_int(j["max_height"], classObj.getMaxHeight().value_or(-1));
-    node._maxWidth        = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
-    node._itemSize        = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"], classObj.getItemSize().value_or({-1,-1})));
+    node._type        = to_string(j["type"], ""); // TODO: enum
+    node._background  = to_string(j["background"], classObj.getBackground().value_or(""));
+    node._hAlignment  = to_string(j["h_alignment"], classObj.getHAlignment().value_or("")); // TODO: enum
+    node._vAlignment  = to_string(j["v_alignment"], classObj.getVAlignment().value_or("")); // TODO: enum
+    node._dock        = to_direction(j["dock"], classObj.getDock().value_or(Direction::UP)); // TODO: default
+    node._orientation = LayoutClass::to_orientation(j["orientation"], classObj.getOrientation().value_or(LayoutTypes::Orientation::UNDEFINED));
+    node._style       = to_string(j["style"], classObj.getBackground().value_or(""));
+    node._maxHeight   = to_int(j["max_height"], classObj.getMaxHeight().value_or(-1));
+    node._maxWidth    = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
+    node._itemSize    = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"], classObj.getItemSize().value_or({-1,-1})));
     node._itemSize.x  = to_int(j["item_width"], node._itemSize.x);
-    node._itemSize.y = to_int(j["item_height"], node._itemSize.y);
-    node._itemMargin      = LayoutClass::to_size(j["item_margin"], classObj.getItemMargin().value_or({5,5})); // this is possibly supposed to be left,top,right,bottom
-    node._itemHAlign      = to_string(j["item_h_alignment"], classObj.getItemHAlignment().value_or(""));
-    node._itemVAlign      = to_string(j["item_v_alignment"], classObj.getItemVAlignment().value_or(""));
+    node._itemSize.y  = to_int(j["item_height"], node._itemSize.y);
+    node._itemMargin  = LayoutClass::to_size(j["item_margin"], classObj.getItemMargin().value_or({5,5})); // this is possibly supposed to be left,top,right,bottom
+    node._itemHAlign  = to_string(j["item_h_alignment"], classObj.getItemHAlignment().value_or(""));
+    node._itemVAlign  = to_string(j["item_v_alignment"], classObj.getItemVAlignment().value_or(""));
     node._size.x      = to_int(j["width"], classObj.getMaxWidth().value_or(-1));
-    node._size.y     = to_int(j["height"], classObj.getMaxWidth().value_or(-1));
+    node._size.y      = to_int(j["height"], classObj.getMaxWidth().value_or(-1));
     node._maxSize.x   = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
-    node._maxSize.y  = to_int(j["max_height"], classObj.getMaxWidth().value_or(-1));
-    node._margin          = LayoutClass::to_spacing(j["margin"], classObj.getMargin().value_or(LayoutTypes::Spacing::UNDEFINED));
+    node._maxSize.y   = to_int(j["max_height"], classObj.getMaxWidth().value_or(-1));
+    node._margin      = LayoutClass::to_spacing(j["margin"], classObj.getMargin().value_or(LayoutTypes::Spacing::UNDEFINED));
         
     node._compact    = to_bool(j["compact"], false);
     node._dropShadow = to_OptionalBool(j["dropshadow"]);
