@@ -770,7 +770,7 @@
                     ]
                 },
                 "class": {
-                    "description": "Name of class to pull fallback values from.",
+                    "description": "Name of class to inherit values from before defaults.",
                     "type": "string"
                 }
             },            
