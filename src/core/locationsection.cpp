@@ -67,7 +67,7 @@ LocationSection LocationSection::FromJSON(
     sec._itemCount = sec._hostedItems.empty() && sec._ref.empty() ? 1 : 0;
     sec._itemCount = to_int(j["item_count"], sec._itemCount);
     bool nonEmpty = sec._itemCount > 0 || !sec._hostedItems.empty();
-    sec._itemSize = LayoutNode::to_pixel(LayoutNode::to_size(j["item_size"],{-1,-1}));
+    sec._itemSize = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"],{-1,-1}));
     sec._itemSize.x = to_int(j["item_width"], sec._itemSize.x);
     sec._itemSize.y = to_int(j["item_height"], sec._itemSize.y);
     sec._glitchedScoutableAsGlitched = to_bool(j["inspectable_sequence_break"], glitchedScoutableAsGlitched);

@@ -1,0 +1,251 @@
+{
+    "$id": "https://poptracker.github.io/schema/packs/classes.json",
+    "title": "PopTracker Pack layout classes",
+    "description": "Classes for PopTracker pack layout objects.",
+    "type": "object",
+    "additionalProperties": {
+        "description": "A layout class.",
+        "$ref": "#/$defs/class"
+    },
+    "$defs": {
+        "class": {
+            "type": "object",
+            "properties": {
+                "background": {
+                    "description": "Background color of the layout.",
+                    "type": "string",
+                    "pattern": "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3}|[a-fA-F0-9]{8}|[a-fA-F0-9]{4})$"
+                },
+                "h_alignment": {
+                    "description": "Horizontal alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "v_alignment": {
+                    "description": "Vertical alignment of the layout.",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "max_height": {
+                    "description": "Maximum height for the layout in pixel.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "max_width": {
+                    "description": "Maximum width for the layout in pixel",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "item_h_alignment": {
+                    "description": "Horizontal alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "item_v_alignment": {
+                    "description": "Vertical alignment of the child/item(s).",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "center",
+                        "stretch"
+                    ]
+                },
+                "dropshadow": {
+                    "description": "Enable/disable drop shadow. Only partially implemented.",
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    ]
+                },
+                "margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin values for the layout in the format of left,top,right,bottom.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){3}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin values for the layout in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the layout.",
+                            "type": "string",
+                            "pattern": "^\\s*-?[0-9]*\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the layout.",
+                            "type": "number"
+                        }
+                    ]
+                },
+                "item_margin": {
+                    "anyOf": [
+                        {
+                            "description": "Margin value for the child/item(s) in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*-?[0-9]+\\s*,\\s*){1}-?[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the child/item(s).",
+                            "type": "string",
+                            "pattern": "^\\s*-?[0-9]*\\s*$"
+                        },
+                        {
+                            "description": "Margin value for the child/item(s).",
+                            "type": "number"
+                        }
+                    ]
+                },
+                "width": {
+                    "description": "Width of the element.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "height": {
+                    "description": "Height of the element.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "dock": {
+                    "description": "Where to dock this child to inside the dock container.",
+                    "type": "string",
+                    "enum": [
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                "orientation": {
+                    "description": "Orientation of the array.",
+                    "type": "string",
+                    "enum": [
+                        "horizontal",
+                        "vertical"
+                    ]
+                },
+                "item_size": {
+                    "anyOf": [
+                        {
+                            "description": "Size of the items in the format of x,y.",
+                            "type": "string",
+                            "pattern": "^(\\s*[0-9]+\\s*,\\s*){1}[0-9]+\\s*$"
+                        },
+                        {
+                            "description": "Size of the items.",
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        },
+                        {
+                            "description": "Size of the items.",
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    ]
+                },
+                "item_height": {
+                    "description": "Height of the items.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "item_width": {
+                    "description": "Width of the items.",
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^\\s*[0-9]*\\s*$"
+                        }
+                    ]
+                },
+                "dependentSchemas": {
+                    "item_size": {
+                        "properties": {
+                            "item_width": false,
+                            "item_height": false
+                        }
+                    },
+                    "item_width": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    },
+                    "item_height": {
+                        "properties": {
+                            "item_size": false
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

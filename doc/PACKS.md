@@ -566,7 +566,8 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
         "item_size":   "<horizontal>,<vertical>", // 3=default=32, 4=48, other TBD, 10+=size in pixels
         "item_h_alignment": "{left,right,center,stretch}", // align image inside item; PopTracker since 0.19.1
         "item_v_alignment": "{top,bottom,center,stretch}", // as above; stretch is not implemented for either
-        "dropshadow":  bool // enable/disable drop shadow, only partially implemented
+        "dropshadow":  bool, // enable/disable drop shadow, only partially implemented
+        "class":       "className" // references a layout class to inherit values from before defaults; PopTracker since 0.34.1
     }
 
 **Type:**
@@ -587,6 +588,33 @@ the final hierarchy looks something like this: `json root -> "tracker_default" -
 
 Margin can alternatively be specified as "x,y" or single int and is an offset of the widget's position and size.
 Margin defaults to 0 for items and "inner arrays" (array inside array), 5 for everything else.
+
+### Classes
+Using the `Tracker::AddClasses()` method in `init.lua`, you can add a file of classes to your pack which contain most the same properties a layout object can.
+These allow you to assign common fields and values to a single JSON object that can be applied to other layout types using the `class` property.
+* The only exception to this is `type`, which is required on a layout node for verification purposes.
+
+Classes can contain all properties, even if a particular element doesn't use some of them. The order of value precedence is `layout -> class -> default`.
+Example:
+
+    {
+        "grid": {
+            "item_margin": "0, 0",
+            "h_alignment": "left",
+            "item_size": "48, 48"
+        }
+    }
+    
+And in a layout node:
+
+    {
+        "type": "itemgrid",
+        "class": "grid",
+        "item_margin": "2, 2", // this will override the "0, 0" from the class
+        "content": {
+            // etc
+        }
+    }
 
 
 ## Ui Hints

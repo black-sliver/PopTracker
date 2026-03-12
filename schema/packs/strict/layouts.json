@@ -70,7 +70,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -111,7 +112,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -187,7 +189,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -241,7 +244,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -285,7 +289,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -347,7 +352,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -430,7 +436,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -464,7 +471,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -529,7 +537,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false,
                 "dependentSchemas": {
@@ -584,7 +593,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -617,7 +627,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -666,7 +677,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -699,7 +711,8 @@
                     "dropshadow": true,
                     "margin": true,
                     "item_margin": true,
-                    "dock": true
+                    "dock": true,
+                    "class": true
                 },
                 "additionalProperties": false
             }
@@ -814,6 +827,10 @@
                             "type": "number"
                         }
                     ]
+                },
+                "class": {
+                    "description": "Name of class to pull fallback values from.",
+                    "type": "string"
                 }
             },            
             "allOf": [
