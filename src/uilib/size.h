@@ -43,6 +43,40 @@ static Position& operator+=(Position& a, const Size& b)
     return a;
 }
 
+static Size operator*(const Size& a, const float b)
+{
+    // TODO: mirror what SDL does for rounding with render scale
+    return {
+        static_cast<int>(std::round(static_cast<float>(a.width) * b)),
+        static_cast<int>(std::round(static_cast<float>(a.height) * b)),
+    };
+}
+
+static Size& operator*=(Size& a, const float b)
+{
+    // TODO: mirror what SDL does for rounding with render scale
+    a.width = static_cast<int>(std::round(static_cast<float>(a.width) * b));
+    a.height = static_cast<int>(std::round(static_cast<float>(a.height) * b));
+    return a;
+}
+
+static Size operator/(const Size& a, const float b)
+{
+    // TODO: mirror what SDL does for rounding with render scale
+    return {
+        static_cast<int>(std::round(static_cast<float>(a.width) / b)),
+        static_cast<int>(std::round(static_cast<float>(a.height) / b)),
+    };
+}
+
+static Size& operator/=(Size& a, const float b)
+{
+    // TODO: mirror what SDL does for rounding with render scale
+    a.width = static_cast<int>(std::round(static_cast<float>(a.width) / b));
+    a.height = static_cast<int>(std::round(static_cast<float>(a.height) / b));
+    return a;
+}
+
 } // namespace Ui
 
 #endif // _UILIB_SIZE_H

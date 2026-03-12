@@ -1,11 +1,12 @@
 #include "window.h"
-#include "../core/assets.h"
-#include "../ui/defaults.h" // DEFAULT_FONT_*
-#include "tooltip.h"
-#include "texturemanager.h"
-#include <SDL2/SDL_syswm.h>
 #include <algorithm>
 #include <string>
+#include <SDL2/SDL_syswm.h>
+#include "texturemanager.h"
+#include "tooltip.h"
+#include "ui.h"
+#include "../core/assets.h"
+#include "../ui/defaults.h" // DEFAULT_FONT_*
 
 
 namespace Ui {
@@ -57,6 +58,8 @@ Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const 
     onMouseMove += {this, [this](void*, int x, int y, unsigned) {
         _lastMousePos = {x, y};
     }};
+
+    setZoom(1.25f);
 }
 
 Window::~Window()
@@ -155,8 +158,20 @@ void Window::setTitle(const std::string& title)
     SDL_SetWindowTitle(_win,title.c_str());
 }
 
+void Window::setZoom(const float zoom)
+{
+    if (SDL_RenderSetScale(_ren, zoom, zoom) == 0)
+        _zoom = zoom;
+}
+
+float Window::getZoom() const
+{
+    return _zoom;
+}
+
 void Window::resize(Size size)
 {
+    size *= _zoom;
     SDL_SetWindowSize(_win, size.width, size.height);
     setSize(size);
 }
@@ -198,12 +213,23 @@ void Window::setPosition(const Position& pos)
 void Window::setMinSize(Size size)
 {
     Container::setMinSize(size);
-    // limit min window width/height to of 5/6 of the screen min. dimension
-    int w = 720;
+    // at 1x zoom: limit min window width/height to 5/6 of the screen min. dimension (back compat)
+    // at other zoom: limit min window width/height to 90% of screen width/height (new behavior)
+    int m = 720, w = 720, h = 720;
     SDL_DisplayMode dm;
-    if (SDL_GetDesktopDisplayMode(0, &dm) == 0)
-        w = std::min(dm.w, dm.h) * 5 / 6;
-    size = size && Size{w,w};
+    if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
+        m = std::min(dm.w, dm.h) * 5 / 6;
+        w = dm.w * 9 / 10;
+        h = dm.h * 9 / 10;
+    }
+    size *= _zoom;
+    if (_zoom > 1.0f) {
+        // new behavior to make zoom behave better
+        size = size && Size{w, h};
+    } else {
+        // original behavior
+        size = size && Size{m, m};
+    }
     SDL_SetWindowMinimumSize(_win, size.width, size.height);
 }
 

@@ -127,6 +127,7 @@ void TrackerWindow::render(Renderer renderer, int offX, int offY)
     if (_resizeScheduled) { // TODO: move this work-around to trackerView::render instead?
         printf("Resizing... (%d,%d)\n", _resizeSize.width, _resizeSize.height);
         Window::setSize(_resizeSize);
+        SDL_RenderSetScale(_ren, _zoom, _zoom); // reapply zoom
         if (_menu) _menu->setSize({_size.width-_menu->getLeft(), _menu->getHeight()});
         if (_view && _rendered) {
             _view->setSize({_size.width-_view->getLeft(), _size.height-_view->getTop()});

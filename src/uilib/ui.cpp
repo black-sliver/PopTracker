@@ -1,11 +1,11 @@
 #include "ui.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <cmath>
+#include <cstdint>
 #include <unistd.h>
-#include <stdint.h>
-#include "../core/fileutil.h"
+#include <SDL2/SDL.h>
 #include "droptype.h"
 #include "timer.h"
+#include "../core/fileutil.h"
 
 
 #if defined __LINUX__ || defined __FREEBSD__ || defined __OPENBSD__ || defined __NETBSD__
@@ -27,6 +27,17 @@
 #define UI_ENABLE_UNFOCUSED_CLICK_HACK
 
 namespace Ui {
+
+std::pair<int, int> scaleCoords(const int x, const int y, const float scale)
+{
+    if (scale == 1.0f) {  // FIXME: do we need to almost-equals here?
+        return std::make_pair(x, y);
+    }
+
+    const float fx = static_cast<float>(x) / scale;
+    const float fy = static_cast<float>(y) / scale;
+    return std::make_pair(static_cast<int>(std::lround(fx)), static_cast<int>(std::lround(fy)));
+}
 
 Ui::Ui(const char *name, bool fallbackRenderer)
 {
@@ -123,11 +134,10 @@ int Ui::eventFilter(void* userdata, SDL_Event *ev)
     if (ev->type == SDL_WINDOWEVENT) {
         if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             if (!ui->_eventMutex.try_lock()) return 1; // already handling events, skip resize / push to list instead
-            int x = ev->window.data1;
-            int y = ev->window.data2;
             auto winit = ui->_windows.find(ev->window.windowID);
             if (winit != ui->_windows.end()) {
                 // NOTE: calls below may push new events, looping is disabled using the try_lock above
+                const auto [x, y] = scaleCoords(ev->window.data1, ev->window.data2, winit->second->getZoom());
                 winit->second->setSize({x,y});
                 winit->second->render();
             }
@@ -211,22 +221,20 @@ bool Ui::render()
                 case SDL_MOUSEBUTTONDOWN: {
                     // clear/cancel cached "global" event (see above or below)
                     _globalMouseButtons = 0;
-                    const int button = ev.button.button;
-                    const int x = ev.button.x;
-                    const int y = ev.button.y;
                     auto winIt = _windows.find(ev.button.windowID);
                     if (winIt != _windows.end()) {
+                        const int button = ev.button.button;
+                        const auto [x, y] = scaleCoords(ev.button.x, ev.button.y, winIt->second->getZoom());
                         winIt->second->onMouseDown.emit(winIt->second, x, y, button);
                     }
                     break;
                 }
                 case SDL_MOUSEBUTTONUP: {
                     EVENT_LOCK(this);
-                    const int button = ev.button.button;
-                    const int x = ev.button.x;
-                    const int y = ev.button.y;
                     auto winIt = _windows.find(ev.button.windowID);
                     if (winIt != _windows.end()) {
+                        const int button = ev.button.button;
+                        const auto [x, y] = scaleCoords(ev.button.x, ev.button.y, winIt->second->getZoom());
                         winIt->second->onClick.emit(winIt->second, x, y, button);
                     }
                     EVENT_UNLOCK(this);
@@ -234,11 +242,10 @@ bool Ui::render()
                 }
                 case SDL_MOUSEMOTION: {
                     EVENT_LOCK(this);
-                    unsigned buttons = ev.motion.state;
-                    int x = ev.motion.x;
-                    int y = ev.motion.y;
                     auto winIt = _windows.find(ev.motion.windowID);
                     if (winIt != _windows.end()) {
+                        const unsigned buttons = ev.motion.state;
+                        const auto [x, y] = scaleCoords(ev.motion.x, ev.motion.y, winIt->second->getZoom());
                         winIt->second->onMouseMove.emit(winIt->second, x, y, buttons);
                     }
                     EVENT_UNLOCK(this);
@@ -296,10 +303,9 @@ bool Ui::render()
                             fprintf(stderr, "WARNING: %d extra resizes for the same window scheduled!\n", more);
                         }
 #endif
-                        int x = ev.window.data1;
-                        int y = ev.window.data2;
                         auto winit = _windows.find(ev.window.windowID);
                         if (winit != _windows.end()) {
+                            const auto [x, y] = scaleCoords(ev.window.data1, ev.window.data2, winit->second->getZoom());
                             winit->second->setSize({x,y});
                             destructiveEvent = true;
                         }

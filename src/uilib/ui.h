@@ -16,6 +16,8 @@
 
 namespace Ui {
 
+std::pair<int, int> scaleCoords(int x, int y, float scale);
+
 class Ui {
 public:
     struct Hotkey {

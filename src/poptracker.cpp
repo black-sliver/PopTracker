@@ -1344,8 +1344,10 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
                 auto& jSize = jWindow["size"];
                 if (jSize.is_array() && jSize[0].is_number_integer() && jSize[1].is_number_integer()) {
                     printf("Restoring window size %dx%d\n", jSize[0].get<int>(), jSize[1].get<int>());
-                    Ui::Size size = {std::max(96, jSize[0].get<int>()),
-                                     std::max(96, jSize[1].get<int>())};
+                    const Ui::Size size = {
+                        std::max(96, jSize[0].get<int>()),
+                        std::max(96, jSize[1].get<int>()),
+                    };
                     _win->setMinSize(size);
                     _win->resize(size);
                     // when making the window bigger, make sure it doesn't display garbage
