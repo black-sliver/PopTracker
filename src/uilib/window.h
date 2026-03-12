@@ -27,6 +27,7 @@ protected:
 
     Position _lastMousePos;
     Widget* _tooltip = nullptr;
+    float _zoom = 1.0f;
 
     void clear();
     void present();
@@ -45,7 +46,9 @@ public:
     virtual void resize(Size size);
     void Raise();
     void setTitle(const std::string& title);
-    
+    void setZoom(float zoom);
+    float getZoom() const;
+
     virtual const Position& getPosition() const override;
     virtual void setPosition(const Position& pos) override;
     virtual int getLeft() const override { return getPosition().left; }

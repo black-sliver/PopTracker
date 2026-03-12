@@ -155,6 +155,17 @@ void Window::setTitle(const std::string& title)
     SDL_SetWindowTitle(_win,title.c_str());
 }
 
+void Window::setZoom(const float zoom)
+{
+    if (SDL_RenderSetScale(_ren, zoom, zoom) == 0)
+        _zoom = zoom;
+}
+
+float Window::getZoom() const
+{
+    return _zoom;
+}
+
 void Window::resize(Size size)
 {
     SDL_SetWindowSize(_win, size.width, size.height);
