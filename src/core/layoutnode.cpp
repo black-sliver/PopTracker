@@ -21,7 +21,7 @@ LayoutNode LayoutNode::FromJSON(nlohmann::json&& j)
 LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const LayoutClass>& classes)
 {
     LayoutNode node;
-    LayoutClass defClass = {};
+    const LayoutClass defClass = {};
     const auto classObjIt = classes.find(to_string(j["class"], ""));
     const LayoutClass& classObj = classObjIt != classes.end() ? classObjIt->second : defClass;
 
@@ -40,22 +40,28 @@ LayoutNode LayoutNode::FromJSON(json& j, std::unordered_map<std::string, const L
     node._hAlignment  = to_string(j["h_alignment"], classObj.getHAlignment().value_or("")); // TODO: enum
     node._vAlignment  = to_string(j["v_alignment"], classObj.getVAlignment().value_or("")); // TODO: enum
     node._dock        = to_direction(j["dock"], classObj.getDock().value_or(Direction::UNDEFINED)); // TODO: default
-    node._orientation = LayoutClass::to_orientation(j["orientation"], classObj.getOrientation().value_or(LayoutTypes::Orientation::UNDEFINED));
+    node._orientation = LayoutClass::to_orientation(j["orientation"],
+        classObj.getOrientation().value_or(LayoutTypes::Orientation::UNDEFINED));
     node._style       = to_string(j["style"], classObj.getBackground().value_or(""));
     node._maxHeight   = to_int(j["max_height"], classObj.getMaxHeight().value_or(-1));
     node._maxWidth    = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
-    node._itemSize    = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"], classObj.getItemSize().value_or({-1,-1})));
+    node._itemSize    = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"],
+        classObj.getItemSize().value_or<LayoutTypes::Size>({-1,-1})));
     node._itemSize.x  = to_int(j["item_width"], node._itemSize.x);
     node._itemSize.y  = to_int(j["item_height"], node._itemSize.y);
-    node._itemMargin  = LayoutClass::to_size(j["item_margin"], classObj.getItemMargin().value_or({5,5})); // this is possibly supposed to be left,top,right,bottom
+    // _itemMargin is possibly supposed to be left,top,right,bottom
+    node._itemMargin  = LayoutClass::to_size(j["item_margin"],
+        classObj.getItemMargin().value_or<LayoutTypes::Size>({5,5}));
     node._itemHAlign  = to_string(j["item_h_alignment"], classObj.getItemHAlignment().value_or(""));
     node._itemVAlign  = to_string(j["item_v_alignment"], classObj.getItemVAlignment().value_or(""));
     node._size.x      = to_int(j["width"], classObj.getMaxWidth().value_or(-1));
     node._size.y      = to_int(j["height"], classObj.getMaxWidth().value_or(-1));
     node._maxSize.x   = to_int(j["max_width"], classObj.getMaxWidth().value_or(-1));
     node._maxSize.y   = to_int(j["max_height"], classObj.getMaxWidth().value_or(-1));
-    node._margin      = LayoutClass::to_spacing(j["margin"], classObj.getMargin().value_or(LayoutTypes::Spacing::UNDEFINED));
-    node._dropShadow  = LayoutClass::to_OptionalBool(j["dropshadow"], classObj.getDropShadow().value_or(LayoutTypes::OptionalBool::Undefined));
+    node._margin      = LayoutClass::to_spacing(j["margin"],
+        classObj.getMargin().value_or(LayoutTypes::Spacing::UNDEFINED));
+    node._dropShadow  = LayoutClass::to_OptionalBool(j["dropshadow"],
+        classObj.getDropShadow().value_or(LayoutTypes::OptionalBool::Undefined));
 
     if (j["rows"].type() == json::value_t::array) {
         for (auto& r: j["rows"]) {
