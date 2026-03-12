@@ -49,10 +49,9 @@ public:
 #ifdef _WIN32
         // there appears to be no mkdtemp on Windows, so we emulate it and ignore the permissions
         auto tmpl = tmplPath.wstring();
-        wchar_t* temp = _wmktemp_s(tmpl.data(), tmpl.length() + 1);
-        if (!temp)
+        if (_wmktemp_s(tmpl.data(), tmpl.length() + 1) != 0)
             throw new std::runtime_error("Failed to create temporary name");
-        fs::path tempDir = temp;
+        fs::path tempDir = tmpl.data();
         if (!fs::create_directories(tempDir))
             throw new std::runtime_error("Failed to create temporary directory: already exists");
         _base = tempDir;
