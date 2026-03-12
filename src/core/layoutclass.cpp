@@ -1,4 +1,4 @@
-#include "LayoutClass.h"
+#include "layoutclass.h"
 #include "util.h"
 #include <stdio.h>
 #include "jsonutil.h"
@@ -66,7 +66,7 @@ LayoutTypes::OptionalBool LayoutClass::to_OptionalBool(const json& j, LayoutType
 {
     if (j.type() == json::value_t::boolean)
         return j.get<bool>() ? LayoutTypes::OptionalBool::True : LayoutTypes::OptionalBool::False;
-    return LayoutTypes::OptionalBool::Undefined;
+    return fallback;
 }
 
 void LayoutClass::from_json(const json& j)

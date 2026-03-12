@@ -1,60 +1,16 @@
 {
-    "$id": "https://poptracker.github.io/schema/packs/strict/layouts.json",
-    "title": "PopTracker Pack layouts",
-    "description": "Layouts for a PopTracker pack.",
+    "$id": "https://poptracker.github.io/schema/packs/classes.json",
+    "title": "PopTracker Pack layout classes",
+    "description": "Classes for PopTracker pack layout objects.",
     "type": "object",
-    "patternProperties": {
-        "^tracker_default$": {
-            "description": "Default layout for the tracker pack.",
-            "$ref": "#/$defs/layout"
-        },
-        "^tracker_horizontal$": {
-            "description": "Horizontal layout for the tracker pack. Used when the window is wider then high.",
-            "$ref": "#/$defs/layout"
-        },
-        "^tracker_vertical$": {
-            "description": "Vertical layout for the tracker pack. Used when the window is higher then wide.",
-            "$ref": "#/$defs/layout"
-        },
-        "^tracker_broadcast$": {
-            "description": "Default layout for the broadcast view.",
-            "$ref": "#/$defs/layout"
-        },
-        "^settings_popup$": {
-            "description": "Layout used for the settings menu.",
-            "$ref": "#/$defs/layout"
-        },
-        "^tracker_capture_item$": {
-            "description": "Layout used for the capture menu. Not implemented yet.",
-            "$ref": "#/$defs/layout"
-        }
-    },
     "additionalProperties": {
-        "description": "A layout.",
-        "$ref": "#/$defs/layout"
+        "description": "A layout class.",
+        "$ref": "#/$defs/class"
     },
     "$defs": {
         "class": {
             "type": "object",
             "properties": {
-                "type": {
-                    "description": "Type of the layout.",
-                    "type": "string",
-                    "enum": [
-                        "container",
-                        "dock",
-                        "array",
-                        "tabbed",
-                        "group",
-                        "item",
-                        "itemgrid",
-                        "map",
-                        "layout",
-                        "recentpins",
-                        "text",
-                        "canvas"
-                    ]
-                },
                 "background": {
                     "description": "Background color of the layout.",
                     "type": "string",
@@ -156,7 +112,7 @@
                     ]
                 },
                 "orientation": {
-                    "description": "Orientation of the array,",
+                    "description": "Orientation of the array.",
                     "type": "string",
                     "enum": [
                         "horizontal",
@@ -205,7 +161,8 @@
                         }
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         }
     }
 }
