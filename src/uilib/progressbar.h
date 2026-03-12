@@ -1,21 +1,22 @@
-#ifndef _UILIB_PROGRESSBAR_H
-#define _UILIB_PROGRESSBAR_H
+#pragma once
 
-#include "widget.h"
 #include <string>
+#include "timer.h"
+#include "widget.h"
+
 
 namespace Ui {
 
 class ProgressBar : public Widget {
 public:
     ProgressBar(int x, int y, int w, int h, int max=0, int progress=0);
-    virtual ~ProgressBar();
 
-    virtual void render(Renderer renderer, int offX, int offY);
+    void render(Renderer renderer, int offX, int offY) override;
 
 protected:
     int _max;
     int _progress;
+    tick_t _firstIndeterminateDraw = 0;
 
 public:
     virtual void setMax(int max);
@@ -25,5 +26,3 @@ public:
 };
 
 } // namespace Ui
-
-#endif /* _UILIB_PROGRESSBAR_H */

@@ -257,6 +257,10 @@ CPP_FLAGS += -fsanitize=undefined
 LD_FLAGS += -fsanitize=undefined
 endif
 
+ifdef WITH_GUI_TESTS
+CPP_FLAGS += -DWITH_GUI_TESTS
+endif
+
 CPP_FLAGS += -DLUA_CPP
 
 # os-specific tool config

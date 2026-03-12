@@ -81,7 +81,7 @@ void uintToBytes(uint32_t d, uint8_t* b, const uint8_t bytesPP)
 
 template<BWMode mode, bool darken = false>
 static inline __attribute__((always_inline))
-uint8_t makeGreyscale(uint8_t r, uint8_t g, uint8_t b)
+constexpr uint8_t makeGreyscale(const uint8_t r, const uint8_t g, const uint8_t b)
 {
     // TODO: check if this uses SIMD, rework if not?
     if constexpr (mode == BWMode::Luminosity) {
@@ -122,7 +122,7 @@ void setBrightness(uint8_t& r, uint8_t& g, uint8_t& b, const float brightness)
 
 template<BWMode mode, bool darken = false>
 static inline __attribute__((always_inline))
-SDL_Color setSaturation(SDL_Color c, const float saturation)
+constexpr SDL_Color setSaturation(const SDL_Color c, const float saturation)
 {
     const uint8_t w = makeGreyscale<mode, darken>(c.r, c.g, c.b);
     if (saturation == 0.f) {
