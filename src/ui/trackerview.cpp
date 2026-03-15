@@ -687,7 +687,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
         addLayoutNodes(w, children, depth+1);
-        auto dfltMargin = LayoutNode::Spacing{5,5,5,5};
+        auto dfltMargin = LayoutTypes::Spacing{5,5,5,5};
         auto m = node.getMargin(dfltMargin);
         printf("margin: %d %d %d %d\n", m.left, m.top, m.right, m.bottom);
         w->setMargin({m.left, m.top, m.right, m.bottom});
@@ -720,7 +720,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     else if (node.getType() == "array") {
         // TODO: set spacing from layout.json
         Container *w;
-        if (node.getOrientation() == LayoutNode::Orientation::HORIZONTAL) {
+        if (node.getOrientation() == LayoutTypes::Orientation::HORIZONTAL) {
             HBox *hbox = new HBox(0,0,0,0);
             hbox->setPadding(0);
             hbox->setSpacing(0);
@@ -733,7 +733,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         }
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         auto dfltMargin = (dynamic_cast<HBox*>(container) || dynamic_cast<VBox*>(container))
-                ? LayoutNode::Spacing{0,0,0,0} : LayoutNode::Spacing{5,5,5,5};
+                ? LayoutTypes::Spacing{0,0,0,0} : LayoutTypes::Spacing{5,5,5,5};
         auto m = node.getMargin(dfltMargin);
         w->setMargin({m.left, m.top, m.right, m.bottom});
         if (!node.getBackground().empty()) w->setBackground(node.getBackground());
@@ -840,7 +840,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             fprintf(stderr, "WARNING: item_size %d, %d in itemgrid not implemented\n", sz.x, sz.y);
             sz = {32, 32}; // fall-back
         }
-        LayoutNode::Size sp = node.getItemMargin();
+        LayoutTypes::Size sp = node.getItemMargin();
         int halign = node.getHAlignment() == "left" ? -1 : node.getHAlignment() == "right" ? 1 : 0;
         Label::HAlign itemHalign = str2itemHalign(node.getItemHAlignment());
         Label::VAlign itemValign = str2itemValign(node.getItemVAlignment());

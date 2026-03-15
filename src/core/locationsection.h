@@ -51,7 +51,7 @@ protected:
     std::string _ref; // path to actual section if it's just a reference
     bool _glitchedScoutableAsGlitched = false;
     Highlight _highlight = Highlight::NONE;
-    LayoutNode::Size _itemSize;
+    LayoutTypes::Size _itemSize;
 
 public:
     // getters
@@ -72,7 +72,7 @@ public:
     const std::string& getRef() const { return _ref; }
     bool getGlitchedScoutableAsGlitched() const { return _glitchedScoutableAsGlitched; }
     Highlight getHighlight() const { return _highlight; }
-    const LayoutNode::Size& getItemSize() const { return _itemSize; }
+    const LayoutTypes::Size& getItemSize() const { return _itemSize; }
 
     void setParentID(const std::string& id) { _parentId = id; }
 
