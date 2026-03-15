@@ -112,6 +112,7 @@ The following interfaces are provided:
 * `bool :AddMaps(jsonfilename)`: load maps from json
 * `bool :AddLocations(jsonfilename)`: load locations from json
 * `bool :AddLayouts(jsonfilename)`: load layouts from json
+* `bool :AddClasses(jsonfilename)`: load classes from json
 * `int :ProviderCountForCode(code)`: number of items that provide the code (sum of count for consumables)
 * `mixed :FindObjectForCode(string)`: returns items for `code` or location section for `@location/section`
 * `void :UiHint(name, value)`: sends a hint to the Ui, see [Ui Hints](#ui-hints). Only available in PopTracker, since 0.11.0

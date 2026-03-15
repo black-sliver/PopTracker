@@ -65,6 +65,11 @@ function Tracker:AddLocations(jsonFilename) end
 ---@return boolean true on success
 function Tracker:AddLayouts(jsonFilename) end
 
+---load classes from json
+---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
+---@return boolean true on success
+function Tracker:AddClasses(jsonFilename) end
+
 ---get provided count for an (item) code
 ---@param code string the (item) code to look up
 ---@return integer count of items providing the code or the sum of count for consumables
