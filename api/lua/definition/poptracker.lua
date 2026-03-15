@@ -65,7 +65,7 @@ function Tracker:AddLocations(jsonFilename) end
 ---@return boolean true on success
 function Tracker:AddLayouts(jsonFilename) end
 
----load classes from json
+---load classes from json, available since 0.34.1
 ---@param jsonFilename string file to load, relative to variant folder or root of the pack (will try both)
 ---@return boolean true on success
 function Tracker:AddClasses(jsonFilename) end
