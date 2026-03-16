@@ -62,7 +62,7 @@ The download link for VSCode is currently https://code.visualstudio.com/download
     {
         "fileMatch": [
             "*/maps/*.json",
-            "*/maps/*.json"
+            "*/maps/*.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/maps.json"
     },
