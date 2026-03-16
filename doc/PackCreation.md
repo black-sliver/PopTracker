@@ -40,31 +40,36 @@ The download link for VSCode is currently https://code.visualstudio.com/download
     },
     {
         "fileMatch": [
-            "*/items/*.json"
+            "*/items/**/*.json",
+            "*/items/**/*.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/items.json"
     },
     {
         "fileMatch": [
-            "*/locations/*.json"
+            "*/locations/**/*.json",
+            "*/locations/**/*.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/locations.json"
     },
     {
         "fileMatch": [
-            "*/layouts/*.json"
+            "*/layouts/**/*.json",
+            "*/layouts/**/*.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/layouts.json"
     },
     {
         "fileMatch": [
-            "*/maps/*.json"
+            "*/maps/**/*.json",
+            "*/maps/**/*.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/maps.json"
     },
     {
         "fileMatch": [
-            "*/settings.json"
+            "*/settings.json",
+            "*/settings.jsonc"
         ],
         "url": "https://poptracker.github.io/schema/packs/strict/settings.json"
     }
