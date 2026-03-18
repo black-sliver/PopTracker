@@ -33,6 +33,8 @@ HTTPCache::HTTPCache(asio::io_service *asio, const fs::path& cachefile, const fs
     try {
         if (readFile(_cachefile, s)) {
             _cache = json::parse(s);
+            if (!_cache.is_object())
+                _cache = json::object();
         }
     } catch (...) {
         printf("Could not load http cache!\n");
