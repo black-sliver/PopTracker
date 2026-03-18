@@ -315,7 +315,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
 
     for (int i=0; i<5; i++) {
         std::string name = GetRandomName(ext);
-        path = _cachedir / name;
+        path = _cacheDir / name;
 #ifdef _WIN32
         fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
 #else
