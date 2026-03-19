@@ -116,7 +116,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
     if (cacheIt != _cache.end()) {
         // use cache if timestamp is newer than _minAge and not in the future
         std::string s;
-        if (_minAge != 0 && cacheIt.value()["file"].is_string() && cacheIt.value()["timestamp"].is_number_unsigned()) {
+        if (_minAge != 0 && cacheIt.value()["file"].is_string() && cacheIt.value()["timestamp"].is_number()) {
             const auto t = time(nullptr);
             if (cacheIt.value()["timestamp"].get<time_t>() > t - _minAge &&  // less than 60 seconds old
                     cacheIt.value()["timestamp"].get<time_t>() < t + 30 &&  // less than 30 seconds in the future
