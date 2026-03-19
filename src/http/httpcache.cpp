@@ -109,7 +109,8 @@ void HTTPCache::flush()
     }
 }
 
-void HTTPCache::GetCached(const std::string& url, const std::function<void(bool, std::string)>& cb)
+void HTTPCache::GetCached(const std::string& url, const std::function<void(bool, std::string)>& cb,
+    const int redirectLimit)
 {
     auto headers = _httpDefaultHeaders;
     const auto cacheIt = _cache.find(url);
@@ -133,9 +134,14 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
         }
     }
     if (!HTTP::GetAsync(*_asio, url, headers,
-            [this, url, cb](const int code, const std::string& r, HTTP::Headers h)
+            [this, url, cb, redirectLimit](const int code, const std::string& r, HTTP::Headers h)
     {
-        // TODO: follow redirects
+        if (code == HTTP::REDIRECT && redirectLimit != 0) {
+            // NOTE: 302 puts location into r to make life easier
+            GetCached(r, cb, redirectLimit - 1);
+            return;
+        }
+
         if (code == HTTP::OK) {
             // success
             // delete old cache entry

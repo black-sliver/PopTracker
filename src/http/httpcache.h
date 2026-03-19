@@ -16,7 +16,7 @@ public:
     virtual ~HTTPCache();
 
 protected:
-    void GetCached(const std::string& url, const std::function<void(bool, std::string)>& cb);
+    void GetCached(const std::string& url, const std::function<void(bool, std::string)>& cb, int redirectLimit = 3);
 
     static std::string GetRandomName(std::string_view suffix = "", int len=12);
 
