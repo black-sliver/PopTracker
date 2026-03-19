@@ -90,22 +90,15 @@ static void openWebsite(const std::string& url)
 void AppUpdater::checkForUpdate()
 {
     printf("Update: Checking for app update...\n");
-    std::string s;
-    if (!HTTP::GetAsync(_ioService, _url, _headers,
-        [this](const int code, const std::string& content, const HTTP::Headers&)
+    GetCached(_url,
+        [this](const bool ok, const std::string& content)
         {
-            if (code == 200)
+            if (ok)
                 releasesResponse(content);
             else
-                fprintf(stderr, "Update: server returned code %d\n", code);
-        },
-        [](...)
-        {
-            fprintf(stderr, "Update: error getting response\n");
+                fprintf(stderr, "Update: error getting response\n");
         }
-    )) {
-        fprintf(stderr, "Update: error starting request\n");
-    }
+    );
 }
 
 void AppUpdater::releasesResponse(const std::string &content)
