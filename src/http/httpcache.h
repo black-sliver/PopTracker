@@ -30,10 +30,13 @@ protected:
         return GetRandomName(std::string_view{suffix}, len);
     }
 
+    void flush();
+
     asio::io_service *_asio = nullptr;
     fs::path _cacheFile;
     fs::path _cacheDir;
     std::list<std::string> _httpDefaultHeaders;
     json _cache = json::object();
     int _minAge = 60; // don't fetch if less than X seconds old
+    bool _cacheDirty = false;
 };
