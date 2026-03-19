@@ -1,5 +1,6 @@
 #include "httpcache.h"
 #include <random>
+#include <unordered_set>
 #include <utility>
 #include "../core/fileutil.h"
 #include "../core/util.h"
@@ -43,9 +44,56 @@ HTTPCache::HTTPCache(asio::io_service *asio, fs::path cacheFile, fs::path cacheD
     } catch (...) {
         printf("Could not load http cache!\n");
     }
-    // TODO: clean out cache:
-    // * delete entries older than 3months
-    // * sync files <-> json
+    // remove cached files where JSON says they are older than 3 months
+    // and remove all JSON entries that have no matching file
+    static_assert(sizeof(time_t) > 4, "This platform wouldn't work past 2038");
+    const auto deleteCachedBefore = time(nullptr) - 3 * 30 * 24 * 60 * 60;
+    std::unordered_set<std::string> keptFiles;
+    for (auto it = _cache.begin(); it != _cache.end();) {
+        bool keepEntry = false;
+        try {
+            const std::string& file = it.value().at("file");
+            const bool fileValid = file.find('/') == std::string::npos && file.find('\\') == std::string::npos;
+            if (fileValid && fs::is_regular_file(_cacheDir / fs::u8path(file))) {
+                auto timeStampIt = it.value().find("timestamp");
+                if (timeStampIt == it.value().end() || !timeStampIt->is_number() ||
+                        timeStampIt->get<time_t>() < deleteCachedBefore) {
+                    // file exists and older than 3 months (or bad timestamp)
+                    fs::error_code ec;
+                    fs::remove(_cacheDir / fs::u8path(file), ec);
+                    if (ec) {
+                        fprintf(stderr, "WARNING: Could not remove HTTP Cache file %s for %s\n",
+                            sanitize_print(file).c_str(), sanitize_print(it.key()).c_str());
+                    }
+                } else {
+                    // file exists and newer than 3 months -> keep
+                    keepEntry = true;
+                    keptFiles.emplace(file);
+                }
+            }
+            // else: file invalid or missing -> just remove from cache
+        } catch (...) {
+            // invalid cache entry -> remove
+        }
+        if (keepEntry) {
+            ++it;
+        } else {
+            it = _cache.erase(it);
+            _cacheDirty = true;
+        }
+    }
+    // remove all files that have no JSON entry and are older than 1 week (likely temp downloads)
+    std::chrono::system_clock::time_point deleteTempBefore = std::chrono::system_clock::now()
+        - std::chrono::seconds(7 * 24 * 60 * 60);
+    for (const auto& dirEntry: fs::recursive_directory_iterator{_cacheDir}) {
+        if (dirEntry.is_regular_file()) {
+            std::chrono::system_clock::time_point mTime;
+            if (!keptFiles.count(fs::path(dirEntry.path()).filename().u8string())
+                    && getFileMTime(dirEntry.path(), mTime) && mTime < deleteTempBefore)
+                fs::remove(dirEntry.path());
+        }
+    }
+    flush();
 }
 
 HTTPCache::~HTTPCache()
