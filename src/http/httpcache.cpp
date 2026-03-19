@@ -48,7 +48,18 @@ HTTPCache::HTTPCache(asio::io_service *asio, fs::path cacheFile, fs::path cacheD
     // * sync files <-> json
 }
 
-HTTPCache::~HTTPCache() = default;
+HTTPCache::~HTTPCache()
+{
+    flush();
+}
+
+void HTTPCache::flush()
+{
+    if (_cacheDirty) {
+        _cacheDirty = false;
+        writeFile(_cacheFile, _cache.dump());
+    }
+}
 
 void HTTPCache::GetCached(const std::string& url, const std::function<void(bool, std::string)>& cb)
 {
@@ -79,7 +90,6 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
         // TODO: follow redirects
         if (code == HTTP::OK) {
             // success
-            bool flushCache = false;
             // delete old cache entry
             const auto oldCacheIt = _cache.find(url);
             if (oldCacheIt != _cache.end()) {
@@ -89,7 +99,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
                     fs::remove(oldPath, ec);
                 }
                 _cache.erase(oldCacheIt);
-                flushCache = true;
+                _cacheDirty = true;
             }
             // create new cache entry if etag is provided
             const auto etagIt = h.find("etag");
@@ -115,7 +125,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
                         {"etag", etagIt->second},
                         {"timestamp", t}
                     };
-                    flushCache = true;
+                    _cacheDirty = true;
                 } else if (fd >= 0) {
                     // write failed
                     const auto path = _cacheDir / name;
@@ -128,9 +138,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
                     printf("Could not create cache file!\n");
                 }
             }
-            if (flushCache) {
-                writeFile(_cacheFile, _cache.dump());
-            }
+            flush();
             // return result
             cb(true, r);
         }
@@ -141,6 +149,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
             if (cacheIt.value()["file"].is_string() && readFile(_cacheDir / fs::u8path(cacheIt.value()["file"].get<std::string>()), cached)) {
                 time_t t = time(nullptr);
                 _cache[url]["timestamp"] = t;
+                _cacheDirty = true; // will flush later
                 cb(true, cached);
             } else {
                 printf("Cache destroyed for %s\n", sanitize_print(url).c_str());
