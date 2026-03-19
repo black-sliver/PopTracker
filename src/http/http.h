@@ -1,15 +1,15 @@
-#ifndef _HTTP_HTTP_H
-#define _HTTP_HTTP_H
+#pragma once
 
 #include <asio.hpp>
-#include <asio/ssl.hpp>
-#include <string>
-#include <iostream>
-#include <functional>
 #include <cstring>
+#include <functional>
+#include <iostream>
 #include <list>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <asio/ssl.hpp>
 
 #ifdef _MSC_VER 
 #define strncasecmp _strnicmp
@@ -30,15 +30,14 @@
 #endif
 
 using asio::ip::tcp;
-using std::placeholders::_1;
-using std::placeholders::_2;
+
 
 class HTTP {
 public:
     struct ci_less
     {
         // case-independent (ci) compare_less binary function
-        struct nocase_compare
+        struct lower_compare
         {
             bool operator() (const unsigned char& c1, const unsigned char& c2) const {
                 return tolower(c1) < tolower(c2);
@@ -46,9 +45,9 @@ public:
         };
         bool operator() (const std::string & s1, const std::string & s2) const {
             return std::lexicographical_compare(
-                    s1.begin(), s1.end(),   // source range
-                    s2.begin(), s2.end(),   // dest range
-                    nocase_compare());      // comparison
+                    s1.begin(), s1.end(), // source range
+                    s2.begin(), s2.end(), // dest range
+                    lower_compare());     // comparison
         }
     };
     typedef std::map<std::string, std::string, ci_less> Headers;
@@ -57,8 +56,8 @@ public:
     typedef std::function<void(void)> fail_callback;
     typedef std::function<void(int received, int total)> progress_callback;
     
-    static std::string certfile; // https://curl.se/docs/caextract.html
-    static std::set<std::string> dnt_trusted_hosts; // try not to send trackable headers to hosts other than these
+    static std::string certFile; // https://curl.se/docs/caextract.html
+    static std::set<std::string> dntTrustedHosts; // try not to send trackable headers to hosts other than these
 
     enum {
         INTERNAL_ERROR = -1,
@@ -96,11 +95,12 @@ public:
         return res;
     }
 
-    static bool GetAsync(asio::io_context& io_context, const std::string& uri, response_callback cb, fail_callback fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
+    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const response_callback& cb, const fail_callback& fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
     {
-        return GetAsync(io_context, uri, {}, cb, fail, f, progress);
+        return GetAsync(io_context, uri, {}, cb, fail, f, std::move(progress));
     }
-    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, response_callback cb, fail_callback fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
+
+    static bool GetAsync(asio::io_context& io_context, const std::string& uri, const std::list<std::string>& headers, const response_callback& cb, const fail_callback& fail = nullptr, FILE* f = nullptr, progress_callback progress = nullptr)
     {
         std::string proto, host, port, path;
         if (!parse_uri(uri, proto, host, port, path)) return false;
@@ -120,12 +120,13 @@ public:
                 "Host: " + host + "\r\n"
                 "User-Agent: PopTracker\r\n";
         for (const auto& header: headers) {
-            if (header.empty() || header.find("\n") != header.npos) {
+            if (header.empty() || header.find("\n") != std::string::npos) {
                 std::cerr << "Invalid headers supplied to GetAsync:\n  " << header << "\n";
                 return false;
             }
+            // Skip If-None-Match header if DNT is wanted and host is not trusted
             if (dnt != 0 && strncasecmp(header.c_str(), "If-None-Match:", 14) == 0 &&
-                    dnt_trusted_hosts.find(host) == dnt_trusted_hosts.end()) {
+                    dntTrustedHosts.find(host) == dntTrustedHosts.end()) {
                 continue;
             }
             request.append(header + "\r\n");
@@ -137,10 +138,11 @@ public:
         base_client *c;
         tcp::resolver *resolver;
         if (strcasecmp(proto.c_str(), "https") == 0) {
-            if (port.empty()) port = "443";
+            if (port.empty())
+                port = "443";
             resolver = new tcp::resolver(io_context);
             asio::error_code ec;
-            auto endpoints = resolver->resolve(host, port, ec);
+            const auto endpoints = resolver->resolve(host, port, ec);
             if (ec) {
                 std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
                 return false;
@@ -155,17 +157,17 @@ public:
                             | asio::ssl::context::single_dh_use);
 
             bool load_system_certs = true;
-            if (!certfile.empty()) {
-                http_debug << "HTTP: loading " << certfile << "\n";
+            if (!certFile.empty()) {
+                http_debug << "HTTP: loading " << certFile << "\n";
                 asio::error_code ec;
-                ctx.load_verify_file(certfile, ec);
+                ctx.load_verify_file(certFile, ec);
                 if (ec) {
                     std::cout << "HTTP: error loading certs from "
-                              << certfile << ": "
+                              << certFile << ": "
                               << ec.message() << "\n";
                 } else {
                     http_debug << "HTTP: loaded certs from "
-                          << certfile << "\n";
+                          << certFile << "\n";
                     load_system_certs = false;
                 }
             }
@@ -214,7 +216,7 @@ public:
             return false;
         }
         c->set_response_file(f); // if f is not null, output to file
-        c->set_progress_handler(progress);
+        c->set_progress_handler(std::move(progress));
 
         c->set_fail_handler([fail,resolver,c](...) {
             c->stop();
@@ -222,7 +224,7 @@ public:
             delete resolver;
             delete c;
         });
-        c->set_response_handler([cb,resolver,c](int code, const std::string& r, HTTP::Headers h) {
+        c->set_response_handler([cb,resolver,c](const int code, const std::string& r, const Headers& h) {
             c->stop();
             if (cb) cb(code, r, h);
             delete resolver;
@@ -240,17 +242,17 @@ public:
 
     static bool parse_uri(const std::string& uri, std::string& proto, std::string& host, std::string& port, std::string& path)
     {
-        auto allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
+        const auto allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
         for (const auto c: uri)
             if (!strchr(allowed, c))
                 return false;
-        std::string::size_type pos = uri.find("://");
-        if (pos == uri.npos)
+        const std::string::size_type pos = uri.find("://");
+        if (pos == std::string::npos)
             return false;
         proto = uri.substr(0, pos);
-        std::string::size_type pos2 = uri.find("/", pos+3);
-        std::string::size_type pos3 = uri.find(":", pos+3);
-        if (pos2 == uri.npos && pos3 == uri.npos) {
+        const std::string::size_type pos2 = uri.find('/', pos+3);
+        const std::string::size_type pos3 = uri.find(':', pos+3);
+        if (pos2 == std::string::npos && pos3 == std::string::npos) {
             host = uri.substr(pos+3);
             port = "";
             path = "";
@@ -260,7 +262,7 @@ public:
             path = uri.substr(pos2);
         } else {
             host = uri.substr(pos+3, pos3-(pos+3));
-            if (pos2 == uri.npos) {
+            if (pos2 == std::string::npos) {
                 port = uri.substr(pos3+1);
                 path = "";
             } else {
@@ -274,15 +276,15 @@ public:
 private:
     static bool parse_long(const char* s, long& out)
     {
-        char* next = NULL;
-        long res = strtol(s, & next, 10);
+        char* next = nullptr;
+        const long res = strtol(s, &next, 10);
         if (errno == 0 && next != s) {
             out = res;
             return true;
         }
         return false;
     }
-    
+
 #ifdef _WIN32
     // https://stackoverflow.com/questions/39772878/reliable-way-to-get-root-ca-certificates-on-windows/40710806
     static void add_windows_root_certs(asio::ssl::context &ctx)
@@ -328,23 +330,21 @@ private:
         }
 
     public:
-        virtual ~base_client()
-        {
-        }
+        virtual ~base_client() = default;
 
         void set_response_handler(response_callback cb)
         {
-            response_handler = cb;
+            response_handler = std::move(cb);
         }
 
         void set_fail_handler(fail_callback cb)
         {
-            fail_handler = cb;
+            fail_handler = std::move(cb);
         }
 
         void set_progress_handler(progress_callback cb)
         {
-            progress_handler = cb;
+            progress_handler = std::move(cb);
         }
 
         int get_error_code() const
@@ -372,7 +372,7 @@ private:
             asio::async_write(
                 socket_,
                 asio::buffer(request.data(), requestLength),
-                [this, requestLength, &socket_](const asio::error_code& error, std::size_t written)
+                [this, requestLength, &socket_](const asio::error_code& error, const std::size_t written)
                 {
                     // TODO: handle written < requestLength
                     if (!error && written == requestLength) {
@@ -419,13 +419,13 @@ private:
                 }
             });
         }
-        
-        bool parse_header(const std::string& in, std::string& name, std::string& value)
+
+        static bool parse_header(const std::string& in, std::string& name, std::string& value)
         {
-            std::string::size_type pos = in.find(":");
-            if (pos == in.npos) return false;
+            const std::string::size_type pos = in.find(':');
+            if (pos == std::string::npos) return false;
             name = in.substr(0, pos);
-            value = in.substr(in.find_first_not_of(" ", pos+1));
+            value = in.substr(in.find_first_not_of(' ', pos + 1));
             return true;
         }
 
@@ -435,14 +435,15 @@ private:
             while (true) {
                 if (code == -1) {
                     // handle status line
-                    auto pos = data.find("\r\n");
-                    if (pos != data.npos) {
+                    const auto pos = data.find("\r\n");
+                    if (pos != std::string::npos) {
+                        // ReSharper disable once CppDFAUnreachableCode // only reachable if debug is on
                         http_debug << "HTTP: Status: " << data.substr(0, pos) << "\n";
                         if (strncasecmp(data.c_str(), "HTTP/1.", 7) == 0) {
                             char* next = nullptr;
-                            code = (int)strtol(data.c_str() + 9, &next, 10);
+                            code = static_cast<int>(strtol(data.c_str() + 9, &next, 10));
                             if (next && *next) {
-                                auto p = next-data.c_str();
+                                const auto p = next - data.c_str();
                                 status = data.substr(p+1, pos-p-1);
                             }
                         }
@@ -451,7 +452,8 @@ private:
                             content = "bad status";
                             code = -1;
                             return true;
-                        } else if (code<200 || code>=300) {
+                        }
+                        if (code<200 || code>=300) {
                             content = status;
                         }
                         last_pos = pos + 2;
@@ -462,8 +464,8 @@ private:
                 }
                 else if (!in_content) {
                     // handle headers
-                    auto pos = data.find("\r\n", last_pos);
-                    if (pos != data.npos) {
+                    const auto pos = data.find("\r\n", last_pos);
+                    if (pos != std::string::npos) {
                         // check if headers are done
                         if (pos == last_pos) {
                             in_content = true;
@@ -490,7 +492,7 @@ private:
                             }
                         }
                         else if (strcasecmp(name.c_str(), "Content-Length") == 0) {
-                            content_length = (size_t)std::stoll(value);
+                            content_length = static_cast<size_t>(std::stoll(value));
                         }
                         else if (strcasecmp(name.c_str(), "Location") == 0) {
                             location = value;
@@ -505,7 +507,7 @@ private:
                 else if (chunked) {
                     // handle chunked content
                     size_t pos = data.find("\r\n", last_pos);
-                    if (pos == data.npos) {
+                    if (pos == std::string::npos) {
                         if (data.length() - last_pos >= 18) {
                             // invalid chunk header
                             code = -1;
@@ -515,7 +517,7 @@ private:
                         break;
                     }
                     char* next = nullptr;
-                    size_t chunk_len = (size_t)strtoll(data.c_str()+last_pos, &next, 16);
+                    const auto chunk_len = static_cast<size_t>(strtoll(data.c_str() + last_pos, &next, 16));
                     if (next != data.c_str()+pos) {
                         // bad chunk header
                         code = -1;
@@ -545,7 +547,7 @@ private:
                 }
                 else {
                     // handle regular content
-                    size_t chunk_len = data.length() - last_pos;
+                    const size_t chunk_len = data.length() - last_pos;
                     if (response_file) {
                         if (fwrite(data.c_str()+last_pos, 1, chunk_len, response_file) != chunk_len) {
                             code = INTERNAL_ERROR;
@@ -563,9 +565,10 @@ private:
                 }
             }
             if (last_pos) data = data.substr(last_pos);
-            if (in_content && progress_handler && received_length && (received_length-last_progress_report>=2048 || received_length == content_length)) {
+            if (in_content && progress_handler && received_length
+                    && (received_length-last_progress_report>=2048 || received_length == content_length)) {
                 last_progress_report = received_length;
-                progress_handler((int)received_length, (int)content_length);
+                progress_handler(static_cast<int>(received_length), static_cast<int>(content_length));
             }
             if (in_content && !chunked) return received_length >= content_length;
             return false;
@@ -597,7 +600,7 @@ private:
     class verbose_verification
     {
     public:
-        verbose_verification(V verifier)
+        explicit verbose_verification(V verifier)
           : verifier_(verifier)
         {}
 
@@ -625,11 +628,9 @@ private:
             connect(endpoints);
         }
 
-        virtual ~tcp_client()
-        {
-        }
+        ~tcp_client() override = default;
 
-        virtual void stop() {
+        void stop() override {
             socket_.close();
         }
 
@@ -655,7 +656,7 @@ private:
 
         tcp::socket socket_;
     };
-    
+
     class ssl_client : public base_client
     {
     public:
@@ -681,15 +682,14 @@ private:
             connect(endpoints);
         }
 
-        virtual ~ssl_client()
-        {
-        }
+        ~ssl_client() override = default;
 
-        virtual void stop() {
+        void stop() override {
             asio::error_code ec;
             socket_.shutdown(ec);
             // if we get an error here, SSL connection probably just failed
             if (ec) {
+                // ReSharper disable once CppDFAUnreachableCode // only reachable if debug is on
                 http_debug << "HTTP: ssl shutdown failed: " << ec.message() << "\n";
                 // if SSL was not up, try to close the underlying socket
                 socket_.lowest_layer().close(ec);
@@ -741,5 +741,3 @@ private:
         asio::ssl::stream<tcp::socket> socket_;
     };
 };
-
-#endif // _HTTP_HTTP_H

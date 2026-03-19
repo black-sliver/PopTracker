@@ -366,7 +366,7 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     }
 
     _asio = new asio::io_service();
-    HTTP::certfile = asset("cacert.pem").u8string(); // https://curl.se/docs/caextract.html
+    HTTP::certFile = asset("cacert.pem").u8string(); // https://curl.se/docs/caextract.html
 
     _packManager = new PackManager(_asio, getConfigPath(APPNAME, "", _isPortable), _httpDefaultHeaders);
     // TODO: move repositories to config?

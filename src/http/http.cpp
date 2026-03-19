@@ -1,7 +1,7 @@
 #include "http.h"
 
-std::string HTTP::certfile;
-std::set<std::string> HTTP::dnt_trusted_hosts = {
+std::string HTTP::certFile;
+std::set<std::string> HTTP::dntTrustedHosts = {
     "github.com",
     "www.github.com",
     "api.github.com",

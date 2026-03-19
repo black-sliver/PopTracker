@@ -14,7 +14,7 @@
 int main(int argc, char **argv) {
     printf("Running main() from %s\n", __FILE__);
 
-    HTTP::certfile = asset("cacert.pem").u8string();
+    HTTP::certFile = asset("cacert.pem").u8string();
 
     SETUP_MOCK();
 
