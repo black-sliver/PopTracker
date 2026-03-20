@@ -90,22 +90,15 @@ static void openWebsite(const std::string& url)
 void AppUpdater::checkForUpdate()
 {
     printf("Update: Checking for app update...\n");
-    std::string s;
-    if (!HTTP::GetAsync(_ioService, _url, _headers,
-        [this](const int code, const std::string& content, const HTTP::Headers&)
+    GetCached(_url,
+        [this](const bool ok, const std::string& content)
         {
-            if (code == 200)
+            if (ok)
                 releasesResponse(content);
             else
-                fprintf(stderr, "Update: server returned code %d\n", code);
-        },
-        [](...)
-        {
-            fprintf(stderr, "Update: error getting response\n");
+                fprintf(stderr, "Update: error getting response\n");
         }
-    )) {
-        fprintf(stderr, "Update: error starting request\n");
-    }
+    );
 }
 
 void AppUpdater::releasesResponse(const std::string &content)
@@ -315,7 +308,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
 
     for (int i=0; i<5; i++) {
         std::string name = GetRandomName(ext);
-        path = _cachedir / name;
+        path = _cacheDir / name;
 #ifdef _WIN32
         fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
 #else

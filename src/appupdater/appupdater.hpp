@@ -18,12 +18,12 @@ namespace pop {
 
         AppUpdater(asio::io_service& ioService, const std::list<std::string>& headers, std::string_view owner,
             std::string_view repo, const bool includePrereleases, fs::path ignoreVersionsPath, const fs::path& cacheDir)
-            : HTTPCache(&ioService, cacheDir / "update-cache.json", cacheDir / "update-cache", headers),
-              _ioService(ioService), _headers(headers), _includePrerelease(includePrereleases),
-              _ignoreVersionsPath(std::move(ignoreVersionsPath))
+            : HTTPCache(&ioService, cacheDir / "update-cache.json", cacheDir / "update-cache", headers)
+            , _includePrerelease(includePrereleases)
+            , _ignoreVersionsPath(std::move(ignoreVersionsPath))
         {
             _repo = fmt::format("{}/{}", owner, repo);
-            _url = fmt::format("https://api.github.com/repos/{}/releases?per_page=8", _repo);
+            _url = fmt::format("https://api.github.com/repos/{}/releases?per_page=12", _repo);
         }
 
         /// Start checking for app updates
@@ -54,8 +54,6 @@ namespace pop {
         /// returns true if major, minor and revision of v and current PopTracker is the same
         static bool isSameBaseVersion(const Version &v);
 
-        asio::io_service& _ioService;
-        const std::list<std::string>& _headers;
         std::string _repo;
         std::string _url;
         bool _includePrerelease;

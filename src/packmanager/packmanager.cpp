@@ -258,7 +258,7 @@ void PackManager::downloadUpdate(const std::string& url, const fs::path& install
     int fd = -1;
     for (int i=0; i<5; i++) {
         std::string name = GetRandomName(".zip");
-        path = _cachedir / name;
+        path = _cacheDir / name;
 #ifdef _WIN32
         fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
 #else
