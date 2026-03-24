@@ -16,7 +16,7 @@
 
 namespace Ui {
 
-using Renderer = SDL_Renderer*;
+using Renderer = SDL_Renderer* const;
 
 enum MouseButton { // TODO: enum class
     BUTTON_LEFT = SDL_BUTTON_LEFT,
