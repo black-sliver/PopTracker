@@ -27,8 +27,8 @@ void TextureManager::remove(const Renderer renderer)
 }
 
 TextureManager::TextureManager(Renderer renderer)
+    : _renderer(renderer)
 {
-    _renderer = renderer;
 }
 
 SDL_Texture *TextureManager::get(const fs::path &path)
