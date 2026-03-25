@@ -1,0 +1,22 @@
+[
+	{
+		"name": "A",
+		"type": "toggle",
+		"img": "images/a.png",
+		"codes": "a"
+    },
+    {
+		"name": "B",
+		"type": "consumable",
+		"img": "images/b.png",
+		"codes": "b",
+		"overlay_align": "left"
+    },
+    {
+		"name": "C",
+		"type": "consumable",
+		"img": "images/c.png",
+		"codes": "c",
+		"overlay_align": "left"
+    }
+]
