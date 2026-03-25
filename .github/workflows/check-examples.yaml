@@ -32,6 +32,13 @@ jobs:
           pack: examples/ap-storage-example
           strict: true
 
+      - name: Check classes-test
+        uses: PopTracker/pack-checker-action@v1
+        with:
+          schema: schema/packs/
+          pack: examples/classes-test
+          strict: true
+
       - name: Check hosted_item
         uses: PopTracker/pack-checker-action@v1
         with:
