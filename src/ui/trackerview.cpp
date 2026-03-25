@@ -920,11 +920,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         (name.substr(5) == mapname || name.substr(5) == numberedMapName)) {
                     size_t next = 0;
                     const float zoom = std::stof(value, &next);
-                    if (next) {
-                        const auto [panCenterX, panCenterY] = w->getPanCenter();
+                    if (next)
                         w->setZoom(zoom);
-                        w->setPanCenter(panCenterX, panCenterY);
-                    }
                 } else if (name.rfind("Pan ", 0) == 0 &&
                         (name.substr(4) == mapname || name.substr(4) == numberedMapName)) {
                     size_t next = 0;
