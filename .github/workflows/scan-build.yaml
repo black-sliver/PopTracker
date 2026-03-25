@@ -29,6 +29,8 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ github.actor }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   scan-build:
     strategy:

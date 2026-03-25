@@ -13,6 +13,8 @@ on:
       - 'examples/**'
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
 
   check-examples:
