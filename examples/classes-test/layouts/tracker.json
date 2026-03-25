@@ -1,0 +1,33 @@
+{
+	"tracker_default": {
+		"type": "container",
+        "content":
+        {
+            "class": "dark-orange-background",
+            "type": "array",
+            "orientation": "vertical",
+            "margin": "0,0,0,0",
+            "content": [
+                {
+                    "type": "array",
+                    "orientation": "horizontal",
+                    "margin": "0,0,0,0",
+                    "content": [
+                        {
+                            "type": "itemgrid",
+                            "rows": [ [ "red7x8" ] ]
+                        },
+                        {
+                            "type": "itemgrid",
+                            "rows": [ [ "green7x8" ] ]
+                        },
+                        {
+                            "type": "itemgrid",
+                            "rows": [ [ "blue7x8" ] ]
+                        }
+                    ]
+                }
+            ]
+        }
+	}
+}
