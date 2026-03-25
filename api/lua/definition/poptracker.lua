@@ -20,7 +20,7 @@
 
 ---Currently running PopTracker version as string "x.y.z".
 ---@type string
-PopVersion = "0.33.1"
+PopVersion = "0.34.1"
 -- Actual value comes from the program, not from here, but try to keep in sync with API version here.
 
 ---Set to true or an array of strings to get more error or debug output.
