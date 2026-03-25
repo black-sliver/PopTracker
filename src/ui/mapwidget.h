@@ -83,12 +83,10 @@ protected:
 
 private:
     void connectSignals();
-    void calculateSizes(int left, int top, int& srcw, int& srch, int& dstx, int& dsty, int& dstw, int& dsth);
-    void calculateZoomedView(int offX, int offY, float& effectiveScale, int& srcVisW, int& srcVisH,
-                             int& dstx, int& dsty, int& dstw, int& dsth);
-    void calculateLocationScreenRect(const Point& pos, int imgScreenX, int imgScreenY,
-                                      float effectiveScale, float baseScale,
-                                      int& innerX, int& innerY, int& innerW, int& innerH, int& borderSize);
+    void calculateSrcAndDst(int offX, int offY, bool clip, float& baseScale, SDL_Rect& srcRect,
+        SDL_FRect& dstRect) const;
+    static void calculateLocationScreenRect(const Point& pos, const SDL_Rect& srcRect, const SDL_FRect& dstRect,
+        float baseScale, int& innerX, int& innerY, int& innerW, int& innerH, int& borderSize);
 };
 
 } // namespace Ui
