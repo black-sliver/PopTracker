@@ -24,6 +24,8 @@ on:
       - '!.github/workflows/**'
       - '.github/workflows/test.yaml'
 
+permissions: {}
+
 jobs:
 
   test:
