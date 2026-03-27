@@ -95,9 +95,23 @@ ifneq '' '$(findstring clang,$(CC))'
   IS_LLVM = yes
 endif
 
+# detect if we should enable x86/amd64 specific compiler features
 ifdef IS_WIN
   TEST_SRC += $(wildcard $(LIB_DIR)/gmock-win32/src/*.cpp)
   TEST_HDR += $(wildcard $(LIB_DIR)/gmock-win32/include/*.h)
+  ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+    IS_X86 = yes
+  endif
+  ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+    IS_X86 = yes
+  endif
+else
+  ifeq ($(shell uname -m),x86_64)
+    IS_X86 = yes
+  endif
+  ifneq ($(filter %86,$(shell uname -m)),)
+    IS_X86 = yes
+  endif
 endif
 
 # output
@@ -242,9 +256,11 @@ LUA_C_FLAGS += -Wno-error=maybe-uninitialized
 endif
 
 ifndef IS_OSX
+ifdef IS_X86
 C_FLAGS += -fstack-clash-protection
 CPP_FLAGS += -fstack-clash-protection
 LUA_C_FLAGS += -fstack-clash-protection
+endif
 endif
 
 ifdef WITH_ASAN
