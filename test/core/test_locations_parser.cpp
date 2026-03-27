@@ -27,7 +27,7 @@ TEST(LocationsParserTest, LocationRulesInheritAndEmpty) {
 }
 
 TEST(LocationsParserTest, SectionRulesInheritAndEmpty) {
-    // TODO: validate indirectly by checking accessibility/visibiltiy via Tracker
+    // TODO: validate indirectly by checking accessibility/visibility via Tracker
     json locationNode = R"(
         {
             "name": "location",
