@@ -283,4 +283,3 @@ jobs:
           dist/*.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # The windows dist zips are created with a custom SDL on a bleeding edge arch linux mingw. See `make cross`.
