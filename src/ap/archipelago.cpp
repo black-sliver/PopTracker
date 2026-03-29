@@ -1,9 +1,10 @@
 #include "archipelago.h"
 #include <limits>
+#include <luaglue/luaenum.h>
 #include <luaglue/luamethod.h>
 #include <luaglue/luapp.h>
 #include <luaglue/lua_json.h>
-#include <luaglue/luaenum.h>
+#include "../core/tracker.h"
 
 
 const LuaInterface<Archipelago>::MethodMap Archipelago::Lua_Methods = {
@@ -42,15 +43,17 @@ bool Archipelago::AddClearHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onClear += {this, [this, ref, name](void*, const json& slotData) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         json_to_lua(_L, slotData);
-        if (lua_pcall(_L, 1, 0, 0)) {
+        if (lua_pcall(_L, 1, 0, -3)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ClearHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
             luaL_dostring(_L, "Tracker.BulkUpdate = false");
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -60,17 +63,19 @@ bool Archipelago::AddItemHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onItem += {this, [this, ref, name](void*, int index, int64_t item, const std::string& item_name, int player) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(index);
         Lua(_L).Push(item);
         Lua(_L).Push(item_name.c_str());
         Lua(_L).Push(player);
-        if (lua_pcall(_L, 4, 0, 0)) {
+        if (lua_pcall(_L, 4, 0, -6)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ItemHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -80,15 +85,17 @@ bool Archipelago::AddLocationHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onLocationChecked += {this, [this, ref, name](void*, int64_t location, const std::string& location_name) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());
-        if (lua_pcall(_L, 2, 0, 0)) {
+        if (lua_pcall(_L, 2, 0, -4)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago LocationHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -99,18 +106,20 @@ bool Archipelago::AddScoutHandler(const std::string& name, LuaRef callback)
     int ref = callback.ref;
     _ap->onScout += {this, [this, ref, name](void*, int64_t location, const std::string& location_name,
             int64_t item, const std::string& item_name, int player) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
         Lua(_L).Push(location_name.c_str());
         Lua(_L).Push(item);
         Lua(_L).Push(item_name.c_str());
         Lua(_L).Push(player);
-        if (lua_pcall(_L, 5, 0, 0)) {
+        if (lua_pcall(_L, 5, 0, -7)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ScoutHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -120,14 +129,16 @@ bool Archipelago::AddBouncedHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onBounced += {this, [this, ref, name](void*, const json& data) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         json_to_lua(_L, data);
-        if (lua_pcall(_L, 1, 0, 0)) {
+        if (lua_pcall(_L, 1, 0, -3)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago BouncedHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -138,15 +149,17 @@ bool Archipelago::AddRetrievedHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onRetrieved += {this, [this, ref, name](void*, const std::string& key, const json& value) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());
         json_to_lua(_L, value);
-        if (lua_pcall(_L, 2, 0, 0)) {
+        if (lua_pcall(_L, 2, 0, -4)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago RetrievedHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
@@ -156,16 +169,18 @@ bool Archipelago::AddSetReplyHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onSetReply += {this, [this, ref, name](void*, const std::string& key, const json& value, const json& old) {
+        lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());
         json_to_lua(_L, value);
         json_to_lua(_L, old);
-        if (lua_pcall(_L, 3, 0, 0)) {
+        if (lua_pcall(_L, 3, 0, -5)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago SetReplyHandler for %s: %s\n",
                     name.c_str(), err ? err : "Unknown");
-            lua_pop(_L, 1);
+            lua_pop(_L, 1); // error
         }
+        lua_pop(_L, 1); // luaErrorHandler
     }};
     return true;
 }
