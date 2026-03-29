@@ -1,5 +1,25 @@
 # PopTracker Changelog
 
+## v0.35.0-rc1
+
+* App Features
+  * Rework zoom and pan to allow smooth panning on high zoom levels
+  * Make progressbar look nicer
+  * Add 64bit ARM build for Linux
+    * only as .tar.gz for now
+    * requires libsdl2, libsdl2-image, libsdl2-ttf and libssl to be installed
+  * Cleanup download caches on startup
+  * Support HTTP redirects when going through cache, reduce requests by making better use of caching
+  * Update bundled SSL
+* Pack Features
+  * Add support for classes to layout, see doc/PACKS.md for details
+  * Lua: properly support panning when zoomed and zooming when panned
+  * Lua: use error handler for Archipelago callbacks that can report the call stack for errors
+* Fixes
+  * Properly handle (ignore) broken HTTP cache index files
+  * Fix HTTP doing an if-modified request even if the cache entry is new enough to be used directly 
+
+
 ## v0.34.0
 
 * App Features
