@@ -216,9 +216,9 @@ bool Ui::render()
                 }
                 case SDL_MOUSEBUTTONUP: {
                     EVENT_LOCK(this);
-                    int button = ev.button.button;
-                    int x = ev.button.x;
-                    int y = ev.button.y;
+                    const int button = ev.button.button;
+                    const int x = ev.button.x;
+                    const int y = ev.button.y;
                     auto winIt = _windows.find(ev.button.windowID);
                     if (winIt != _windows.end()) {
                         winIt->second->onClick.emit(winIt->second, x, y, button);
