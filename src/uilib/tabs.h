@@ -31,8 +31,9 @@ public:
     /// reserves memory for the tabs
     void reserve(size_t size);
 
-    bool isHit(int x, int y) const override {
-        return _buttonbox->isHit(x - _pos.left, y - _pos.top) || Container::isHit(x, y);
+    size_t getTabCount() const
+    {
+        return _children.size() - 1;
     }
 
 protected:
