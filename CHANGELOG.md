@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.35.0-rc1
+## v0.35.0
 
 * App Features
   * Rework zoom and pan to allow smooth panning on high zoom levels
@@ -18,7 +18,7 @@
 * Fixes
   * Properly handle (ignore) broken HTTP cache index files
   * Fix HTTP doing an if-modified request even if the cache entry is new enough to be used directly 
-
+  * Don't register click on mouse button release if the mouse press was in a different widget
 
 ## v0.34.0
 
