@@ -211,7 +211,13 @@ bool Ui::render()
                 case SDL_MOUSEBUTTONDOWN: {
                     // clear/cancel cached "global" event (see above or below)
                     _globalMouseButtons = 0;
-                    // ignore. We click() on SDL_MOUSEBUTTONUP
+                    const int button = ev.button.button;
+                    const int x = ev.button.x;
+                    const int y = ev.button.y;
+                    auto winIt = _windows.find(ev.button.windowID);
+                    if (winIt != _windows.end()) {
+                        winIt->second->onMouseDown.emit(winIt->second, x, y, button);
+                    }
                     break;
                 }
                 case SDL_MOUSEBUTTONUP: {

@@ -14,6 +14,8 @@ namespace Ui {
 class Container : public Widget {
 public:
     ~Container() override {
+        onMouseCancel -= this;
+        onMouseDown -= this;
         Container::clearChildren();
     }
 
@@ -29,6 +31,10 @@ public:
         if (child == _hoverChild) {
             _hoverChild = nullptr;
             child->onMouseLeave.emit(child);
+        }
+        if (child == _pressedChild) {
+            _pressedChild = nullptr;
+            child->onMouseCancel.emit(child);
         }
         _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
         if ((_hGrow>0 && child->getHGrow()>=_hGrow) || (_vGrow>0 && child->getVGrow()>=_vGrow)) {
@@ -51,6 +57,10 @@ public:
         if (_hoverChild) {
             _hoverChild->onMouseLeave.emit(_hoverChild);
             _hoverChild = nullptr;
+        }
+        if (_pressedChild) {
+            _pressedChild->onMouseCancel.emit(_pressedChild);
+            _pressedChild = nullptr;
         }
         for (const auto child : _children) {
             delete child;
@@ -138,13 +148,31 @@ protected:
     explicit Container(const int x=0, const int y=0, const int w=0, const int h=0)
         : Widget(x,y,w,h)
     {
+        onMouseDown += { this, [this](void*, const int x, const int y, const int button) {
+            for (auto childIt = _children.rbegin(); childIt != _children.rend(); ++childIt) {
+                const auto child = *childIt;
+                if (child->getVisible() && child->isHit(x, y)) {
+                    _pressedChild = child;
+                    child->onMouseDown.emit(child, x - child->getLeft(), y - child->getTop(), button);
+                    break;
+                }
+            }
+        }};
         onClick += { this, [this](void*, const int x, const int y, const int button) {
             for (auto childIt = _children.rbegin(); childIt != _children.rend(); ++childIt) {
                 const auto child = *childIt;
                 if (child->getVisible() && child->isHit(x, y)) {
-                    child->onClick.emit(child, x-child->getLeft(), y-child->getTop(), button);
+                    const auto oldPressedChild = _pressedChild;
+                    if (oldPressedChild == child) {
+                        _pressedChild = nullptr;
+                        child->onClick.emit(child, x - child->getLeft(), y - child->getTop(), button);
+                    }
                     break;
                 }
+            }
+            if (const auto oldPressedChild = _pressedChild) {
+                _pressedChild = nullptr;
+                oldPressedChild->onMouseCancel.emit(oldPressedChild);
             }
         }};
         onMouseMove += { this, [this](void*, const int x, const int y, const unsigned buttons) {
@@ -180,6 +208,12 @@ protected:
             if (const auto oldHoverChild = _hoverChild) {
                 _hoverChild = nullptr;
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
+            }
+        }};
+        onMouseCancel += { this, [this](void*) {
+            if (const auto oldPressedChild = _pressedChild) {
+                _pressedChild = nullptr;
+                oldPressedChild->onMouseCancel.emit(oldPressedChild);
             }
         }};
         onScroll += { this, [this](void*, const int x, const int y, const unsigned mod) {
