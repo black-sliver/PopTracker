@@ -235,10 +235,12 @@ public:
     void setMargin(const Spacing& margin) { _margin = margin; }
     const Spacing& getMargin() const { return _margin; }
 
+    Signal<int, int, int> onMouseDown;
     Signal<int,int,int> onClick; // TODO: MouseClickEventArgs& ?
     Signal<int,int,unsigned> onMouseMove; // TODO: MouseMoveEventArgs& ?
     Signal<int,int,unsigned> onMouseEnter;
     Signal<> onMouseLeave;
+    Signal<> onMouseCancel;
     Signal<int,int,unsigned> onScroll;
     Signal<> onDestroy;
 
