@@ -1,9 +1,8 @@
-#ifndef _UILIB_CONTAINER_H
-#define _UILIB_CONTAINER_H
+#pragma once
 
-#include "widget.h"
-#include <deque>
 #include <algorithm>
+#include <deque>
+#include "widget.h"
 
 #ifndef NDEBUG
 #include <typeinfo>
@@ -14,15 +13,17 @@ namespace Ui {
 
 class Container : public Widget {
 public:
-    virtual ~Container() {
-        clearChildren();
+    ~Container() override {
+        Container::clearChildren();
     }
+
     virtual void addChild(Widget* child) {
         if (!child) return;
         _children.push_back(child);
         if (child->getHGrow()>_hGrow) _hGrow = child->getHGrow();
         if (child->getVGrow()>_vGrow) _vGrow = child->getVGrow();
     }
+
     virtual void removeChild(Widget* child) {
         if (!child) return;
         if (child == _hoverChild) {
@@ -51,11 +52,12 @@ public:
             _hoverChild->onMouseLeave.emit(_hoverChild);
             _hoverChild = nullptr;
         }
-        for (auto& child : _children) {
+        for (const auto child : _children) {
             delete child;
         }
         _children.clear();
     }
+
     virtual void raiseChild(Widget* child) {
         if (!child) return;
         for (auto it=_children.begin(); it!=_children.end(); it++) {
@@ -66,7 +68,8 @@ public:
             }
         }
     }
-    virtual void render(Renderer renderer, int offX, int offY) override {
+
+    void render(Renderer renderer, const int offX, const int offY) override {
         if (_backgroundColor.a > 0) {
             const auto& c = _backgroundColor;
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
@@ -82,13 +85,14 @@ public:
             if (child->getVisible())
                 child->render(renderer, offX+_pos.left, offY+_pos.top);
     }
+
     const std::deque<Widget*> getChildren() const { return _children; }
 
-    virtual bool isHover(Widget* w) const override {
+    bool isHover(Widget* w) const override {
         return (w == this || (_hoverChild && _hoverChild->isHover(w)));
     }
 
-    virtual bool isHit(int x, int y) const override {
+    bool isHit(int x, int y) const override {
         if (!_mouseInteraction)
             return false;
         if (_backgroundColor.a && Widget::isHit(x, y))
@@ -102,7 +106,7 @@ public:
         return false;
     }
 
-    virtual const Widget* getHit(int x, int y) const override {
+    const Widget* getHit(int x, int y) const override {
         for (const auto& w: _children) {
             if (w->getHit(x - w->getLeft(), y - w->getTop())) return w;
         }
@@ -129,23 +133,24 @@ public:
 protected:
     std::deque<Widget*> _children;
     Widget* _hoverChild = nullptr;
-    
-    Container(int x=0, int y=0, int w=0, int h=0)
+    Widget* _pressedChild = nullptr;
+
+    explicit Container(const int x=0, const int y=0, const int w=0, const int h=0)
         : Widget(x,y,w,h)
     {
-        onClick += { this, [this](void*, int x, int y, int button) {
-            for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
-                auto& child = *childIt;
+        onClick += { this, [this](void*, const int x, const int y, const int button) {
+            for (auto childIt = _children.rbegin(); childIt != _children.rend(); ++childIt) {
+                const auto child = *childIt;
                 if (child->getVisible() && child->isHit(x, y)) {
                     child->onClick.emit(child, x-child->getLeft(), y-child->getTop(), button);
                     break;
                 }
             }
         }};
-        onMouseMove += { this, [this](void*, int x, int y, unsigned buttons) {
+        onMouseMove += { this, [this](void*, const int x, const int y, const unsigned buttons) {
             auto oldHoverChild = _hoverChild;
             bool match = false;
-            for (auto childIt = _children.rbegin(); childIt != _children.rend(); childIt++) {
+            for (auto childIt = _children.rbegin(); childIt != _children.rend(); ++childIt) {
                 Widget* child = *childIt;
                 if (child->getVisible() && child->isHit(x, y)) {
                     if (child != oldHoverChild) {
@@ -172,13 +177,12 @@ protected:
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
         }};
         onMouseLeave += { this, [this](void*) {
-            auto oldHoverChild = _hoverChild;
-            if (oldHoverChild) {
+            if (const auto oldHoverChild = _hoverChild) {
                 _hoverChild = nullptr;
                 oldHoverChild->onMouseLeave.emit(oldHoverChild);
             }
         }};
-        onScroll += { this, [this](void*, int x, int y, unsigned mod) {
+        onScroll += { this, [this](void*, const int x, const int y, const unsigned mod) {
             if (_hoverChild)
                 _hoverChild->onScroll.emit(_hoverChild, x, y, mod);
         }};
@@ -186,5 +190,3 @@ protected:
 };
 
 } // namespace Ui
-
-#endif // _UILIB_CONTAINER_H
