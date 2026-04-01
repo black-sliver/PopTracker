@@ -252,10 +252,10 @@ void MapWidget::connectSignals()
             // At minimum zoom, scrolling down pans back to center
             // Use percentage of widget size for consistent feel across different image sizes
             constexpr float PAN_STEP_PERCENT = 0.3f; // 30% of widget size per scroll
-            const float screenStep = std::min(_size.width, _size.height) * PAN_STEP_PERCENT;
+            const float screenStep = static_cast<float>(std::min(_size.width, _size.height)) * PAN_STEP_PERCENT;
 
             // Convert screen pixels to image pixels
-            const float imageStep = (baseScale > 0) ? screenStep / baseScale : screenStep;
+            const float imageStep = (baseScale > 0) ? screenStep * baseScale : screenStep;
 
             const float dist = std::sqrt(_panX * _panX + _panY * _panY);
             if (dist <= imageStep) {
