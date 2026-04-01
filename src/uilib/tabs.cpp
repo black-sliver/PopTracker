@@ -21,35 +21,17 @@ static T* getFromVector(const std::vector<T*>& vec, int index)
     return nullptr;
 }
 
-Tabs::Tabs(int x, int y, int w, int h, FONT font)
+Tabs::Tabs(const int x, const int y, const int w, const int h, FONT font)
     : Container(x,y,w,h), _font(font)
 {
     _buttonbox = new HFlexBox(0, 0, w, 32, HFlexBox::HAlign::CENTER);
-    // hbox lives outside of _children, so we have to handle events manually.
-    // TODO: solve this differently? 
-    onClick += { this, [this](void*, int x, int y, int button) {
-        auto w = _buttonbox;
-        if (w->getVisible() &&
-                x >= w->getLeft() && x < w->getLeft()+w->getWidth() &&
-                y >= w->getTop()  && y < w->getTop() +w->getHeight())
-            w->onClick.emit(w, x-w->getLeft(), y-w->getTop(), button);
-        
-# if 0
-        x -= (_size.width-_buttonbox->getWidth())/2;
-        for (auto btn : _buttons) {
-            if (btn->getVisible() &&
-                    x >= btn->getLeft() && x < btn->getLeft()+btn->getWidth() &&
-                    y >= btn->getTop() && y < btn->getTop()+btn->getHeight())
-                btn->onClick.emit(btn, x-btn->getLeft(), y-btn->getTop(), button);
-        }
-#endif
-    }};
+    Container::addChild(_buttonbox);
 }
 
 Tabs::~Tabs()
 {
-    delete _buttonbox;
     _buttonbox = nullptr;
+    _tab = nullptr;
 }
 
 void Tabs::addChild(Widget* w)
@@ -58,10 +40,10 @@ void Tabs::addChild(Widget* w)
     _children.push_back(w);
     if (w->getHGrow() > _hGrow)
         _hGrow = w->getHGrow();
-    Button* btn = new Button(0,0,0,0,_font,"Tab");
+    auto* btn = new Button(0,0,0,0,_font,"Tab");
     btn->setSize(btn->getMinSize());
-    btn->onClick += {this, [this](void* sender,int, int, int) {
-        if ((void*)_tabButton == sender)
+    btn->onClick += {this, [this](const void* sender, int, int, int) {
+        if (static_cast<void *>(_tabButton) == sender)
             return; // already selected
         int n=0;
         if (_tabButton)
@@ -69,8 +51,9 @@ void Tabs::addChild(Widget* w)
         if (_tab)
             _tab->setVisible(false);
         auto childIt = _children.begin();
-        for (auto btn: _buttons) {
-            if ((void*)btn == sender) {
+        ++childIt; // first child is button box -> skip
+        for (const auto btn: _buttons) {
+            if (static_cast<void *>(btn) == sender) {
                 _tab = (*childIt);
                 _tabIndex = n;
                 _tabButton = btn;
@@ -100,6 +83,7 @@ void Tabs::removeChild(Widget *w)
     // remove tab and button
     {
         auto childIt = _children.begin();
+        ++childIt; // first child is button box -> skip
         auto buttonIt = _buttons.begin();
         for (; childIt!=_children.end(); ++childIt, ++buttonIt) {
             if (*childIt == w) {
@@ -118,7 +102,8 @@ void Tabs::removeChild(Widget *w)
     // if selected tab was removed, select next (or previous if no next)
     if (_tab == w) {
         _tab = nullptr;
-        auto it=_children.begin();
+        auto it = _children.begin();
+        ++it; // first child is button box -> skip
         for (int i = _tabIndex; it != _children.end() && i > 0; ++it, --i) {}
         if (it != _children.end()) {
             _tab = *it;
@@ -134,7 +119,7 @@ void Tabs::removeChild(Widget *w)
 
 void Tabs::setTabName(const int index, const std::string& name)
 {
-    auto btn = getFromVector(_buttons, index);
+    const auto btn = getFromVector(_buttons, index);
     if (btn && btn->getText() != name) {
         btn->setText(name);
         btn->setSize(btn->getMinSize());
@@ -144,7 +129,7 @@ void Tabs::setTabName(const int index, const std::string& name)
 
 void Tabs::setTabIcon(const int index, const void *data, const size_t len)
 {
-    if (auto btn = getFromVector(_buttons, index)) {
+    if (const auto btn = getFromVector(_buttons, index)) {
         btn->setIcon(data, len);
         btn->setSize(btn->getMinSize());
         relayout();
@@ -165,7 +150,7 @@ bool Tabs::setActiveTab(const std::string& name)
 
 bool Tabs::setActiveTab(const int index)
 {
-    if (auto btn = getFromVector(_buttons, index)) {
+    if (const auto btn = getFromVector(_buttons, index)) {
         if (btn != _tabButton)
             btn->onClick.emit(btn, 0, 0, MouseButton::BUTTON_LEFT);
         return true;
@@ -189,13 +174,17 @@ void Tabs::relayout()
     int top = _buttonbox->getHeight() + _spacing;
     auto size = getSize();
     size.height -= top;
-    for (auto& child : _children) {
+    for (const auto child : _children) {
+        if (child == _buttonbox)
+            continue;
         child->setTop(top);
         child->setSize(size);
     }
-    
+
     _minSize = _buttonbox->getMinSize();
-    for (auto& child : _children) {
+    for (const auto child : _children) {
+        if (child == _buttonbox)
+            continue;
         if (_buttonbox->getMinHeight() + child->getMinHeight() + _spacing > _minSize.height) {
             _minSize.height = _buttonbox->getMinHeight() + child->getMinHeight() + _spacing;
         }
@@ -203,7 +192,7 @@ void Tabs::relayout()
             _minSize.width = child->getMinWidth();
         }
     }
-    
+
     if (_size.width < _minSize.width || _size.height < _minSize.height) {
         setSize(_size||_minSize);
         return;
@@ -222,9 +211,12 @@ void Tabs::render(Renderer renderer, int offX, int offY)
 
 void Tabs::setSize(Size size)
 {
-    if (size == _size) return;
-    if (size.width < _minSize.width) size.width = _minSize.width;
-    if (size.height < _minSize.height) size.height = _minSize.height;
+    if (size == _size)
+        return;
+    if (size.width < _minSize.width)
+        size.width = _minSize.width;
+    if (size.height < _minSize.height)
+        size.height = _minSize.height;
     _size = size;
     relayout();
 }
@@ -235,4 +227,3 @@ void Tabs::reserve(const size_t size)
 }
 
 } // namespace
-

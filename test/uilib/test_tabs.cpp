@@ -61,16 +61,22 @@ TEST(TabsTest, Reserve) {
     auto reservedTabs = Tabs(0, 0, 800, 600, font);
     reservedTabs.reserve(2);
 
-    EXPECT_EQ(defaultTabs.getChildren().size(), 0UL);
-    EXPECT_EQ(reservedTabs.getChildren().size(), 0UL);
+    EXPECT_EQ(defaultTabs.getTabCount(), 0UL);
+    EXPECT_EQ(reservedTabs.getTabCount(), 0UL);
+    // NOTE: first child is always button bar
+    EXPECT_EQ(defaultTabs.getChildren().size(), 1UL);
+    EXPECT_EQ(reservedTabs.getChildren().size(), 1UL);
 
     for (size_t i = 0; i < 3; ++i) {
         // use reserved memory
         defaultTabs.addChild(new Label(0, 0, 0, 0, font, "Test"));
         reservedTabs.addChild(new Label(0, 0, 0, 0, font, "Test"));
 
-        EXPECT_EQ(defaultTabs.getChildren().size(), i + 1);
-        EXPECT_EQ(reservedTabs.getChildren().size(), i + 1);
+        EXPECT_EQ(defaultTabs.getTabCount(), i + 1);
+        EXPECT_EQ(reservedTabs.getTabCount(), i + 1);
+        // NOTE: first child is always button bar
+        EXPECT_EQ(defaultTabs.getChildren().size(), i + 2);
+        EXPECT_EQ(reservedTabs.getChildren().size(), i + 2);
 
         // access internal buttons
         defaultTabs.setActiveTab(-1);
