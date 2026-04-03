@@ -103,8 +103,8 @@ void MapWidget::connectSignals()
 {
     this->onMouseMove += { this, [this](void*, const int x, const int y, const unsigned buttons) {
         // Track mouse position for scroll zooming
-        _lastMouseX = x;
-        _lastMouseY = y;
+        _lastMouseX = x + _pos.left; // relative to parent to match dstRect
+        _lastMouseY = y + _pos.top;
 
         if (_size.width < 1 || _size.height < 1)
             return;
@@ -152,7 +152,10 @@ void MapWidget::connectSignals()
         const int absX = _absX + x;
         const int absY = _absY + y;
 
-        for (auto locIt = _locations.rbegin(); locIt != _locations.rend(); locIt++) {
+        const int x1 = x + _pos.left; // relative to parent to match dstRect
+        const int y1 = y + _pos.top;
+
+        for (auto locIt = _locations.rbegin(); locIt != _locations.rend(); ++locIt) {
             const auto& loc = locIt->second;
             for (const auto& pos: loc.pos) {
                 if (pos.state == -1) continue; // hidden
@@ -165,8 +168,8 @@ void MapWidget::connectSignals()
                 const int outerW = innerW + 2 * borderSize;
                 const int outerH = innerH + 2 * borderSize;
 
-                if (x >= innerX - borderSize && x < innerX - borderSize + outerW &&
-                    y >= innerY - borderSize && y < innerY - borderSize + outerH)
+                if (x1 >= innerX - borderSize && x1 < innerX - borderSize + outerW &&
+                    y1 >= innerY - borderSize && y1 < innerY - borderSize + outerH)
                 {
                     // TODO; store iterator instead of string?
                     if (locIt->first != _locationHover) {
