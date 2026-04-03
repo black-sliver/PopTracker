@@ -460,9 +460,9 @@ function Archipelago:GetPlayerGame(slot) end
 ---@return string name of the item or "Unknown" if not found
 function Archipelago:GetItemName(id, game) end
 
----Get location name for a specific game.
+---Get item name for a specific game.
 ---Supported since 0.28.1.
----@param id integer location id
+---@param id integer item id
 ---@param game string name of the game
 ---@return string name of the location or "Unknown" if not found
 function Archipelago:GetLocationName(id, game) end
