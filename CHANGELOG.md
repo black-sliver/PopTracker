@@ -2,6 +2,8 @@
 
 ## v0.35.0
 
+**This version has known bugs. Consider waiting for v0.35.1.**
+
 * App Features
   * Rework zoom and pan to allow smooth panning on high zoom levels
   * Make progressbar look nicer
