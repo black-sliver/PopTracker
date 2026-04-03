@@ -148,7 +148,7 @@ manifest.json and clicking on "AP" in the menu when the pack is loaded.
 * `.CheckedLocations` array of already checked location ids or `nil` if unsupported (before 0.25.2)
 * `.MissingLocations` array of unchecked/missing location ids or `nil` if unsupported (before 0.25.2)
 * `.Seed` the seed name of the connected room or `nil` if not connected or unsupported (before 0.33.0)
-* `.ClientStatus` enum for StatusUpdate containing `UNKNOWN`, `READY`, `PLAYING`, `GOAL`.
+* `.ClientStatus` enum for StatusUpdate containing `UNKNOWN`, `CONNECTED`, `READY`, `PLAYING`, `GOAL`.
 * `:AddClearHandler(name, callback)` called when connecting to a (new) server and state should be cleared; args: slot_data
 * `:AddItemHandler(name, callback)` called when an item is received; args: index, item_id, item_name\[, player_number since 0.20.2\]
 * `:AddLocationHandler(name, callback)` called when a location was checked; args: location_id, location_name

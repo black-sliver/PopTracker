@@ -338,6 +338,7 @@ Archipelago = {}
 ---@enum archipelagoCientStatus
 Archipelago.ClientStatus = {
     UNKNOWN = 0,
+    CONNECTED = 5,
     READY = 10,
     PLAYING = 20,
     GOAL = 30,
