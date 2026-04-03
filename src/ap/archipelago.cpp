@@ -351,6 +351,7 @@ int Archipelago::Lua_Index(lua_State *L, const char* key) {
     if (strcmp(key, "ClientStatus") == 0) {
         LuaEnum<APClient::ClientStatus>({
             {"UNKNOWN", APClient::ClientStatus::UNKNOWN},
+            {"CONNECTED", APClient::ClientStatus::CONNECTED},
             {"READY", APClient::ClientStatus::READY},
             {"PLAYING", APClient::ClientStatus::PLAYING},
             {"GOAL", APClient::ClientStatus::GOAL},
