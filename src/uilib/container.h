@@ -165,7 +165,9 @@ protected:
                     const auto oldPressedChild = _pressedChild;
                     if (oldPressedChild == child) {
                         _pressedChild = nullptr;
+                        asm volatile("" ::: "memory"); // guarantee the onClick is gonna happen last
                         child->onClick.emit(child, x - child->getLeft(), y - child->getTop(), button);
+                        return; // the onClick handler can have side effects, so we need to return immediately after
                     }
                     break;
                 }
