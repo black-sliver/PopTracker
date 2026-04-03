@@ -338,6 +338,7 @@ Archipelago = {}
 ---@enum archipelagoCientStatus
 Archipelago.ClientStatus = {
     UNKNOWN = 0,
+    CONNECTED = 5,
     READY = 10,
     PLAYING = 20,
     GOAL = 30,
@@ -459,9 +460,9 @@ function Archipelago:GetPlayerGame(slot) end
 ---@return string name of the item or "Unknown" if not found
 function Archipelago:GetItemName(id, game) end
 
----Get item name for a specific game.
+---Get location name for a specific game.
 ---Supported since 0.28.1.
----@param id integer item id
+---@param id integer location id
 ---@param game string name of the game
 ---@return string name of the location or "Unknown" if not found
 function Archipelago:GetLocationName(id, game) end
