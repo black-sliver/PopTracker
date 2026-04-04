@@ -1,8 +1,18 @@
 # PopTracker Changelog
 
+## v0.35.1-rc1
+
+* Pack Features
+  * Lua: add missing `Archipelago.ClientStatus.CONNECTED`
+    * Note: if you need this value, make use of `min_poptracker_version` in your manifest.json
+* Fixes
+  * Fix mouse hover and zoom not working properly if there are multiple maps in the same container
+  * Fix crash when dynamically replacing layouts
+  * Fix AppUpdater considering assets that are not auto-updatable (where auto-update is supported)
+
 ## v0.35.0
 
-**This version has known bugs. Consider waiting for v0.35.1.**
+**This version has known bugs.**
 
 * App Features
   * Rework zoom and pan to allow smooth panning on high zoom levels
