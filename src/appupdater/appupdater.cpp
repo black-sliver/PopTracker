@@ -169,6 +169,7 @@ std::optional<AppUpdater::Update> AppUpdater::updateFromResponse(const std::stri
             altBrowserUrl = std::move(browserUrl);
             browserUrl.clear();
         }
+        assets.clear();
     }
     // no newer version available
     if (!newerVersionExists)
