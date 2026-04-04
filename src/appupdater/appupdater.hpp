@@ -12,7 +12,7 @@
 
 
 namespace pop {
-    class AppUpdater final : HTTPCache {
+    class AppUpdater : HTTPCache {
     public:
         using json = nlohmann::json;
 
@@ -33,12 +33,20 @@ namespace pop {
         Signal<> onInstallStarted;
         Signal<const std::string&, const std::string&> onUpdateFailed;
 
+    protected:
+        struct Update {
+            std::string versionStr;
+            std::string browserUrl;
+            std::vector<gh::api::ReleaseAsset> assets;
+        };
+
+        std::optional<Update> updateFromResponse(const std::string& content) const;
+
     private:
         /// Handle OK response of app update check
         void releasesResponse(const std::string &content);
         /// Notification that an app update is available
-        void updateAvailable(const std::string& version, const std::string& url,
-            const std::vector<gh::api::ReleaseAsset>& assets);
+        void updateAvailable(const Update& update);
         /// Download and install an app update
         void installUpdate(const std::string& url, const fs::path& updater, bool asAdmin, uint64_t timestamp,
             const std::string& browserUrl="");

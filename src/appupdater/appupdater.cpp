@@ -101,98 +101,120 @@ void AppUpdater::checkForUpdate()
     );
 }
 
-void AppUpdater::releasesResponse(const std::string &content)
+std::optional<AppUpdater::Update> AppUpdater::updateFromResponse(const std::string& content) const
 {
-    try {
-        std::string altVersionStr;
-        std::string versionStr;
-        std::vector<gh::api::ReleaseAsset> assets;
-        std::string browserUrl;
-        std::string altBrowserUrl;
-        bool newerVersionExists = false;
-        for (const auto& rls: gh::api::Releases(content)) {
-            if ((rls.tagName()[0] != 'v' && rls.tagName()[0] != 'V') || sanitize_print(rls.tagName()) != rls.tagName())
-                continue; // unexpected tag
-            versionStr = rls.tagName().substr(1);
-            const auto v = Version{versionStr};
-            if (!isNewer(v) || (rls.prerelease() && !_includePrerelease && !isSameBaseVersion(v))) {
-                // not an update
-                versionStr.clear();
+    std::string altVersionStr;
+    std::string versionStr;
+    std::vector<gh::api::ReleaseAsset> assets;
+    std::string browserUrl;
+    std::string altBrowserUrl;
+    bool newerVersionExists = false;
+    for (const auto& rls: gh::api::Releases(content)) {
+        if ((rls.tagName()[0] != 'v' && rls.tagName()[0] != 'V') || sanitize_print(rls.tagName()) != rls.tagName())
+            continue; // unexpected tag
+        versionStr = rls.tagName().substr(1);
+        const auto v = Version{versionStr};
+        if (!isNewer(v) || (rls.prerelease() && !_includePrerelease && !isSameBaseVersion(v))) {
+            // not an update
+            versionStr.clear();
+            continue;
+        }
+        browserUrl = rls.htmlUrl();
+        newerVersionExists = true;
+        for (const auto& asset: rls.assets()) {
+            // collect signed assets
+            if (asset.nameEndsWithCI(".minisig"))
                 continue;
-            }
-            browserUrl = rls.htmlUrl();
-            newerVersionExists = true;
-            for (const auto& asset: rls.assets()) {
-                // collect signed assets
-                if (asset.nameEndsWithCI(".minisig"))
-                    continue;
-                if (!rls.hasAssetUrl(asset.browserDownloadUrl() + ".minisig"))
-                    continue;
-                assets.push_back(asset);
-            }
-            if (assets.empty()) {
-                versionStr.clear();
+            if (!rls.hasAssetUrl(asset.browserDownloadUrl() + ".minisig"))
                 continue;
-            }
-            fs::path pubKeyDir = fs::app_path() / "key";
-            if (!fs::is_directory(pubKeyDir))
-                pubKeyDir = fs::current_path() / "key";
-            bool foundKey = false;
-            for (auto& entry: fs::directory_iterator(pubKeyDir)) {
-                if (entry.is_regular_file()) {
-                    if (rls.bodyContains(entry.path().filename())) {
-                        foundKey = true;
-                        break; // found an installable update
-                    }
-                    std::string keyData;
-                    if (readFile(entry.path(), keyData)) {
-                        const auto p1 = keyData.find('\n');
-                        if (p1 != std::string::npos) {
-                            const auto p2 = keyData.find_first_of("\r\n", p1 + 1);
-                            keyData = keyData.substr(
-                                p1 + 1,
-                                p2 == std::string::npos ? std::string::npos : (p2 - p1 - 1)
-                            );
-                            if (rls.bodyContains(keyData)) {
-                                foundKey = true;
-                                break; // found an installable update
-                            }
+            assets.push_back(asset);
+        }
+        if (assets.empty()) {
+            versionStr.clear();
+            continue;
+        }
+        fs::path pubKeyDir = fs::app_path() / "key";
+        if (!fs::is_directory(pubKeyDir))
+            pubKeyDir = fs::current_path() / "key";
+        bool foundKey = false;
+        for (auto& entry: fs::directory_iterator(pubKeyDir)) {
+            if (entry.is_regular_file()) {
+                if (rls.bodyContains(entry.path().filename())) {
+                    foundKey = true;
+                    break; // found an installable update
+                }
+                std::string keyData;
+                if (readFile(entry.path(), keyData)) {
+                    const auto p1 = keyData.find('\n');
+                    if (p1 != std::string::npos) {
+                        const auto p2 = keyData.find_first_of("\r\n", p1 + 1);
+                        keyData = keyData.substr(
+                            p1 + 1,
+                            p2 == std::string::npos ? std::string::npos : (p2 - p1 - 1)
+                        );
+                        if (rls.bodyContains(keyData)) {
+                            foundKey = true;
+                            break; // found an installable update
                         }
                     }
                 }
             }
-            if (foundKey)
-                break; // found an update
-            // remember update that can be downloaded, but can't be verified/auto-installed
-            if (altVersionStr.empty()) {
-                altVersionStr = std::move(versionStr);
-                versionStr.clear();
-                altBrowserUrl = std::move(browserUrl);
-            }
         }
-        if (!versionStr.empty())
-            updateAvailable(versionStr, browserUrl, assets);
-        else if (!altVersionStr.empty()) // TODO: also check if primary pub key expired
-            updateAvailable(altVersionStr, altBrowserUrl, {});
-        else if (newerVersionExists)
+        if (foundKey)
+            break; // found an update
+        // remember update that can be downloaded, but can't be verified/auto-installed
+        if (altVersionStr.empty()) {
+            altVersionStr = std::move(versionStr);
+            versionStr.clear();
+            altBrowserUrl = std::move(browserUrl);
+            browserUrl.clear();
+        }
+    }
+    // no newer version available
+    if (!newerVersionExists)
+        return {};
+    // an update we can auto-update to is available (on platforms where auto-updater exists)
+    if (!versionStr.empty())
+        return {Update{
+            std::move(versionStr),
+            std::move(browserUrl),
+            std::move(assets),
+        }};
+    // update is available, but we can't auto-updating to it (on platforms where auto-updater exists)
+    if (!altVersionStr.empty())
+        return {Update{
+            std::move(altVersionStr),
+            std::move(altBrowserUrl),
+            {},
+        }};
+    // if we get here, there is an update, but we do not support it
+    return {Update{}};
+}
+
+void AppUpdater::releasesResponse(const std::string &content)
+{
+    try {
+        std::optional<Update> update = updateFromResponse(content);
+        if (!update.has_value())
+            printf("Update: already up to date\n");
+        else if (update->versionStr.empty())
             printf("Update: no candidate for installation\n");
         else
-            printf("Update: already up to date\n");
+            updateAvailable(*update);
     } catch (...) {
         fprintf(stderr, "Update: error parsing json\n");
     }
 }
 
-void AppUpdater::updateAvailable(const std::string& version, const std::string& url,
-    const std::vector<gh::api::ReleaseAsset>& assets)
+void AppUpdater::updateAvailable(const Update& update)
 {
     std::string ignoreData;
     json ignore;
     if (readFile(_ignoreVersionsPath, ignoreData)) {
         ignore = parse_jsonc(ignoreData);
         if (ignore.is_array()) {
-            if (std::find(ignore.begin(), ignore.end(), version) != ignore.end()) {
-                printf("Update: %s is in ignore list\n", version.c_str());
+            if (std::find(ignore.begin(), ignore.end(), update.versionStr) != ignore.end()) {
+                printf("Update: %s is in ignore list\n", update.versionStr.c_str());
                 return;
             }
         } else {
@@ -208,12 +230,12 @@ void AppUpdater::updateAvailable(const std::string& version, const std::string& 
     constexpr std::string_view updatePattern; // none
 #endif
 
-    const auto autoUpdateIt = std::find_if(assets.begin(), assets.end(), [updatePattern](const auto& asset) {
+    const auto assetIt = std::find_if(update.assets.begin(), update.assets.end(), [updatePattern](const auto& asset) {
         const auto& download = asset.browserDownloadUrl();
         return !updatePattern.empty() && download.length() > updatePattern.length()
             && download.rfind(updatePattern, download.length() - updatePattern.length()) != std::string::npos;
     });
-    const bool hasAutoUpdate = autoUpdateIt != assets.end();
+    const bool hasAutoUpdate = assetIt != update.assets.end();
 
 #ifdef _WIN32
     auto updater = hasAutoUpdate ? (fs::app_path() / "PopUpdater.exe") : "";
@@ -257,37 +279,37 @@ void AppUpdater::updateAvailable(const std::string& version, const std::string& 
     }
 
     std::string msg;
-    if (assets.empty()) {
-        msg = "Update to PopTracker " + version + " available, that can't be verified. Download?";
+    if (update.assets.empty()) {
+        msg = "Update to PopTracker " + update.versionStr + " available, that can't be verified. Download?";
 #ifdef _WIN32
     } else if (!updater.empty()) {
 #else
     } else if (userWritable && !updater.empty()) {
         // we currently only support elevating privileges on Windows
 #endif
-        msg = "Update to PopTracker " + version + " available. Download and install?";
+        msg = "Update to PopTracker " + update.versionStr + " available. Download and install?";
     } else {
-        msg = "Update to PopTracker " + version + " available. Download?";
+        msg = "Update to PopTracker " + update.versionStr + " available. Download?";
     }
     if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
     {
         if (!updater.empty()) {
             installUpdate(
-                autoUpdateIt->browserDownloadUrl(),
+                assetIt->browserDownloadUrl(),
                 updater,
                 !userWritable,
-                autoUpdateIt->updatedAt(),
-                url);
+                assetIt->updatedAt(),
+                update.browserUrl);
             return;
         }
-        openWebsite(url);
+        openWebsite(update.browserUrl);
     }
     else {
-        msg = "Skip version " + version + "?";
+        msg = "Skip version " + update.versionStr + "?";
         if (Dlg::MsgBox("PopTracker", msg, Dlg::Buttons::YesNo, Dlg::Icon::Question) == Dlg::Result::Yes)
         {
-            printf("Update: ignoring %s\n", version.c_str());
-            ignore.push_back(version);
+            printf("Update: ignoring %s\n", update.versionStr.c_str());
+            ignore.push_back(update.versionStr);
             writeFile(_ignoreVersionsPath, ignore.dump(0));
         }
     }
