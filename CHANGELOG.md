@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.35.1-rc1
+## v0.35.1
 
 * Pack Features
   * Lua: add missing `Archipelago.ClientStatus.CONNECTED`
