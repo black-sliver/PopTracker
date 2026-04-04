@@ -40,11 +40,12 @@ jobs:
         POP_NAME=poptracker_`echo ${{ env.RELEASE_VERSION }} | tr '.' '-'`
         cd ..
         tar --exclude-vcs -cJvf "${POP_NAME}_full-source.tar.xz" PopTracker
+        cd PopTracker
+        mv "../${POP_NAME}_full-source.tar.xz" .
     - name: Attest Source bundle
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
-        subject-path: |
-          ../*_full-source.tar.xz
+        subject-path: "*_full-source.tar.xz"
     - name: Create Release
       uses: softprops/action-gh-release@975c1b265e11dd76618af1c374e7981f9a6ff44a
       with:
@@ -54,7 +55,7 @@ jobs:
         body: |
           see [CHANGELOG.md](../v${{ env.RELEASE_VERSION }}/CHANGELOG.md)
           and [README.md](../v${{ env.RELEASE_VERSION }}/README.md)
-        files: "../*.tar.xz"
+        files: "*_full-source.tar.xz"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
