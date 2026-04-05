@@ -18,7 +18,7 @@
   * Rework zoom and pan to allow smooth panning on high zoom levels
   * Make progressbar look nicer
   * Add 64bit ARM build for Linux
-    * only as .tar.gz for now
+    * only as .tar.xz for now, no AppImage
     * requires libsdl2, libsdl2-image, libsdl2-ttf and libssl to be installed
   * Cleanup download caches on startup
   * Support HTTP redirects when going through cache, reduce requests by making better use of caching
