@@ -79,6 +79,7 @@ Configures behavior of the pack.
         "smooth_map_scaling": true|false|null, // configure the image scaling method for maps. null = default = smooth
         "allow_deferred_logic_update": true|false|null, // set initial value of Tracker.AllowDeferredLogicUpdate
         "disabled_image_filter": "...", // set the meaning of @disabled in img_mods, defaults to "grey", since 0.33.0
+        "inspectable_sequence_break": true|false|null // default false, applies setting to all locations and sections
     }
 
 NOTE: User overrides for settings are merged with the pack, replacing individual keys, not the whole file.
