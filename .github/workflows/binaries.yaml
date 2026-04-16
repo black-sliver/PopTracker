@@ -83,7 +83,7 @@ jobs:
           build/${{ env.UNAME }}/poptracker
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         path: dist/*
         archive: false
@@ -166,7 +166,7 @@ jobs:
           appimage-build/${{ env.UNAME }}/poptracker
           *.AppImage*
     - name: Store AppImage
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: AppImage-${{ env.ARCH }}
         path: "*.AppImage*"
@@ -224,7 +224,7 @@ jobs:
           build/${{ env.UNAME }}/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Store ZIP/DMG
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         path: dist/*
         archive: false
@@ -313,7 +313,7 @@ jobs:
           build/${{ env.UNAME }}/poptracker.exe
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         path: dist/*
         archive: false
@@ -332,7 +332,7 @@ jobs:
           build/${{ env.UNAME }}/poptracker.exe
           dist/poptracker-${{ env.UNAME }}-debug.zip
     - name: Store DEBUG
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         path: dist/poptracker-win64-debug.zip
         archive: false
