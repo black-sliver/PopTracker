@@ -203,10 +203,10 @@ LTO_JOBS ?= $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS)))
 LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),4)
 COMMON_WARNING_FLAGS = \
 	-Wall -Wextra -Werror # -Wshadow -Wconversion
-C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
-LUA_C_FLAGS = $(COMMON_WARNING_FLAGS) -Wshadow \
+C_FLAGS = $(CFLAGS) $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
+LUA_C_FLAGS = $(CFLAGS) $(COMMON_WARNING_FLAGS) -Wshadow \
 	-D_REENTRANT -x c++ # we actually use C++ for Lua now
-CPP_FLAGS = $(COMMON_WARNING_FLAGS) \
+CPP_FLAGS = $(CXXFLAGS) $(COMMON_WARNING_FLAGS) \
 	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations \
 	-Wno-null-pointer-subtraction -Wno-shift-count-overflow  # TODO: fix those
 ifeq ($(CONF), DEBUG) # DEBUG
@@ -497,25 +497,25 @@ $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 $(WASM_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WASM_BUILD_DIR)
 	mkdir -p $(WASM_BUILD_DIR)/lib
 	cp -R lib/lua $(WASM_BUILD_DIR)/lib/
-	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC=$(EMPP) AR="$(EMAR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WASM_BUILD_DIR)/lib/lua && make -f makefile a CC="$(EMPP)" AR="$(EMAR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WASM_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WASM_BUILD_DIR)/lib/lua
 $(NIX_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(NIX_BUILD_DIR)
 	mkdir -p $(NIX_BUILD_DIR)/lib
 	cp -R lib/lua $(NIX_BUILD_DIR)/lib/
-	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC=$(CXX) AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(NIX_BUILD_DIR)/lib/lua && make -f makefile a CC="$(CXX)" AR="$(AR) rc" CFLAGS="$(NIX_LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(NIX_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(NIX_BUILD_DIR)/lib/lua
 $(WIN32_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN32_BUILD_DIR)
 	mkdir -p $(WIN32_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN32_BUILD_DIR)/lib/
-	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN32CPP) AR="$(WIN32AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WIN32_BUILD_DIR)/lib/lua && make -f makefile a CC="$(WIN32CPP)" AR="$(WIN32AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN32_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN32_BUILD_DIR)/lib/lua
 $(WIN64_BUILD_DIR)/liblua.a: lib/lua/makefile lib/lua/luaconf.h | $(WIN64_BUILD_DIR)
 	mkdir -p $(WIN64_BUILD_DIR)/lib
 	cp -R lib/lua $(WIN64_BUILD_DIR)/lib/
-	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC=$(WIN64CPP) AR="$(WIN64AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
+	(cd $(WIN64_BUILD_DIR)/lib/lua && make -f makefile a CC="$(WIN64CPP)" AR="$(WIN64AR) rc" CFLAGS="$(LUA_C_FLAGS)" MYCFLAGS="" MYLIBS="")
 	mv $(WIN64_BUILD_DIR)/lib/lua/$(notdir $@) $@
 	rm -rf $(WIN64_BUILD_DIR)/lib/lua
 
