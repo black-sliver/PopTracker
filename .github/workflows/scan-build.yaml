@@ -61,7 +61,7 @@ jobs:
           sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
       - name: Install dependencies (msys2)
         if: ${{ startsWith(matrix.os, 'windows') }}
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c  # v2.31.1
         with:
           release: false
           update: false
