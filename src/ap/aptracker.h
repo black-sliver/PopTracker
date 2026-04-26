@@ -69,7 +69,7 @@ public:
         }
     }
 
-    virtual ~APTracker()
+    ~APTracker()
     {
         disconnect(true);
     }

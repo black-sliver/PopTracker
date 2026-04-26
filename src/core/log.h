@@ -22,7 +22,7 @@ private:
     Log(){};
     Log(const Log& orig) = delete;
 public:
-    virtual ~Log(){};
+    ~Log() = default;
 private:
 
 };
