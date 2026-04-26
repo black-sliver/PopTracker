@@ -30,7 +30,7 @@ public:
     };
     
     Pack(const fs::path& path);
-    virtual ~Pack();
+    ~Pack();
 
     bool isValid() const
     {

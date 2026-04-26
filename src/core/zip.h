@@ -18,8 +18,8 @@ public:
     };
     
     Zip(const fs::path& filename);
-    virtual ~Zip();
-    
+    ~Zip();
+
     void setDir(const std::string&);
     std::vector< std::pair<EntryType,std::string> > list(bool recursive=false);
     bool hasFile(const std::string& name);
