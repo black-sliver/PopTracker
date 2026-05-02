@@ -1,11 +1,10 @@
-#ifndef _CORE_ZIP_H
-#define _CORE_ZIP_H
+#pragma once
 
 #define MINIZ_NO_ZLIB_APIS
 #include <miniz.h>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "fs.h"
 
@@ -16,8 +15,8 @@ public:
         FILE,
         DIR
     };
-    
-    Zip(const fs::path& filename);
+
+    explicit Zip(const fs::path& filename);
     ~Zip();
 
     void setDir(const std::string&);
@@ -25,7 +24,7 @@ public:
     bool hasFile(const std::string& name);
     bool readFile(const std::string& name, std::string& out);
     bool readFile(const std::string& name, std::string& out, std::string& err);
-    
+
 private:
     enum class Slashes : unsigned {
         UNKNOWN=0,
@@ -45,9 +44,8 @@ inline Zip::Slashes operator|(Zip::Slashes a, Zip::Slashes b)
 {
     return static_cast<Zip::Slashes>(static_cast<unsigned>(a) | static_cast<unsigned>(b));
 }
+
 inline Zip::Slashes& operator|=(Zip::Slashes& a, Zip::Slashes b)
 {
     return a = a|b;
 }
-
-#endif
