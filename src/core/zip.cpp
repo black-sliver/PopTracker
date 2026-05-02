@@ -1,6 +1,7 @@
 #include "zip.h"
 #include <algorithm>
 #include <cstring>
+#include <limits>
 
 // embed miniz, compile as C++
 #ifdef WIN32_LEAN_AND_MEAN
@@ -164,7 +165,11 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
         return false;
     }
 
-    size_t sz = (size_t)st.m_uncomp_size;
+    if (st.m_uncomp_size > std::numeric_limits<size_t>::max()) {
+        err = "File too big";
+        return false;
+    }
+    const auto sz = static_cast<size_t>(st.m_uncomp_size);
     if (sz == 0) return true; // done
 
     out.resize(sz);
