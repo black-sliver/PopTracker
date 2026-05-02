@@ -191,7 +191,13 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
     if (sz == 0)
         return true; // done. out is cleared above
 
-    out.resize(sz);
+    try {
+        out.resize(sz);
+    } catch (std::bad_alloc&) {
+        out.clear();
+        err = "Out of memory";
+        return false;
+    }
     if (mz_zip_reader_extract_to_mem(&_zip, index, out.data(), sz, 0))
         return true;
 
