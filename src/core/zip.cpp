@@ -23,6 +23,17 @@ Zip::Zip(const fs::path& filename)
     _valid = true;
 }
 
+Zip::Zip(FILE* file)
+    : _zip()
+    , _valid(false)
+    , _slashes(Slashes::UNKNOWN)
+{
+    mz_zip_zero_struct(&_zip);
+    if (!mz_zip_reader_init_cfile(&_zip, file, 0, 0))
+        return;
+    _valid = true;
+}
+
 Zip::~Zip()
 {
     if (_valid) {

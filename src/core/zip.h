@@ -17,6 +17,7 @@ public:
     };
 
     explicit Zip(const fs::path& filename);
+    explicit Zip(FILE* file);
     ~Zip();
 
     void setDir(const std::string&);
