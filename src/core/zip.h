@@ -26,6 +26,11 @@ public:
     bool readFile(const std::string& name, std::string& out);
     bool readFile(const std::string& name, std::string& out, std::string& err);
 
+    bool isValid() const
+    {
+        return _valid;
+    }
+
 private:
     enum class Slashes : unsigned {
         UNKNOWN=0,
