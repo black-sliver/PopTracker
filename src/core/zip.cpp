@@ -186,6 +186,11 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
         return false;
     }
 
+    if (mz_zip_reader_is_file_a_directory(&_zip, index)) {
+        err = "Is directory";
+        return false;
+    }
+
     if (st.m_uncomp_size > std::numeric_limits<size_t>::max()) {
         err = "File too big";
         return false;
