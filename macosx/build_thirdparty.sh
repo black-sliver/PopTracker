@@ -57,7 +57,7 @@ LIB_FREETYPE_URL="https://gitlab.freedesktop.org/freetype/freetype.git"
 LIB_OPENSSL_URL="https://github.com/openssl/openssl.git"
 
 LIB_SDL_TAG="release-2.32.10"
-LIB_SDL_IMAGE_TAG="release-2.8.8"
+LIB_SDL_IMAGE_TAG="release-2.8.12"
 LIB_SDL_TTF_TAG="release-2.24.0"
 LIB_PNG_TAG="v1.6.55"
 LIB_FREETYPE_TAG="VER-2-13-3"
