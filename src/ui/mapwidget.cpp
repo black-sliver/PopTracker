@@ -171,24 +171,24 @@ void MapWidget::connectSignals()
                 if (x1 >= innerX - borderSize && x1 < innerX - borderSize + outerW &&
                     y1 >= innerY - borderSize && y1 < innerY - borderSize + outerH)
                 {
-                    // TODO; store iterator instead of string?
+                    // TODO: store iterator instead of string?
                     if (locIt->first != _locationHover) {
                         _locationHover = locIt->first;
     #if 0
-                        printf("MapWidget: hover location %s\n", _locationHover.c_str());
+                        printf("MapWidget: hover location %s\n", _locationHover->c_str());
     #endif
-                        onLocationHover.emit(this, _locationHover, absX, absY);
+                        onLocationHover.emit(this, *_locationHover, absX, absY);
                     }
                     return;
                 }
             }
         }
         // no match
-        _locationHover = "";
+        _locationHover.reset();
     }};
 
     this->onMouseLeave += { this, [this](void*) {
-        _locationHover = "";
+        _locationHover.reset();
         _dragging = false;
     }};
 

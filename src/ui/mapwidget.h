@@ -1,11 +1,12 @@
 #pragma once
 
+#include <map>
+#include <optional>
+#include <tuple>
+#include <vector>
 #include "../core/location.h"
 #include "../core/locationsection.h"
 #include "../uilib/image.h"
-#include <map>
-#include <tuple>
-#include <vector>
 
 namespace Ui {
 
@@ -60,7 +61,7 @@ protected:
     int _absX=0;
     int _absY=0;
     std::map<std::string, Location> _locations;
-    std::string _locationHover; // TODO; store iterator instead of string?
+    std::optional<std::string> _locationHover; // TODO: store iterator instead of string?
 
     bool _hideClearedLocations = false;
     bool _hideUnreachableLocations = false;
