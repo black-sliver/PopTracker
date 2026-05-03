@@ -68,6 +68,9 @@ std::vector< std::pair<Zip::EntryType,std::string> > Zip::list(const bool recurs
     std::vector< std::pair<EntryType,std::string> > res;
     if (!_valid)
         return res;
+    static_assert(sizeof(mz_zip_archive_file_stat::m_filename) > 8, "expected fixed size array");
+    if (_dir.length() > sizeof(mz_zip_archive_file_stat::m_filename))
+        return res; // impossible to match any filename
 
     std::string bsDir = _dir;
     std::replace(bsDir.begin(), bsDir.end(), '/', '\\'); // work around bad zip
