@@ -57,8 +57,9 @@ static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const s
             }
             if (name == "overlay") {
                 // read actual image data into arg instead of filename
-                std::string tmp = std::move(args[0]);
-                tracker->getPack()->ReadFile(tmp, args[0]);
+                const std::string tmp = std::move(args[0]);
+                if (!tracker->getPack()->ReadFile(tmp, args[0]))
+                    fprintf(stderr, "Error loading \"%s\" for overlay!\n", sanitize_filename(tmp).c_str());
                 for (size_t i=1; i<args.size(); ++i) {
                     if (args[i] == "@disable" || args[i] == "@disabled") {
                         if (disabledFilters.empty()) {
@@ -126,7 +127,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
     for (size_t n=0; n==0||n<stages; n++) {
         f = item->getImage(n);
-        _tracker->getPack()->ReadFile(f, s);
+        if (!_tracker->getPack()->ReadFile(f, s))
+            fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
         const auto& mods = item->getImageMods(n);
         auto filters = imageModsToFilters(_tracker, mods);
         if (origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
@@ -142,7 +144,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             w->addStage(1, m, s.c_str(), s.length(), f, badgeFilters);
             if (n == 0 && m != 0) {
                 f = item->getDisabledImage(0);
-                _tracker->getPack()->ReadFile(f, s);
+                if (!_tracker->getPack()->ReadFile(f, s))
+                    fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
                 const auto& mods = item->getDisabledImageMods(0);
                 filters = imageModsToFilters(_tracker, mods);
                 w->addStage(0, 0, s.c_str(), s.length(), f, filters);
@@ -157,7 +160,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             auto disF = item->getDisabledImage(n);
             if (f != disF) {
                 f = disF;
-                _tracker->getPack()->ReadFile(f, s);
+                if (!_tracker->getPack()->ReadFile(f, s))
+                    fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             }
             auto disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
@@ -202,7 +206,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
-            _tracker->getPack()->ReadFile(f, s);
+            if (!_tracker->getPack()->ReadFile(f, s))
+                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->setImageOverride(s.c_str(), s.length(), f, filters);
         }
     }
@@ -563,7 +568,8 @@ void TrackerView::updateDisplay(const std::string& itemid)
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
-            _tracker->getPack()->ReadFile(f, s);
+            if (!_tracker->getPack()->ReadFile(f, s))
+                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->setImageOverride(s.c_str(), s.length(), f, filters);
         } else {
             w->clearImageOverride();
@@ -580,7 +586,8 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         // TODO: cache image instead always reloading it
         if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
             std::string s;
-            _tracker->getPack()->ReadFile(f, s);
+            if (!_tracker->getPack()->ReadFile(f, s))
+                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), f, filters);
             printf("Image updated!\n");
         }
@@ -887,7 +894,8 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             const auto& map = _tracker->getMap(mapname);
             const auto& f = map.getImage();
             std::string s;
-            _tracker->getPack()->ReadFile(f, s);
+            if (!_tracker->getPack()->ReadFile(f, s))
+                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             MapWidget *w = new MapWidget(0,0,0,0, s.c_str(),s.length());
             w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
             w->setHideClearedLocations(_hideClearedLocations);

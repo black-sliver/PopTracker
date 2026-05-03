@@ -208,20 +208,19 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
 Item* MapTooltip::MakeLocationIcon(int x, int y, int width, int height, FONT font, int quality,
         Tracker* tracker, const std::string& locid, const LocationSection& sec, bool opened, bool compact)
 {
-    std::string fClosed, fOpened;
     std::string sClosed, sOpened;
 
-    fClosed = sec.getClosedImage();
-    tracker->getPack()->ReadFile(fClosed, sClosed);
-    if (sClosed.empty()) {
+    const std::string& fClosed = sec.getClosedImage();
+    if (!fClosed.empty() && !tracker->getPack()->ReadFile(fClosed, sClosed))
+        fprintf(stderr, "Error loading \"%s\"!\n", sanitize_print(fClosed).c_str());
+    if (sClosed.empty())
         readFile(asset("closed.png"), sClosed); // fallback/default icon
-    }
 
-    fOpened = sec.getOpenedImage();
-    tracker->getPack()->ReadFile(fOpened, sOpened);
-    if (sOpened.empty()) {
+    const std::string& fOpened = sec.getOpenedImage();
+    if (!fOpened.empty() && !tracker->getPack()->ReadFile(fOpened, sOpened))
+        fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(fOpened).c_str());
+    if (sOpened.empty())
         readFile(asset("open.png"), sOpened); // fallback/default icon
-    }
 
     Item *w = new Item(x, y, width, height, font);
     w->setQuality(quality);
