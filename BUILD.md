@@ -109,6 +109,8 @@ If you run `make CONF=DIST`, this will build non-brew versions of the libraries
 and replace the references in the resulting app bundle.\
 Dependencies to build the bundle: install git and `brew install automake libtool autoconf`
 
+To run tests, `brew install googletest` and then `make test`.
+
 ## Why not XYZ?!
 
 The release builds for Windows and macOS are very custom since we do not want to force msys or brew on anyone and use a
