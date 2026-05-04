@@ -199,7 +199,8 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake libtool autoconf googletest || true
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake googletest || true
+        # required, but pre-installed: libtool autoconf
     - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
