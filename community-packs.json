@@ -91,10 +91,10 @@
     },
     "albw-ap-poptracker": {
         "name": "A Link Between Worlds Autotracker",
-        "author": "Legend",
+        "author": "Legend, maintained by guigui0246",
         "platform": "3DS",
-        "homepage": "https://github.com/Legendgreat/albw-ap-poptracker/",
-        "versions_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/refs/heads/versions/versions.json",
+        "homepage": "https://github.com/guigui0246/albw-ap-poptracker/",
+        "versions_url": "https://raw.githubusercontent.com/guigui0246/albw-ap-poptracker/refs/heads/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/Legendgreat/albw-ap-poptracker/main/images/items/maiamai.png",
         "description": "This is a PopTracker pack meant for tracking items and checks in The Legend of Zelda: A Link Between Worlds Randomizer runs, with AP integration for auto-tracking."
     },
