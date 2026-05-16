@@ -192,6 +192,7 @@ jobs:
       with:
         submodules: recursive
     - name: Cache/restore macosx-libs
+      if: ${{ github.event_name != 'workflow_dispatch' }}
       uses: actions/cache@v5.0.5
       with:
         key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.cache-name }}-${{ hashFiles('macosx/*.sh') }}
@@ -242,6 +243,7 @@ jobs:
     - uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c  # v2.31.1
       with:
         update: true
+        cache: ${{ github.event_name != 'workflow_dispatch' }}
         install: >-
           base-devel
           coreutils
@@ -262,6 +264,7 @@ jobs:
       with:
         submodules: recursive
     - name: Cache/restore win32-libs
+      if: ${{ github.event_name != 'workflow_dispatch' }}
       uses: actions/cache@v5.0.5
       with:
         key: libs-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('win32/*.sh') }}
