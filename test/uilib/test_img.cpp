@@ -2,6 +2,7 @@
 #include <cassert>
 #include <gtest/gtest.h>
 #include <SDL2/SDL.h>
+#include "../../src/core/fileutil.h"
 #include "../../src/core/fs.h"
 #include "../../src/uilib/imghelper.h"
 
@@ -32,6 +33,55 @@ TEST_P(GoodImageFileSuite, LoadImage) {
     SDL_FreeSurface(surf);
 }
 
+TEST_P(GoodImageFileSuite, DetectImageFormat) {
+    // tests detecting the image format from signature
+    const fs::path& f = GetParam();
+    constexpr auto len = getMaxImageSignatureLength();
+    std::string buf;
+    ASSERT_TRUE(readFile(f.u8string(), buf, len));
+    const auto fmt = detectImageFormat(buf);
+    const auto ext = f.extension().u8string();
+    if (ext == ".bmp") {
+        EXPECT_EQ(ImageFormat::BMP, fmt);
+    } else if (ext == ".png") {
+        EXPECT_EQ(ImageFormat::PNG, fmt);
+    } else if (ext == ".gif") {
+        EXPECT_EQ(ImageFormat::GIF, fmt);
+    } else if (ext == ".jpg") {
+        EXPECT_EQ(ImageFormat::JPEG, fmt);
+    } else {
+        FAIL() << "Unsupported image format file extension: " << ext;
+    }
+}
+
+TEST_P(GoodImageFileSuite, GetImageSize) {
+    // tests getting image size from just the header for lazy loading
+    const fs::path& f = GetParam();
+    constexpr auto len = getMaxImageHeaderLength();
+    std::string buf;
+    ASSERT_TRUE(readFile(f.u8string(), buf, len));
+    const auto sz = getImageSize(buf);
+    if (detectImageFormat(buf) == ImageFormat::GIF) {
+        // getGIFSize() is incompatible to LoadImage(), see getImageSize() for details.
+        EXPECT_EQ(Size::UNDEFINED, sz);
+        return;
+    }
+    const auto name = f.filename().u8string();
+    if (name.rfind("2x1", 0) == 0) {
+        EXPECT_EQ(sz.width, 2) << "expected w=2";
+        EXPECT_EQ(sz.height, 1) << "expected h=1";
+    } else {
+        EXPECT_EQ(sz.width, 1) << "expected w=1";
+        EXPECT_EQ(sz.height, 1) << "expected h=1";
+    }
+    // compare to the size claimed by LoadImage
+    SDL_Surface *surf = LoadImage(f);
+    ASSERT_TRUE(surf);
+    EXPECT_EQ(surf->w, static_cast<int>(sz.width));
+    EXPECT_EQ(surf->h, static_cast<int>(sz.height));
+    SDL_FreeSurface(surf);
+}
+
 class BadImageFileSuite : public testing::TestWithParam<fs::path> {
 };
 
@@ -55,7 +105,7 @@ INSTANTIATE_TEST_SUITE_P(
     GoodImageFileSuite,
     testing::ValuesIn(files("good")),
     paramNaming
-    );
+);
 
 INSTANTIATE_TEST_SUITE_P(
     BadImageFiles,
