@@ -90,14 +90,19 @@ public:
         }
 
         _ap = new APClient(_uuid, _game, uri, asset("cacert.pem").u8string());
-        _ap->set_socket_connected_handler([this, slot, pw]() {
+        _ap->set_room_info_handler([this, slot, pw]() {
             auto lock = EventLock(_event);
-            std::list<std::string> tags = {"PopTracker", "NoText"};
-            if (_allowScout && !_allowSend)
-                tags.push_back("HintGame");
-            else if (!_allowSend)
-                tags.push_back("Tracker");
-            return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 1});
+            if (_ap->is_data_package_valid()) {
+                if (!connectSlot(slot, pw))
+                    onError.emit(this, "Connection lost");
+            } else {
+                _ap->set_data_package_changed_handler([this, slot, pw](const json&) {
+                    auto innerLock = EventLock(_event);
+                    if (!connectSlot(slot, pw))
+                        onError.emit(this, "Connection lost");
+                    _ap->set_data_package_changed_handler(nullptr); // only trigger once
+                });
+            }
         });
         _ap->set_slot_refused_handler([this](const std::list<std::string>& errs) {
             auto lock = EventLock(_event);
@@ -374,6 +379,18 @@ public:
     Signal<const std::string&, const json&, const json&> onSetReply;
 
 private:
+    bool connectSlot(const std::string& slot, const std::string& pw) const
+    {
+        std::list<std::string> tags = {"PopTracker", "NoText"};
+        if (_allowScout && !_allowSend)
+            tags.emplace_back("HintGame");
+        else if (!_allowSend)
+            tags.emplace_back("Tracker");
+        if (!_ap)
+            return false;
+        return _ap->ConnectSlot(slot, pw, 0b111, tags, {0, 5, 1});
+    }
+
     APClient* _ap = nullptr;
     std::string _appname;
     std::string _game;
