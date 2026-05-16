@@ -41,14 +41,6 @@ Check [doc/PACKS.md](doc/PACKS.md) if you want to write a game pack for this tra
 
 Upstream URL is https://github.com/black-sliver/PopTracker/
 
-### Third-party packages
-
-Please note that the below packages are not maintained by black-sliver.
-
-Arch users can install [`poptracker`](https://aur.archlinux.org/packages/poptracker) from the [AUR](https://wiki.archlinux.org/title/Arch_User_Repository).
-
-Gentoo users can install [`games-util/poptracker`](https://codeberg.org/FelicitusNeko/ysayle/src/branch/main/games-util/poptracker) from the [Ysayle](https://codeberg.org/FelicitusNeko/ysayle) overlay.
-
 ## Screenshot
 
 ![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
@@ -61,6 +53,14 @@ and unfold "Assets" of the latest release or pre-release to get a Windows exe or
 For the AppImage, you still need to install `which` and a dialog provider (`zenity`, `kdialog`, `matedialog`, `qarma`
 or `xdialog`) to run them.
 The AppImage currently requires fuse2. On recent Ubuntu and Debian that can be installed with `apt install libfuse2t64`.
+
+### Third-party packages
+
+Please note that the below packages are not maintained by black-sliver.
+
+Arch users can install [`poptracker`](https://aur.archlinux.org/packages/poptracker) from the [AUR](https://wiki.archlinux.org/title/Arch_User_Repository).
+
+Gentoo users can install [`games-util/poptracker`](https://codeberg.org/FelicitusNeko/ysayle/src/branch/main/games-util/poptracker) from the [Ysayle](https://codeberg.org/FelicitusNeko/ysayle) overlay.
 
 ## Building from source
 
