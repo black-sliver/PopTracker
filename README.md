@@ -41,6 +41,14 @@ Check [doc/PACKS.md](doc/PACKS.md) if you want to write a game pack for this tra
 
 Upstream URL is https://github.com/black-sliver/PopTracker/
 
+### Third-party packages
+
+Please note that the below packages are not maintained by black-sliver.
+
+Arch users can install [`poptracker`](https://aur.archlinux.org/packages/poptracker) from the [AUR](https://wiki.archlinux.org/title/Arch_User_Repository).
+
+Gentoo users can install [`games-util/poptracker`](https://codeberg.org/FelicitusNeko/ysayle/src/branch/main/games-util/poptracker) from the [Ysayle](https://codeberg.org/FelicitusNeko/ysayle) overlay.
+
 ## Screenshot
 
 ![Screenshot](../screenshots/screenshot.png?raw=true "Screenshot")
