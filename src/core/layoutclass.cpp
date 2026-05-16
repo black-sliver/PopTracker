@@ -85,15 +85,18 @@ void LayoutClass::from_json(const json& j)
         j.at("max_height").get_to(_maxHeight);
     if (j.contains("max_width"))
         j.at("max_width").get_to(_maxWidth);
-    if (j.contains("item_width") || j.contains("item_height")) {
+    if (j.contains("item_width") || j.contains("item_height") || j.contains("item_size")) {
         _itemSize = {-1, -1};
-        if (j.contains("item_width"))
-            j.at("item_width").get_to(_itemSize->x);
-        if (j.contains("item_height"))
-            j.at("item_height").get_to(_itemSize->y);
-    }
-    if (j.contains("item_size")) {
-        j.at("item_size").get_to(_itemSize);
+        if (j.contains("item_width") || j.contains("item_height")) {
+            if (j.contains("item_width"))
+                j.at("item_width").get_to(_itemSize->x);
+            if (j.contains("item_height"))
+                j.at("item_height").get_to(_itemSize->y);
+        }
+        if (j.contains("item_size")) {
+            _itemSize = LayoutClass::to_pixel(LayoutClass::to_size(j["item_size"],
+                getItemSize().value_or<LayoutTypes::Size>({-1,-1})));
+        }
     }
     if (j.contains("item_h_alignment"))
         j.at("item_h_alignment").get_to(_itemHAlign);
