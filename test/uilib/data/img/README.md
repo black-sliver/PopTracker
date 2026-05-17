@@ -4,6 +4,8 @@
 
 All files in here should be loadable with proper file format support.
 
+NOTE: the good/gif87.gif is maybe not a valid gif87 file, but it has the gif87 header.
+
 ## bad
 
 All files in here should fail to load without crashing.
