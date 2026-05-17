@@ -117,6 +117,11 @@ namespace fs {
         {
             return boost::filesystem::path::filename();
         }
+
+        path extension() const
+        {
+            return boost::filesystem::path::extension();
+        }
     };
 
     inline path operator/(path lhs, boost::filesystem::path const& rhs)
