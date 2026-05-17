@@ -3,25 +3,23 @@
  (c) 2021 black-sliver, sbzappa
  */
 
-#ifndef _CORE_FILEUTIL_H
-#define _CORE_FILEUTIL_H
+#pragma once
 
-
-#include <stdio.h>
-#include <string>
 #include <chrono>
+#include <cwchar>
+#include <dirent.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <climits>
+#include <cstdio>
+#include <cstring>
+#include <string>
 #include <unistd.h>
-#include <limits.h>
-#include <string.h>
-#include <errno.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
 #include "fs.h"
 #include "util.h"
-#include <cwchar>
 
 #if defined(__APPLE__) && !defined(MACOS)
 #define MACOS
@@ -37,7 +35,7 @@
 #include <sys/sendfile.h>
 #endif
 
-static bool readFile(const fs::path& file, std::string& out)
+static bool readFile(const fs::path& file, std::string& out, size_t limit=0)
 {
     out.clear();
 #ifdef _WIN32
@@ -45,13 +43,19 @@ static bool readFile(const fs::path& file, std::string& out)
 #else
     FILE* f = fopen(file.c_str(), "rb");
 #endif
-    if (!f) {
+    if (!f)
         return false;
-    }
     while (!feof(f)) {
         char buf[4096];
-        size_t sz = fread(buf, 1, sizeof(buf), f);
-        if (ferror(f)) goto read_err;
+        const size_t sz = fread(buf, 1, sizeof(buf), f);
+        if (ferror(f))
+            goto read_err;
+        if (limit && sz >= limit) {
+            out += std::string(buf, limit);
+            break;
+        }
+        if (limit)
+            limit -= sz;
         out += std::string(buf, sz);
     }
     fclose(f);
@@ -239,5 +243,3 @@ static std::string localToUTF8(const std::string& s)
 // on non-windows paths are expected to be UTF8
 #define localToUTF8(s) (s)
 #endif
-
-#endif // _CORE_FILEUTIL_H
