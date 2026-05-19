@@ -47,7 +47,8 @@ static bool readFile(const fs::path& file, std::string& out, size_t limit=0)
         return false;
     while (!feof(f)) {
         char buf[4096];
-        const size_t sz = fread(buf, 1, sizeof(buf), f);
+        const size_t toRead = limit && limit < sizeof(buf) ? limit : sizeof(buf);
+        const size_t sz = fread(buf, 1, toRead, f);
         if (ferror(f))
             goto read_err;
         if (limit && sz >= limit) {

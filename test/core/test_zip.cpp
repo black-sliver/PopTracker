@@ -147,6 +147,19 @@ TEST(Zip, Deflated)
     EXPECT_EQ(data1.length(), 8u * 1024u);
 }
 
+TEST(Zip, DeflatedLimit)
+{
+    Zip zip(SAMPLE_ZIP_PATH);
+    ASSERT_TRUE(zip.isValid());
+    std::string part, full, alsoFull;
+    EXPECT_TRUE(zip.readFile("1/very_short.txt", part, 2));
+    EXPECT_TRUE(zip.readFile("1/very_short.txt", full, 4));
+    EXPECT_TRUE(zip.readFile("1/very_short.txt", alsoFull, 5));
+    EXPECT_EQ(part.length(), 2u);
+    EXPECT_EQ(full.length(), 4u);
+    EXPECT_EQ(full, alsoFull);
+}
+
 TEST(Zip, Stored)
 {
     Zip zip(SAMPLE_ZIP_PATH);
@@ -156,6 +169,19 @@ TEST(Zip, Stored)
     EXPECT_EQ(data0.length(), 0u);
     EXPECT_TRUE(zip.readFile("0/very_short.txt", data0));
     EXPECT_EQ(data0.length(), 4u);
+}
+
+TEST(Zip, StoredLimit)
+{
+    Zip zip(SAMPLE_ZIP_PATH);
+    ASSERT_TRUE(zip.isValid());
+    std::string part, full, alsoFull;
+    EXPECT_TRUE(zip.readFile("0/very_short.txt", part, 2));
+    EXPECT_TRUE(zip.readFile("0/very_short.txt", full, 4));
+    EXPECT_TRUE(zip.readFile("0/very_short.txt", alsoFull, 5));
+    EXPECT_EQ(part.length(), 2u);
+    EXPECT_EQ(full.length(), 4u);
+    EXPECT_EQ(full, alsoFull);
 }
 
 TEST(Zip, Deflate64)
