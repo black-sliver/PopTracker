@@ -16,7 +16,8 @@ public:
 
     MapWidget(int x, int y, int w, int h, const char* filename);
     MapWidget(int x, int y, int w, int h, const void* data, size_t len);
-    
+    MapWidget(int x, int y, int w, int h, std::unique_ptr<ImageFuture>&& future);
+
     struct Point {
         int x = 0;
         int y = 0;

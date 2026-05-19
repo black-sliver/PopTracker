@@ -1,5 +1,6 @@
 #pragma once
 
+#include "imagefuture.hpp"
 #include "widget.h"
 #include "../core/fs.h"
 
@@ -10,6 +11,7 @@ class Image : public Widget
 public:
     Image(int x, int y, int w, int h, const fs::path& path);
     Image(int x, int y, int w, int h, const void* data, size_t len);
+    Image(int x, int y, int w, int h, std::unique_ptr<ImageFuture>&& future);
     ~Image() override;
     void render(Renderer renderer, int offX, int offY) override;
     void setSize(Size size) override;
@@ -19,9 +21,13 @@ public:
     virtual void setDarkenGreyscale(bool value);
     void setImage(const fs::path& path);
     void setImage(const void* data, size_t len);
+    void setImage(std::unique_ptr<ImageFuture>&& future);
+
+private:
+    void clearImage();
 
 protected:
-    void ensureTexture(Renderer renderer);
+    void ensureTexture(Renderer renderer, bool lazy=true);
 
     SDL_Surface *_surf = nullptr;
     SDL_Texture *_tex = nullptr;
@@ -30,6 +36,7 @@ protected:
     bool _fixedAspect = true;
     int _quality = -1;
     bool _darkenGreyscale = true; // makes greyscale version look "disabled"
+    std::unique_ptr<ImageFuture> _future{};
 };
 
 } // namespace Ui

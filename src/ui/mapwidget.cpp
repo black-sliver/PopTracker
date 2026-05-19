@@ -99,6 +99,12 @@ MapWidget::MapWidget(int x, int y, int w, int h, const void* data, size_t len)
     connectSignals();
 }
 
+MapWidget::MapWidget(int x, int y, int w, int h, std::unique_ptr<ImageFuture>&& future)
+    : Image(x, y, w, h, std::move(future))
+{
+    connectSignals();
+}
+
 void MapWidget::connectSignals()
 {
     this->onMouseMove += { this, [this](void*, const int x, const int y, const unsigned buttons) {

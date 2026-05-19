@@ -20,6 +20,20 @@ inline SDL_Surface* LoadImage(const fs::path& path)
 #endif
 }
 
+inline SDL_Surface* LoadImageFromData(const std::string& data)
+{
+    if (data.length() > std::numeric_limits<int>::max())
+        return nullptr;
+    return IMG_Load_RW(SDL_RWFromConstMem(data.c_str(), static_cast<int>(data.length())), 1);
+}
+
+inline SDL_Surface* LoadImageFromData(const std::string_view data)
+{
+    if (data.length() > std::numeric_limits<int>::max())
+        return nullptr;
+    return IMG_Load_RW(SDL_RWFromConstMem(data.data(), static_cast<int>(data.length())), 1);
+}
+
 enum class ImageFormat {
     Unknown,
     // in order of most common to least common

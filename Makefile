@@ -23,9 +23,9 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) \
       $(LIB_DIR)/fmt/src/format.cc \
       #$(LIB_DIR)/gifdec/gifdec.c)
 HDR = $(wildcard $(SRC_DIR)/*.h) \
-      $(wildcard $(SRC_DIR)/uilib/*.h) \
-      $(wildcard $(SRC_DIR)/ui/*.h) \
-      $(wildcard $(SRC_DIR)/core/*.h) \
+      $(wildcard $(SRC_DIR)/uilib/*.h*) \
+      $(wildcard $(SRC_DIR)/ui/*.h*) \
+      $(wildcard $(SRC_DIR)/core/*.h*) \
       $(wildcard $(SRC_DIR)/appupdater/*.hpp) \
       $(wildcard $(SRC_DIR)/gh/api/*.hpp) \
       $(wildcard $(SRC_DIR)/luasandbox/*.h) \
