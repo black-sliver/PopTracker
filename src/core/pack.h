@@ -1,15 +1,13 @@
-#ifndef _CORE_PACK_H
-#define _CORE_PACK_H
+#pragma once
 
+#include <chrono>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include <chrono>
 #include <nlohmann/json.hpp>
-
 #include "fs.h"
-#include "zip.h"
 #include "version.h"
+#include "zip.h"
 
 
 class Pack final {
@@ -28,8 +26,8 @@ public:
         Version minPoptrackerVersion;
         std::vector<VariantInfo> variants;
     };
-    
-    Pack(const fs::path& path);
+
+    explicit Pack(const fs::path& path);
     ~Pack();
 
     bool isValid() const
@@ -53,17 +51,17 @@ public:
     const std::vector<std::string>& getDisabledImageFilter() const { return _disabledImageFilter; }
 
     Info getInfo() const;
-    
-    bool hasFile(const std::string& file) const;
-    bool ReadFile(const std::string& file, std::string& out, bool allowOverride=true) const;
-    
+
+    bool hasFile(const std::string& userFile) const;
+    bool ReadFile(const std::string& userFile, std::string& out, bool allowOverride=true) const;
+
     bool variantHasFlag(const std::string& flag) const;
     std::set<std::string> getVariantFlags() const;
     std::string getPlatform() const;
     std::string getVersion() const;
     bool hasFilesChanged() const;
     std::string getSHA256() const;
-    
+
     static std::vector<Info> ListAvailable();
     static Info Find(const std::string& uid, const std::string& version="", const std::string& sha256="");
     static void addSearchPath(const fs::path& path);
@@ -75,10 +73,10 @@ public:
 private:
     class Override {
     public:
-        Override(const fs::path& path);
-        virtual ~Override();
+        explicit Override(fs::path path);
+        virtual ~Override() = default;
 
-        bool ReadFile(const std::string& file, std::string& out) const;
+        bool ReadFile(const std::string& userFile, std::string& out) const;
         bool hasFilesChanged(std::chrono::system_clock::time_point since) const;
         const fs::path& getPath() const { return _path; }
 
@@ -86,7 +84,8 @@ private:
         fs::path _path;
     };
 
-    Zip* _zip;
+    std::unique_ptr<Zip> _zip;
+    std::unique_ptr<Override> _override;
     fs::path _path;
     std::string _variant;
     std::string _uid;
@@ -98,7 +97,6 @@ private:
     Version _targetPopTrackerVersion;
     nlohmann::json _manifest;
     nlohmann::json _settings;
-    Override* _override;
     std::vector<std::string> _disabledImageFilter;
 
     std::chrono::system_clock::time_point _loaded;
@@ -106,5 +104,3 @@ private:
     static std::vector<fs::path> _searchPaths;
     static std::vector<fs::path> _overrideSearchPaths;
 };
-
-#endif // _CORE_PACK_H
