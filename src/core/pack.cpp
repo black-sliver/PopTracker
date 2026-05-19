@@ -215,7 +215,7 @@ bool Pack::hasFile(const std::string& userFile) const
     return false;
 }
 
-bool Pack::ReadFile(const std::string& userFile, std::string& out, const bool allowOverride) const
+bool Pack::ReadFile(const std::string& userFile, std::string& out, const bool allowOverride, size_t limit) const
 {
     std::string file;
     if (!sanitizePath(userFile, file))
@@ -234,16 +234,16 @@ bool Pack::ReadFile(const std::string& userFile, std::string& out, const bool al
             else
                 packHasVariantFile = fs::is_regular_file(_path / fs::u8path(_variant) / fs::u8path(file));
         }
-        if (packHasVariantFile && _override->ReadFile(_variant + "/" + file, out))
+        if (packHasVariantFile && _override->ReadFile(_variant + "/" + file, out, limit))
             return true;
-        if ((!packHasVariantFile || _variant.empty()) && _override->ReadFile(file, out))
+        if ((!packHasVariantFile || _variant.empty()) && _override->ReadFile(file, out, limit))
             return true;
     }
 
     if (_zip) {
-        if (!_variant.empty() && _zip->readFile(_variant + "/" + file, out))
+        if (!_variant.empty() && _zip->readFile(_variant + "/" + file, out, limit))
             return true;
-        if (_zip->readFile(file, out))
+        if (_zip->readFile(file, out, limit))
             return true;
         return false;
     } else {
@@ -268,8 +268,16 @@ bool Pack::ReadFile(const std::string& userFile, std::string& out, const bool al
             return false;
         while (!feof(f)) {
             char buf[4096];
-            size_t sz = fread(buf, 1, sizeof(buf), f);
-            if (ferror(f)) goto read_err;
+            const size_t toRead = limit && limit < sizeof(buf) ? limit : sizeof(buf);
+            const size_t sz = fread(buf, 1, toRead, f);
+            if (ferror(f))
+                goto read_err;
+            if (limit && sz >= limit) {
+                out += std::string(buf, limit);
+                break;
+            }
+            if (limit)
+                limit -= sz;
             out += std::string(buf, sz);
         }
         fclose(f);
@@ -520,7 +528,7 @@ Pack::Override::Override(fs::path path)
 {
 }
 
-bool Pack::Override::ReadFile(const std::string& userFile, std::string& out) const
+bool Pack::Override::ReadFile(const std::string& userFile, std::string& out, size_t limit) const
 {
     std::string file;
     if (!sanitizePath(userFile, file))
@@ -537,8 +545,16 @@ bool Pack::Override::ReadFile(const std::string& userFile, std::string& out) con
         return false;
     while (!feof(f)) {
         char buf[4096];
-        size_t sz = fread(buf, 1, sizeof(buf), f);
-        if (ferror(f)) goto read_err;
+        const size_t toRead = limit && limit < sizeof(buf) ? limit : sizeof(buf);
+        const size_t sz = fread(buf, 1, toRead, f);
+        if (ferror(f))
+            goto read_err;
+        if (limit && sz >= limit) {
+            out += std::string(buf, limit);
+            break;
+        }
+        if (limit)
+            limit -= sz;
         out += std::string(buf, sz);
     }
     fclose(f);

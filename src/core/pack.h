@@ -53,7 +53,7 @@ public:
     Info getInfo() const;
 
     bool hasFile(const std::string& userFile) const;
-    bool ReadFile(const std::string& userFile, std::string& out, bool allowOverride=true) const;
+    bool ReadFile(const std::string& userFile, std::string& out, bool allowOverride=true, size_t limit=0) const;
 
     bool variantHasFlag(const std::string& flag) const;
     std::set<std::string> getVariantFlags() const;
@@ -76,7 +76,7 @@ private:
         explicit Override(fs::path path);
         virtual ~Override() = default;
 
-        bool ReadFile(const std::string& userFile, std::string& out) const;
+        bool ReadFile(const std::string& userFile, std::string& out, size_t limit=0) const;
         bool hasFilesChanged(std::chrono::system_clock::time_point since) const;
         const fs::path& getPath() const { return _path; }
 

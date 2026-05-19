@@ -152,13 +152,13 @@ bool Zip::hasFile(const std::string& name)
     return true;
 }
 
-bool Zip::readFile(const std::string& name, std::string& out)
+bool Zip::readFile(const std::string& name, std::string& out, const size_t limit)
 {
     std::string err;
-    return readFile(name, out, err);
+    return readFile(name, out, err, limit);
 }
 
-bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
+bool Zip::readFile(const std::string& name, std::string& out, std::string& err, const size_t limit)
 {
     out.clear();
     err.clear();
@@ -199,15 +199,26 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err)
     if (sz == 0)
         return true; // done. out is cleared above
 
+    const size_t toRead = limit && limit < sz ? limit : sz;
     try {
-        out.resize(sz);
+        out.resize(toRead);
     } catch (std::bad_alloc&) {
         out.clear();
         err = "Out of memory";
         return false;
     }
-    if (mz_zip_reader_extract_to_mem(&_zip, index, out.data(), sz, 0))
-        return true;
+    if (toRead == sz) {
+        if (mz_zip_reader_extract_to_mem(&_zip, index, out.data(), toRead, 0))
+            return true;
+    } else {
+        if (auto* stream = mz_zip_reader_extract_iter_new(&_zip, index, 0)) {
+            const size_t read = mz_zip_reader_extract_iter_read(stream, out.data(), toRead);
+            const bool failed = stream->status != TINFL_STATUS_DONE && stream->status != TINFL_STATUS_HAS_MORE_OUTPUT;
+            mz_zip_reader_extract_iter_free(stream);
+            if (read == toRead && !failed)
+                return true;
+        }
+    }
 
     out.clear();
     err = mz_zip_get_error_string(mz_zip_peek_last_error(&_zip));
