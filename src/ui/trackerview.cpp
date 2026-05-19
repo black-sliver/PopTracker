@@ -1,25 +1,25 @@
 #include "trackerview.h"
-#include <fmt/format.h>
 #include <string>
 #include <vector>
-#include "../uilib/image.h"
-#include "../uilib/simplecontainer.h"
-#include "../uilib/hbox.h"
-#include "../uilib/vbox.h"
-#include "../uilib/dock.h"
-#include "../uilib/tabs.h"
-#include "../uilib/scrollvbox.h"
-#include "../uilib/canvas.h"
-#include "../uilib/timer.h"
-#include "../uilib/tooltip.h"
-#include "../core/fileutil.h"
-#include "../core/assets.h"
+#include <fmt/format.h>
+#include "defaults.h" // DEFAULT_FONT_*
 #include "item.h"
 #include "maptooltip.h"
 #include "mapwidget.h"
-#include "defaults.h" // DEFAULT_FONT_*
-
+#include "packimagefuture.hpp"
+#include "../core/assets.h"
+#include "../core/fileutil.h"
 #include "../core/jsonutil.h"
+#include "../uilib/canvas.h"
+#include "../uilib/dock.h"
+#include "../uilib/hbox.h"
+#include "../uilib/image.h"
+#include "../uilib/scrollvbox.h"
+#include "../uilib/simplecontainer.h"
+#include "../uilib/tabs.h"
+#include "../uilib/timer.h"
+#include "../uilib/tooltip.h"
+#include "../uilib/vbox.h"
 
 namespace Ui {
 
@@ -895,10 +895,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
         {
             const auto& map = _tracker->getMap(mapname);
             const auto& f = map.getImage();
-            std::string s;
-            if (!_tracker->getPack()->ReadFile(f, s))
-                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
-            MapWidget *w = new MapWidget(0,0,0,0, s.c_str(),s.length());
+            auto *w = new MapWidget(0,0,0,0, std::make_unique<PackImageFuture>(_tracker->getPack(), f));
             w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
             w->setHideClearedLocations(_hideClearedLocations);
             w->setHideUnreachableLocations(_hideUnreachableLocations);
