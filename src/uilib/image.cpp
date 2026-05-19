@@ -36,17 +36,23 @@ Image::Image(const int x, const int y, const int w, const int h, const void* dat
     }
 }
 
+Image::Image(const int x, const int y, const int w, const int h, std::unique_ptr<ImageFuture>&& future)
+    : Widget(x,y,w,h)
+{
+    setImage(std::move(future));
+    if (w < 1 && h < 1) {
+        _size.width = _autoSize.width;
+        _size.height = _autoSize.height;
+    } else if (w < 1 && _autoSize.height) {
+        _size.width = (_autoSize.width * h + _autoSize.height / 2) / _autoSize.height;
+    } else if (h < 1 && _autoSize.width) {
+        _size.height = (_autoSize.height * w + _autoSize.width / 2) / _autoSize.width;
+    }
+}
+
 Image::~Image()
 {
-    if (_tex)
-        SDL_DestroyTexture(_tex);
-    if (_texBw)
-        SDL_DestroyTexture(_texBw);
-    if (_surf)
-        SDL_FreeSurface(_surf);
-    _tex = nullptr;
-    _texBw = nullptr;
-    _surf = nullptr;
+    clearImage();
 }
 
 void Image::setImage(const fs::path& path)
@@ -56,16 +62,7 @@ void Image::setImage(const fs::path& path)
     if (path == _path && !path.empty())
         return; // unchanged
 
-    if (_tex)
-        SDL_DestroyTexture(_tex);
-    if (_texBw)
-        SDL_DestroyTexture(_texBw);
-    if (_surf)
-        SDL_FreeSurface(_surf);
-    _tex = nullptr;
-    _texBw = nullptr;
-    _surf = nullptr;
-    _autoSize = {0, 0};
+    clearImage();
 
     if (path.empty()) {
         _path.clear();
@@ -85,17 +82,7 @@ void Image::setImage(const void* data, const size_t len)
 {
     // NOTE: if the app hangs or crashes in IMG_Load_RW, you are probably mixing incompatible DLLs
     // FIXME: loading images takes a majority of the time to build the UI. Cache it!
-    if (_tex)
-        SDL_DestroyTexture(_tex);
-    if (_texBw)
-        SDL_DestroyTexture(_texBw);
-    if (_surf)
-        SDL_FreeSurface(_surf);
-    _tex = nullptr;
-    _texBw = nullptr;
-    _surf = nullptr;
-    _autoSize = {0, 0};
-    _path.clear();
+    clearImage();
 
     if (!data || !len)
         return; // no data
@@ -108,8 +95,47 @@ void Image::setImage(const void* data, const size_t len)
     }
 }
 
-void Image::ensureTexture(Renderer renderer)
+void Image::setImage(std::unique_ptr<ImageFuture>&& future)
 {
+    // FIXME: loading images takes a majority of the time to build the UI. Cache it!
+    clearImage();
+
+    _future = std::move(future);
+    const Size size = _future->getSize();
+    if (size != Size::UNDEFINED)
+        _autoSize = size;
+}
+
+void Image::clearImage()
+{
+    _future.reset();
+    if (_tex)
+        SDL_DestroyTexture(_tex);
+    if (_texBw)
+        SDL_DestroyTexture(_texBw);
+    SDL_FreeSurface(_surf);
+    _tex = nullptr;
+    _texBw = nullptr;
+    _surf = nullptr;
+    _autoSize = {0, 0};
+    _path.clear();
+}
+
+static bool isSmallImage(const Size size)
+{
+    // We decompress small images in the foreground to avoid blinkiness if possible.
+    // To make this less costly, they can be cached in the provider.
+    return size.width <= 4096 && size.height <= 4096 && size.width * size.height <= 4096;
+}
+
+void Image::ensureTexture(Renderer renderer, const bool lazy)
+{
+    if (_future && (!lazy || _future->isSurfaceDone() || isSmallImage(_autoSize))) {
+        _surf = _future->getSurface();
+        _future.reset();
+    } else if (_future) {
+        _future->prioritize();
+    }
     if (!_tex && _surf) {
         if (_quality >= 0) {
             // set Texture filter/quality when creating the texture
