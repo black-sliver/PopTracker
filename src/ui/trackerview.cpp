@@ -127,6 +127,8 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
 
     for (size_t n=0; n==0||n<stages; n++) {
         f = item->getImage(n);
+        if (f.empty())
+            continue; // this allows blank items as placeholder
         if (!_tracker->getPack()->ReadFile(f, s))
             fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
         const auto& mods = item->getImageMods(n);
@@ -206,7 +208,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
-            if (!_tracker->getPack()->ReadFile(f, s))
+            if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
                 fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->setImageOverride(s.c_str(), s.length(), f, filters);
         }
@@ -568,7 +570,7 @@ void TrackerView::updateDisplay(const std::string& itemid)
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
             std::string s;
-            if (!_tracker->getPack()->ReadFile(f, s))
+            if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
                 fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->setImageOverride(s.c_str(), s.length(), f, filters);
         } else {
@@ -586,7 +588,7 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         // TODO: cache image instead always reloading it
         if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
             std::string s;
-            if (!_tracker->getPack()->ReadFile(f, s))
+            if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
                 fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             w->addStage(w->getStage1(), w->getStage2(), s.c_str(), s.length(), f, filters);
             printf("Image updated!\n");
