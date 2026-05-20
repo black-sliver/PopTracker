@@ -148,10 +148,10 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
                 f = item->getDisabledImage(0);
                 if (!_tracker->getPack()->ReadFile(f, s))
                     fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
-                const auto& mods = item->getDisabledImageMods(0);
-                filters = imageModsToFilters(_tracker, mods);
+                const auto& disMods = item->getDisabledImageMods(0);
+                filters = imageModsToFilters(_tracker, disMods);
                 w->addStage(0, 0, s.c_str(), s.length(), f, filters);
-                badgeMods = mods;
+                badgeMods = disMods;
                 badgeMods.push_back("overlay|" + origItem.getImage(0));
                 badgeFilters = imageModsToFilters(_tracker, badgeMods);
                 w->addStage(1, 0, s.c_str(), s.length(), f, badgeFilters);
@@ -159,13 +159,13 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         }
         else if (disabled) {
             w->addStage(1, n, s.c_str(), s.length(), f, filters);
-            auto disF = item->getDisabledImage(n);
+            const auto& disF = item->getDisabledImage(n);
             if (f != disF) {
                 f = disF;
                 if (!_tracker->getPack()->ReadFile(f, s))
                     fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             }
-            auto disMods = item->getDisabledImageMods(n);
+            const auto& disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
             w->addStage(0, n, s.c_str(), s.length(), f, filters);
         }
@@ -198,10 +198,10 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         auto j = dynamic_cast<const JsonItem *>(&origItem);
         if (j && j->isImageOverridden()) {
             const auto& img = j->getImageOverride();
-            auto p = img.find(":");
+            auto p = img.find(':');
             std::string f;
             std::list<ImageFilter> filters;
-            if (p == img.npos) {
+            if (p == std::string::npos) {
                 f = img;
             } else {
                 f = img.substr(0, p);
@@ -560,10 +560,10 @@ void TrackerView::updateDisplay(const std::string& itemid)
             continue;
         if (j->isImageOverridden()) {
             const auto& img = j->getImageOverride();
-            auto p = img.find(":");
+            const auto p = img.find(':');
             std::string f;
             std::list<ImageFilter> filters;
-            if (p == img.npos) {
+            if (p == std::string::npos) {
                 f = img;
             } else {
                 f = img.substr(0, p);
@@ -582,10 +582,10 @@ void TrackerView::updateDisplay(const std::string& itemid)
 void TrackerView::updateItem(Item* w, const BaseItem& item)
 {
     if (item.getType() == ::BaseItem::Type::CUSTOM) {
-        int st = item.getActiveStage();
-        auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
-        auto f = item.getImage(st);
-        // TODO: cache image instead always reloading it
+        const int st = item.getActiveStage();
+        const auto filters = imageModsToFilters(_tracker, item.getImageMods(st));
+        const auto& f = item.getImage(st);
+        // TODO: cache image instead of always reloading it
         if (!w->isStage(w->getStage1(), w->getStage2(), f, filters)) {
             std::string s;
             if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
@@ -629,7 +629,7 @@ void TrackerView::updateItem(Item* w, const BaseItem& item)
         w->setOverlayAlignment(str2itemHalign(item.getOverlayAlign(), Label::HAlign::RIGHT));
         w->setOverlayBackgroundColor(item.getOverlayBackground());
     } else {
-        auto s = item.getOverlay();
+        const auto& s = item.getOverlay();
         w->setOverlay(s);
         if (!s.empty()) {
             const auto& itemOverlayColor = item.getOverlayColor();
