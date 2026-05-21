@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdint>
+#include <thread>
 #include <gtest/gtest.h>
 #include "../fuzz.hpp"
 #include "../../src/core/fileutil.h"
@@ -158,6 +159,32 @@ TEST(Zip, DeflatedLimit)
     EXPECT_EQ(part.length(), 2u);
     EXPECT_EQ(full.length(), 4u);
     EXPECT_EQ(full, alsoFull);
+}
+
+TEST(Zip, MultiThreaded)
+{
+    Zip zip(SAMPLE_ZIP_PATH);
+    ASSERT_TRUE(zip.isValid());
+    std::vector<std::thread> threads;
+    for (const char* const f : {"1/short.txt", "9/short.txt", "0/very_short.txt"}) {
+        threads.emplace_back(std::thread([&zip] {
+            EXPECT_TRUE(zip.list(true).size());
+        }));
+        for (size_t i = 0; i < 2; i++) {
+            threads.emplace_back(std::thread([&zip, f] {
+                EXPECT_TRUE(zip.hasFile(f));
+            }));
+            threads.emplace_back(std::thread([&zip, f] {
+                std::string s;
+                EXPECT_TRUE(zip.readFile(f, s));
+                EXPECT_TRUE(zip.readFile(f, s, 1));
+            }));
+        }
+    }
+    EXPECT_TRUE(zip.list(false).size());
+    for (auto& t : threads) {
+        t.join();
+    }
 }
 
 TEST(Zip, Stored)
