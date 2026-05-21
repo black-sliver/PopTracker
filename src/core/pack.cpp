@@ -477,12 +477,13 @@ static void addPath(const fs::path& path, std::vector<fs::path>& paths)
     } else
 #else
     // TODO: canonical?
-    auto tmp = _wfullpath(nullptr, path.c_str(), 1024);
-    if (tmp) {
+    if (auto* tmp = _wfullpath(nullptr, path.c_str(), 1024)) {
         auto cmp = [tmp](const fs::path& p) { return wcsicmp(tmp, p.c_str()) == 0; };
-        if (std::find_if(paths.begin(), paths.end(), cmp) != paths.end())
+        if (std::find_if(paths.begin(), paths.end(), cmp) != paths.end()) {
+            free(tmp);
             return;
-        paths.push_back(tmp);
+        }
+        paths.emplace_back(tmp);
         free(tmp);
     } else
 #endif
