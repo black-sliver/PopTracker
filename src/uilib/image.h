@@ -35,7 +35,8 @@ protected:
     fs::path _path;
     bool _fixedAspect = true;
     int _quality = -1;
-    bool _darkenGreyscale = true; // makes greyscale version look "disabled"
+    bool _darkenGreyscale = true; //< makes greyscale version look "disabled"
+    bool _hasGreyscale = true; //< false to disable the greyscale version
     std::unique_ptr<ImageFuture> _future{};
 };
 

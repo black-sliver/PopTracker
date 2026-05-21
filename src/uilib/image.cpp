@@ -145,8 +145,11 @@ void Image::ensureTexture(Renderer renderer, const bool lazy)
             }
         }
         _tex = SDL_CreateTextureFromSurface(renderer, _surf);
-        _surf = makeGreyscale(_surf, _darkenGreyscale);
-        _texBw = SDL_CreateTextureFromSurface(renderer, _surf);
+        if (_hasGreyscale) {
+            // TODO: make this a future?
+            _surf = makeGreyscale(_surf, _darkenGreyscale);
+            _texBw = SDL_CreateTextureFromSurface(renderer, _surf);
+        }
         SDL_FreeSurface(_surf);
         if (_quality >= 0) {
             // TODO: have the default somewhere accessible?
