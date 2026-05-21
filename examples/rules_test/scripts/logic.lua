@@ -36,3 +36,13 @@ function TrueIfAEmpty()
     ---@cast a LocationSection
     return a.AvailableChestCount == 0
 end
+
+function CheckOneA()
+    local a = Tracker:FindObjectForCode("@A/")
+    ---@cast a LocationSection
+    a.AvailableChestCount = a.AvailableChestCount - 1
+end
+
+if (Tracker.ActiveVariantUID == "var_depend_on_chest_count") then
+    ScriptHost:AddWatchForCode("CheckOneA", "a", CheckOneA)
+end
