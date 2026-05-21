@@ -90,18 +90,21 @@ bool MapWidget::SplitRects = true;
 MapWidget::MapWidget(int x, int y, int w, int h, const char* path)
     : Image(x, y, w, h, path)
 {
+    _hasGreyscale = false;
     connectSignals();
 }
 
 MapWidget::MapWidget(int x, int y, int w, int h, const void* data, size_t len)
     : Image(x, y, w, h, data, len)
 {
+    _hasGreyscale = false;
     connectSignals();
 }
 
 MapWidget::MapWidget(int x, int y, int w, int h, std::unique_ptr<ImageFuture>&& future)
     : Image(x, y, w, h, std::move(future))
 {
+    _hasGreyscale = false;
     connectSignals();
 }
 
