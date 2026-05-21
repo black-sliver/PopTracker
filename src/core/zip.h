@@ -2,6 +2,7 @@
 
 #define MINIZ_NO_ZLIB_APIS
 #include <miniz.h>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -40,10 +41,12 @@ private:
     };
     friend Zip::Slashes  operator| (Zip::Slashes,  Zip::Slashes);
     friend Zip::Slashes& operator|=(Zip::Slashes&, Zip::Slashes);
+
     mz_zip_archive _zip;
+    std::mutex _mutex; // zip operations set m_last_error, so we need a lock everywhere
     bool _valid;
     Slashes _slashes;
-    std::string _dir;    
+    std::string _dir;
 };
 
 inline Zip::Slashes operator|(Zip::Slashes a, Zip::Slashes b)

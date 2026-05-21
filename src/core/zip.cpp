@@ -36,15 +36,19 @@ Zip::Zip(FILE* file)
 
 Zip::~Zip()
 {
-    if (_valid) {
-        mz_zip_reader_end(&_zip);
-        mz_zip_zero_struct(&_zip);
-    }
+    std::lock_guard lock(_mutex);
+    if (!_valid)
+        return;
+
     _valid = false;
+    mz_zip_reader_end(&_zip);
+    mz_zip_zero_struct(&_zip);
 }
 
 void Zip::setDir(const std::string& dir)
 {
+    std::lock_guard lock(_mutex);
+
     // remove leading /
     if (dir[0] == '/') _dir = dir.substr(1);
     else _dir = dir;
@@ -65,6 +69,7 @@ void Zip::setDir(const std::string& dir)
 
 std::vector< std::pair<Zip::EntryType,std::string> > Zip::list(const bool recursive)
 {
+    std::lock_guard lock(_mutex);
     std::vector< std::pair<EntryType,std::string> > res;
     if (!_valid)
         return res;
@@ -136,6 +141,7 @@ std::vector< std::pair<Zip::EntryType,std::string> > Zip::list(const bool recurs
 
 bool Zip::hasFile(const std::string& name)
 {
+    std::lock_guard lock(_mutex);
     if (!_valid)
         return false;
 
@@ -160,6 +166,7 @@ bool Zip::readFile(const std::string& name, std::string& out, const size_t limit
 
 bool Zip::readFile(const std::string& name, std::string& out, std::string& err, const size_t limit)
 {
+    std::lock_guard lock(_mutex);
     out.clear();
     err.clear();
     if (!_valid) {
