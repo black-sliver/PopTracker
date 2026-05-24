@@ -5,9 +5,12 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include <SDL2/SDL_surface.h>
+
 #include "fs.h"
 #include "version.h"
 #include "zip.h"
+#include "../uilib/size.h"
 
 
 class Pack final {
@@ -36,6 +39,7 @@ public:
         // TODO: also check if init.lua exists?
     }
 
+    /// Sets variant of the pack to use. Invalidates images, so unload Ui elements before calling!
     void setVariant(const std::string& variant);
     const fs::path& getPath() const { return _path; }
     const std::string& getUID() const { return _uid; }
@@ -61,6 +65,10 @@ public:
     std::string getVersion() const;
     bool hasFilesChanged() const;
     std::string getSHA256() const;
+    /// return image size, if possible, Size::UNDEFINED otherwise; use getImage if size is UNDEFINED
+    Ui::Size getImageSize(const std::string& userFile) const;
+    /// return shared copy of decoded image
+    SDL_Surface* getImage(const std::string& userFile) const;
 
     static std::vector<Info> ListAvailable();
     static Info Find(const std::string& uid, const std::string& version="", const std::string& sha256="");
@@ -84,6 +92,8 @@ private:
         fs::path _path;
     };
 
+    void clearImageCaches();
+
     std::unique_ptr<Zip> _zip;
     std::unique_ptr<Override> _override;
     fs::path _path;
@@ -100,6 +110,11 @@ private:
     std::vector<std::string> _disabledImageFilter;
 
     std::chrono::system_clock::time_point _loaded;
+
+    mutable std::mutex _imageSizeMutex;
+    mutable std::map<std::string, Ui::Size> _imageSizeCache;
+    mutable std::mutex _smallImageMutex;
+    mutable std::map<std::string, SDL_Surface*> _smallImageCache;
 
     static std::vector<fs::path> _searchPaths;
     static std::vector<fs::path> _overrideSearchPaths;

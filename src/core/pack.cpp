@@ -7,6 +7,7 @@
 #include "sha256.h"
 #include "util.h"
 #include "version.h"
+#include "../uilib/imghelper.h"
 
 #ifdef _WIN32
 #include <wchar.h>
@@ -156,6 +157,7 @@ Pack::Pack(const fs::path& path) : _path(path)
 
 Pack::~Pack()
 {
+    clearImageCaches();
     _override.reset(nullptr);
     _zip.reset(nullptr);
 }
@@ -292,6 +294,8 @@ read_err:
 void Pack::setVariant(const std::string& variant)
 {
     // set variant and cache some common values
+    if (_variant != variant)
+        clearImageCaches();
     _variant = variant;
     _variantName = variant; // fall-back
     if (_manifest.type() != json::value_t::object)
@@ -406,6 +410,56 @@ std::string Pack::getSHA256() const
     if (_zip)
         return SHA256_File(_path);
     return "";
+}
+
+Ui::Size Pack::getImageSize(const std::string &userFile) const
+{
+    std::lock_guard lock(_imageSizeMutex);
+    const auto it = _imageSizeCache.find(userFile);
+    if (it != _imageSizeCache.end())
+        return it->second;
+    std::string data;
+    Ui::Size size = Ui::Size::UNDEFINED;
+    if (ReadFile(userFile, data, true, Ui::getMaxImageHeaderLength()))
+        size = Ui::getImageSize(data);
+    else
+        fprintf(stderr, "Error reading image file %s to get size\n", sanitize_print(userFile).c_str());
+    _imageSizeCache.emplace(userFile, size);
+    return size;
+}
+
+SDL_Surface* Pack::getImage(const std::string &userFile) const
+{
+    {
+        std::lock_guard lock(_smallImageMutex);
+        const auto it = _smallImageCache.find(userFile);
+        if (it != _smallImageCache.end()) {
+#ifndef SDL_DONTFREE
+            // refcount is not be thread safe, so use a fake ref count
+            it->second->refcount = std::numeric_limits<decltype(it->second->refcount)>::max() / 2;
+#endif
+            return it->second;
+        }
+    }
+    std::string data;
+    if (!ReadFile(userFile, data, true)) {
+        fprintf(stderr, "Error reading image file %s for pixels\n", sanitize_print(userFile).c_str());
+        return nullptr;
+    }
+    SDL_Surface* surface = Ui::LoadImageFromData(data);
+    if (surface && surface->w <= 4096 && surface->h <= 4096 && surface->w * surface->h <= 4096) {
+        // cache 64x64 (16KB) and smaller
+        std::lock_guard lock(_smallImageMutex);
+#ifdef SDL_DONTFREE
+        // manipulating refcount may not be thread-safe, so make it owned by Pack and ignore refcount
+        surface->flags |= SDL_DONTFREE;
+#else
+        // refcount is not be thread safe, so use a fake ref count
+        surface->refcount = std::numeric_limits<decltype(surface->refcount)>::max() / 2;
+#endif
+        _smallImageCache.emplace(userFile, surface);
+    }
+    return surface;
 }
 
 std::vector<Pack::Info> Pack::ListAvailable()
@@ -569,4 +623,29 @@ read_err:
 bool Pack::Override::hasFilesChanged(std::chrono::system_clock::time_point since) const
 {
     return dirNewerThan(_path, since);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void Pack::clearImageCaches()
+{
+    {
+        std::lock_guard lock(_imageSizeMutex);
+        _imageSizeCache.clear();
+    }
+    {
+        std::lock_guard lock(_smallImageMutex);
+        for (const auto&[_, surface]: _smallImageCache) {
+#ifdef SDL_DONTFREE
+            // surface is supposed to be owned by Pack, so just free it
+            surface->flags &= ~SDL_DONTFREE;
+            if (surface->refcount != 1)
+                fprintf(stderr, "WARNING: Wrong ref count in Pack::_smallImageCache\n");
+            SDL_FreeSurface(surface);
+#else
+            // we use a fake (high) ref count because ref counting is not thread safe
+            surface->refcount = 1;
+            SDL_FreeSurface(surface);
+#endif
+        }
+    }
 }
