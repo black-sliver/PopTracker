@@ -45,9 +45,11 @@ void Item::freeStage(int stage1, int stage2)
     }
 }
 
-void Item::addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name, std::list<ImageFilter> filters)
+void Item::addStage(const int stage1, const int stage2, SDL_Surface* surf, const std::string& name,
+    const std::list<ImageFilter>& filters)
 {
-    if (!surf) return;
+    if (!surf)
+        return;
     // if any corner pixel is #ff00ff, make that color transparent
     surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
     // if filters have an overlay, we need an RGB(A) surface
@@ -59,7 +61,7 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, const std::string
         }
     }
     if (needsRGB && surf->format->BitsPerPixel < 32) {
-        auto old = surf;
+        SDL_Surface* old = surf;
         surf = SDL_ConvertSurfaceFormat(old, SDL_PIXELFORMAT_ARGB8888, 0);
         SDL_FreeSurface(old);
         if (!surf) return;
@@ -86,7 +88,7 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, const std::string
         _filters[stage1].push_back({});
     }
     // apply filters
-    for (auto filter: filters)
+    for (const auto& filter: filters)
         surf = filter.apply(surf);
     // store final surface
     _surfs[stage1][stage2] = surf;
@@ -94,33 +96,27 @@ void Item::addStage(int stage1, int stage2, SDL_Surface* surf, const std::string
     _filters[stage1][stage2] = filters;
 }
 
-void Item::addStage(int stage1, int stage2, const char *path, std::list<ImageFilter> filters)
+void Item::addStage(const int stage1, const int stage2, const char *path, const std::list<ImageFilter>& filters)
 {
     freeStage(stage1, stage2);
     if (!path || !*path) return;
     // FIXME: loading images takes a majority of the time to build the UI. Cache it!
-    auto surf = IMG_Load(path);
-    if (surf) {
+    if (SDL_Surface* surf = IMG_Load(path))
         addStage(stage1, stage2, surf, path, filters);
-    }
-    else {
+    else
         fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
-    }
 }
 
-void Item::addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
-                    std::list<ImageFilter> filters)
+void Item::addStage(const int stage1, const int stage2, const void *data, size_t len, const std::string& name,
+                    const std::list<ImageFilter>& filters)
 {
     freeStage(stage1, stage2);
     if (!data || !len) return;
     // FIXME: loading images takes a majority of the time to build the UI. Cache it!
-    auto surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
-    if (surf) {
+    if (SDL_Surface* surf = IMG_Load_RW(SDL_RWFromMem(const_cast<void*>(data), static_cast<int>(len)), 1))
         addStage(stage1, stage2, surf, name, filters);
-    }
-    else {
+    else
         fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
-    }
 }
 
 bool Item::isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters)

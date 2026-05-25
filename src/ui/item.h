@@ -27,9 +27,9 @@ public:
     virtual int getStage1() const { return _stage1; }
     virtual int getStage2() const { return _stage2; }
      // FIXME: it would probably make sense to move the image (+modifiers) out of the widget and just apply the final image
-    virtual void addStage(int stage1, int stage2, const char *path, std::list<ImageFilter> filters={});
-    virtual void addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
-                          std::list<ImageFilter> filters={});
+    void addStage(int stage1, int stage2, const char *path, const std::list<ImageFilter>& filters={});
+    void addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
+                          const std::list<ImageFilter>& filters={});
     virtual bool isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters);
     virtual void setOverlay(const std::string& s);
     virtual void setOverlayColor(Widget::Color color);
@@ -72,8 +72,8 @@ protected:
     std::string _overrideName;
     std::list<ImageFilter> _overrideFilters;
 
-    virtual void addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name,
-                          std::list<ImageFilter> filters={});
+    void addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name,
+                          const std::list<ImageFilter>& filters={});
     void freeStage(int stage1, int stage2);
 };
 
