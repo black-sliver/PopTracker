@@ -1,11 +1,12 @@
 #include "maptooltip.h"
-#include "../uilib/label.h"
-#include "../uilib/hbox.h"
-#include "../uilib/vbox.h"
-#include "../core/assets.h"
-#include "../core/fileutil.h"
-#include "../ui/trackerview.h"
 #include <list>
+#include <utility>
+#include "packimagefuture.hpp"
+#include "../ui/trackerview.h"
+#include "../uilib/assetimagefuture.hpp"
+#include "../uilib/hbox.h"
+#include "../uilib/label.h"
+#include "../uilib/vbox.h"
 
 
 namespace Ui {
@@ -208,24 +209,24 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
 Item* MapTooltip::MakeLocationIcon(int x, int y, int width, int height, FONT font, int quality,
         Tracker* tracker, const std::string& locid, const LocationSection& sec, bool opened, bool compact)
 {
-    std::string sClosed, sOpened;
-
     const std::string& fClosed = sec.getClosedImage();
-    if (!fClosed.empty() && !tracker->getPack()->ReadFile(fClosed, sClosed))
-        fprintf(stderr, "Error loading \"%s\"!\n", sanitize_print(fClosed).c_str());
-    if (sClosed.empty())
-        readFile(asset("closed.png"), sClosed); // fallback/default icon
+    std::unique_ptr<ImageFuture> closedImg;
+    if (fClosed.empty() || !tracker->getPack()->hasFile(fClosed)) // TODO: remove silent fallback
+        closedImg = std::make_unique<AssetImageFuture>("closed.png");
+    else
+        closedImg = std::make_unique<PackImageFuture>(tracker->getPack(), fClosed);
 
     const std::string& fOpened = sec.getOpenedImage();
-    if (!fOpened.empty() && !tracker->getPack()->ReadFile(fOpened, sOpened))
-        fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(fOpened).c_str());
-    if (sOpened.empty())
-        readFile(asset("open.png"), sOpened); // fallback/default icon
+    std::unique_ptr<ImageFuture> openedImg;
+    if (fOpened.empty() || !tracker->getPack()->hasFile(fOpened)) // TODO: remove silent fallback
+        openedImg = std::make_unique<AssetImageFuture>("open.png");
+    else
+        openedImg = std::make_unique<PackImageFuture>(tracker->getPack(), fOpened);
 
-    Item *w = new Item(x, y, width, height, font);
+    auto* w = new Item(x, y, width, height, font);
     w->setQuality(quality);
-    w->addStage(0,0, sClosed.c_str(), sClosed.length(), fClosed); // TODO: +img_mods
-    w->addStage(1,0, sOpened.c_str(), sOpened.length(), fOpened); // TODO: +img_mods
+    w->addStage(0,0, std::move(closedImg), fClosed); // TODO: +img_mods
+    w->addStage(1,0, std::move(openedImg), fOpened); // TODO: +img_mods
     w->setStage(opened?1:0,0);
     w->setMinSize(w->getSize()); // FIXME: this is a dirty work-around
     w->setMaxSize(w->getSize());
