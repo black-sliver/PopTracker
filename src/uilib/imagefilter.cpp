@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include "colorhelper.h"
+#include "imghelper.h"
 
 namespace Ui {
 
@@ -22,8 +23,21 @@ static float tryParseFloat(const std::string& s, const float defaultVal, const f
 
 SDL_Surface* ImageFilter::apply(SDL_Surface *surf) const
 {
-    if (!surf) return surf;
-    
+    if (!surf)
+        return surf;
+
+    if (isSharedSurface(surf)) {
+        // shared surface -> make a copy before modifying in place
+        // TODO: skip copy if the filter makes a copy itself
+        SDL_Surface* old = surf;
+        surf = SDL_DuplicateSurface(old);
+        SDL_FreeSurface(old);
+        if (!surf) {
+            fprintf(stderr, "Could not duplicate surface: %s\n", SDL_GetError());
+            return surf;
+        }
+    }
+
     if (name == "grey" || name == "disable") {
         return makeGreyscale(surf, true);
     }

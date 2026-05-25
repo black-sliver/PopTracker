@@ -1,12 +1,13 @@
-#ifndef _UI_ITEM_H
-#define _UI_ITEM_H
+#pragma once
 
-#include "../uilib/widget.h"
-#include "../uilib/imagefilter.h"
-#include <vector>
+#include <functional>
 #include <list>
+#include <vector>
 #include <SDL2/SDL_ttf.h>
+#include "../uilib/imagefilter.h"
+#include "../uilib/imagefuture.hpp"
 #include "../uilib/label.h"
+#include "../uilib/widget.h"
 
 namespace Ui {
 
@@ -30,6 +31,9 @@ public:
     void addStage(int stage1, int stage2, const char *path, const std::list<ImageFilter>& filters={});
     void addStage(int stage1, int stage2, const void *data, size_t len, const std::string& name,
                           const std::list<ImageFilter>& filters={});
+    // TODO: have an image future that applies filters
+    void addStage(int stage1, int stage2, std::unique_ptr<ImageFuture>&& future, std::string name,
+        std::list<ImageFilter> filters={});
     virtual bool isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters);
     virtual void setOverlay(const std::string& s);
     virtual void setOverlayColor(Widget::Color color);
@@ -46,6 +50,8 @@ public:
         _valign = valign;
     }
     void setImageOverride(const void *data, size_t len, const std::string& name, const std::list<ImageFilter>& filters);
+    void setImageOverride(const std::function<std::unique_ptr<ImageFuture>(void)> &generator, const std::string& name,
+        const std::list<ImageFilter>& filters);
     void clearImageOverride();
 
 protected:
@@ -53,6 +59,7 @@ protected:
     std::vector< std::vector<SDL_Texture*> > _texs; // TODO: use texture store to avoid storing duplicates
     std::vector< std::vector<std::string> > _names;
     std::vector< std::vector<std::list<ImageFilter>> > _filters;
+    std::vector<std::vector<std::unique_ptr<ImageFuture>>> _futures;
     bool _fixedAspect=true;
     int _quality=-1;
     int _stage1=0;
@@ -69,14 +76,14 @@ protected:
     Label::VAlign _valign = Label::VAlign::TOP;
     SDL_Surface *_overrideSurf = nullptr;
     SDL_Texture *_overrideTex = nullptr;
+    std::unique_ptr<ImageFuture> _overrideFuture;
     std::string _overrideName;
     std::list<ImageFilter> _overrideFilters;
 
+    void updateSize(Size size);
     void addStage(int stage1, int stage2, SDL_Surface* surf, const std::string& name,
                           const std::list<ImageFilter>& filters={});
     void freeStage(int stage1, int stage2);
 };
 
 } // namespace Ui
-
-#endif // _UI_ITEM_H

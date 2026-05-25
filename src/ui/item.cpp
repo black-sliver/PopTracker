@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
 #include "../uilib/colorhelper.h"
+#include "../uilib/imghelper.h"
 #include "../uilib/textutil.h"
 
 
@@ -43,15 +44,18 @@ void Item::freeStage(int stage1, int stage2)
     if ((int)_filters.size() > stage1 && (int)_filters[stage1].size() > stage2) {
         _filters[stage1][stage2].clear();
     }
+    if (static_cast<int>(_futures.size()) > stage1 && static_cast<int>(_futures[stage1].size()) > stage2)
+        _futures[stage1][stage2].reset();
 }
 
-void Item::addStage(const int stage1, const int stage2, SDL_Surface* surf, const std::string& name,
-    const std::list<ImageFilter>& filters)
+static SDL_Surface* updateSurface(SDL_Surface* surf, const std::list<ImageFilter>& filters)
 {
     if (!surf)
-        return;
+        return surf;
     // if any corner pixel is #ff00ff, make that color transparent
     surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
+    if (!surf)
+        return surf;
     // if filters have an overlay, we need an RGB(A) surface
     bool needsRGB = false;
     for (auto& filter: filters) {
@@ -64,19 +68,32 @@ void Item::addStage(const int stage1, const int stage2, SDL_Surface* surf, const
         SDL_Surface* old = surf;
         surf = SDL_ConvertSurfaceFormat(old, SDL_PIXELFORMAT_ARGB8888, 0);
         SDL_FreeSurface(old);
-        if (!surf) return;
     }
+    return surf;
+}
+
+void Item::updateSize(const Size size)
+{
     // store size
-    if (_autoSize.width  < surf->w) _autoSize.width  = surf->w;
-    if (_autoSize.height < surf->h) _autoSize.height = surf->h;
-    if (_size.width<1 && _size.height<1) {
+    if (_autoSize.width < size.width) _autoSize.width = size.width;
+    if (_autoSize.height < size.height) _autoSize.height = size.height;
+    if (_size.width < 1 && _size.height < 1) {
         _size.width = _autoSize.width;
         _size.height = _autoSize.height;
-    } else if (_size.width<1) {
-        _size.width = (_autoSize.width * _size.height + _autoSize.height/2) / _autoSize.height;
-    } else if (_size.height<1) {
-        _size.height = (_autoSize.height * _size.width + _autoSize.width/2) / _autoSize.width;
+    } else if (_size.width < 1) {
+        _size.width = (_autoSize.width * _size.height + _autoSize.height / 2) / _autoSize.height;
+    } else if (_size.height < 1) {
+        _size.height = (_autoSize.height * _size.width + _autoSize.width / 2) / _autoSize.width;
     }
+}
+
+void Item::addStage(const int stage1, const int stage2, SDL_Surface* surf, const std::string& name,
+                    const std::list<ImageFilter>& filters)
+{
+    surf = updateSurface(surf, filters);
+    if (!surf)
+        return;
+    updateSize({surf->w, surf->h});
     while ((int)_surfs.size() <= stage1) {
         _surfs.push_back({});
         _names.push_back({});
@@ -119,6 +136,30 @@ void Item::addStage(const int stage1, const int stage2, const void *data, size_t
         fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
 }
 
+void Item::addStage(const int stage1, const int stage2, std::unique_ptr<ImageFuture> &&future, std::string name,
+    std::list<ImageFilter> filters)
+{
+    freeStage(stage1, stage2);
+    if (!future)
+        return;
+    updateSize(future->getSize());
+    if (static_cast<int>(_futures.size()) <= stage1)
+        _futures.resize(stage1 + 1);
+    if (static_cast<int>(_futures[stage1].size()) <= stage2)
+        _futures[stage1].resize(stage2 + 1);
+    if (static_cast<int>(_names.size()) <= stage1)
+        _names.resize(stage1 + 1);
+    if (static_cast<int>(_names[stage1].size()) <= stage2)
+        _names[stage1].resize(stage2 + 1);
+    if (static_cast<int>(_filters.size()) <= stage1)
+        _filters.resize(stage1 + 1);
+    if (static_cast<int>(_filters[stage1].size()) <= stage2)
+        _filters[stage1].resize(stage2 + 1);
+    _futures[stage1][stage2] = std::move(future);
+    _filters[stage1][stage2] = std::move(filters);
+    _names[stage1][stage2] = std::move(name);
+}
+
 bool Item::isStage(int stage1, int stage2, const std::string& name, std::list<ImageFilter> filters)
 {
     if (name.empty() || (int)_names.size() <= stage1 || (int)_filters.size() <= stage1 ||
@@ -140,34 +181,75 @@ void Item::render(Renderer renderer, int offX, int offY)
         SDL_RenderFillRect(renderer, &r);
     }
     assert(_stage1 >= 0 && _stage2 >= 0);
-    auto tex  = (_overrideTex || _overrideSurf) ? _overrideTex
+    // resolve futures
+    if (_stage1 < static_cast<int>(_futures.size()) && _stage2 < static_cast<int>(_futures[_stage1].size())) {
+        if (auto& future = _futures[_stage1][_stage2]) {
+            // TODO: move filter resolution into the future
+            if (isSmallImage(future->getSize()) || future->isSurfaceDone()) {
+                SDL_Surface* surf = future->getSurface();
+                future.reset();
+                surf = updateSurface(surf, _filters[_stage1][_stage2]);
+                for (const auto& filter: _filters[_stage1][_stage2])
+                    surf = filter.apply(surf);
+                if (static_cast<int>(_surfs.size()) <= _stage1)
+                    _surfs.resize(_stage1 + 1);
+                if (static_cast<int>(_surfs[_stage1].size()) <= _stage2)
+                    _surfs[_stage1].resize(_stage2 + 1);
+                _surfs[_stage1][_stage2] = surf;
+            } else {
+                future->prioritize();
+            }
+        }
+    }
+    if (_overrideFuture) {
+        if (isSmallImage(_overrideFuture->getSize()) || _overrideFuture->isSurfaceDone()) {
+            SDL_Surface* surf = _overrideFuture->getSurface();
+            _overrideFuture.reset();
+            surf = updateSurface(surf, _overrideFilters);
+            for (auto& filter: _overrideFilters)
+                surf = filter.apply(surf);
+            if (surf) {
+                if (_overrideSurf)
+                    SDL_FreeSurface(_overrideSurf); // free the placeholder surface
+                if (_overrideTex)
+                    SDL_DestroyTexture(_overrideTex); // free the placeholder texture
+                _overrideTex = nullptr;
+                _overrideSurf = surf;
+            }
+        } else {
+            _overrideFuture->prioritize();
+        }
+    }
+    // get surface/texture
+    const bool overridden = _overrideTex || _overrideSurf || _overrideFuture;
+    auto tex  = overridden ? _overrideTex
             : (_stage1<(int)_texs.size() && _stage2<(int)_texs[_stage1].size()) ? _texs[_stage1][_stage2]
             : nullptr;
     auto surf = tex ? nullptr
-            : _overrideSurf ? _overrideSurf
+            : overridden ? _overrideSurf
             : (_stage1<(int)_surfs.size() && _stage2<(int)_surfs[_stage1].size()) ? _surfs[_stage1][_stage2]
             : nullptr;
     if (!tex && surf) {
         if (_quality >= 0) {
             // set Texture filter/quality when creating the texture
-            char q[] = { (char)('0'+_quality), 0 };
+            char q[] = { static_cast<char>('0' + _quality), 0 };
             if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, q)) {
-                printf("Image: could not set scale quality to %s!\n", q);
+                printf("Item: could not set scale quality to %s!\n", q);
             }
         }
         tex = SDL_CreateTextureFromSurface(renderer, surf);
         SDL_FreeSurface (surf);
-        if (_overrideSurf) {
+        if (overridden) {
             _overrideTex = tex;
             _overrideSurf = nullptr;
             surf = nullptr;
         } else {
             _surfs[_stage1][_stage2] = nullptr;
             surf = nullptr;
-            while ((int)_texs.size() <= _stage1)
-                _texs.push_back({});
-            while ((int)_texs[_stage1].size() <= _stage2)
-                _texs[_stage1].push_back(nullptr);
+            if (static_cast<int>(_texs.size()) <= _stage1)
+                _texs.resize(_stage1 + 1);
+            if (static_cast<int>(_texs[_stage1].size()) <= _stage2)
+                _texs[_stage1].resize(_stage2 + 1);
             _texs[_stage1][_stage2] = tex;
         }
         if (_quality >= 0) {
@@ -175,7 +257,8 @@ void Item::render(Renderer renderer, int offX, int offY)
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "");
         }
     }
-    if (!tex) return;
+    if (!tex)
+        return;
     if (_fixedAspect) {
         int finalw=0, finalh=0;
         float ar = (float)_autoSize.width / (float)_autoSize.height;
@@ -327,56 +410,61 @@ void Item::setOverlayAlignment(Label::HAlign halign)
     _overlayAlign = halign;
 }
 
-void Item::setImageOverride(const void *data, size_t len, const std::string& name, const std::list<ImageFilter>& filters)
+void Item::setImageOverride(const void *data, const size_t len, const std::string& name,
+    const std::list<ImageFilter>& filters)
 {
-    bool overridden = _overrideSurf || _overrideTex;
-    if (overridden && (name == _overrideName && filters == _overrideFilters))
+    const bool overridden = _overrideSurf || _overrideTex || _overrideFuture;
+    if (overridden && name == _overrideName && filters == _overrideFilters)
         return;
 
     clearImageOverride();
 
-    if (!data || !len) {
-        _overrideName.clear();
-        _overrideFilters.clear();
-        static const uint32_t zero = 0;
-        _overrideSurf = SDL_CreateRGBSurfaceWithFormatFrom((void*)&zero, 1, 1, 32, 4, SDL_PIXELFORMAT_ARGB8888);
-        return;
+    SDL_Surface* surf = nullptr;
+    if (data && len) {
+        surf = IMG_Load_RW(SDL_RWFromMem(const_cast<void *>(data), static_cast<int>(len)), 1);
+        if (!surf) {
+            fprintf(stderr, "Could not load image: %s\n", SDL_GetError());
+        } else {
+            surf = updateSurface(surf, filters);
+            for (auto& filter: filters)
+                surf = filter.apply(surf);
+        }
+    }
+
+    if (!surf) {
+        // empty placeholder
+        static constexpr uint32_t zero = 0;
+        auto* zeroPtr = const_cast<void*>(static_cast<const void*>(&zero));
+        surf = SDL_CreateRGBSurfaceWithFormatFrom(zeroPtr, 1, 1, 32, 4, SDL_PIXELFORMAT_ARGB8888);
     }
 
     _overrideName = name;
     _overrideFilters = filters;
+    _overrideSurf = surf;
+}
 
-    auto surf = IMG_Load_RW(SDL_RWFromMem((void*)data, (int)len), 1);
-    if (!surf)
+void Item::setImageOverride(const std::function<std::unique_ptr<ImageFuture>(void)>& generator, const std::string &name,
+    const std::list<ImageFilter> &filters)
+{
+    const bool overridden = _overrideSurf || _overrideTex || _overrideFuture;
+    if (overridden && name == _overrideName && filters == _overrideFilters)
         return;
 
-    // if any corner pixel is #ff00ff, make that color transparent
-    surf = makeTransparent(surf, 0xff, 0x00, 0xff, filters.empty());
-    // if filters have an overlay, we need an RGB(A) surface
-    bool needsRGB = false;
-    for (auto& filter: filters) {
-        if (filter.name == "overlay") {
-            needsRGB = true;
-            break;
-        }
-    }
-    if (needsRGB && surf->format->BitsPerPixel < 32) {
-        auto old = surf;
-        surf = SDL_ConvertSurfaceFormat(old, SDL_PIXELFORMAT_ARGB8888, 0);
-        SDL_FreeSurface(old);
-        if (!surf)
-            return;
-    }
+    clearImageOverride();
 
-    // apply filters
-    for (auto& filter: filters)
-        surf = filter.apply(surf);
-
-    _overrideSurf = surf;
+    _overrideName = name;
+    _overrideFilters = filters;
+    _overrideFuture = generator();
+    // create placeholder override surface
+    static constexpr uint32_t zero = 0;
+    auto* zeroPtr = const_cast<void*>(static_cast<const void*>(&zero));
+    _overrideSurf = SDL_CreateRGBSurfaceWithFormatFrom(zeroPtr, 1, 1, 32, 4, SDL_PIXELFORMAT_ARGB8888);
 }
 
 void Item::clearImageOverride()
 {
+    if (_overrideFuture)
+        _overrideFuture.reset();
     if (_overrideTex) {
         SDL_DestroyTexture(_overrideTex);
         _overrideTex = nullptr;

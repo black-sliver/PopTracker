@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <SDL2/SDL.h>
+#include "imghelper.h"
 
 
 #define UI_COLORHELPER_HAS_BRIGHTNESS
@@ -317,27 +318,42 @@ static SDL_Surface *makeTransparent(SDL_Surface *surf, uint8_t r, uint8_t g, uin
         if (SDL_MUSTLOCK(surf))
             SDL_UnlockSurface(surf);
     } else {
-        fprintf(stderr, "Could not lock surface to check corners: %s\n",
-                SDL_GetError());
+        fprintf(stderr, "Could not lock surface to check corners: %s\n", SDL_GetError());
     }
     if (doColorKey) {
         if (allowColorKey) {
             // we can just set a color key
+            if (isSharedSurface(surf)) {
+                SDL_Surface* old = surf;
+                surf = SDL_DuplicateSurface(old);
+                SDL_FreeSurface(old);
+                if (!surf) {
+                    fprintf(stderr, "Could not duplicate surface: %s\n", SDL_GetError());
+                    return surf;
+                }
+            }
             SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, r, g, b));
         } else {
             // we need to modify the surface
             if (!surf->format->Amask || surf->format->BytesPerPixel!=4) {
                 // convert to have alpha
-                auto newFmt = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
-                auto newSurf = SDL_ConvertSurface(surf, newFmt, 0);
+                SDL_PixelFormat* newFmt = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
+                SDL_Surface* newSurf = SDL_ConvertSurface(surf, newFmt, 0);
                 SDL_FreeFormat(newFmt);
                 if (!newSurf) {
-                    fprintf(stderr, "Could not create surface: %s\n",
-                            SDL_GetError());
+                    fprintf(stderr, "Could not create surface: %s\n", SDL_GetError());
                     return surf;
                 }
                 SDL_FreeSurface(surf);
                 surf = newSurf;
+            } else if (isSharedSurface(surf)) {
+                SDL_Surface* old = surf;
+                surf = SDL_DuplicateSurface(old);
+                SDL_FreeSurface(old);
+                if (!surf) {
+                    fprintf(stderr, "Could not duplicate surface: %s\n", SDL_GetError());
+                    return surf;
+                }
             }
             SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
             if (!SDL_MUSTLOCK(surf) || SDL_LockSurface(surf) == 0) {

@@ -280,4 +280,22 @@ inline Size getImageSize(const std::string& data)
     return Size::UNDEFINED;
 }
 
+static bool isSmallImage(const Size size)
+{
+    // We decompress small images in the foreground to avoid blinkiness if possible.
+    // To make this less costly, they can be cached in the provider.
+    return size.width <= 4096 && size.height <= 4096 && size.width * size.height <= 4096;
+}
+
+static bool isSharedSurface(const SDL_Surface* surf)
+{
+    if (!surf)
+        return false;
+#ifdef SDL_DONTFREE
+    return surf->flags & SDL_DONTFREE;
+#else
+    return surf->refcount > 1;
+#endif
+}
+
 } // namespace Ui
