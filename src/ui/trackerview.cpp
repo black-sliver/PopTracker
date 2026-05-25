@@ -107,7 +107,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const std::stri
 
 Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseItem& origItem, int stage1, int stage2)
 {
-    std::string f, s;
+    std::string f;
 
     // NOTE: for toggle_badged we use stage 1 (enable/disable) for the badge
     const ::BaseItem *item = &origItem;
@@ -119,7 +119,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             item = o.luaItem;
     }
 
-    Item *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
+    auto *w = new Item(x,y,width,height,_fontStore->getFont(DEFAULT_FONT_NAME,
             FontStore::sizeFromData(DEFAULT_FONT_SIZE, item->getOverlayFontSize())));
     w->setQuality(_defaultItemQuality);
     size_t stages = item->getStageCount();
@@ -130,48 +130,43 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         f = item->getImage(n);
         if (f.empty())
             continue; // this allows blank items as placeholder
-        if (!_tracker->getPack()->ReadFile(f, s))
-            fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
         const auto& mods = item->getImageMods(n);
         auto filters = imageModsToFilters(_tracker, mods);
+        const Pack* pack = _tracker->getPack();
         if (origItem.getType() == ::BaseItem::Type::TOGGLE_BADGED) {
             // stupid work-around: if base item is staged and has allow_disabled
             // we need to insert an additional stage for disabled state
             size_t m = stagedWithDisabled ? (n + 1) : n;
             if (item->getType() == ::BaseItem::Type::TOGGLE)
                 m = 1;
-            w->addStage(0, m, s.c_str(), s.length(), f, filters);
+            w->addStage(0, m, std::make_unique<PackImageFuture>(pack, f), f, filters);
             std::list<std::string> badgeMods = item->getImageMods(n);
             badgeMods.push_back("overlay|" + origItem.getImage(0));
             auto badgeFilters = imageModsToFilters(_tracker, badgeMods);
-            w->addStage(1, m, s.c_str(), s.length(), f, badgeFilters);
+            w->addStage(1, m, std::make_unique<PackImageFuture>(pack, f), f, badgeFilters);
             if (n == 0 && m != 0) {
                 f = item->getDisabledImage(0);
-                if (!_tracker->getPack()->ReadFile(f, s))
-                    fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
                 const auto& disMods = item->getDisabledImageMods(0);
                 filters = imageModsToFilters(_tracker, disMods);
-                w->addStage(0, 0, s.c_str(), s.length(), f, filters);
+                w->addStage(0, 0, std::make_unique<PackImageFuture>(pack, f), f, filters);
                 badgeMods = disMods;
                 badgeMods.push_back("overlay|" + origItem.getImage(0));
                 badgeFilters = imageModsToFilters(_tracker, badgeMods);
-                w->addStage(1, 0, s.c_str(), s.length(), f, badgeFilters);
+                w->addStage(1, 0, std::make_unique<PackImageFuture>(pack, f), f, badgeFilters);
             }
         }
         else if (disabled) {
-            w->addStage(1, n, s.c_str(), s.length(), f, filters);
+            w->addStage(1, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
             const auto& disF = item->getDisabledImage(n);
             if (f != disF) {
                 f = disF;
-                if (!_tracker->getPack()->ReadFile(f, s))
-                    fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
             }
             const auto& disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
-            w->addStage(0, n, s.c_str(), s.length(), f, filters);
+            w->addStage(0, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
         }
         else {
-            w->addStage(1, n, s.c_str(), s.length(), f, filters);
+            w->addStage(1, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
         }
     }
     if (item->getCount()) {
