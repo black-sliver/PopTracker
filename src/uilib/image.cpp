@@ -121,13 +121,6 @@ void Image::clearImage()
     _path.clear();
 }
 
-static bool isSmallImage(const Size size)
-{
-    // We decompress small images in the foreground to avoid blinkiness if possible.
-    // To make this less costly, they can be cached in the provider.
-    return size.width <= 4096 && size.height <= 4096 && size.width * size.height <= 4096;
-}
-
 void Image::ensureTexture(Renderer renderer, const bool lazy)
 {
     if (_future && (!lazy || _future->isSurfaceDone() || isSmallImage(_autoSize))) {

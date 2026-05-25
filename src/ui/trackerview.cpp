@@ -57,6 +57,7 @@ static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const s
             }
             if (name == "overlay") {
                 // read actual image data into arg instead of filename
+                // TODO: make this lazy
                 const std::string tmp = std::move(args[0]);
                 if (!tracker->getPack()->ReadFile(tmp, args[0]))
                     fprintf(stderr, "Error loading \"%s\" for overlay!\n", sanitize_filename(tmp).c_str());
@@ -198,7 +199,7 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         auto j = dynamic_cast<const JsonItem *>(&origItem);
         if (j && j->isImageOverridden()) {
             const auto& img = j->getImageOverride();
-            auto p = img.find(':');
+            const auto p = img.find(':');
             std::string f;
             std::list<ImageFilter> filters;
             if (p == std::string::npos) {
@@ -207,10 +208,9 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
                 f = img.substr(0, p);
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
-            std::string s;
-            if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
-                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
-            w->setImageOverride(s.c_str(), s.length(), f, filters);
+            w->setImageOverride([this, f]() {
+                return std::make_unique<PackImageFuture>(_tracker->getPack(), f);
+            }, f, filters);
         }
     }
 
@@ -569,10 +569,9 @@ void TrackerView::updateDisplay(const std::string& itemid)
                 f = img.substr(0, p);
                 filters = imageModsToFilters(_tracker, commasplit<std::list>(img.substr(p + 1)));
             }
-            std::string s;
-            if (!f.empty() && !_tracker->getPack()->ReadFile(f, s))
-                fprintf(stderr, "Error loading \"%s\"!\n", sanitize_filename(f).c_str());
-            w->setImageOverride(s.c_str(), s.length(), f, filters);
+            w->setImageOverride([this, f]() {
+                return std::make_unique<PackImageFuture>(_tracker->getPack(), f);
+            }, f, filters);
         } else {
             w->clearImageOverride();
         }
