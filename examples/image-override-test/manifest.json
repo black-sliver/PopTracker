@@ -1,0 +1,13 @@
+{
+    "name": "Image Override Test",
+	"game_name": "Demo",
+	"platform": "pc",
+	"package_version": "1.0.0",
+	"package_uid": "image-override-test",
+	"author": "black_sliver",
+	"variants": {
+		"standard": {
+			"display_name": "Example"
+		}
+	}
+}
