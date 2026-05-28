@@ -16,6 +16,7 @@ Item::Item(int x, int y, int w, int h, FONT font)
 
 Item::~Item()
 {
+    clearImageOverride();
     for (auto& texset : _texs) for (auto& tex : texset) if (tex) SDL_DestroyTexture(tex);
     for (auto& surfset : _surfs) for (auto& surf : surfset) if (surf) SDL_FreeSurface(surf);
 }
@@ -336,14 +337,7 @@ void Item::setImageOverride(const void *data, size_t len, const std::string& nam
     if (overridden && (name == _overrideName && filters == _overrideFilters))
         return;
 
-    if (_overrideTex) {
-        SDL_DestroyTexture(_overrideTex);
-        _overrideTex = nullptr;
-    }
-    if (_overrideSurf) {
-        SDL_FreeSurface(_overrideSurf);
-        _overrideSurf = nullptr;
-    }
+    clearImageOverride();
 
     if (!data || !len) {
         _overrideName.clear();
