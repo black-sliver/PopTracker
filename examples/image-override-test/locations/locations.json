@@ -1,0 +1,25 @@
+[
+    {
+        "name": "Example Location 1",
+        "access_rules": [],
+        "sections": [
+            {
+                "name": "json_item",
+                "item_count": 0,
+                "hosted_item": "json_item"
+            },
+            {
+                "name": "lua_item",
+                "item_count": 0,
+                "hosted_item": "lua_item"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "map",
+                "x": 300,
+                "y": 300
+            }
+        ]
+    }
+]
