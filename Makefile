@@ -214,10 +214,10 @@ LTO_JOBS ?= $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS)))
 LTO_JOBS := $(if $(LTO_JOBS),$(LTO_JOBS),auto)
 COMMON_WARNING_FLAGS = \
 	-Wall -Wextra -Werror # -Wshadow -Wconversion
-C_FLAGS = $(CFLAGS) $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
-LUA_C_FLAGS = $(CFLAGS) $(COMMON_WARNING_FLAGS) -Wshadow \
+C_FLAGS = $(CFLAGS) -fpic -fPIE $(COMMON_WARNING_FLAGS) -Wshadow -std=c99 -D_REENTRANT
+LUA_C_FLAGS = $(CFLAGS) -fpic -fPIE $(COMMON_WARNING_FLAGS) -Wshadow \
 	-D_REENTRANT -x c++ # we actually use C++ for Lua now
-CPP_FLAGS = $(CXXFLAGS) $(COMMON_WARNING_FLAGS) \
+CPP_FLAGS = $(CXXFLAGS) -fpic -fPIE $(COMMON_WARNING_FLAGS) \
 	-Wnon-virtual-dtor -Wno-unused-function -Wno-deprecated-declarations \
 	-Wno-null-pointer-subtraction -Wno-shift-count-overflow  # TODO: fix those
 ifeq ($(CONF), DEBUG) # DEBUG
@@ -439,7 +439,7 @@ $(NIX_BENCH_EXE): $(NIX_BENCH_OBJ) $(NIX_BUILD_DIR)/liblua.a $(HDR) | $(NIX_BUIL
 
 $(WIN32_EXE): $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a $(HDR) | $(WIN32_BUILD_DIR)
 # FIXME: static 32bit exe does not work for some reason
-	$(WIN32CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
+	$(WIN32CPP) -o $@ -std=c++17 -static -static-pie -Wl,-Bstatic $(WIN32_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN32STRIP) $@
 endif
@@ -456,7 +456,7 @@ $(WIN32_BENCH_EXE): $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/app.res $(WIN32_BUILD_
 	$(WIN32CPP) -o $@ -std=c++17 $(WIN32_BENCH_OBJ) $(WIN32_BUILD_DIR)/liblua.a  $(WIN32_LIB_DIRS) $(WIN32_LD_FLAGS) $(WIN32_LIBS)
 
 $(WIN64_EXE): $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a $(HDR) | $(WIN64_BUILD_DIR)
-	$(WIN64CPP) -o $@ -std=c++17 -static -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
+	$(WIN64CPP) -o $@ -std=c++17 -static -static-pie -Wl,-Bstatic $(WIN64_OBJ) $(WIN64_BUILD_DIR)/app.res $(WIN64_BUILD_DIR)/liblua.a  $(WIN64_LIB_DIRS) $(WIN64_LD_FLAGS) $(WIN64_LIBS)
 ifneq ($(CONF), DEBUG)
 	$(WIN64STRIP) $@
 endif
