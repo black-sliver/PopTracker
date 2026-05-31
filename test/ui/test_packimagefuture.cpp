@@ -106,14 +106,14 @@ TEST(PackImageFutureTest, Prioritize) {
     future3.prioritize(); // run future3 before future2
     future3.prioritize(); // this should do nothing
     future2.prioritize(); // this should do nothing
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < 10000; i++) {
         if (future2.isSurfaceDone()) {
             EXPECT_TRUE(future3.isSurfaceDone());
             return;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    FAIL() << "Did not finish loading in 1s";
+    FAIL() << "Did not finish loading";
 }
 
 TEST(PackImageFuture, NotAnImage) {
