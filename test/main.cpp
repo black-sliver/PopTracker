@@ -1,5 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "../src/core/assets.h"
 #include "../src/http/http.h"
 
@@ -19,5 +21,8 @@ int main(int argc, char **argv) {
     SETUP_MOCK();
 
     testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int res = RUN_ALL_TESTS();
+    SDL_Quit();
+    IMG_Quit();
+    return res;
 }
