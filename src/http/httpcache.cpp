@@ -217,7 +217,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
     }, [cb]() {
         cb(false, "");
     })) {
-        fprintf(stderr, "Could not fetch %s\n", url.c_str());
+        fprintf(stderr, "Could not fetch %s\n", sanitize_print(url).c_str());
         cb(false, ""); // always fulfill promise
-    };
+    }
 }
