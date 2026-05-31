@@ -157,40 +157,47 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
             }
             // create new cache entry if etag is provided
             const auto etagIt = h.find("etag");
-            if (etagIt != h.end()) {
-                std::string name;
-                int fd = -1;
-                for (int i=0; i<5; i++) {
-                    name = GetRandomName();
-                    auto path = _cacheDir / name;
+            std::string name;
+            int fd = -1;
+            for (int i=0; i<5; i++) {
+                name = GetRandomName();
+                auto path = _cacheDir / name;
 #ifdef _WIN32
-                    fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL | O_BINARY, 0600);
+                fd = _wopen(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL | O_BINARY, 0600);
 #else
-                    fd = open(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
+                fd = open(path.c_str(), O_WRONLY | O_CLOEXEC | O_CREAT | O_EXCL, 0600);
 #endif
-                    if (fd>=0) break;
-                }
-                if (fd >= 0 && write(fd, r.c_str(), r.length()) == static_cast<ssize_t>(r.length())) {
-                    // write success
-                    close(fd);
-                    time_t t = time(nullptr);
+                if (fd>=0)
+                    break;
+            }
+            if (fd >= 0 && write(fd, r.c_str(), r.length()) == static_cast<ssize_t>(r.length())) {
+                // write success
+                close(fd);
+                time_t t = time(nullptr);
+                if (etagIt != h.end()) {
                     _cache[url] = {
                         {"file", name},
                         {"etag", etagIt->second},
-                        {"timestamp", t}
+                        {"timestamp", t},
                     };
-                    _cacheDirty = true;
-                } else if (fd >= 0) {
-                    // write failed
-                    const auto path = _cacheDir / name;
-                    printf("Error %d writing cache file \"%s\": %s\n",
-                        errno, sanitize_print(path).c_str(), strerror(errno));
-                    close(fd);
-                    fs::error_code ec;
-                    fs::remove(path, ec);
                 } else {
-                    printf("Could not create cache file!\n");
+                    _cache[url] = {
+                        {"file", name},
+                        {"etag", nullptr},
+                        {"timestamp", t},
+                    };
                 }
+                _cacheDirty = true;
+            } else if (fd >= 0) {
+                // write failed
+                const auto path = _cacheDir / name;
+                printf("Error %d writing cache file \"%s\": %s\n",
+                    errno, sanitize_print(path).c_str(), strerror(errno));
+                close(fd);
+                fs::error_code ec;
+                fs::remove(path, ec);
+            } else {
+                printf("Could not create cache file!\n");
             }
             flush();
             // return result
@@ -199,7 +206,7 @@ void HTTPCache::GetCached(const std::string& url, const std::function<void(bool,
         else if (code == HTTP::NOT_MODIFIED) {
             // use cached file
             std::string cached;
-            auto cacheIt = _cache.find(url);
+            const auto cacheIt = _cache.find(url);
             if (cacheIt.value()["file"].is_string() && readFile(_cacheDir / fs::u8path(cacheIt.value()["file"].get<std::string>()), cached)) {
                 time_t t = time(nullptr);
                 _cache[url]["timestamp"] = t;
