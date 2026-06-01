@@ -33,6 +33,8 @@ Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const 
 #ifdef DEFAULT_SCALE_QUALITY_HINT
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, DEFAULT_SCALE_QUALITY_HINT, SDL_HINT_DEFAULT);
 #endif
+
+    SDL_SetWindowAlwaysOnTop(_win, SDL_TRUE);
     
     _ren = SDL_CreateRenderer(_win, -1, 0 /*| SDL_RENDERER_PRESENTVSYNC*/ /*| SDL_RENDERER_ACCELERATED*/);
     if (!_ren) {
