@@ -27,6 +27,7 @@ protected:
 
     Position _lastMousePos;
     Widget* _tooltip = nullptr;
+    bool _isAlwaysOnTop = false;
 
     void clear();
     void present();
@@ -58,7 +59,8 @@ public:
     std::string getDisplayName() const;
     Position getPositionOnDisplay() const;
     void grabFocus();
-    void setAlwaysOnTop(bool alwaysOnTop);
+    bool getAlwaysOnTop() const;
+    virtual void setAlwaysOnTop(bool alwaysOnTop);
 
     bool isAccelerated();
 

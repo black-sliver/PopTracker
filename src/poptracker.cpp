@@ -132,7 +132,8 @@ static json windowToJson(Ui::Window* win)
         {"size",{size.width,size.height}},
         {"display", win->getDisplay()},
         {"display_name", win->getDisplayName()},
-        {"display_pos", {disppos.left,disppos.top}}
+        {"display_pos", {disppos.left,disppos.top}},
+        {"always_on_top", win->getAlwaysOnTop()},
     };
 }
 
@@ -415,6 +416,7 @@ bool PopTracker::start()
 {
     Ui::Position pos = WINDOW_DEFAULT_POSITION;
     Ui::Size size = {0,0};
+    bool alwaysOnTop = false;
 
     {
         const auto itUpdate = _args.find("update");
@@ -525,6 +527,7 @@ bool PopTracker::start()
         if (jWindow.type() == json::value_t::object) {
             auto& jPos = jWindow["pos"];
             auto& jSize = jWindow["size"];
+            auto& jAlwaysOnTop = jWindow["always_on_top"];
             if (jPos.type() == json::value_t::array) {
                 pos.left = to_int(jPos[0],pos.left);
                 pos.top = to_int(jPos[1],pos.top);
@@ -532,6 +535,9 @@ bool PopTracker::start()
             if (jSize.type() == json::value_t::array) {
                 size.width = std::max(96, std::min(8192, to_int(jSize[0],size.width)));
                 size.height = std::max(96, std::min(4096, to_int(jSize[1],size.height)));
+            }
+            if (jAlwaysOnTop.type() == json::value_t::boolean) {
+                alwaysOnTop = jAlwaysOnTop;
             }
             // fix invalid positioning
             _ui->makeWindowVisible(pos, size);
@@ -560,6 +566,7 @@ bool PopTracker::start()
     // create main window
     auto icon = Ui::LoadImage(asset("icon.png"));
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
+    _win->setAlwaysOnTop(alwaysOnTop);
     SDL_FreeSurface(icon);
 	
 	// SDL2 default is to disable screensaver, enable it if preferred
@@ -1542,8 +1549,7 @@ void PopTracker::showBroadcast()
 
 void PopTracker::toggleAlwaysOnTop()
 {
-    _isAlwaysOnTop = !_isAlwaysOnTop;
-    _win->setAlwaysOnTop(_isAlwaysOnTop);
+    _win->setAlwaysOnTop(!_win->getAlwaysOnTop());
 }
 
 bool PopTracker::saveConfig()

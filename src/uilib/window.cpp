@@ -232,9 +232,15 @@ void Window::grabFocus()
     SDL_SetWindowInputFocus(_win);
 }
 
+bool Window::getAlwaysOnTop() const
+{
+    return _isAlwaysOnTop;
+}
+
 void Window::setAlwaysOnTop(bool alwaysOnTop)
 {
-    SDL_SetWindowAlwaysOnTop(_win, alwaysOnTop ? SDL_TRUE : SDL_FALSE);
+    _isAlwaysOnTop = alwaysOnTop;
+    SDL_SetWindowAlwaysOnTop(_win, _isAlwaysOnTop ? SDL_TRUE : SDL_FALSE);
 }
 
 bool Window::isAccelerated()

@@ -24,6 +24,7 @@ public:
     virtual void hideOpen();
     virtual void showProgress(const std::string& title, int progress, int max);
     virtual void hideProgress();
+    virtual void setAlwaysOnTop(bool alwaysOnTop) override;
     
     Signal<const fs::path&, const std::string&> onPackSelected;
     

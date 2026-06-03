@@ -128,7 +128,6 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     }
 
     _btnAlwaysOnTop->setDarkenGreyscale(false);
-    _btnAlwaysOnTop->setEnabled(false); // make greyscale
     _btnAlwaysOnTop->onMouseEnter += {this, [this](void*, int, int, unsigned)
     {
         _lblTooltip->setText("Toggle Always On Top");
@@ -415,6 +414,13 @@ void DefaultTrackerWindow::showProgress(const std::string& text, int progress, i
 void DefaultTrackerWindow::hideProgress()
 {
     _vboxProgress->setVisible(false);
+}
+
+void DefaultTrackerWindow::setAlwaysOnTop(bool alwaysOnTop)
+{
+    // Color / greyscale represents "always on top" enabled / disabled
+    _btnAlwaysOnTop->setEnabled(alwaysOnTop);
+    TrackerWindow::setAlwaysOnTop(alwaysOnTop);
 }
 
 } // namespace
