@@ -33,6 +33,7 @@ protected:
     ImageButton *_btnImport = nullptr;
     ImageButton *_btnExport = nullptr;
     ImageButton *_btnBroadcast = nullptr;
+    ImageButton *_btnAlwaysOnTop = nullptr;
     ImageButton *_btnPackSettings = nullptr;
     HBox *_hboxAutoTrackers = nullptr;
     std::vector<Label*> _lblsAutoTrackers;

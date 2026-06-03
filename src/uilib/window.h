@@ -58,6 +58,7 @@ public:
     std::string getDisplayName() const;
     Position getPositionOnDisplay() const;
     void grabFocus();
+    void setAlwaysOnTop(bool alwaysOnTop);
 
     bool isAccelerated();
 

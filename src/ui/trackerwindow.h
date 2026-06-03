@@ -40,6 +40,7 @@ public:
     static const std::string MENU_LOAD_STATE;
     static const std::string MENU_SAVE_STATE;
     static const std::string MENU_BROADCAST;
+    static const std::string MENU_ALWAYS_ON_TOP;
     static const std::string MENU_PACK_SETTINGS;
     static const std::string MENU_TOGGLE_AUTOTRACKER;
     static const std::string MENU_CYCLE_AUTOTRACKER;

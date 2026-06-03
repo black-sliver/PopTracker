@@ -31,6 +31,7 @@ private:
     nlohmann::json _oldConfig;
     nlohmann::json _colors;
     bool _isPortable = false;
+    bool _isAlwaysOnTop = false;
     
     lua_State* _L = nullptr;
     LuaPackIO *_luaio = nullptr;
@@ -73,6 +74,7 @@ private:
     void reloadTracker(bool force=false);
     void loadState(const fs::path& filename);
     void showBroadcast();
+    void toggleAlwaysOnTop();
 
     const fs::path& getPackInstallDir() const;
 

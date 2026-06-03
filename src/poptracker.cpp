@@ -582,6 +582,9 @@ bool PopTracker::start()
         if (item == Ui::TrackerWindow::MENU_BROADCAST) {
             showBroadcast();
         }
+        if (item == Ui::TrackerWindow::MENU_ALWAYS_ON_TOP) {
+            toggleAlwaysOnTop();
+        }
         if (item == Ui::TrackerWindow::MENU_PACK_SETTINGS)
         {
             if (!_tracker) return;
@@ -1535,6 +1538,12 @@ void PopTracker::showBroadcast()
         _broadcast->setCenterPosition(pos); // this will reposition the window after rendering
     }
 #endif
+}
+
+void PopTracker::toggleAlwaysOnTop()
+{
+    _isAlwaysOnTop = !_isAlwaysOnTop;
+    _win->setAlwaysOnTop(_isAlwaysOnTop);
 }
 
 bool PopTracker::saveConfig()
