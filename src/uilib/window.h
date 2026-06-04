@@ -30,6 +30,10 @@ private:
 
 public:
     WindowConfig(const std::map<std::string, bool>& config = {}) : _config(config) {}
+
+    bool showAlwaysOnTopButton() const {
+        return getOrDefault("show_always_on_top_button", false);
+    }
 };
 
 class Window : public Container {

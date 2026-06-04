@@ -565,7 +565,8 @@ bool PopTracker::start()
     
     // create main window
     auto icon = Ui::LoadImage(asset("icon.png"));
-    _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size);
+    auto windowConfig = Ui::WindowConfig({{"show_always_on_top_button", _config.value<bool>("show_always_on_top_button", false)}});
+    _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size, windowConfig);
     _win->setAlwaysOnTop(alwaysOnTop);
     SDL_FreeSurface(icon);
 	

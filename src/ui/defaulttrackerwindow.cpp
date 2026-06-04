@@ -53,13 +53,15 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
     }};
 #endif
 
-    _btnAlwaysOnTop = new ImageButton(0,0,32-4,32-4, asset("always_on_top.png"));
-    hbox->addChild(_btnAlwaysOnTop);
-    _btnAlwaysOnTop->onClick += { this, [this](void *s, int, int, int) {
-        ImageButton* btn = (ImageButton*)s;
-        btn->setEnabled(!btn->getEnabled()); // toggle greyscale
-        onMenuPressed.emit(this, MENU_ALWAYS_ON_TOP, 0);
-    }};
+    if (config.showAlwaysOnTopButton()) {
+        _btnAlwaysOnTop = new ImageButton(0,0,32-4,32-4, asset("always_on_top.png"));
+        hbox->addChild(_btnAlwaysOnTop);
+        _btnAlwaysOnTop->onClick += { this, [this](void *s, int, int, int) {
+            ImageButton* btn = (ImageButton*)s;
+            btn->setEnabled(!btn->getEnabled()); // toggle greyscale
+            onMenuPressed.emit(this, MENU_ALWAYS_ON_TOP, 0);
+        }};
+    }
     
     _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png"));
     _btnPackSettings->setVisible(false);
@@ -127,15 +129,17 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         }};
     }
 
-    _btnAlwaysOnTop->setDarkenGreyscale(false);
-    _btnAlwaysOnTop->onMouseEnter += {this, [this](void*, int, int, unsigned)
-    {
-        _lblTooltip->setText("Toggle Always On Top");
-    }};
-    _btnAlwaysOnTop->onMouseLeave += {this, [this](void*)
-    {
-        _lblTooltip->setText("");
-    }};
+    if (_btnAlwaysOnTop) {
+        _btnAlwaysOnTop->setDarkenGreyscale(false);
+        _btnAlwaysOnTop->onMouseEnter += {this, [this](void*, int, int, unsigned)
+        {
+            _lblTooltip->setText("Toggle Always On Top");
+        }};
+        _btnAlwaysOnTop->onMouseLeave += {this, [this](void*)
+        {
+            _lblTooltip->setText("");
+        }};
+    }
 }
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
@@ -419,7 +423,9 @@ void DefaultTrackerWindow::hideProgress()
 void DefaultTrackerWindow::setAlwaysOnTop(bool alwaysOnTop)
 {
     // Color / greyscale represents "always on top" enabled / disabled
-    _btnAlwaysOnTop->setEnabled(alwaysOnTop);
+    if (_btnAlwaysOnTop) {
+        _btnAlwaysOnTop->setEnabled(alwaysOnTop);
+    }
     TrackerWindow::setAlwaysOnTop(alwaysOnTop);
 }
 
