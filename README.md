@@ -35,4 +35,8 @@ and [schema/versions.schema.json](schema/versions.schema.json) for examples and 
 * `sha256sum path/to/pack.zip`
 
 **MacOS**
-* `openssl dgst -sha256 path/to/pack.zip`
+* `shasum -a 256 path/to/pack.zip`
+
+**Other**
+* `sha256sum` or `shasum` as above, if installed
+* `openssl dgst -sha256 path/to/pack.zip` if installed
