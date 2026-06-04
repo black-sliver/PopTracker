@@ -355,7 +355,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                     fs::error_code ec;
                     const auto total = fs::file_size(path, ec);
                     if (!ec) {
-                        printf("Update: download complete: %zu\n", total);
+                        printf("Update: download complete: %ju\n", total);
                         onUpdateProgress.emit(this, url, static_cast<int>(total), static_cast<int>(total));
                     }
 #ifdef _WIN32
