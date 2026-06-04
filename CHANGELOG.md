@@ -1,5 +1,23 @@
 # PopTracker Changelog
 
+## v0.35.2-rc1
+
+* App Features
+  * Lazy load big images
+  * More error output in log/console
+  * Cache HTTP responses that don't have an etag
+  * Performance improvements in map widget
+  * Other small performance improvements
+* Fixes
+  * Allow hover of location with empty name
+  * AP: fetch data package (item/location names) before onClear
+  * Fix support for `item_size` in classes
+  * Fix memory leak when using image overrides
+  * Fix small memory leak on Windows
+* Other Changes
+  * Update dependencies and certificates
+  * Improve CI, more test coverage
+
 ## v0.35.1
 
 * Pack Features
