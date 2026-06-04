@@ -385,10 +385,13 @@ update-cacert: assets/cacert.pem
 
 ifeq ($(CONF), DIST)
 cross: $(WIN32_ZIP) $(WIN64_ZIP)
+cross64: $(WIN64_ZIP)
 else
 cross: $(WIN32_EXE) $(WIN64_EXE)
+cross64: $(WIN64_EXE)
 endif
 cross-test: $(WIN32_TEST_EXE) $(WIN64_TEST_EXE)
+cross64-test: $(WIN64_TEST_EXE)
 	# TODO: run tests with wine
 
 # Project Targets
