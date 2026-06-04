@@ -137,13 +137,15 @@ void LoadPackWidget::update()
     }};
 
     if (availablePacks.empty()) {
-        auto lbl = new Label(0, 0, 0, 0, _font, "No packs installed!");
+        auto* lbl = new Label(0, 0, 0, 0, _font,
+            "No packs installed!\n"
+            "Drag & drop packs into the window to install them.");
         lbl->setGrow(1,1);
         lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
         lbl->setMinSize(lbl->getAutoSize());
         lbl->setSize({_size.width/2,32}); // TODO; hbox with even split instead
         _packs->addChild(lbl);
-        auto spacer = new Label(0, 0, 0, 0, nullptr, "");
+        auto* spacer = new Label(0, 0, 0, 0, nullptr, "");
         spacer->setGrow(1,1);
         _packs->addChild(spacer);
     }
