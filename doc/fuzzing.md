@@ -36,6 +36,8 @@ cd ..
 # ./build/*/fuzzer corpus -jobs=4 # 4 processes that print to fuzz-{0-3}.log
 ```
 
+See [libFuzzer documentation](https://llvm.org/docs/LibFuzzer.html#options) for more options.
+
 ## Compressing a corpus
 
 While fuzzing, the corpus will grow with possibly-uninteresting data.
