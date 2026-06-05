@@ -12,6 +12,7 @@
 static auto SAMPLE_ZIP_PATH = "test/core/data/sample.zip";
 static auto DEFLATE64_ZIP_PATH = "test/core/data/deflate64.zip";
 static auto HDR64_ZIP_PATH = "test/core/data/hdr64.zip";
+static constexpr size_t MEMORY_LIMIT = 1073741824ULL;
 
 // compression methods:
 // 0 = store, 8 = deflated, everything else unsupported
@@ -262,10 +263,10 @@ static void FuzzWholeZip(const std::string_view data)
     for (const auto&[type, name]: zip.list(true)) {
         assert(type == Zip::EntryType::FILE || type == Zip::EntryType::DIR);
         if (type == Zip::EntryType::FILE) {
-            zip.readFile(name, out);
+            zip.readFile(name, out, MEMORY_LIMIT);
         }
     }
-    zip.readFile("a", out);
+    zip.readFile("a", out, MEMORY_LIMIT);
     fclose(fakeFile);
 }
 
@@ -296,7 +297,7 @@ static void FuzzFilename(const std::string_view data)
     Zip zip(SAMPLE_ZIP_PATH);
     assert(zip.isValid());
     std::string tmp;
-    zip.readFile(std::string(data), tmp);
+    zip.readFile(std::string(data), tmp, MEMORY_LIMIT);
 }
 
 // TODO: also add test for "full" ZIP64 (CD, EOCD)

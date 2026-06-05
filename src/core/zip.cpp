@@ -210,6 +210,9 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err, 
     try {
         out.resize(toRead);
     } catch (const std::bad_alloc&) {
+        // NOTE: sadly we can not test this with libFuzzer + ASAN:
+        //       ASAN_OPTIONS=allocator_may_return_null=1:soft_rss_limit_mb=1024
+        //       gives "bad_alloc was thrown in -fno-exceptions mode".
         out.clear();
         err = "Out of memory";
         return false;
