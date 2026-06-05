@@ -209,7 +209,7 @@ bool Zip::readFile(const std::string& name, std::string& out, std::string& err, 
     const size_t toRead = limit && limit < sz ? limit : sz;
     try {
         out.resize(toRead);
-    } catch (std::bad_alloc&) {
+    } catch (const std::bad_alloc&) {
         out.clear();
         err = "Out of memory";
         return false;
