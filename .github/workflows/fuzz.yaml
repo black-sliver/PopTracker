@@ -1,0 +1,69 @@
+name: Fuzz
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "0 4 * * *"
+
+permissions: {}
+
+jobs:
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies (apt)
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
+      - name: Install newer Clang (ubuntu)
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x ./llvm.sh
+          sudo ./llvm.sh 22 all
+          sudo apt install clang-tools-22
+      - uses: actions/checkout@v6.0.2
+        with:
+          submodules: recursive
+      - name: Build fuzzer
+        run: CC=clang-22 CXX=clang++-22 make fuzzer CONF=DEBUG WITH_FUZZER=1 WITH_ASAN=1 WITH_UBSAN=1 -j4
+      - name: Cache/Restore corpus
+        uses: actions/cache@v5.0.5
+        with:
+          path: corpus
+          key: fuzz-${{ runner.os }}-corpus
+      - name: Update corpus
+        run: |
+          mkdir -p corpus
+          python test/core/tools/make_zip.py
+          ./build/*/fuzzer -merge=1 corpus test/core/data
+      - name: Run fuzzer
+        run: ./build/*/fuzzer -max_total_time=897 -jobs=4 corpus/
+      - name: Store logs
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: log
+          path: fuzz-*.log
+          compression-level: 9
+          if-no-files-found: error
+          retention-days: 3
+      - name: Store oom
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: oom
+          path: oom-*
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Store crashes
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: crash
+          path: crash-*
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Compress corpus
+        run: |
+          mkdir new-corpus
+          ./build/*/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
