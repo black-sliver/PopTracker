@@ -25,12 +25,16 @@ if __name__ == "__main__":
                 if compression == 0 and len(data) > 64:
                     continue  # no point in testing this
                 # create file, set date and time to all zeroes
-                zi = ZipInfo(f"{compression}/{name}.txt")._for_archive(zf)
+                # zi = ZipInfo(f"{compression}/{name}.txt")._for_archive(zf)
+                zi = ZipInfo(f"{compression}/{name}.txt")
+                zi.external_attr = 0o600 << 16
                 zi.date_time = (1980, 0, 0, 0, 0, 0)
                 zf.writestr(zi, data, compress_type, compression)
     # generate a regular (non-ZIP64) zip file with ZIP64 file header
     with ZipFile(data_folder / "hdr64.zip", "w", allowZip64=True) as zf:
-        zi = ZipInfo("empty.txt")._for_archive(zf)
+        # zi = ZipInfo("empty.txt")._for_archive(zf)
+        zi = ZipInfo("empty.txt")
+        zi.external_attr = 0o600 << 16
         zi.date_time = (1980, 0, 0, 0, 0, 0)  # set date and time to all zeroes
         with zf.open(zi, "w", force_zip64=True) as ze:
             pass  # empty file
