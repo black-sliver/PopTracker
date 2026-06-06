@@ -39,7 +39,7 @@ jobs:
         include:
           - os: ubuntu-latest
             shell: bash
-            scan-build: scan-build-21
+            scan-build: scan-build-22
           - os: windows-latest
             shell: msys2 {0}
             scan-build: scan-build
@@ -83,8 +83,8 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
-          sudo ./llvm.sh 21
-          sudo apt install clang-tools-21
+          sudo ./llvm.sh 22
+          sudo apt install clang-tools-22
       - name: scan-build
         run: |
           ${{ matrix.scan-build }} --status-bugs -o scan-build-reports \
