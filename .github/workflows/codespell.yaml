@@ -8,7 +8,7 @@ permissions: {}
 
 jobs:
   codespell:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     name: Find typos
 
     steps:
