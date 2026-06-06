@@ -13,12 +13,10 @@ jobs:
 
     steps:
       - name: Install dependencies (apt)
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt-get update -y -qq
           sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
       - name: Install newer Clang (ubuntu)
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
@@ -40,8 +38,9 @@ jobs:
           python test/core/tools/make_zip.py
           ./build/*/fuzzer -merge=1 corpus test/core/data
       - name: Run fuzzer
-        run: ./build/*/fuzzer -max_total_time=897 -jobs=4 corpus/
+        run: ./build/*/fuzzer -max_total_time=897 -workers=4 -jobs=4 corpus/
       - name: Store logs
+        if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: log
@@ -50,6 +49,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
       - name: Store oom
+        if: failure()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: oom
@@ -57,6 +57,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
       - name: Store crashes
+        if: failure()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: crash
@@ -64,6 +65,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
       - name: Compress corpus
+        if: always()
         run: |
           mkdir new-corpus
           ./build/*/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
