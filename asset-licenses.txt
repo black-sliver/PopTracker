@@ -17,4 +17,4 @@ New Open, Reload, Settings, Import, Export icons
 based on https://github.com/icons8/flat-color-icons by icons8
 
 Pin icon
-based on https://www.iconpacks.net/free-icon/red-push-pin-office-material-15946.html
+material-design-icons by google: https://github.com/google/material-design-icons
