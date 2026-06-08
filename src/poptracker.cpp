@@ -213,6 +213,8 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
         _config["software_renderer"] = false;
     if (_config["enable_screensaver"].type() != json::value_t::boolean)
         _config["enable_screensaver"] = true;
+    if (!_config["show_always_on_top_button"].is_boolean())
+        _config["show_always_on_top_button"] = nullptr;
     if (_config["ignore_hidpi"].type() != json::value_t::boolean)
         _config["ignore_hidpi"] = false;
 
@@ -565,7 +567,13 @@ bool PopTracker::start()
     
     // create main window
     auto icon = Ui::LoadImage(asset("icon.png"));
-    auto windowConfig = Ui::WindowConfig({{"show_always_on_top_button", _config.value<bool>("show_always_on_top_button", false)}});
+    const auto showAlwaysOnTopButtonIt = _config.find("show_always_on_top_button");
+    bool showAlwaysOnTopButton = false;
+    if (showAlwaysOnTopButtonIt != _config.end() && showAlwaysOnTopButtonIt->is_boolean())
+        showAlwaysOnTopButton = showAlwaysOnTopButtonIt->get<bool>();
+    auto windowConfig = Ui::WindowConfig({
+        { "show_always_on_top_button", showAlwaysOnTopButton },
+    });
     _win = _ui->createWindow<Ui::DefaultTrackerWindow>("PopTracker", icon, pos, size, windowConfig);
     _win->setAlwaysOnTop(alwaysOnTop);
     SDL_FreeSurface(icon);
