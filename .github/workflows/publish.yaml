@@ -1,0 +1,39 @@
+# trigger poptracker.github.io update
+name: Publish
+
+on:
+  release:
+    types: [published, unpublished]
+  workflow_dispatch:  # for testing
+
+concurrency:
+  # Cancels previous runs when multiple updates happen
+  group: "${{ github.workflow }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  trigger_github_io_update:
+    # NOTE: we use workflow_dispatch because repository_dispatch needs contents: write permissions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay
+        env:
+          GH_TOKEN: ${{ secrets.POPTRACKER_GITHUB_IO_PAT }}
+        if: ${{ env.GH_TOKEN != '' }}
+        run: |
+          # TODO: only delay if release type is published, not unpublished
+          sleep 120
+      - name: Trigger workflow run
+        env:
+          GH_TOKEN: ${{ secrets.POPTRACKER_GITHUB_IO_PAT }}
+        if: ${{ env.GH_TOKEN != '' }}
+        run: |
+          repo="PopTracker/PopTracker.github.io"
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            /repos/$repo/actions/workflows/gh-pages.yml/dispatches \
+              -f 'ref=main'
