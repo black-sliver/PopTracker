@@ -122,7 +122,7 @@
         "platform": "gba",
         "homepage": "https://github.com/seto10987/Archipelago-Emerald-AP-Tracker",
         "versions_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/versions/versions.json",
-        "icon_url": "https://raw.githubusercontent.com/palex00/rb_tracker/main/images/preview.png",
+        "icon_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/main/images/preview.png",
         "description":  "Pokémon Emerald autotracker pack for PopTracker"
     }
 }
