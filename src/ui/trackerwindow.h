@@ -16,7 +16,7 @@ class TrackerWindow : public Window {
 public:
     using FONT = Window::FONT;
     
-    TrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    TrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~TrackerWindow();
     
     virtual void setTracker(Tracker* tracker) = 0;

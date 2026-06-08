@@ -2,6 +2,7 @@
 #define _UILIB_WINDOW_H
 
 #include <string>
+#include <map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "container.h"
@@ -14,6 +15,22 @@
 
 
 namespace Ui {
+class WindowConfig {
+private:
+    std::map<std::string, bool> _config;
+
+    bool getOrDefault(const std::string& key, bool def) const {
+        auto entry = _config.find(key);
+        if (entry != _config.end()) {
+            return entry->second;
+        } else {
+            return def;
+        }
+    }
+
+public:
+    WindowConfig(const std::map<std::string, bool>& config = {}) : _config(config) {}
+};
 
 class Window : public Container {
 protected:
@@ -38,7 +55,7 @@ protected:
 
 public:
     using ID = uint32_t;
-    Window(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    Window(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~Window();
     virtual void render();
     ID getID();

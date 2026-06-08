@@ -45,9 +45,9 @@ public:
     Ui(const char *name, bool fallbackRenderer);
     virtual ~Ui();
     template <class T>
-    T *createWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos={-1,-1}, const Size& size={0,0})
+    T *createWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos={-1,-1}, const Size& size={0,0}, const WindowConfig& config={})
     {
-        T *win = new T(title,icon,pos,size);
+        T *win = new T(title,icon,pos,size,config);
         this->_windows[win->getID()] = win;
         return win;
     }

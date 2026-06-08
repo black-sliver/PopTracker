@@ -5,8 +5,8 @@
 
 namespace Ui {
 
-DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size)
-    : TrackerWindow(title, icon, pos, size)
+DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size, const WindowConfig& config)
+    : TrackerWindow(title, icon, pos, size, config)
 {
     auto hbox = new HBox(0,0,_size.width,32);
     hbox->setBackground({0,0,0,255});

@@ -9,7 +9,7 @@ class BroadcastWindow : public TrackerWindow {
 public:
     using FONT = Window::FONT;
     
-    BroadcastWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    BroadcastWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~BroadcastWindow();
     
     virtual void setTracker(Tracker *tracker) override;

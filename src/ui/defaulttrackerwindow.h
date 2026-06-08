@@ -12,7 +12,7 @@ class DefaultTrackerWindow : public TrackerWindow {
 public:
     using FONT = Window::FONT;
     
-    DefaultTrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    DefaultTrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~DefaultTrackerWindow();
 
     virtual void render(Renderer renderer, int offX, int offY) override;

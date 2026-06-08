@@ -2,8 +2,8 @@
 
 namespace Ui {
 
-BroadcastWindow::BroadcastWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size)
-    : TrackerWindow(title, icon, pos, {size.width < 1 ? 100 : size.width, size.height < 1 ? 100:size.height})
+BroadcastWindow::BroadcastWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size, const WindowConfig& config)
+    : TrackerWindow(title, icon, pos, {size.width < 1 ? 100 : size.width, size.height < 1 ? 100:size.height}, config)
 {
     if (size.width<1 || size.height<1) resize({100,100});
 }

@@ -12,11 +12,12 @@ namespace Ui {
 
 //#define DEFAULT_SCALE_QUALITY_HINT "1"
 
-Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const Size& size)
+Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const Size& size, const WindowConfig& config)
     : Container(0,0,600,400)
 {
     _title = title;
     if (size.width>0 && size.height>0) _size = size;
+    (void)config;
     
     printf("Creating renderer ...");
     _win = SDL_CreateWindow(title,

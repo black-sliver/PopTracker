@@ -9,7 +9,7 @@ class SettingsWindow : public TrackerWindow {
 public:
     using FONT = Window::FONT;
     
-    SettingsWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    SettingsWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~SettingsWindow();
     
     virtual void setTracker(Tracker *tracker) override;
