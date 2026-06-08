@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.35.2-rc1
+## v0.35.2
 
 * App Features
   * Lazy load big images
@@ -8,6 +8,8 @@
   * Cache HTTP responses that don't have an etag
   * Performance improvements in map widget
   * Other small performance improvements
+  * Add experimental "always on top" feature:
+    change `"show_always_on_top_button": null` to `"show_always_on_top_button": true` in PopTracker.json
 * Fixes
   * Allow hover of location with empty name
   * AP: fetch data package (item/location names) before onClear
