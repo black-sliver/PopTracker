@@ -16,7 +16,7 @@ class TrackerWindow : public Window {
 public:
     using FONT = Window::FONT;
     
-    TrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    TrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~TrackerWindow();
     
     virtual void setTracker(Tracker* tracker) = 0;
@@ -40,6 +40,7 @@ public:
     static const std::string MENU_LOAD_STATE;
     static const std::string MENU_SAVE_STATE;
     static const std::string MENU_BROADCAST;
+    static const std::string MENU_ALWAYS_ON_TOP;
     static const std::string MENU_PACK_SETTINGS;
     static const std::string MENU_TOGGLE_AUTOTRACKER;
     static const std::string MENU_CYCLE_AUTOTRACKER;

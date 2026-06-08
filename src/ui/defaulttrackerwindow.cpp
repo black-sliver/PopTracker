@@ -5,8 +5,8 @@
 
 namespace Ui {
 
-DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size)
-    : TrackerWindow(title, icon, pos, size)
+DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon, const Position& pos, const Size& size, const WindowConfig& config)
+    : TrackerWindow(title, icon, pos, size, config)
 {
     auto hbox = new HBox(0,0,_size.width,32);
     hbox->setBackground({0,0,0,255});
@@ -52,6 +52,16 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         onMenuPressed.emit(this, MENU_BROADCAST, 0);
     }};
 #endif
+
+    if (config.showAlwaysOnTopButton()) {
+        _btnAlwaysOnTop = new ImageButton(0,0,32-4,32-4, asset("always_on_top.png"));
+        hbox->addChild(_btnAlwaysOnTop);
+        _btnAlwaysOnTop->onClick += { this, [this](void *s, int, int, int) {
+            ImageButton* btn = (ImageButton*)s;
+            btn->setEnabled(!btn->getEnabled()); // toggle greyscale
+            onMenuPressed.emit(this, MENU_ALWAYS_ON_TOP, 0);
+        }};
+    }
     
     _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png"));
     _btnPackSettings->setVisible(false);
@@ -118,6 +128,18 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
             _lblTooltip->setText("");
         }};
     }
+
+    if (_btnAlwaysOnTop) {
+        _btnAlwaysOnTop->setDarkenGreyscale(false);
+        _btnAlwaysOnTop->onMouseEnter += {this, [this](void*, int, int, unsigned)
+        {
+            _lblTooltip->setText("Toggle Always On Top");
+        }};
+        _btnAlwaysOnTop->onMouseLeave += {this, [this](void*)
+        {
+            _lblTooltip->setText("");
+        }};
+    }
 }
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
@@ -126,6 +148,7 @@ DefaultTrackerWindow::~DefaultTrackerWindow()
     _btnLoad = nullptr;
     _btnReload = nullptr;
     _btnBroadcast = nullptr;
+    _btnAlwaysOnTop = nullptr;
     _btnPackSettings = nullptr;
     _hboxAutoTrackers = nullptr;
     _lblsAutoTrackers.clear();
@@ -395,6 +418,15 @@ void DefaultTrackerWindow::showProgress(const std::string& text, int progress, i
 void DefaultTrackerWindow::hideProgress()
 {
     _vboxProgress->setVisible(false);
+}
+
+void DefaultTrackerWindow::setAlwaysOnTop(bool alwaysOnTop)
+{
+    // Color / greyscale represents "always on top" enabled / disabled
+    if (_btnAlwaysOnTop) {
+        _btnAlwaysOnTop->setEnabled(alwaysOnTop);
+    }
+    TrackerWindow::setAlwaysOnTop(alwaysOnTop);
 }
 
 } // namespace

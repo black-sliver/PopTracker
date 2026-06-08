@@ -73,6 +73,7 @@ private:
     void reloadTracker(bool force=false);
     void loadState(const fs::path& filename);
     void showBroadcast();
+    void toggleAlwaysOnTop();
 
     const fs::path& getPackInstallDir() const;
 

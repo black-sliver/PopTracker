@@ -12,7 +12,7 @@ class DefaultTrackerWindow : public TrackerWindow {
 public:
     using FONT = Window::FONT;
     
-    DefaultTrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0});
+    DefaultTrackerWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos=WINDOW_DEFAULT_POSITION, const Size& size={0,0}, const WindowConfig& config={});
     virtual ~DefaultTrackerWindow();
 
     virtual void render(Renderer renderer, int offX, int offY) override;
@@ -24,6 +24,7 @@ public:
     virtual void hideOpen();
     virtual void showProgress(const std::string& title, int progress, int max);
     virtual void hideProgress();
+    virtual void setAlwaysOnTop(bool alwaysOnTop) override;
     
     Signal<const fs::path&, const std::string&> onPackSelected;
     
@@ -33,6 +34,7 @@ protected:
     ImageButton *_btnImport = nullptr;
     ImageButton *_btnExport = nullptr;
     ImageButton *_btnBroadcast = nullptr;
+    ImageButton *_btnAlwaysOnTop = nullptr;
     ImageButton *_btnPackSettings = nullptr;
     HBox *_hboxAutoTrackers = nullptr;
     std::vector<Label*> _lblsAutoTrackers;
