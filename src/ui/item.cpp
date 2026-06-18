@@ -142,7 +142,10 @@ void Item::addStage(const int stage1, const int stage2, std::unique_ptr<ImageFut
     freeStage(stage1, stage2);
     if (!future)
         return;
-    updateSize(future->getSize());
+    const Size size = future->getSize();
+    if (size.width < 1 || size.height < 1)
+        return; // bad image
+    updateSize(size);
     if (static_cast<int>(_futures.size()) <= stage1)
         _futures.resize(stage1 + 1);
     if (static_cast<int>(_futures[stage1].size()) <= stage2)
