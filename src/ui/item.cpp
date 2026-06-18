@@ -80,9 +80,9 @@ void Item::updateSize(const Size size)
     if (_size.width < 1 && _size.height < 1) {
         _size.width = _autoSize.width;
         _size.height = _autoSize.height;
-    } else if (_size.width < 1) {
+    } else if (_size.width < 1 && _autoSize.height > 0) {
         _size.width = (_autoSize.width * _size.height + _autoSize.height / 2) / _autoSize.height;
-    } else if (_size.height < 1) {
+    } else if (_size.height < 1 && _autoSize.width > 0) {
         _size.height = (_autoSize.height * _size.width + _autoSize.width / 2) / _autoSize.width;
     }
 }
