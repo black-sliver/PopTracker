@@ -1,5 +1,12 @@
 # PopTracker Changelog
 
+## v0.35.3
+
+* Fixes
+  * Fix crash when creating item from missing/invalid image under some circumstances
+* Other Changes
+  * Update dependencies
+
 ## v0.35.2
 
 * App Features

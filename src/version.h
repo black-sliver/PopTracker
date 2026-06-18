@@ -6,7 +6,7 @@
 /// semver <minor> of the application
 #define APP_VERSION_MINOR     35
 /// semver <patch> of the application
-#define APP_VERSION_REVISION   2
+#define APP_VERSION_REVISION   3
 /// semver "-" <pre-release> and/or "+" <build> of the application
 #define APP_VERSION_EXTRA     ""
 /// set to 1 for any pre-release or 0 for release and post-release
