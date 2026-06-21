@@ -221,3 +221,21 @@ install_name_tool -change $OLD_LIB_SDL2_IMAGE @executable_path/../Frameworks/$LI
 install_name_tool -change $OLD_LIB_SDL2_TTF @executable_path/../Frameworks/$LIB_SDL2_TTF $DST_EXE
 install_name_tool -change $OLD_LIB_OPENSSL @executable_path/../Frameworks/$LIB_OPENSSL $DST_EXE
 install_name_tool -change $OLD_LIB_CRYPTO @executable_path/../Frameworks/$LIB_CRYPTO $DST_EXE
+
+# Re-sign the bundle (ad-hoc).
+#
+# Every install_name_tool edit above invalidates the code signature that the
+# linker applied to each Mach-O. On Apple Silicon a valid signature is
+# mandatory to execute, and a bundle whose seal no longer matches its contents
+# is reported by Gatekeeper as "damaged and can't be opened" once the copy has
+# been quarantined (i.e. downloaded/AirDropped to another Mac). Re-sign each
+# nested dylib, then the executable, then seal the whole bundle.
+#
+# This is an ad-hoc signature (identity "-"), not a Developer ID / notarized
+# one, so first launch of a quarantined copy still needs a one-time approval
+# (right-click > Open, or `xattr -dr com.apple.quarantine <app>`); but the app
+# is no longer reported as damaged and runs normally thereafter.
+echo "Ad-hoc code signing the app bundle"
+codesign --force --sign - "$APP_BUNDLE_FRAMEWORKS_DIR"/*.dylib
+codesign --force --sign - "$DST_EXE"
+codesign --force --deep --sign - "$APP_BUNDLE_DIR"

@@ -508,11 +508,13 @@ test_osx_app: $(OSX_APP)
 
 $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	rm -f $@
-	(cd $(dir $<) && \
-	    if [ -x "`which 7z`" ]; then 7z a -mx=9 ../../dist/$(notdir $@) $(notdir $<) -x!.DS_Store; \
-	    else zip -9 -r ../../dist/$(notdir $@) $(notdir $<) -x "*.DS_Store" ; fi && \
-	    if [ -x "`which advzip`" ]; then advzip --recompress -4 ../$(notdir $@) ; fi \
-	)
+	# Use ditto, not zip/7z: the app's resources live under Contents/MacOS, so
+	# codesign signs them as nested code via extended attributes. Plain zip
+	# (Info-ZIP) drops xattrs, which breaks the signature and makes a
+	# quarantined copy report as "damaged and can't be opened". ditto is Apple's
+	# archiver, is always present on macOS/CI runners, and preserves the
+	# signing metadata so the .app stays validly signed after extraction.
+	ditto -c -k --keepParent --sequesterRsrc "$<" "$@"
 
 $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 	$(eval TMP_DIR = $(DIST_DIR)/.tmp-nix)
