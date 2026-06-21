@@ -132,7 +132,7 @@ HTML = $(WASM_BUILD_DIR)/$(EXE_NAME).html
 ifeq ($(CONF), DIST)
 ifdef IS_OSX
   OSX_APP := $(NIX_BUILD_DIR)/poptracker.app
-  OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos.zip
+  OSX_ZIP := $(DIST_DIR)/poptracker_$(VS)_macos_$(ARCH).zip
 else ifdef IS_LINUX
   DISTRO = $(shell lsb_release -si | tr -s ' ' '-' | tr A-Z a-z )
   DISTRO_VERSION = $(shell lsb_release -sr | tr -s '.' '-' | tr A-z a-z )
