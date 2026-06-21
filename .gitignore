@@ -39,3 +39,4 @@ win32-lib-src
 /fuzz-*.log
 /oom-*
 /crash-*
+macosx/libs/
