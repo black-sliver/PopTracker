@@ -514,7 +514,7 @@ $(OSX_ZIP): $(OSX_APP) | $(DIST_DIR)
 	# quarantined copy report as "damaged and can't be opened". ditto is Apple's
 	# archiver, is always present on macOS/CI runners, and preserves the
 	# signing metadata so the .app stays validly signed after extraction.
-	ditto -c -k --keepParent --sequesterRsrc "$<" "$@"
+	ditto -c -k --keepParent --sequesterRsrc --zlibCompressionLevel 9 "$<" "$@"
 
 $(NIX_XZ): $(NIX_EXE) | $(DIST_DIR)
 	$(eval TMP_DIR = $(DIST_DIR)/.tmp-nix)
