@@ -194,7 +194,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-macos:
-    runs-on: macos-15-intel
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-15-intel  # x86_64
+          - macos-15        # arm64 (Apple Silicon)
 
     steps:
     - name: Install dependencies
@@ -205,7 +211,14 @@ jobs:
       with:
         submodules: recursive
     - name: Set env
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+      shell: bash
+      run: |
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+        OS=darwin
+        ARCH=`uname -m`
+        echo "OS=$OS" >> $GITHUB_ENV
+        echo "ARCH=$ARCH" >> $GITHUB_ENV
+        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Build RELEASE
       run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
     - name: Run tests
@@ -216,7 +229,7 @@ jobs:
       uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
       with:
         subject-path: |
-          build/darwin-x86_64/poptracker.app/Contents/MacOS/poptracker
+          build/${{ env.UNAME }}/poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Create Release
       uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda  # v3.0.0
