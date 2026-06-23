@@ -83,6 +83,29 @@ TEST_P(ImageFilterSuite, SomethingInOtherOut) {
     }
 }
 
+TEST_P(ImageFilterSuite, MakesCopyIfRequired) {
+    SDL_Surface* surf = IMG_Load(asset("closed.png").u8string().c_str());
+    ASSERT_TRUE(surf);
+#ifdef SDL_DONTFREE
+    surf->flags |= SDL_DONTFREE;
+#else
+    surf->refcount = 2;
+#endif
+    const std::string originalData = getPixelData(surf);
+    const std::string originalPalette = getPaletteData(surf);
+    const ImageFilter filter(std::string{GetParam()}, getSampleOverlayData());
+    SDL_Surface* surf2 = filter.apply(surf);
+#ifdef SDL_DONTFREE
+    surf->flags &= ~SDL_DONTFREE;
+#else
+    surf->refcount = 1;
+#endif
+    SDL_FreeSurface(surf);
+    ASSERT_NE(surf, surf2) << "Did not make a copy";
+    ASSERT_TRUE(surf2);
+    SDL_FreeSurface(surf2);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     KnownFilters,
     ImageFilterSuite,
