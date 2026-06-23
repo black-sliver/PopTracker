@@ -38,7 +38,7 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf) const
         }
     }
 
-    if (name == "grey" || name == "disable") {
+    if (name == "grey" || name == "gray" || name == "disable") {
         return makeGreyscale(surf, true);
     }
     if (name == "saturation") {
@@ -64,7 +64,7 @@ SDL_Surface* ImageFilter::apply(SDL_Surface *surf) const
         }
         return setBrightness(surf, value);
     }
-    if (name == "greyscale") {
+    if (name == "greyscale" || name == "grayscale") {
         // same as saturation|0
         // arg1: colorspace; bt601 = "color-corrected"; all other: AVG(r, g, b)
         bool mode = false;

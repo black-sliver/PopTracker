@@ -11,9 +11,11 @@ using namespace Ui;
 
 #define ALL_KNOWN_FILTERS \
 "grey", \
+"gray", \
 "disable", \
 "saturation", \
 "greyscale", \
+"grayscale", \
 "brightness", \
 "dim", \
 "overlay"
