@@ -124,5 +124,14 @@
         "versions_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/main/images/preview.png",
         "description":  "Pokémon Emerald autotracker pack for PopTracker"
+    },
+    "dkcr_ap_tracker": {
+        "name": "Donkey Kong Country Returns AP Tracker",
+        "author": "MagicMason1000",
+        "platform": "Wii",
+        "homepage": "https://github.com/MagicMason1000/DKCR-AP-PopTracker-Package",
+        "versions_url": "https://raw.githubusercontent.com/MagicMason1000/DKCR-AP-PopTracker-Package/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/MagicMason1000/DKCR-AP-PopTracker-Package/refs/heads/main/images/settings/setting_orbs_8.png",
+        "description":  "Archipelago PopTracker pack for Donkey Kong Country Returns"
     }
 }
