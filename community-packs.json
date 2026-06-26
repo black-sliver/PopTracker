@@ -124,5 +124,14 @@
         "versions_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/seto10987/archipelago-emerald-ap-tracker/main/images/preview.png",
         "description":  "Pokémon Emerald autotracker pack for PopTracker"
+    },
+    "seasons_ap": {
+        "name": "Oracle of Seasons Tracker",
+        "author": "OmegaZeron",
+        "platform": "gbc",
+        "homepage": "https://github.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack",
+        "versions_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/main/images/items/rod.png",
+        "description": "The Legend of Zelda: Oracle of Seasons Archipelago PopTracker pack"
     }
 }
