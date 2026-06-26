@@ -271,6 +271,13 @@ jobs:
         # ditto preserves the signature's extended attributes (a plain zip strips them)
         ditto -c -k --keepParent --sequesterRsrc --zlibCompressionLevel 9 poptracker.app "dist/poptracker_${VS}_macos_universal.zip"
         ls -l dist
+    - name: Attest Build and AppBundle
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      with:
+        subject-path: |
+          poptracker.app/Contents/MacOS/poptracker
+          dist/*
     - name: Store universal ZIP
       uses: actions/upload-artifact@v7.0.1
       with:
