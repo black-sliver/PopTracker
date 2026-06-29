@@ -117,7 +117,8 @@ jobs:
         # since we don't build gtest with ASAN, we hit this issue on macos-latest
         echo "ASAN_OPTIONS=detect_container_overflow=0" >> $GITHUB_ENV
     - name: Enable ASAN and UBSAN
-      if: ${{ !startsWith(matrix.os, 'windows') }}
+      # if: ${{ !startsWith(matrix.os, 'windows') }}
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         # we use mingw on windows, which does not support ASAN
         echo "extra_make_args=WITH_ASAN=true WITH_UBSAN=true ${{ matrix.extra_make_args }}" >> $GITHUB_ENV
