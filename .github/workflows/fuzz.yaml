@@ -22,7 +22,7 @@ jobs:
           chmod +x ./llvm.sh
           sudo ./llvm.sh 22 all
           sudo apt install clang-tools-22
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
         with:
           submodules: recursive
       - name: Build fuzzer
