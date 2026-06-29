@@ -60,7 +60,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip libgtest-dev libgmock-dev
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
       with:
         submodules: recursive
     - name: Build RELEASE
@@ -105,7 +105,7 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
       with:
         submodules: recursive
     - name: Get appimage-builder, appimagetool, runtime, AppRun and hooks
@@ -194,7 +194,7 @@ jobs:
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake googletest || true
         # required, but pre-installed: libtool autoconf
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
       with:
         submodules: recursive
     - name: Cache/restore macosx-libs
@@ -247,7 +247,7 @@ jobs:
     needs: build-macos
     runs-on: macos-15
     steps:
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
     - name: Download per-arch app bundles
       uses: actions/download-artifact@v8.0.1
       with:
@@ -313,7 +313,7 @@ jobs:
           p7zip
           wget
           mingw-w64-x86_64-advancecomp
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
       with:
         submodules: recursive
     - name: Cache/restore win32-libs
