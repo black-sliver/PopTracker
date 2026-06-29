@@ -130,6 +130,7 @@ jobs:
     - name: Build DEBUG
       run: make native CONF=DEBUG ${{ env.extra_make_args }} -j4
     - name: Run tests
+      timeout-minutes: 7
       run: make test CONF=DEBUG ${{ env.extra_make_args }} -j4
 
   nix-shell-build:
