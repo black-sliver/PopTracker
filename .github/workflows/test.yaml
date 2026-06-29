@@ -117,13 +117,20 @@ jobs:
         # since we don't build gtest with ASAN, we hit this issue on macos-latest
         echo "ASAN_OPTIONS=detect_container_overflow=0" >> $GITHUB_ENV
     - name: Enable ASAN and UBSAN
-      if: ${{ !startsWith(matrix.os, 'windows') }}
+      # if: ${{ !startsWith(matrix.os, 'windows') }}
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
         # we use mingw on windows, which does not support ASAN
+        # macos currently hangs when trying to run tests with ASAN + UBSAN on
         echo "extra_make_args=WITH_ASAN=true WITH_UBSAN=true ${{ matrix.extra_make_args }}" >> $GITHUB_ENV
+    - name: Enable UBSAN
+      if: ${{ startsWith(matrix.os, 'macos') }}
+      run: |
+        echo "extra_make_args=WITH_UBSAN=true ${{ matrix.extra_make_args }}" >> $GITHUB_ENV
     - name: Build DEBUG
       run: make native CONF=DEBUG ${{ env.extra_make_args }} -j4
     - name: Run tests
+      timeout-minutes: 7
       run: make test CONF=DEBUG ${{ env.extra_make_args }} -j4
 
   nix-shell-build:
