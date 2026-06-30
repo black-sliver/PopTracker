@@ -453,7 +453,7 @@ bool Tracker::AddLocations(const std::string& file) {
     }
 
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
-    return false;
+    return true;
 }
 bool Tracker::AddMaps(const std::string& file) {
     printf("Loading maps from \"%s\"...\n", file.c_str());
@@ -479,7 +479,7 @@ bool Tracker::AddMaps(const std::string& file) {
     }
     
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
-    return false;
+    return true;
 }
 bool Tracker::AddLayouts(const std::string& file) {
     printf("Loading layouts from \"%s\"...\n", file.c_str());
@@ -515,7 +515,7 @@ bool Tracker::AddLayouts(const std::string& file) {
     
     // TODO: fire for each named layout
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
-    return false;
+    return true;
 }
 
 bool Tracker::AddClasses(const std::string& file) {
@@ -544,7 +544,7 @@ bool Tracker::AddClasses(const std::string& file) {
         _classes.emplace(key, value);
     }
 
-    return false;
+    return true;
 }
 
 int Tracker::ProviderCountForCode(const std::string& code)
