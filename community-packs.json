@@ -133,5 +133,14 @@
         "versions_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/main/images/items/rod.png",
         "description": "The Legend of Zelda: Oracle of Seasons Archipelago PopTracker pack"
+    },
+    "unfair_flips_ap": {
+        "name": "Unfair Flips Archipelago",
+        "author": "lighting8282",
+        "platform": "PC",
+        "homepage": "https://github.com/lighting8282/Unfair-Flips-PopTracker",
+        "versions_url": "https://raw.githubusercontent.com/lighting8282/Unfair-Flips-PopTracker/main/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/lighting8282/Unfair-Flips-PopTracker/main/images/items/headsplus.png",
+        "description": "Map and item tracker for Unfair Flips Archipelago."
     }
 }
