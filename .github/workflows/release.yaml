@@ -43,7 +43,7 @@ jobs:
         cd PopTracker
         mv "../${POP_NAME}_full-source.tar.xz" .
     - name: Attest Source bundle
-      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763  # v4.1.1
       with:
         subject-path: "*_full-source.tar.xz"
     - name: Create Release
@@ -127,7 +127,7 @@ jobs:
           -g --runtime-file "appimage-build/prime/$APPIMAGE_RUNTIME_NAME" \
           AppDir
     - name: Attest Build, AppImage and zsync
-      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763  # v4.1.1
       with:
         subject-path: |
           appimage-build/linux-x86_64/poptracker
@@ -176,7 +176,7 @@ jobs:
     - name: Build DIST # this builds a .tar.xz
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
     - name: Attest Build and Archive
-      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763  # v4.1.1
       with:
         subject-path: |
           build/${{ env.UNAME }}/poptracker
@@ -268,7 +268,7 @@ jobs:
         ditto -c -k --keepParent --sequesterRsrc --zlibCompressionLevel 9 poptracker.app "dist/poptracker_${VS}_macos_universal.zip"
         ls -l dist
     - name: Attest Build and AppBundle
-      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763  # v4.1.1
       with:
         subject-path: |
           poptracker.app/Contents/MacOS/poptracker
@@ -347,7 +347,7 @@ jobs:
       shell: msys2 {0}
       run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
     - name: Attest Build and Archive
-      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+      uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763  # v4.1.1
       with:
         subject-path: |
           build/win64/poptracker.exe
