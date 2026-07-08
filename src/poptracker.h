@@ -66,6 +66,8 @@ private:
     std::chrono::steady_clock::time_point _autosaveTimer;
 
     std::string _atUri, _atSlot, _atPassword;
+    bool _apConnectPending = false;
+    std::string _apHostFromArgs, _apSlotFromArgs;
 
     bool loadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave=true);
     bool scheduleLoadTracker(const fs::path& pack, const std::string& variant, bool loadAutosave=true);

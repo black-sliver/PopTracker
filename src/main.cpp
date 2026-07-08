@@ -51,6 +51,9 @@ int main(int argc, char** argv)
     const char* loadPack = nullptr;
     const char* packPath = nullptr;
     const char* packVersion = nullptr;
+    const char* apHost = nullptr;
+    const char* apSlot = nullptr;
+    const char* apPassword = nullptr;
     const char* packVariant = nullptr;
     bool updateAttempt = false;
     bool updateSuccess = false;
@@ -104,6 +107,18 @@ int main(int argc, char** argv)
             packVersion = argv[2];
             argv++;
             argc--;
+        } else if (strcasecmp("--ap-password", argv[1]) == 0) {
+            if (argc <= 2) { badArg = true; break; }
+            apPassword = argv[2];
+            argv++; argc--;
+        } else if (strcasecmp("--ap-slot", argv[1]) == 0) {
+            if (argc <= 2) { badArg = true; break; }
+            apSlot = argv[2];
+            argv++; argc--;
+        } else if (strcasecmp("--ap-host", argv[1]) == 0) {
+            if (argc <= 2) { badArg = true; break; }
+            apHost = argv[2];
+            argv++; argc--;
         } else if (strcasecmp("--pack-variant", argv[1]) == 0) {
             if (argc <= 2) {
                 badArg = true;
@@ -168,6 +183,11 @@ int main(int argc, char** argv)
                "  Action args:\n"
                "    --pack-variant <variant>: try to load this variant\n"
                "    --pack-version <version>: try to load this version\n"
+               "\n"
+               "  AP Connection:\n"
+               "    --ap-host <host:port>: Archipelago server address\n"
+               "    --ap-slot <name>: slot name to connect as\n"
+               "    --ap-password <password>: password for the server\n"
                "\n", appName);
         return badArg ? 1 : 0;
     }
@@ -193,6 +213,13 @@ int main(int argc, char** argv)
     if (updateAttempt) {
         args["update"] = {
             { "success", updateSuccess },
+        };
+    }
+    if (apHost) {
+        args["ap"] = {
+            {"host", apHost},
+            {"slot", apSlot ? apSlot : "Player"},
+            {"password", apPassword ? apPassword : ""}
         };
     }
 

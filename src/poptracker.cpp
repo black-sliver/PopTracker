@@ -294,6 +294,16 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     if (_config["at_slot"].is_string())
         _atSlot = _config["at_slot"];
 
+    if (_args.contains("ap")) {
+        const auto& ap = _args["ap"];
+        _config["at_uri"] = to_string(ap["host"], "");
+        _config["at_slot"] = to_string(ap["slot"], "Player");
+        _atPassword = to_string(ap["password"], "");
+        _apHostFromArgs = to_string(ap["host"], "");
+        _apSlotFromArgs = to_string(ap["slot"], "Player");
+        _apConnectPending = true;
+    }
+
     if (_config["usb2snes"].is_null())
         _config["usb2snes"] = "";
 
@@ -942,8 +952,24 @@ bool PopTracker::frame()
         // when all tasks are done, poll() will stop(). Reset for next request.
         if (_asio->stopped()) _asio->restart();
     }
-    if (_scriptHost)
+    if (_scriptHost) {
         _scriptHost->onFrame();
+        if (_apConnectPending && !_apHostFromArgs.empty() && !_apSlotFromArgs.empty()) {
+            auto at = _scriptHost->getAutoTracker();
+            if (at) {
+                for (int i = 0; i < 32; i++) {
+                    if (at->getName(i) == "AP") {
+                        if (at->enable(i, _apHostFromArgs, _apSlotFromArgs, _atPassword)) {
+                            _apConnectPending = false;
+                            _autoTrackerAllDisabled = false;
+                            _autoTrackerDisabled["AP"] = false;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     auto now = std::chrono::steady_clock::now();
 
