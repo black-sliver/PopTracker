@@ -955,17 +955,14 @@ bool PopTracker::frame()
     if (_scriptHost) {
         _scriptHost->onFrame();
         if (_apConnectPending && !_apHostFromArgs.empty() && !_apSlotFromArgs.empty()) {
+            _apConnectPending = false;
             auto at = _scriptHost->getAutoTracker();
             if (at) {
-                for (int i = 0; i < 32; i++) {
-                    if (at->getName(i) == "AP") {
-                        if (at->enable(i, _apHostFromArgs, _apSlotFromArgs, _atPassword)) {
-                            _apConnectPending = false;
-                            _autoTrackerAllDisabled = false;
-                            _autoTrackerDisabled["AP"] = false;
-                        }
-                        break;
-                    }
+                int i = at->getIndex("AP");
+                if (i >= 0) {
+                    at->enable(i, _apHostFromArgs, _apSlotFromArgs, _atPassword);
+                    _autoTrackerAllDisabled = false;
+                    _autoTrackerDisabled["AP"] = false;
                 }
             }
         }

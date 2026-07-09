@@ -108,17 +108,29 @@ int main(int argc, char** argv)
             argv++;
             argc--;
         } else if (strcasecmp("--ap-password", argv[1]) == 0) {
-            if (argc <= 2) { badArg = true; break; }
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
             apPassword = argv[2];
-            argv++; argc--;
+            argv++;
+            argc--;
         } else if (strcasecmp("--ap-slot", argv[1]) == 0) {
-            if (argc <= 2) { badArg = true; break; }
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
             apSlot = argv[2];
-            argv++; argc--;
+            argv++;
+            argc--;
         } else if (strcasecmp("--ap-host", argv[1]) == 0) {
-            if (argc <= 2) { badArg = true; break; }
+            if (argc <= 2) {
+                badArg = true;
+                break;
+            }
             apHost = argv[2];
-            argv++; argc--;
+            argv++;
+            argc--;
         } else if (strcasecmp("--pack-variant", argv[1]) == 0) {
             if (argc <= 2) {
                 badArg = true;
