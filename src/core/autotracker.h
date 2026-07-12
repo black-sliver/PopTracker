@@ -216,6 +216,15 @@ public:
         return BACKEND_NONE_NAME;
     }
 
+    int getIndex(const std::string& name)
+    {
+        if (name == BACKEND_AP_NAME && _ap) return _backendIndex[_ap];
+        if (name == BACKEND_UAT_NAME && _uat) return _backendIndex[_uat];
+        if (name == BACKEND_SNES_NAME && _snes) return _backendIndex[_snes];
+        if (_provider && name == _provider->getName()) return _backendIndex[_provider];
+        return -1;
+    }
+
     std::string getSubName(int index)
     {
         if (_snes && _backendIndex[_snes] == index)
