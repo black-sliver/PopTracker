@@ -86,6 +86,7 @@ function Tracker:FindObjectForCode(code) end
 ---| "Pan <MapName>[<n>]" # Changes pan for nth (0-based) instance of map to x,y = hint value. Available since 0.34.0
 ---| "Zoom <MapName>" # Changes zoom for map to zoom = hint value. Available since 0.34.0
 ---| "Zoom <MapName>[<n>]" # Changes zoom for nth (0-based) instance of map to zoom = hint value. Available since 0.34.0
+---| string
 
 ---Sends a hint to the UI, see https://github.com/black-sliver/PopTracker/blob/master/doc/PACKS.md#ui-hints .
 ---Only available in PopTracker, since 0.11.0.
