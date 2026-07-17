@@ -141,6 +141,7 @@ protected:
     bool _allowDeferredLogicUpdate = false; ///< opt-in flag to use onBulkUpdate to update state just once at the end
     bool _accessibilityStale = false;
     bool _visibilityStale = false;
+    bool _linksBlocked = false; // Set by user on declining any more links
     std::vector<std::string_view> _luaCodesStack; ///< stack of $-codes currently being evaluated
     std::unordered_set<std::string> _indirectlyConnectedLuaCodes; ///< set of $-codes that can not be cached
     bool _updatingCache = false; ///< true while cache*() is running

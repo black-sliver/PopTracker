@@ -659,6 +659,7 @@ void Tracker::UiHint(const std::string& name, const std::string& value)
 
 void Tracker::OpenLink(const std::string& url, const std::string& description)
 {
+    if (_linksBlocked) { return; }
     using namespace Ui;
 
     // Validating URLs is a pain, no regex solutions or standard library options
@@ -672,13 +673,19 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     if (!description.empty()) { msg += description + "\n\n"; }
     msg += "Would you like to open it?";
 
-    if (Ui::Dlg::MsgBox(
-        "PopTracker",
-        msg,
-        Ui::Dlg::Buttons::YesNo,
-        Ui::Dlg::Icon::Question
-    ) == Ui::Dlg::Result::Yes) {
+    auto res = Dlg::MsgBox(
+        "PopTracker", msg, 
+        Dlg::Buttons::YesNo, Dlg::Icon::Question
+    );
+
+    if (res == Dlg::Result::Yes) {
         HttpUtil::openWebsite(url);
+    }
+    else {
+        _linksBlocked = Dlg::MsgBox(
+            "PopTracker", "Stop asking to open links this session?", 
+            Dlg::Buttons::YesNo, Dlg::Icon::Question
+        ) == Dlg::Result::Yes;
     }
 }
 
