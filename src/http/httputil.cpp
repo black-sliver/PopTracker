@@ -1,5 +1,6 @@
 #include "httputil.hpp"
 
+#include <algorithm>
 #include <cstdio>
 
 #include "../uilib/dlg.h"
@@ -44,6 +45,14 @@ void openWebsite(const std::string& url)
         exit(0);
     }
 #endif
+}
+
+std::string sanitizeUrl(std::string s)
+{
+    const auto exclude = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=";
+    auto sanitize = [&](const char c) { return !strchr(exclude, c); };
+    s.erase(std::remove_if(s.begin(), s.end(), sanitize), s.end());
+    return s;
 }
 
 }

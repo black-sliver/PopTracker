@@ -662,15 +662,18 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     if (_linksBlocked) { return; }
     using namespace Ui;
 
+    auto sanitisedUrl = HttpUtil::sanitizeUrl(url);
+
     // Validating URLs is a pain, no regex solutions or standard library options
     // Ensure HTTPS link as minimum
-    if (url.length() < 8 || url.substr(0, 8) != "https://") {
-        printf("WARNING: Attempted to open invalid link: \"%s\".\n", url.c_str());
+    if (sanitisedUrl.length() < 8 || sanitisedUrl.substr(0, 8) != "https://") {
+        printf("WARNING: Attempted to open invalid link: \"%s\".\n", sanitisedUrl.c_str());
         return;
     }
 
-    std::string msg = "The pack is trying to open a link to:\n\n" + url + "\n\n";
-    if (!description.empty()) msg += description + "\n\n";
+    auto desc = sanitize_print(description);
+    std::string msg = "The pack is trying to open a link to:\n\n" + sanitisedUrl + "\n\n";
+    if (!desc.empty()) msg += desc + "\n\n";
     msg += "Would you like to open it?";
 
     auto res = Dlg::MsgBox(
@@ -679,7 +682,7 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     );
 
     if (res == Dlg::Result::Yes) {
-        HttpUtil::openWebsite(url);
+        HttpUtil::openWebsite(sanitisedUrl);
     } else {
         _linksBlocked = Dlg::MsgBox(
             "PopTracker", "Stop asking to open links this session?", 
