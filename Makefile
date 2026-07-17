@@ -33,7 +33,7 @@ HDR = $(wildcard $(SRC_DIR)/*.h) \
       $(wildcard $(SRC_DIR)/uat/*.h) \
       $(wildcard $(SRC_DIR)/ap/*.h) \
       $(wildcard $(SRC_DIR)/luaconnector/*.h) \
-      $(wildcard $(SRC_DIR)/http/*.h) \
+      $(wildcard $(SRC_DIR)/http/*.h*) \
       $(wildcard $(SRC_DIR)/packmanager/*.h) \
       $(wildcard $(LIB_DIR)/fmt/include/fmt/*.h) \
       $(wildcard $(LIB_DIR)/tinyfiledialogs/*)

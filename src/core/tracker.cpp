@@ -5,7 +5,8 @@
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"
 #include "util.h"
-
+#include "../uilib/dlg.h"
+#include "../http/httputil.hpp"
 
 using nlohmann::json;
 
@@ -19,6 +20,7 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, ProviderCountForCode, const char*),
     LUA_METHOD(Tracker, FindObjectForCode, const char*),
     LUA_METHOD(Tracker, UiHint, const char*, const char*),
+    LUA_METHOD(Tracker, OpenLink, const char*, const char*),
 };
 
 int Tracker::_execLimit = Tracker::DEFAULT_EXEC_LIMIT;
@@ -653,6 +655,31 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
 void Tracker::UiHint(const std::string& name, const std::string& value)
 {
     onUiHint.emit(this, name, value);
+}
+
+void Tracker::OpenLink(const std::string& url, const std::string& description)
+{
+    using namespace Ui;
+
+    // Validating URLs is a pain, no regex solutions or standard library options
+    // Ensure HTTPS link as minimum
+    if (url.length() < 8 || url.substr(0, 8) != "https://") {
+        printf("WARNING: Attempted to open invalid link: \"%s\".\n", url.c_str());
+        return;
+    }
+
+    std::string msg = "The pack is trying to open a link to:\n\n" + url + "\n\n";
+    if (!description.empty()) { msg += description + "\n\n"; }
+    msg += "Would you like to open it?";
+
+    if (Ui::Dlg::MsgBox(
+        "PopTracker",
+        msg,
+        Ui::Dlg::Buttons::YesNo,
+        Ui::Dlg::Icon::Question
+    ) == Ui::Dlg::Result::Yes) {
+        HttpUtil::openWebsite(url);
+    }
 }
 
 template <typename T>

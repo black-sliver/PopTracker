@@ -74,6 +74,7 @@ public:
     Object FindObjectForCode(const char* code);
     LuaItem *CreateLuaItem();
     void UiHint(const std::string& name, const std::string& value);
+    void OpenLink(const std::string& url, const std::string& description = "");
     
     Signal<const LocationSection&> onLocationSectionChanged;
     Signal<const std::string&> onLayoutChanged;
