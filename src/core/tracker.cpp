@@ -670,7 +670,7 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     }
 
     std::string msg = "The pack is trying to open a link to:\n\n" + url + "\n\n";
-    if (!description.empty()) { msg += description + "\n\n"; }
+    if (!description.empty()) msg += description + "\n\n";
     msg += "Would you like to open it?";
 
     auto res = Dlg::MsgBox(
@@ -680,8 +680,7 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
 
     if (res == Dlg::Result::Yes) {
         HttpUtil::openWebsite(url);
-    }
-    else {
+    } else {
         _linksBlocked = Dlg::MsgBox(
             "PopTracker", "Stop asking to open links this session?", 
             Dlg::Buttons::YesNo, Dlg::Icon::Question
