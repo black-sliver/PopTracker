@@ -40,3 +40,7 @@ win32-lib-src
 /oom-*
 /crash-*
 macosx/libs/
+
+# exclude development environment specific files
+.vs/
+CppProperties.json
