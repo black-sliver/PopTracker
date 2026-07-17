@@ -47,12 +47,4 @@ void openWebsite(const std::string& url)
 #endif
 }
 
-std::string sanitizeUrl(std::string s)
-{
-    const auto include = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=";
-    auto sanitize = [&](const char c) { return !strchr(include, c); };
-    s.erase(std::remove_if(s.begin(), s.end(), sanitize), s.end());
-    return s;
-}
-
 }

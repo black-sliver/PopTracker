@@ -6,6 +6,7 @@
 #include "jsonutil.h"
 #include "util.h"
 #include "../uilib/dlg.h"
+#include "../http/http.h"
 #include "../http/httputil.hpp"
 
 using nlohmann::json;
@@ -662,17 +663,19 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     if (_linksBlocked) { return; }
     using namespace Ui;
 
-    auto sanitisedUrl = HttpUtil::sanitizeUrl(url);
+    std::string proto, host, port, path;
+    if (!HTTP::parse_uri(url, proto, host, port, path)) {
+        printf("WARNING: Attempted to open invalid link: \"%s\".\n", sanitize_print(url).c_str());
+        return;
+    }
 
-    // Validating URLs is a pain, no regex solutions or standard library options
-    // Ensure HTTPS link as minimum
-    if (sanitisedUrl.length() < 8 || sanitisedUrl.substr(0, 8) != "https://") {
-        printf("WARNING: Attempted to open invalid link: \"%s\".\n", sanitisedUrl.c_str());
+    if (proto != "https") {
+        printf("WARNING: Attempted to open unsecure link: \"%s\".\n", sanitize_print(url).c_str());
         return;
     }
 
     auto desc = sanitize_print(description);
-    std::string msg = "The pack is trying to open a link to:\n\n" + sanitisedUrl + "\n\n";
+    std::string msg = "The pack is trying to open a link to:\n\n" + sanitize_print(url) + "\n\n";
     if (!desc.empty()) msg += desc + "\n\n";
     msg += "Would you like to open it?";
 
@@ -682,7 +685,7 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     );
 
     if (res == Dlg::Result::Yes) {
-        HttpUtil::openWebsite(sanitisedUrl);
+        HttpUtil::openWebsite(url);
     } else {
         _linksBlocked = Dlg::MsgBox(
             "PopTracker", "Stop asking to open links this session?", 

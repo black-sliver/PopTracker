@@ -6,7 +6,6 @@
 namespace HttpUtil {
 
 void openWebsite(const std::string& url);
-std::string sanitizeUrl(std::string s);
 
 }
 
