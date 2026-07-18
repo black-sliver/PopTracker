@@ -133,6 +133,7 @@ protected:
     std::map<std::string, bool> _visibilityCache;
     std::map<std::string, int> _providerCountCache;
     std::map<const std::string, Object, std::less<>> _objectCache;
+    mutable std::map<std::string, std::vector<const LuaItem*>, std::less<>> _luaProviderCache; ///< code -> lua items that can provide it
     std::list<std::string> _bulkItemUpdates;
     std::list<std::string> _bulkItemDisplayUpdates;
     std::vector<std::string> _bulkSectionUpdates;
@@ -160,6 +161,8 @@ protected:
         const std::list< std::list<std::string> >& rules,
         bool visibilityRules,
         bool glitchedScoutableAsGlitched);
+
+    const std::vector<const LuaItem*>& luaProvidersForCode(const std::string& code) const;
 
     void rebuildSectionRefs();
     void cacheAccessibility();

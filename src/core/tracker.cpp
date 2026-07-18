@@ -185,6 +185,7 @@ bool Tracker::AddItems(const std::string& file) {
     
     _providerCountCache.clear();
     _objectCache.clear();
+    _luaProviderCache.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
     for (auto& v : j) {
@@ -372,6 +373,7 @@ bool Tracker::AddLocations(const std::string& file) {
     
     _providerCountCache.clear();
     _objectCache.clear();
+    _luaProviderCache.clear();
     _sectionRefs.clear();
     _accessibilityStale = true;
     _visibilityStale = true;
@@ -547,6 +549,23 @@ bool Tracker::AddClasses(const std::string& file) {
     return true;
 }
 
+const std::vector<const LuaItem*>& Tracker::luaProvidersForCode(const std::string& code) const
+{
+    // LuaItem::canProvideCode is a lua_pcall per item, so scanning all lua items for every code
+    // is expensive for packs with many of them. canProvideCode is defined as "can this item EVER
+    // provide this code", so the result is cached until the set of items or locations changes.
+    auto it = _luaProviderCache.find(code);
+    if (it != _luaProviderCache.end())
+        return it->second;
+
+    std::vector<const LuaItem*> providers;
+    for (const auto& item: _luaItems) {
+        if (item.canProvideCode(code))
+            providers.push_back(&item);
+    }
+    return _luaProviderCache.insert_or_assign(code, std::move(providers)).first->second;
+}
+
 int Tracker::ProviderCountForCode(const std::string& code)
 {
     // cache this, because inefficient use can make the Lua script hang
@@ -581,13 +600,13 @@ int Tracker::ProviderCountForCode(const std::string& code)
     }
 #endif
 
-    for (const auto& item : _luaItems)
+    // copied because providesCode calls into Lua, which may invalidate the cache
+    const auto providers = luaProvidersForCode(code);
+    for (const auto* item : providers)
     {
-        if (item.canProvideCode(code)) {
-            _luaCodesStack.emplace_back(code);
-            res += item.providesCode(code);
-            _luaCodesStack.pop_back();
-        }
+        _luaCodesStack.emplace_back(code);
+        res += item->providesCode(code);
+        _luaCodesStack.pop_back();
     }
 
     if (!_indirectlyConnectedLuaCodes.count(code))
@@ -640,11 +659,9 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
         }
 #endif
 
-        for (auto& item : _luaItems) {
-            if (item.canProvideCode(code)) {
-                return _objectCache.emplace(code, &item).first->second;
-            }
-        }
+        const auto& providers = luaProvidersForCode(code);
+        if (!providers.empty())
+            return _objectCache.emplace(code, const_cast<LuaItem*>(providers.front())).first->second;
     }
     printf("Did not find object for code \"%s\".\n", sanitize_print(code).c_str());
     return nullptr;
@@ -752,10 +769,9 @@ const BaseItem& Tracker::getItemByCode(const std::string& code) const
     }
 #endif
 
-    for (const auto& item: _luaItems) {
-        if (item.canProvideCode(code))
-            return item;
-    }
+    const auto& providers = luaProvidersForCode(code);
+    if (!providers.empty())
+        return *providers.front();
 
     return blankItem;
 }
@@ -1131,6 +1147,7 @@ LuaItem * Tracker::CreateLuaItem()
 {
     _luaItems.emplace_back();
     _objectCache.clear();
+    _luaProviderCache.clear();
     LuaItem& i = _luaItems.back();
     i.setID(++_lastItemID);
     {
