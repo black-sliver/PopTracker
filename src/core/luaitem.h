@@ -20,7 +20,7 @@ public:
     void Set(const char* key, const LuaVariant& value);
     LuaVariant Get(const char* key);
 
-    Signal<> onCodesChanged; ///< fired when CanProvideCodeFunc is (re)assigned
+    Signal<> onCodesChanged; ///< fired when whatever answers canProvideCode is (re)assigned
 
     bool canProvideCode(const std::string& code) const override;
     int providesCode(const std::string& code) const override;

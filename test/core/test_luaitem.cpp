@@ -100,6 +100,27 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
             clicks = clicks + 1
             self.Icon = "icon" .. clicks  -- trigger onChange
         end
+        function makeTrampolineItem()
+            local function invokeCanProvideCode(item, code)
+                return item.ItemState:canProvideCode(code)
+            end
+            local function invokeProvidesCode(item, code)
+                return item.ItemState:providesCode(code)
+            end
+            trampoline = ScriptHost:CreateLuaItem()
+            trampoline.ItemState = {
+                canProvideCode = function(self, code) return code == "First" end,
+                providesCode = function(self, code) return (code == "First") and 1 or 0 end,
+            }
+            trampoline.CanProvideCodeFunc = invokeCanProvideCode
+            trampoline.ProvidesCodeFunc = invokeProvidesCode
+        end
+        function swapTrampolineState()
+            trampoline.ItemState = {
+                canProvideCode = function(self, code) return code == "Second" end,
+                providesCode = function(self, code) return (code == "Second") and 1 or 0 end,
+            }
+        end
         function makeLateItem()
             lateItem = ScriptHost:CreateLuaItem()
             lateItem.Name = "late"
@@ -161,6 +182,16 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
     lua_getglobal(L, "giveLateItemCodes");
     ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
     EXPECT_EQ(tracker.ProviderCountForCode("Late"), 1);
+
+    // what answers canProvideCode may live in ItemState rather than in CanProvideCodeFunc
+    lua_getglobal(L, "makeTrampolineItem");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("First"), 1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Second"), 0);
+    lua_getglobal(L, "swapTrampolineState");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("First"), 0);
+    EXPECT_EQ(tracker.ProviderCountForCode("Second"), 1);
 
     lua_close(L);
 }

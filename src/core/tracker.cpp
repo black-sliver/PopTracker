@@ -1163,6 +1163,7 @@ LuaItem * Tracker::CreateLuaItem()
     i.onCodesChanged += {this, [this](void*) {
         _luaProviderCache.clear();
         _providerCountCache.clear();
+        _objectCache.clear();
     }};
     i.onChange += {this, [this](void* sender) {
         const auto* i = static_cast<LuaItem*>(sender);
