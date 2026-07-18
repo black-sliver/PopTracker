@@ -664,13 +664,13 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
         return;
 
     std::string proto, host, port, path;
-    if (!HTTP::parse_uri(url, proto, host, port, path)) {
-        printf("WARNING: Attempted to open invalid link: \"%s\".\n", sanitize_print(url).c_str());
+    if (url.length() > 2048 || !HTTP::parse_uri(url, proto, host, port, path)) {
+        printf("WARNING: Attempted to open invalid link: \"%.2048s\".\n", sanitize_print(url).c_str());
         return;
     }
 
     if (proto != "https") {
-        printf("WARNING: Attempted to open unsecure link: \"%s\".\n", sanitize_print(url).c_str());
+        printf("WARNING: Attempted to open unsecured link: \"%s\".\n", sanitize_print(url).c_str());
         return;
     }
 
@@ -686,7 +686,7 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
     );
 
     if (res == Ui::Dlg::Result::Yes) {
-        HttpUtil::openWebsite(url);
+        HttpUtil::openWebsite(url, "Pack");
     } else {
         _linksBlocked = Ui::Dlg::MsgBox(
             "PopTracker", "Stop asking to open links this session?", 

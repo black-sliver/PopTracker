@@ -4,6 +4,6 @@
 
 namespace HttpUtil {
 
-void openWebsite(const std::string& url);
+void openWebsite(const std::string& url, const std::string& caller);
 
 }

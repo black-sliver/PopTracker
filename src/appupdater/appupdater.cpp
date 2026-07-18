@@ -277,7 +277,7 @@ void AppUpdater::updateAvailable(const Update& update)
                 update.browserUrl);
             return;
         }
-        HttpUtil::openWebsite(update.browserUrl);
+        HttpUtil::openWebsite(update.browserUrl, "Update");
     }
     else {
         msg = "Skip version " + update.versionStr + "?";
@@ -376,7 +376,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                             Dlg::Buttons::YesNo,
                             Dlg::Icon::Question) == Dlg::Result::Yes)
                         {
-                            HttpUtil::openWebsite(browserUrl);
+                            HttpUtil::openWebsite(browserUrl, "Update");
                         }
                     }
                 } else {

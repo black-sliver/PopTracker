@@ -11,6 +11,7 @@
 #endif
 #include <windows.h>
 #include <shellapi.h>
+#include <inttypes.h>
 #else
 #include <unistd.h>
 #endif
@@ -19,14 +20,18 @@ using namespace Ui;
 
 namespace HttpUtil {
 
-void openWebsite(const std::string& url)
+void openWebsite(const std::string& url, const std::string& caller)
 {
 #if defined _WIN32 || defined WIN32
-    ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    auto errorCode = (INT_PTR)ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    auto success = errorCode > 32;
+    if (!success) {
+        fprintf(stderr, "%s: ShellExecuteA failed (%" PRIiPTR ")\n", caller.c_str(), errorCode);
+    }
 #else
     const auto pid = fork();
     if (pid == -1) {
-        fprintf(stderr, "Update: fork failed\n");
+        fprintf(stderr, "%s: fork failed\n", caller.c_str());
     }
     else if (pid == 0) {
 #if defined __APPLE__ || defined MACOS
@@ -39,7 +44,7 @@ void openWebsite(const std::string& url)
         msg += exe;
         msg += ": ";
         msg += strerror(errno);
-        fprintf(stderr, "Update: %s\n", msg.c_str());
+        fprintf(stderr, "%s: %s\n", caller.c_str(), msg.c_str());
         Dlg::MsgBox("PopTracker", msg,
                     Dlg::Buttons::OK, Dlg::Icon::Error);
         exit(0);
