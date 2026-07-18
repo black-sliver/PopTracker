@@ -141,6 +141,7 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
         return true;
     } else if (strcmp(key,"CanProvideCodeFunc")==0) {
         _canProvideCodeFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
+        onCodesChanged.emit(this);
         return true;
     } else if (strcmp(key,"ProvidesCodeFunc")==0) {
         _providesCodeFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
@@ -177,7 +178,6 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
 
 bool LuaItem::canProvideCode(const std::string& code) const
 {
-    // TODO: cache result for performance reasons
     if (!_canProvideCodeFunc.valid())
         return false;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _canProvideCodeFunc.ref);

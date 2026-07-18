@@ -100,6 +100,18 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
             clicks = clicks + 1
             self.Icon = "icon" .. clicks  -- trigger onChange
         end
+        function makeLateItem()
+            lateItem = ScriptHost:CreateLuaItem()
+            lateItem.Name = "late"
+        end
+        function giveLateItemCodes()
+            function lateItem:CanProvideCodeFunc(code)
+                return code == "Late"
+            end
+            function lateItem:ProvidesCodeFunc(code)
+                return (code == "Late") and 1 or 0
+            end
+        end
         function makeSecondItem()
             local other = ScriptHost:CreateLuaItem()
             other.Name = "other"
@@ -141,6 +153,14 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
     EXPECT_TRUE(item.changeState(BaseItem::Action::Primary));
     EXPECT_EQ(tracker.ProviderCountForCode("Other"), 1);
     EXPECT_GT(calls(), afterFirst);
+
+    // an item that declares its codes after creation must invalidate too
+    lua_getglobal(L, "makeLateItem");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Late"), 0);
+    lua_getglobal(L, "giveLateItemCodes");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Late"), 1);
 
     lua_close(L);
 }

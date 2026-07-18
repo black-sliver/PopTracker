@@ -1160,6 +1160,10 @@ LuaItem * Tracker::CreateLuaItem()
             i.setSource(ar.source, ar.currentline);
         }
     }
+    i.onCodesChanged += {this, [this](void*) {
+        _luaProviderCache.clear();
+        _providerCountCache.clear();
+    }};
     i.onChange += {this, [this](void* sender) {
         const auto* i = static_cast<LuaItem*>(sender);
         if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
