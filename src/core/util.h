@@ -35,7 +35,11 @@ static std::string sanitize_print(const fs::path& path)
 static std::string sanitize_shell(std::string s)
 {
     std::string res = s;
-    for (auto& c : res) if (c < 0x20 || c == '"') c = '?';
+    for (auto& c : res) {
+        if (c < 0x20 || c == '"')
+            c = '?';
+
+    }
     return res;
 }
 
