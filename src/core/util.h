@@ -32,6 +32,13 @@ static std::string sanitize_print(const fs::path& path)
     return sanitize_print(path.u8string());
 }
 
+static std::string sanitize_shell(std::string s)
+{
+    std::string res = s;
+    for (auto& c : res) if (c < 0x20 || c == '"') c = '?';
+    return res;
+}
+
 /// Replaces reserved/non-portable symbols by '_'.
 static std::string sanitize_filename(std::string s) {
     const auto exclude = "<>:\"/\\|?*$'`";

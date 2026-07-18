@@ -660,8 +660,8 @@ void Tracker::UiHint(const std::string& name, const std::string& value)
 
 void Tracker::OpenLink(const std::string& url, const std::string& description)
 {
-    if (_linksBlocked) { return; }
-    using namespace Ui;
+    if (_linksBlocked) 
+        return;
 
     std::string proto, host, port, path;
     if (!HTTP::parse_uri(url, proto, host, port, path)) {
@@ -674,23 +674,24 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
         return;
     }
 
-    auto desc = sanitize_print(description);
+    auto desc = sanitize_shell(description);
     std::string msg = "The pack is trying to open a link to:\n\n" + sanitize_print(url) + "\n\n";
-    if (!desc.empty()) msg += desc + "\n\n";
+    if (!desc.empty())
+        msg += desc + "\n\n";
     msg += "Would you like to open it?";
 
-    auto res = Dlg::MsgBox(
+    auto res = Ui::Dlg::MsgBox(
         "PopTracker", msg, 
-        Dlg::Buttons::YesNo, Dlg::Icon::Question
+        Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
     );
 
-    if (res == Dlg::Result::Yes) {
+    if (res == Ui::Dlg::Result::Yes) {
         HttpUtil::openWebsite(url);
     } else {
-        _linksBlocked = Dlg::MsgBox(
+        _linksBlocked = Ui::Dlg::MsgBox(
             "PopTracker", "Stop asking to open links this session?", 
-            Dlg::Buttons::YesNo, Dlg::Icon::Question
-        ) == Dlg::Result::Yes;
+            Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
+        ) == Ui::Dlg::Result::Yes;
     }
 }
 
