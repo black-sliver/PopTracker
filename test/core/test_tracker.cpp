@@ -40,4 +40,6 @@ TEST(OpenLink, InvalidLinks)
     EXPECT_EQ(tracker.OpenLink("https://www.youtube.com/" + longString), false);
     EXPECT_EQ(tracker.OpenLink("https://www.y\"outube.com/"), false);
     EXPECT_EQ(tracker.OpenLink("https://www.y^outube.com/"), false);
+
+    lua_close(L);
 }
