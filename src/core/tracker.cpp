@@ -658,20 +658,20 @@ void Tracker::UiHint(const std::string& name, const std::string& value)
     onUiHint.emit(this, name, value);
 }
 
-void Tracker::OpenLink(const std::string& url, const std::string& description)
+bool Tracker::OpenLink(const std::string& url, const std::string& description)
 {
     if (_linksBlocked) 
-        return;
+        return false;
 
     std::string proto, host, port, path;
     if (url.length() > 2048 || !HTTP::parse_uri(url, proto, host, port, path)) {
         printf("WARNING: Attempted to open invalid link: \"%.2048s\".\n", sanitize_print(url).c_str());
-        return;
+        return false;
     }
 
     if (proto != "https") {
         printf("WARNING: Attempted to open unsecured link: \"%s\".\n", sanitize_print(url).c_str());
-        return;
+        return false;
     }
 
     auto desc = sanitize_shell(description);
@@ -693,6 +693,8 @@ void Tracker::OpenLink(const std::string& url, const std::string& description)
             Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
         ) == Ui::Dlg::Result::Yes;
     }
+
+    return true;
 }
 
 template <typename T>

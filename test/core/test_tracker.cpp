@@ -28,3 +28,16 @@ TEST(Tracker, GetLocationSection) {
     EXPECT_EQ(&fullSection1, &partialSection3);
     lua_close(L);
 }
+
+TEST(OpenLink, InvalidLinks)
+{
+    lua_State* L = luaL_newstate();
+    Pack pack("examples/rules_test");
+    pack.setVariant("var_at");
+    Tracker tracker(&pack, L);
+
+    std::string longString(2048, 'a');
+    EXPECT_EQ(tracker.OpenLink("https://www.youtube.com/" + longString), false);
+    EXPECT_EQ(tracker.OpenLink("https://www.y\"outube.com/"), false);
+    EXPECT_EQ(tracker.OpenLink("https://www.y^outube.com/"), false);
+}

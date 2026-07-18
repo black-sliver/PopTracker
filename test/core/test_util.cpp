@@ -2,6 +2,13 @@
 #include "../../src/core/util.h"
 
 
+
+TEST(SanitizeShellTest, InvalidSymbol) {
+    EXPECT_EQ(sanitize_shell({ "a\x00z", 3 }), "a?z");
+    EXPECT_EQ(sanitize_shell("\"z"), "?z");
+    EXPECT_EQ(sanitize_shell("\tz"), "?z");
+}
+
 TEST(SanitizeFilenameTest, InvalidSymbol) {
     EXPECT_EQ(sanitize_filename({"a\x00z", 3}), "a_z");
     EXPECT_EQ(sanitize_filename("ä"), "ä");
