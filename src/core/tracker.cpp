@@ -333,8 +333,16 @@ bool Tracker::AddItems(const std::string& file) {
         }
         // connect item onChange to badged (if badged was defined first)
         if (item.getType() == BaseItem::Type::TOGGLE_BADGED) {
-            fprintf(stderr, "WARNING: ignored %s as base_item of badged\n",
-                BaseItem::Type2Str(item.getType()).c_str());
+            if (!_missingBaseItemConnection.empty()) {
+                for (const auto& code: item.getCodes(0)) {
+                    if (_missingBaseItemConnection.find(JsonItem::toLower(code))
+                            != _missingBaseItemConnection.end()) {
+                        fprintf(stderr, "WARNING: ignored %s as base_item of badged\n",
+                            BaseItem::Type2Str(item.getType()).c_str());
+                        break;
+                    }
+                }
+            }
         } else {
             for (const auto& code: item.getCodes(0)) {
                 auto it = _missingBaseItemConnection.find(JsonItem::toLower(code));
