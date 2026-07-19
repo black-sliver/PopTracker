@@ -1212,7 +1212,7 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
     
     printf("Creating Lua State...\n");
     _L = luaL_newstate();
-    if (!_L) {
+    if (!_L || !lua_checkstack(_L, 3)) {
         fprintf(stderr, "Error creating Lua State!\n");
         delete _pack;
         _pack = nullptr;
