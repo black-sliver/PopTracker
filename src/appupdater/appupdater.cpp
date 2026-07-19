@@ -5,6 +5,7 @@
 #include "../core/jsonutil.h"
 #include "../gh/api/releases.hpp"
 #include "../http/http.h"
+#include "../http/httputil.hpp"
 #include "../uilib/dlg.h"
 
 #ifdef _WIN32
@@ -59,33 +60,6 @@ static std::string GetWindowsErrorString(const DWORD errorCode)
     }
 }
 #endif
-
-static void openWebsite(const std::string& url)
-{
-#if defined _WIN32 || defined WIN32
-    ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-#else
-    const auto pid = fork();
-    if (pid == -1) {
-        fprintf(stderr, "Update: fork failed\n");
-    } else if (pid == 0) {
-#if defined __APPLE__ || defined MACOS
-        const char* exe = "open";
-#else
-        const auto exe = "xdg-open";
-#endif
-        execlp(exe, exe, url.c_str(), nullptr);
-        std::string msg = "Could not launch browser!\n";
-        msg += exe;
-        msg += ": ";
-        msg += strerror(errno);
-        fprintf(stderr, "Update: %s\n", msg.c_str());
-        Dlg::MsgBox("PopTracker", msg,
-                Dlg::Buttons::OK, Dlg::Icon::Error);
-        exit(0);
-    }
-#endif
-}
 
 void AppUpdater::checkForUpdate()
 {
@@ -303,7 +277,7 @@ void AppUpdater::updateAvailable(const Update& update)
                 update.browserUrl);
             return;
         }
-        openWebsite(update.browserUrl);
+        HttpUtil::openWebsite(update.browserUrl, "Update");
     }
     else {
         msg = "Skip version " + update.versionStr + "?";
@@ -402,7 +376,7 @@ void AppUpdater::installUpdate(const std::string& url, const fs::path& updater, 
                             Dlg::Buttons::YesNo,
                             Dlg::Icon::Question) == Dlg::Result::Yes)
                         {
-                            openWebsite(browserUrl);
+                            HttpUtil::openWebsite(browserUrl, "Update");
                         }
                     }
                 } else {

@@ -5,7 +5,9 @@
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"
 #include "util.h"
-
+#include "../uilib/dlg.h"
+#include "../http/http.h"
+#include "../http/httputil.hpp"
 
 using nlohmann::json;
 
@@ -19,6 +21,7 @@ const LuaInterface<Tracker>::MethodMap Tracker::Lua_Methods = {
     LUA_METHOD(Tracker, ProviderCountForCode, const char*),
     LUA_METHOD(Tracker, FindObjectForCode, const char*),
     LUA_METHOD(Tracker, UiHint, const char*, const char*),
+    LUA_METHOD(Tracker, OpenLink, const char*, const char*),
 };
 
 int Tracker::_execLimit = Tracker::DEFAULT_EXEC_LIMIT;
@@ -653,6 +656,45 @@ Tracker::Object Tracker::FindObjectForCode(const char* code)
 void Tracker::UiHint(const std::string& name, const std::string& value)
 {
     onUiHint.emit(this, name, value);
+}
+
+bool Tracker::OpenLink(const std::string& url, const std::string& description)
+{
+    if (_linksBlocked) 
+        return false;
+
+    std::string proto, host, port, path;
+    if (url.length() > 2048 || !HTTP::parse_uri(url, proto, host, port, path)) {
+        printf("WARNING: Attempted to open invalid link: \"%.2048s\".\n", sanitize_print(url).c_str());
+        return false;
+    }
+
+    if (proto != "https") {
+        printf("WARNING: Attempted to open unsecured link: \"%s\".\n", sanitize_print(url).c_str());
+        return false;
+    }
+
+    auto desc = sanitize_shell(description);
+    std::string msg = "The pack is trying to open a link to:\n\n" + sanitize_print(url) + "\n\n";
+    if (!desc.empty())
+        msg += desc + "\n\n";
+    msg += "Would you like to open it?";
+
+    auto res = Ui::Dlg::MsgBox(
+        "PopTracker", msg, 
+        Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
+    );
+
+    if (res == Ui::Dlg::Result::Yes) {
+        HttpUtil::openWebsite(url, "Pack");
+    } else {
+        _linksBlocked = Ui::Dlg::MsgBox(
+            "PopTracker", "Stop asking to open links this session?", 
+            Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
+        ) == Ui::Dlg::Result::Yes;
+    }
+
+    return true;
 }
 
 template <typename T>
