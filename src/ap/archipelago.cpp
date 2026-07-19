@@ -43,6 +43,8 @@ bool Archipelago::AddClearHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onClear += {this, [this, ref, name](void*, const json& slotData) {
+        if (!lua_checkstack(_L, 3))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         try {
@@ -69,6 +71,8 @@ bool Archipelago::AddItemHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onItem += {this, [this, ref, name](void*, int index, int64_t item, const std::string& item_name, int player) {
+        if (!lua_checkstack(_L, 6))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(index);
@@ -91,6 +95,8 @@ bool Archipelago::AddLocationHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onLocationChecked += {this, [this, ref, name](void*, int64_t location, const std::string& location_name) {
+        if (!lua_checkstack(_L, 4))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
@@ -112,6 +118,8 @@ bool Archipelago::AddScoutHandler(const std::string& name, LuaRef callback)
     int ref = callback.ref;
     _ap->onScout += {this, [this, ref, name](void*, int64_t location, const std::string& location_name,
             int64_t item, const std::string& item_name, int player) {
+        if (!lua_checkstack(_L, 7))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(location);
@@ -135,6 +143,8 @@ bool Archipelago::AddBouncedHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onBounced += {this, [this, ref, name](void*, const json& data) {
+        if (!lua_checkstack(_L, 3))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         try {
@@ -161,6 +171,8 @@ bool Archipelago::AddRetrievedHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onRetrieved += {this, [this, ref, name](void*, const std::string& key, const json& value) {
+        if (!lua_checkstack(_L, 4))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());
@@ -187,6 +199,8 @@ bool Archipelago::AddSetReplyHandler(const std::string& name, LuaRef callback)
     if (!_ap || !callback.valid()) return false;
     int ref = callback.ref;
     _ap->onSetReply += {this, [this, ref, name](void*, const std::string& key, const json& value, const json& old) {
+        if (!lua_checkstack(_L, 4))
+            return;
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());

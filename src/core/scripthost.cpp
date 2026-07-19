@@ -604,7 +604,7 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
 {
     printf("Starting Thread...\n");
     _L = luaL_newstate();
-    if (!_L) {
+    if (!_L || !lua_checkstack(_L, 3)) {
         fprintf(stderr, "Error creating Lua State!\n");
         _state = State::Error;
         throw std::runtime_error("Error creating ThreadContext Lua State");

@@ -327,7 +327,10 @@ json LuaItem::save() const
 {
     json j;
     
-    if (!_saveFunc.valid()) return j;
+    if (!_saveFunc.valid())
+        return j;
+    if (!lua_checkstack(_L, 2))
+        return j;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _saveFunc.ref);
     Lua_Push(_L); // arg1: this
     if (lua_pcall(_L, 1, 1, 0)) {
@@ -340,7 +343,7 @@ json LuaItem::save() const
     } catch (const std::exception& e) {
         fprintf(stderr, "Error converting save data to json for \"%s\": %s\n", sanitize_print(_name).c_str(), e.what());
     }
-    lua_pop(_L,1);
+    lua_pop(_L, 1);
     return j;
 }
 
@@ -348,7 +351,8 @@ bool LuaItem::load(json& j)
 {
     if (j.type() == json::value_t::null) return true;
     if (!_loadFunc.valid()) return false;
-    
+    if (!lua_checkstack(_L, 3))
+        return false;
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _loadFunc.ref);
     Lua_Push(_L); // arg1: this
     try {
