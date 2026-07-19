@@ -331,11 +331,15 @@ json LuaItem::save() const
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _saveFunc.ref);
     Lua_Push(_L); // arg1: this
     if (lua_pcall(_L, 1, 1, 0)) {
-        printf("Error calling Item:save: %s\n", lua_tostring(_L, -1));
+        fprintf(stderr, "Error calling Item:save for \"%s\": %s\n", sanitize_print(_name).c_str(), lua_tostring(_L, -1));
         lua_pop(_L, 1);
         return j;
     }
-    j = lua_to_json(_L);
+    try {
+        j = lua_to_json(_L, -1, 100);
+    } catch (const std::exception& e) {
+        fprintf(stderr, "Error converting save data to json for \"%s\": %s\n", sanitize_print(_name).c_str(), e.what());
+    }
     lua_pop(_L,1);
     return j;
 }
@@ -347,7 +351,14 @@ bool LuaItem::load(json& j)
     
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _loadFunc.ref);
     Lua_Push(_L); // arg1: this
-    json_to_lua(_L, j); // arg2: data table
+    try {
+        json_to_lua(_L, j, 101); // arg2: data table
+    } catch (const std::exception& e) {
+        printf("Error loading data for \"%s\": %s\n",
+                sanitize_print(_name).c_str(), e.what());
+        lua_pop(_L, 2);
+        return false;
+    }
     if (lua_pcall(_L, 2, 0, 0)) {
         printf("Error calling Item:load for \"%s\": %s\n",
                 sanitize_print(_name).c_str(), lua_tostring(_L, -1));

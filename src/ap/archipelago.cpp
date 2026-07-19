@@ -45,7 +45,13 @@ bool Archipelago::AddClearHandler(const std::string& name, LuaRef callback)
     _ap->onClear += {this, [this, ref, name](void*, const json& slotData) {
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        json_to_lua(_L, slotData);
+        try {
+            json_to_lua(_L, slotData);
+        } catch (const std::exception& e) {
+            printf("Error converting slot data: %s\n", e.what());
+            lua_pop(_L, 2);
+            return;
+        }
         if (lua_pcall(_L, 1, 0, -3)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago ClearHandler for %s: %s\n",
@@ -131,7 +137,13 @@ bool Archipelago::AddBouncedHandler(const std::string& name, LuaRef callback)
     _ap->onBounced += {this, [this, ref, name](void*, const json& data) {
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
-        json_to_lua(_L, data);
+        try {
+            json_to_lua(_L, data);
+        } catch (const std::exception& e) {
+            printf("Error converting bounced data: %s\n", e.what());
+            lua_pop(_L, 2);
+            return;
+        }
         if (lua_pcall(_L, 1, 0, -3)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago BouncedHandler for %s: %s\n",
@@ -152,7 +164,13 @@ bool Archipelago::AddRetrievedHandler(const std::string& name, LuaRef callback)
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());
-        json_to_lua(_L, value);
+        try {
+            json_to_lua(_L, value);
+        } catch (const std::exception& e) {
+            printf("Error converting retrieved data: %s\n", e.what());
+            lua_pop(_L, 3);
+            return;
+        }
         if (lua_pcall(_L, 2, 0, -4)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago RetrievedHandler for %s: %s\n",
@@ -172,8 +190,20 @@ bool Archipelago::AddSetReplyHandler(const std::string& name, LuaRef callback)
         lua_pushcfunction(_L, Tracker::luaErrorHandler);
         lua_rawgeti(_L, LUA_REGISTRYINDEX, ref);
         Lua(_L).Push(key.c_str());
-        json_to_lua(_L, value);
-        json_to_lua(_L, old);
+        try {
+            json_to_lua(_L, value);
+        } catch (const std::exception& e) {
+            printf("Error converting set reply value data: %s\n", e.what());
+            lua_pop(_L, 3);
+            return;
+        }
+        try {
+            json_to_lua(_L, old);
+        } catch (const std::exception& e) {
+            printf("Error converting set reply old data: %s\n", e.what());
+            lua_pop(_L, 4);
+            return;
+        }
         if (lua_pcall(_L, 3, 0, -5)) {
             const char* err = lua_tostring(_L, -1);
             printf("Error calling Archipelago SetReplyHandler for %s: %s\n",

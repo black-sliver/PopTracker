@@ -1371,10 +1371,16 @@ bool PopTracker::loadTracker(const fs::path& pack, const std::string& variant, b
 
     printf("Hooking Lua globals...\n");
     global_wrap(_L, this);
-    if (_debugFlags.empty())
+    if (_debugFlags.empty()) {
         lua_pushnil(_L);
-    else
-        json_to_lua(_L, _debugFlags);
+    } else {
+        try {
+            json_to_lua(_L, _debugFlags);
+        } catch (const std::exception& e) {
+            printf("Error converting DEBUG flags: %s\n", e.what());
+            lua_pushnil(_L);
+        }
+    }
     lua_setglobal(_L, "DEBUG");
 
     if (loadAutosave) {
