@@ -660,7 +660,12 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
     lua_pushlightuserdata(_L, (void*)pack);
     lua_settable(_L, LUA_REGISTRYINDEX);
     // arg
-    json_to_lua(_L, arg);
+    try {
+        json_to_lua(_L, arg);
+    } catch (const std::exception& e) {
+        printf("Error converting arg: %s\n", e.what());
+        lua_pushnil(_L);
+    }
     lua_setglobal(_L, "arg");
 
     _thread = std::thread(
@@ -705,7 +710,11 @@ ScriptHost::ThreadContext::ThreadContext(const std::string& name, const std::str
                 lua_pushstring(_L, modname.c_str());
                 if (lua_pcall(_L, 1, 1, 0) == LUA_OK) {
                     // if it was executed successfully, pop everything from stack
-                    _result = lua_to_json(_L);
+                    try {
+                        _result = lua_to_json(_L, -1);
+                    } catch (const std::exception& e) {
+                        printf("Error converting result to json: %s\n", e.what());
+                    }
                     lua_pop(_L, lua_gettop(_L)); // TODO: lua_settop(L, 0); ?
                     _state = State::Done;
                 } else {
