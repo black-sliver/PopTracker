@@ -95,7 +95,8 @@ function Tracker:FindObjectForCode(code) end
 ---@return nil
 function Tracker:UiHint(name, value) end
 
----Prompts user to open web page using default browser
+---Prompts user to open web page using default browser.
+---Only available in PopTracker, since 0.35.4.
 ---@param url string URL to pass to default web browser for opening, max length 2048 characters
 ---@param description string Description of web page that will be opened for user to make informed decision on accepting open request, empty string for no description
 ---@return boolean true on URL validation pass
