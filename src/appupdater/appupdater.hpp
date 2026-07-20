@@ -2,7 +2,7 @@
 
 #include <asio.hpp>
 #include <list>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <nlohmann/json.hpp>
 #include "../core/fs.h"
 #include "../core/signal.h"
