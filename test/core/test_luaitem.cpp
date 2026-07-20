@@ -100,6 +100,39 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
             clicks = clicks + 1
             self.Icon = "icon" .. clicks  -- trigger onChange
         end
+        function makeTrampolineItem()
+            local function invokeCanProvideCode(item, code)
+                return item.ItemState:canProvideCode(code)
+            end
+            local function invokeProvidesCode(item, code)
+                return item.ItemState:providesCode(code)
+            end
+            trampoline = ScriptHost:CreateLuaItem()
+            trampoline.ItemState = {
+                canProvideCode = function(self, code) return code == "First" end,
+                providesCode = function(self, code) return (code == "First") and 1 or 0 end,
+            }
+            trampoline.CanProvideCodeFunc = invokeCanProvideCode
+            trampoline.ProvidesCodeFunc = invokeProvidesCode
+        end
+        function swapTrampolineState()
+            trampoline.ItemState = {
+                canProvideCode = function(self, code) return code == "Second" end,
+                providesCode = function(self, code) return (code == "Second") and 1 or 0 end,
+            }
+        end
+        function makeLateItem()
+            lateItem = ScriptHost:CreateLuaItem()
+            lateItem.Name = "late"
+        end
+        function giveLateItemCodes()
+            function lateItem:CanProvideCodeFunc(code)
+                return code == "Late"
+            end
+            function lateItem:ProvidesCodeFunc(code)
+                return (code == "Late") and 1 or 0
+            end
+        end
         function makeSecondItem()
             local other = ScriptHost:CreateLuaItem()
             other.Name = "other"
@@ -128,22 +161,37 @@ TEST(LuaItemProvidesTest, CanProvideCodeIsCached) {
     const int afterFirst = calls();
     EXPECT_GT(afterFirst, 0);
 
-    // resolving the same code through another call site reuses the scan
-    EXPECT_EQ(tracker.getItemByCode("Code").getName(), "test");
-    EXPECT_EQ(calls(), afterFirst);
-
-    // a state change invalidates, so the answers stay correct
+    // a state change drops _providerCountCache, but must not make us ask Lua again
     auto& item = tracker.getItemById(tracker.getItemByCode("Code").getID());
     EXPECT_TRUE(item.changeState(BaseItem::Action::Primary));
     EXPECT_EQ(tracker.ProviderCountForCode("Code"), 1);
     EXPECT_EQ(tracker.ProviderCountForCode("Other"), 0);
-    EXPECT_GT(calls(), afterFirst);
+    EXPECT_EQ(calls(), afterFirst);
 
     // adding an item has to invalidate the cache
     lua_getglobal(L, "makeSecondItem");
     ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
     EXPECT_TRUE(item.changeState(BaseItem::Action::Primary));
     EXPECT_EQ(tracker.ProviderCountForCode("Other"), 1);
+    EXPECT_GT(calls(), afterFirst);
+
+    // an item that declares its codes after creation must invalidate too
+    lua_getglobal(L, "makeLateItem");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Late"), 0);
+    lua_getglobal(L, "giveLateItemCodes");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Late"), 1);
+
+    // what answers canProvideCode may live in ItemState rather than in CanProvideCodeFunc
+    lua_getglobal(L, "makeTrampolineItem");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("First"), 1);
+    EXPECT_EQ(tracker.ProviderCountForCode("Second"), 0);
+    lua_getglobal(L, "swapTrampolineState");
+    ASSERT_EQ(lua_pcall(L, 0, 0, 0), LUA_OK) << lua_tostring(L, -1);
+    EXPECT_EQ(tracker.ProviderCountForCode("First"), 0);
+    EXPECT_EQ(tracker.ProviderCountForCode("Second"), 1);
 
     lua_close(L);
 }

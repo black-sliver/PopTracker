@@ -201,7 +201,6 @@ bool Tracker::AddItems(const std::string& file) {
             const auto* i = static_cast<JsonItem*>(sender);
             if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
                 _providerCountCache.clear();
-                _luaProviderCache.clear();
                 _accessibilityStale = true;
                 _visibilityStale = true;
                 if (_updatingCache)
@@ -396,7 +395,6 @@ bool Tracker::AddLocations(const std::string& file) {
                     sec.onChange += {this,[this,&sec](void*) {
                         // TODO: only touch caches and stale if sec's AvailableChestCount is involved in logic
                         _providerCountCache.clear();
-                        _luaProviderCache.clear();
                         _accessibilityStale = true;
                         _visibilityStale = true;
                         if (_bulkUpdate)
@@ -446,7 +444,6 @@ bool Tracker::AddLocations(const std::string& file) {
             sec.onChange += {this,[this,&sec](void*) {
                 // TODO: only touch caches and stale if sec's AvailableChestCount is involved in logic
                 _providerCountCache.clear();
-                _luaProviderCache.clear();
                 _accessibilityStale = true;
                 _visibilityStale = true;
                 if (_bulkUpdate)
@@ -555,8 +552,8 @@ bool Tracker::AddClasses(const std::string& file) {
 const std::vector<const LuaItem*>& Tracker::luaProvidersForCode(const std::string& code) const
 {
     // LuaItem::canProvideCode is a lua_pcall per item, so scanning all lua items for every code
-    // is expensive for packs with many of them. Cached with the same lifetime as
-    // _providerCountCache, which does not cache codes in _indirectlyConnectedLuaCodes.
+    // is expensive for packs with many of them. canProvideCode is defined as "can this item EVER
+    // provide this code", so the result is cached until the set of items or locations changes.
     auto it = _luaProviderCache.find(code);
     if (it != _luaProviderCache.end())
         return it->second;
@@ -1163,11 +1160,15 @@ LuaItem * Tracker::CreateLuaItem()
             i.setSource(ar.source, ar.currentline);
         }
     }
+    i.onCanProvideCodeChanged += {this, [this](void*) {
+        _luaProviderCache.clear();
+        _providerCountCache.clear();
+        _objectCache.clear();
+    }};
     i.onChange += {this, [this](void* sender) {
         const auto* i = static_cast<LuaItem*>(sender);
         if (!_updatingCache || !_itemChangesDuringCacheUpdate.count(i->getID())) {
             _providerCountCache.clear();
-            _luaProviderCache.clear();
             _accessibilityStale = true;
             _visibilityStale = true;
             if (_updatingCache)
@@ -1346,7 +1347,6 @@ json Tracker::saveState() const
 bool Tracker::loadState(nlohmann::json& state)
 {
     _providerCountCache.clear();
-    _luaProviderCache.clear();
     _bulkItemUpdates.clear();
     _bulkItemDisplayUpdates.clear();
     _accessibilityStale = true;

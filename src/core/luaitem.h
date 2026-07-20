@@ -20,6 +20,10 @@ public:
     void Set(const char* key, const LuaVariant& value);
     LuaVariant Get(const char* key);
 
+    /// fired when CanProvideCodeFunc or ItemState is assigned.
+    /// NOTE: mutating ItemState in place does not fire this.
+    Signal<> onCanProvideCodeChanged;
+
     bool canProvideCode(const std::string& code) const override;
     int providesCode(const std::string& code) const override;
     bool changeState(Action action) override;
