@@ -102,7 +102,6 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key,"ItemState")==0) {
         if (_itemState.valid()) luaL_unref(L, LUA_REGISTRYINDEX, _itemState.ref);
         _itemState.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
-        onCodesChanged.emit(this);
         return true;
     } else if (strcmp(key,"Icon")==0) {
         // NOTE: this is a fake ImageReference, not just a path, so this can include ":mods" to preapply mods
@@ -142,7 +141,6 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
         return true;
     } else if (strcmp(key,"CanProvideCodeFunc")==0) {
         _canProvideCodeFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
-        onCodesChanged.emit(this);
         return true;
     } else if (strcmp(key,"ProvidesCodeFunc")==0) {
         _providesCodeFunc.ref = luaL_ref(L, LUA_REGISTRYINDEX); // pop copy and store
