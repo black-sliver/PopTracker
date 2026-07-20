@@ -85,6 +85,8 @@ protected:
 
 private:
     void connectSignals();
+    /// Calculate srcRect and dstRect from size, autoSize, zoom and pan.
+    /// Calling while .width or .height of size or autoSize is <1 is undefined.
     void calculateSrcAndDst(int offX, int offY, bool clip, float& baseScale, SDL_Rect& srcRect,
         SDL_FRect& dstRect) const;
     static void calculateLocationScreenRect(const Point& pos, const SDL_Rect& srcRect, const SDL_FRect& dstRect,
