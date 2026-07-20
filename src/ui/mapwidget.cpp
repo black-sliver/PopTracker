@@ -115,7 +115,7 @@ void MapWidget::connectSignals()
         _lastMouseX = x + _pos.left; // relative to parent to match dstRect
         _lastMouseY = y + _pos.top;
 
-        if (_size.width < 1 || _size.height < 1)
+        if (_size.width < 1 || _size.height < 1 || _autoSize.width < 1 || _autoSize.height < 1)
             return;
 
         // Calculate image screen position (same as in render)
@@ -214,7 +214,7 @@ void MapWidget::connectSignals()
         // scrollY > 0 = scroll up = zoom in
         // scrollY < 0 = scroll down = zoom out
 
-        if (_size.width < 1 || _size.height < 1)
+        if (_size.width < 1 || _size.height < 1 || _autoSize.width < 1 || _autoSize.height < 1)
             return;
 
         const float zoomFactor = (scrollY > 0) ? ZOOM_IN_FACTOR : ZOOM_OUT_FACTOR;
@@ -289,7 +289,7 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
     _absX = offX + _pos.left; // add this to relative mouse coordinates to get absolute
     _absY = offY + _pos.top; // FIXME: we should provide absolute AND relative mouse position through the Event stack
 
-    if (_size.width < 1 || _size.height < 1)
+    if (_size.width < 1 || _size.height < 1 || _autoSize.width < 1 || _autoSize.height < 1)
         return;
 
     // Widget bounds (where we're allowed to draw the map)
@@ -401,6 +401,7 @@ void MapWidget::calculateSrcAndDst(const int offX, const int offY, const bool cl
     const auto imgH = static_cast<float>(_autoSize.height);
     const auto viewportW = static_cast<float>(_size.width);
     const auto viewportH = static_cast<float>(_size.height);
+    assert(imgW > 0 && imgH > 0 && viewportW > 0 && viewportH > 0);
     // the image coordinates that should be in the center of the widget
     const float centerX = imgW / 2 - _panX;
     const float centerY = imgH / 2 - _panY;
