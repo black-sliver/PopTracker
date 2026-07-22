@@ -65,3 +65,54 @@ TEST(LuaItemProvidesTest, Simple) {
 
     lua_close(L);
 }
+
+TEST(LuaItemProvidesTest, PotentialCodes) {
+    Pack pack("examples/async"); // doesn't matter which one
+    lua_State* L = luaL_newstate();
+    luaL_requiref(L, LUA_GNAME, luaopen_base, 1); // for error()
+    lua_pop(L, 1);
+    ASSERT_TRUE(L);
+
+    Tracker tracker(&pack, L);
+    Tracker::Lua_Register(L);
+    tracker.Lua_Push(L);
+    lua_setglobal(L, "Tracker");
+    lua_pushstring(L, "Pack");
+    lua_pushlightuserdata(L, &pack);
+    lua_settable(L, LUA_REGISTRYINDEX);
+    ScriptHost scriptHost(&pack, L, &tracker);
+    ScriptHost::Lua_Register(L);
+    scriptHost.Lua_Push(L);
+    lua_setglobal(L, "ScriptHost");
+    LuaItem::Lua_Register(L);
+
+    const char* script = R"(
+        local item = ScriptHost:CreateLuaItem()
+        item.Name = "test"
+        item.PotentialCodes = {"Something", "Code"}
+        function item:CanProvideCodeFunc(code)
+            return code == "Not" -- we should never run this function
+        end
+        if type(item.PotentialCodes) ~= "table" then
+            error("Error setting or getting PotentialCodes: wrong type")
+        end
+        if item.PotentialCodes[1] ~= "Something"
+                or item.PotentialCodes[2] ~= "Code"
+                or item.PotentialCodes[3] ~= nil then
+            error("Error setting or getting PotentialCodes: values don't match")
+        end
+    )";
+    const char* modName = "script";
+    ASSERT_EQ(luaL_loadbufferx(L, script, strlen(script), modName, "t"), LUA_OK);
+    lua_pushstring(L, modName);
+    ASSERT_EQ(lua_pcall(L, 1, 1, 0), LUA_OK) << lua_tostring(L, -1);
+
+    auto& item = tracker.getItemById(tracker.getItemByCode("Code").getID());
+
+    EXPECT_TRUE(item.canProvideCode("Something"));
+    EXPECT_TRUE(item.canProvideCode("Code"));
+    EXPECT_FALSE(item.canProvideCode("Not"));
+    EXPECT_EQ(item.providesCode("Code"), 0);
+
+    lua_close(L);
+}

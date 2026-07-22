@@ -171,7 +171,8 @@ int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
     return callStatus;
 }
 
-bool Tracker::AddItems(const std::string& file) {
+bool Tracker::AddItems(const std::string& file)
+{
     printf("Loading items from \"%s\"...\n", file.c_str());
     std::string s;
     if (!_pack->ReadFile(file, s)) {
@@ -179,8 +180,13 @@ bool Tracker::AddItems(const std::string& file) {
         fprintf(stderr, "WARNING: unable to read file\n");
         return false;
     }
+    return AddItemsFromString(s);
+}
+
+bool Tracker::AddItemsFromString(std::string& s)
+{
     json j = parse_jsonc(s);
-    
+
     if (j.type() != json::value_t::array) {
         fprintf(stderr, "Bad json\n"); // TODO: throw lua error?
         return false;

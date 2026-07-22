@@ -555,6 +555,12 @@ LuaItem.Owner = {}
 ---@type string
 LuaItem.Type = "custom"
 
+---Array (table) of all possible codes the item can provide (since 0.35.4).
+---Implement CanProvideCodeFunc for backwards compatibility. Set to nil to always call CanProvideCodeFunc.
+---Note: LuaItems have to be created before the corresponding layout is loaded.
+---@type string[]?
+LuaItem.PotentialCodes = nil
+
 ---Called to match item to code (to place it in layouts).
 ---Note: LuaItems have to be created before the corresponding layout is loaded.
 ---@type fun(self:LuaItem, code:string):boolean

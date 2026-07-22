@@ -191,11 +191,12 @@ a table representing an enum with the following constants: \
 * `string .IconMods`: icon modifier, see JSON's img_mods. Only available in PopTracker, since 0.11.0
 * `string .Name`: item's name
 * `object .ItemState`: (any) object to track internal state in Lua. Keys have to be strings for Get and Set below to work.
+* `string[]? .PotentialCodes`: array (table) of all possible codes the item can provide, since 0.35.4. See CanProvideCodeFunc for backwards compatibility.
 * `closure(LuaItem) .OnLeftClickFunc`: called when left-clicking
 * `closure(LuaItem) .OnRightClickFunc`: called when right-clicking
 * `closure(LuaItem) .OnMiddleClickFunc`: called when middle-clicking, since 0.25.8
 * **TODO**: Forward, Backward or a generalized onClick(button)
-* `closure(LuaItem,string code) .CanProvideCodeFunc`: called to determine if item has code
+* `closure(LuaItem,string code) .CanProvideCodeFunc`: called to determine if item can have a code, unless `PotentialCodes` is set to a table.
 * `closure(LuaItem,string code) .ProvidesCodeFunc`: called to track progress, closure should return 1 if code is provided (can provide && active)
 * `closure(LuaItem,string code) .AdvanceToCodeFunc`: called to change item's stage to provide code (not in use yet)
 * `closure(LuaItem) .SaveFunc`: called when saving, closure should return a lua object that works in LoadFunc
