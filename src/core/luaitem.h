@@ -1,11 +1,13 @@
 #pragma once
 
-#include <string>
 #include <list>
-#include <nlohmann/json.hpp>
-#include "baseitem.h"
+#include <optional>
+#include <string>
+#include <vector>
 #include <luaglue/luainterface.h>
 #include <luaglue/luavariant.h>
+#include <nlohmann/json.hpp>
+#include "baseitem.h"
 
 
 class LuaItem final : public LuaInterface<LuaItem>, public BaseItem {
@@ -96,7 +98,8 @@ public:
     
 private:
     lua_State *_L = nullptr; // FIXME: fix this
-    
+
+    std::optional<std::vector<std::string>> _potentialCodes; // vector should be faster than set for the common cases
     LuaRef _itemState;
     LuaRef _onLeftClickFunc;
     LuaRef _onRightClickFunc;

@@ -85,7 +85,14 @@ int LuaItem::Lua_Index(lua_State *L, const char* key) {
         lua_pushstring(L, Type2Str(_type).c_str());
         return 1;
     }
-    
+    if (strcmp(key, "PotentialCodes") == 0) {
+        if (!_potentialCodes.has_value())
+            lua_pushnil(L);
+        else
+            json_to_lua(L, _potentialCodes.value());
+        return 1;
+    }
+
     return 0;
 }
 
@@ -170,6 +177,27 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
     } else if (strcmp(key,"MaskInput")==0) {
         return true; // FIXME: not implemented
     }
+    if (strcmp(key, "PotentialCodes") == 0) {
+        if (lua_istable(L, -1)) {
+            _potentialCodes.emplace();
+            const lua_Integer n = luaL_len(L, -1);
+            _potentialCodes->reserve(static_cast<size_t>(n));
+            for (lua_Integer i = 1; i <= n; i++) {
+                if (lua_geti(L, -1, i) == LUA_TNIL)
+                    break; // TODO: readable error?
+                _potentialCodes->emplace_back(lua_tostring(L, -1));
+                lua_pop(L, 1);
+            }
+        } else if (lua_isnil(L, -1)) {
+            _potentialCodes.reset();
+        } else {
+            const std::string msg = std::string("Unsupported type for \"") + key
+                    + "\" of \"" + Lua_Name + "\". Expected table or nil.";
+            luaL_error(L, msg.c_str());
+            return false;
+        }
+        return true;
+    }
 
     return false;
 }
@@ -177,9 +205,11 @@ bool LuaItem::Lua_NewIndex(lua_State *L, const char *key) {
 
 bool LuaItem::canProvideCode(const std::string& code) const
 {
-    // TODO: cache result for performance reasons
+    if (_potentialCodes.has_value())
+        return std::find(_potentialCodes->begin(), _potentialCodes->end(), code) != _potentialCodes->end();
     if (!_canProvideCodeFunc.valid())
         return false;
+    // TODO: cache result for performance reasons?
     lua_rawgeti(_L, LUA_REGISTRYINDEX, _canProvideCodeFunc.ref);
     Lua_Push(_L); // arg1: this
     lua_pushstring(_L, code.c_str()); // arg2: code
