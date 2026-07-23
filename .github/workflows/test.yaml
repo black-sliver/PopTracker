@@ -107,7 +107,7 @@ jobs:
           clangarm64/mingw-w64-clang-aarch64-openssl
           clangarm64/mingw-w64-clang-aarch64-gtest
           p7zip
-    - uses: actions/checkout@v7.0.0
+    - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
     - name: Configure ASAN (macos-latest)
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7.0.0
+    - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
     - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342
