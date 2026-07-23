@@ -1,5 +1,25 @@
 # PopTracker Changelog
 
+## v0.35.4-rc1
+
+* App Features
+  * Add `--ap-host`, `--ap-slot` and `--ap-password` command line args for auto-connect
+* Pack Features
+  * Add "gray" and "grayscale" as alias for "grey" and "greyscale" for filters
+  * Add `Tracker:OpenLink` so packs can open a website
+  * Add `LuaItem.PotentialCodes` as better performing alternative to `LuaItem:CanProvideCodeFunc`
+    * implement both for backwards compatibility + performance gains
+* Fixes
+  * Implement return value for AddClasses, AddMaps, AddLayouts and AddLocations
+    * they were documented to return true on success but always returned false
+  * Fix LuaLS warning for any string in Tracker:UiHint
+  * Fix wrong warning for toggle_badged having an invalid base_item
+  * Avoid invalid calculations for MapWidget with no/invalid image
+  * Better error handling in the Lua API
+* Other Changes
+  * Switch macOS build to Universal2 (Intel + ARM)
+  * Update dependencies and certificates
+
 ## v0.35.3
 
 * Fixes
