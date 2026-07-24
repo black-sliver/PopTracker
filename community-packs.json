@@ -133,5 +133,15 @@
         "versions_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/OmegaZeron/Oracle-of-Seasons-AP-Poptracker-Pack/main/images/items/rod.png",
         "description": "The Legend of Zelda: Oracle of Seasons Archipelago PopTracker pack"
+    },
+    {
+    "satisfactory_ap": {
+        "name": "Satisfactory PopTracker",
+        "author": "Snileaf, builder_script",
+        "platform": "PC",
+        "homepage": "https://github.com/snileaf/Satisfactory-poptracker",
+        "versions_url": "https://raw.githubusercontent.com/snileaf/Satisfactory-poptracker/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/snileaf/Satisfactory-poptracker/versions/satisfactory-S.png",
+        "description":  "The Satisfactory Archipelago PopTracker Pack."
     }
 }
