@@ -145,10 +145,22 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
             auto badgeFilters = imageModsToFilters(_tracker, badgeMods);
             w->addStage(1, m, std::make_unique<PackImageFuture>(pack, f), f, badgeFilters);
             if (n == 0 && m != 0) {
-                f = item->getDisabledImage(0);
+                const auto& disF = item->getDisabledImage(0);
                 const auto& disMods = item->getDisabledImageMods(0);
                 filters = imageModsToFilters(_tracker, disMods);
-                w->addStage(0, 0, std::make_unique<PackImageFuture>(pack, f), f, filters);
+                std::unique_ptr<PackImageFuture> future;
+                if (f == disF) {
+                    future = std::make_unique<PackImageFuture>(pack, f);
+                } else {
+                    future = std::make_unique<PackImageFuture>(pack, disF);
+                    if (future->getSize().width < 1) {
+                        // Invalid disable_img. Fall back to normal img.
+                        future = std::make_unique<PackImageFuture>(pack, f);
+                    } else {
+                        f = disF;
+                    }
+                }
+                w->addStage(0, 0, std::move(future), f, filters);
                 badgeMods = disMods;
                 badgeMods.push_back("overlay|" + origItem.getImage(0));
                 badgeFilters = imageModsToFilters(_tracker, badgeMods);
@@ -158,12 +170,21 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
         else if (disabled) {
             w->addStage(1, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
             const auto& disF = item->getDisabledImage(n);
-            if (f != disF) {
-                f = disF;
+            std::unique_ptr<PackImageFuture> future;
+            if (f == disF) {
+                future = std::make_unique<PackImageFuture>(pack, f);
+            } else {
+                future = std::make_unique<PackImageFuture>(pack, disF);
+                if (future->getSize().width < 1) {
+                    // Invalid disable_img. Fall back to normal img.
+                    future = std::make_unique<PackImageFuture>(pack, f);
+                } else {
+                    f = disF;
+                }
             }
             const auto& disMods = item->getDisabledImageMods(n);
             filters = imageModsToFilters(_tracker, disMods);
-            w->addStage(0, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
+            w->addStage(0, n, std::move(future), f, filters);
         }
         else {
             w->addStage(1, n, std::make_unique<PackImageFuture>(pack, f), f, filters);
