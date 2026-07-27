@@ -5,9 +5,9 @@
 #include <nlohmann/json.hpp>
 #include "jsonutil.h"
 #include "util.h"
-#include "../uilib/dlg.h"
 #include "../http/http.h"
 #include "../http/httputil.hpp"
+#include "../uilib/dlg.h"
 
 using nlohmann::json;
 
@@ -37,10 +37,6 @@ Tracker::Tracker(Pack* pack, lua_State *L)
 {
     lua_pushcfunction(_L, mordoria);
     lua_setglobal(_L, "Mordoria");
-}
-
-Tracker::~Tracker()
-{
 }
 
 static const char* timeout_error_message = "Execution aborted. Limit reached.";
@@ -79,7 +75,7 @@ int Tracker::luaErrorHandler(lua_State *L)
             return 1; // original error
     }
     // generate and print trace, then return original error
-    luaL_traceback(L, L, NULL, 1);
+    luaL_traceback(L, L, nullptr, 1);
     fprintf(stderr, "%s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
     return 1;
@@ -91,9 +87,9 @@ void Tracker::luaTimeoutHook(lua_State *L, lua_Debug *)
     luaL_error(L, timeout_error_message);
 }
 
-// This functaion can be used internally when the return type is uncertain.
+// This function can be used internally when the return type is uncertain.
 // Use carefully; the return value(s) and error handler will still be on the lua stack
-static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLimit)
+static int RunLuaFunction_inner(lua_State *L, const std::string& name, const int execLimit)
 {
     lua_pushcfunction(L, Tracker::luaErrorHandler);
 
@@ -103,10 +99,10 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLi
         workingString = workingString.substr(1);
     }
     auto pos = workingString.find('|');
-    std::string funcName = workingString.substr(0, pos);
+    const std::string funcName = workingString.substr(0, pos);
 
     // Acquire the Lua function
-    int t = lua_getglobal(L, funcName.c_str());
+    const int t = lua_getglobal(L, funcName.c_str());
     if (t != LUA_TFUNCTION) {
         fprintf(stderr, "Missing Lua function for %s\n", name.c_str());
         lua_pop(L, 2); // non-function variable or nil, luaErrorHandler
@@ -129,12 +125,12 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLi
 
     if (execLimit > 0)
         lua_sethook(L, Tracker::luaTimeoutHook, LUA_MASKCOUNT, execLimit);
-    auto res = lua_pcall(L, argc, 1, -argc-2);
+    const int res = lua_pcall(L, argc, 1, -argc-2);
     if (execLimit > 0)
         lua_sethook(L, nullptr, 0, 0);
-    
+
     if (res != LUA_OK) {
-        auto err = lua_tostring(L, -1);
+        const char* err = lua_tostring(L, -1);
         fprintf(stderr, "Error running %s:\n%s\n", name.c_str(), err ? err : "Unknown error");
         lua_pop(L, 2); // error object, lua_error_handler
     }
@@ -143,31 +139,30 @@ static int RunLuaFunction_inner(lua_State *L, const std::string name, int execLi
 }
 
 /// Attempts to run a lua function by name and return an integer value
-int Tracker::runLuaFunction(lua_State *L, const std::string name)
+int Tracker::runLuaFunction(lua_State *L, const std::string& name)
 {
     int out = 0;
-    auto callStatus = runLuaFunction(L, name, out);
+    const int callStatus = runLuaFunction(L, name, out);
     if (callStatus == LUA_OK)
         return out;
-    else
-        return 0;
+    return 0;
 }
 
-int Tracker::runLuaFunction(lua_State* L, const std::string name, int &out)
+int Tracker::runLuaFunction(lua_State* L, const std::string& name, int &out)
 {
-    int callStatus = RunLuaFunction_inner(L, name, _execLimit);
+    const int callStatus = RunLuaFunction_inner(L, name, _execLimit);
     if (callStatus != LUA_OK) {
         // RunLuaFunction_inner handles popping the stack in case of errors
         return callStatus;
     }
-    
+
     // This version of the function is set to accept a number if possible
-    int isnum = 0;
-    out = lua_tonumberx(L, -1, &isnum); // || (lua_isboolean(L, -1) && lua_toboolean(L, -1));
-    if (!isnum && lua_isboolean(L, -1) && lua_toboolean(L, -1))
+    int isNum = 0;
+    out = static_cast<int>(lua_tonumberx(L, -1, &isNum));
+    if (!isNum && lua_isboolean(L, -1) && lua_toboolean(L, -1))
         out = 1;
     lua_pop(L, 2); // result, lua_error_handler
-    
+
     return callStatus;
 }
 
@@ -219,7 +214,7 @@ bool Tracker::AddItemsFromString(std::string& s)
             }
             if (i->getType() == BaseItem::Type::COMPOSITE_TOGGLE) {
                 // update part items when changing composite
-                unsigned n = (unsigned)i->getActiveStage();
+                const auto n = static_cast<unsigned>(i->getActiveStage());
                 auto leftCodes = i->getCodes(1);
                 auto rightCodes = i->getCodes(2);
                 if (!leftCodes.empty()) {
@@ -257,7 +252,7 @@ bool Tracker::AddItemsFromString(std::string& s)
                 onStateChanged.emit(this, i->getID());
         }};
         item.onDisplayChange += {this, [this](void* sender) {
-            JsonItem* i = (JsonItem*)sender;
+            const auto* i = static_cast<JsonItem*>(sender);
             if (_bulkUpdate)
                 _bulkItemDisplayUpdates.push_back(i->getID());
             else
@@ -269,11 +264,11 @@ bool Tracker::AddItemsFromString(std::string& s)
             auto id = item.getID();
             auto leftCodes = item.getCodes(1);
             auto rightCodes = item.getCodes(2);
-            auto update = [this,id](unsigned bit, bool value) {
+            auto update = [this, id](const unsigned bit, const bool value) {
                 for (auto& i : _jsonItems) {
                     if (i.getID() == id) {
-                        unsigned stage = (unsigned)i.getActiveStage();
-                        i.setState(1, value ? (stage|bit) : (stage&~bit));
+                        const auto stage = static_cast<unsigned>(i.getActiveStage());
+                        i.setState(1, static_cast<int>(value ? (stage | bit) : (stage & ~bit)));
                         break;
                     }
                 }
@@ -283,13 +278,13 @@ bool Tracker::AddItemsFromString(std::string& s)
                 if (o.type == Object::RT::JsonItem) {
                     if (o.jsonItem->getState()) n += 1;
                     o.jsonItem->onChange += { this, [update](void* sender) {
-                        update(1, ((JsonItem*)sender)->getState());
+                        update(1, static_cast<JsonItem*>(sender)->getState());
                     }};
                 }
                 else if (o.type == Object::RT::LuaItem) {
                     if (o.luaItem->getState()) n += 1;
                     o.luaItem->onChange += { this, [update](void* sender) {
-                        update(1, ((LuaItem*)sender)->getState());
+                        update(1, static_cast<LuaItem*>(sender)->getState());
                     }};
                 }
             }
@@ -298,13 +293,13 @@ bool Tracker::AddItemsFromString(std::string& s)
                 if (o.type == Object::RT::JsonItem) {
                     if (o.jsonItem->getState()) n += 2;
                     o.jsonItem->onChange += { this, [update](void* sender) {
-                        update(2, ((JsonItem*)sender)->getState());
+                        update(2, static_cast<JsonItem*>(sender)->getState());
                     }};
                 }
                 else if (o.type == Object::RT::LuaItem) {
                     if (o.luaItem->getState()) n += 2;
                     o.luaItem->onChange += { this, [update](void* sender) {
-                        update(2, ((LuaItem*)sender)->getState());
+                        update(2, static_cast<LuaItem*>(sender)->getState());
                     }};
                 }
             }
@@ -372,7 +367,9 @@ bool Tracker::AddItemsFromString(std::string& s)
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return true;
 }
-bool Tracker::AddLocations(const std::string& file) {
+
+bool Tracker::AddLocations(const std::string& file)
+{
     printf("Loading locations from \"%s\"...\n", file.c_str());
     std::string s;
     if (!_pack->ReadFile(file, s)) {
@@ -381,12 +378,12 @@ bool Tracker::AddLocations(const std::string& file) {
         return false;
     }
     json j = parse_jsonc(s);
-    
+
     if (j.type() != json::value_t::array) {
         fprintf(stderr, "Bad json\n"); // TODO: throw lua error?
         return false;
     }
-    
+
     _providerCountCache.clear();
     _objectCache.clear();
     _sectionRefs.clear();
@@ -472,6 +469,7 @@ bool Tracker::AddLocations(const std::string& file) {
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return true;
 }
+
 bool Tracker::AddMaps(const std::string& file) {
     printf("Loading maps from \"%s\"...\n", file.c_str());
     std::string s;
@@ -498,6 +496,7 @@ bool Tracker::AddMaps(const std::string& file) {
     onLayoutChanged.emit(this, ""); // TODO: differentiate between structure and content
     return true;
 }
+
 bool Tracker::AddLayouts(const std::string& file) {
     printf("Loading layouts from \"%s\"...\n", file.c_str());
     std::string s;
@@ -567,7 +566,7 @@ bool Tracker::AddClasses(const std::string& file) {
 int Tracker::ProviderCountForCode(const std::string& code)
 {
     // cache this, because inefficient use can make the Lua script hang
-    auto it = _providerCountCache.find(code);
+    const auto it = _providerCountCache.find(code);
     if (it != _providerCountCache.end())
         return it->second;
 
@@ -789,10 +788,12 @@ const LayoutNode& Tracker::getLayout(const std::string& name) const
     const auto it = _layouts.find(name);
     return it==_layouts.end() ? blankLayoutNode : it->second;
 }
+
 bool Tracker::hasLayout(const std::string& name) const
 {
     return _layouts.find(name) != _layouts.end();
 }
+
 const BaseItem& Tracker::getItemByCode(const std::string& code) const
 {
 #ifdef JSONITEM_CI_QUIRK
@@ -815,6 +816,7 @@ const BaseItem& Tracker::getItemByCode(const std::string& code) const
 
     return blankItem;
 }
+
 BaseItem& Tracker::getItemById(const std::string& id)
 {
     for (auto& item: _jsonItems) {
@@ -825,36 +827,37 @@ BaseItem& Tracker::getItemById(const std::string& id)
     }
     return blankItem;
 }
+
 std::list< std::pair<std::string, Location::MapLocation> > Tracker::getMapLocations(const std::string& mapname) const
 {
     std::list< std::pair<std::string, Location::MapLocation> > res;
     for (const auto& loc : _locations) {
         for (const auto& maploc : loc.getMapLocations()) {
             if (maploc.getMap() == mapname) {
-                res.push_back( std::make_pair(loc.getID(), maploc) );
+                res.emplace_back(loc.getID(), maploc );
             }
         }
     }
     return res;
 }
 
-Location& Tracker::getLocation(const std::string& id, bool partialMatch)
+Location& Tracker::getLocation(const std::string& id, const bool partialMatch)
 {
     for (auto& loc : _locations) {
         if (loc.getID() == id)
             return loc;
     }
     if (partialMatch) {
-        if (id.find('/') == id.npos) {
+        if (id.find('/') == std::string::npos) {
             for (auto& loc : _locations) {
                 if (loc.getName() == id)
                     return loc;
             }
         } else {
-            std::string search = "/" + id;
+            const std::string search = "/" + id;
             for (auto& loc : _locations) {
                 const auto& s = loc.getID();
-                if (s.size()>search.size() && s.compare(s.size()-search.size(), search.size(), search) == 0)
+                if (s.size() > search.size() && s.compare(s.size() - search.size(), search.size(), search) == 0)
                     return loc;
             }
         }
@@ -894,7 +897,7 @@ Tracker::getReferencingSections(const LocationSection& sec)
     if (_sectionRefs.empty() && !_sectionNameRefs.empty())
         rebuildSectionRefs();
 
-    auto it = _sectionRefs.find(sec);
+    const auto it = _sectionRefs.find(sec);
     if (it != _sectionRefs.end()) {
         return it->second;
     }
@@ -912,7 +915,7 @@ void Tracker::rebuildSectionRefs()
             const auto& source = getLocationAndSection(sourceName);
             if (source.second.getRef().empty())
                 continue;
-            _sectionRefs[target].push_back(source);
+            _sectionRefs[target].emplace_back(source);
         }
     }
 }
@@ -1114,7 +1117,7 @@ AccessibilityLevel Tracker::resolveRules(
                 // NOTE: ProvideCountForCode has a cache
                 int n = ProviderCountForCode(s);
                 if (isAccessibilitLevel) { // TODO: merge this with '@' code path
-                    AccessibilityLevel sub = (AccessibilityLevel)n;
+                    auto sub = static_cast<AccessibilityLevel>(n);
                     if (!inspectOnly && sub == AccessibilityLevel::INSPECT)
                         inspectOnly = true;
                     else if (optional && sub == AccessibilityLevel::NONE)
@@ -1433,8 +1436,8 @@ bool Tracker::loadState(nlohmann::json& state)
     }
     auto& jSections = j["sections"];
     if (jSections.type() == json::value_t::object) {
-        for (auto it=jSections.begin(); it!=jSections.end(); ++it) {
-            std::string key = it.key();
+        for (auto it = jSections.begin(); it != jSections.end(); ++it) {
+            const std::string& key = it.key();
             for (auto& loc: _locations) {
                 if (key.rfind(loc.getID(), 0) != 0) continue;
                 for (auto& sec: loc.getSections()) {
@@ -1466,7 +1469,7 @@ bool Tracker::loadState(nlohmann::json& state)
     return true;
 }
 
-void Tracker::setExecLimit(int execLimit)
+void Tracker::setExecLimit(const int execLimit)
 {
     _execLimit = execLimit;
 }
