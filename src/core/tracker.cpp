@@ -377,6 +377,11 @@ bool Tracker::AddLocations(const std::string& file)
         fprintf(stderr, "WARNING: unable to read file\n");
         return false;
     }
+    return AddLocationsFromString(s);
+}
+
+bool Tracker::AddLocationsFromString(std::string& s)
+{
     json j = parse_jsonc(s);
 
     if (j.type() != json::value_t::array) {
