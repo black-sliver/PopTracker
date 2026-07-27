@@ -128,7 +128,7 @@ protected:
     uint64_t _lastItemID=0;
     std::list<JsonItem> _jsonItems;
     std::list<LuaItem> _luaItems;
-    std::list<Location> _locations;
+    std::deque<Location> _locations;
     std::map<std::string, LayoutNode> _layouts;
     std::unordered_map<std::string, const LayoutClass> _classes;
     std::map<std::string, Map> _maps;

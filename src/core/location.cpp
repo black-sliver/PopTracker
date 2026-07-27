@@ -37,7 +37,7 @@ bool Location::Lua_NewIndex([[maybe_unused]] lua_State *L, [[maybe_unused]] cons
 
 std::list<Location> Location::FromJSON(
     json& j,
-    const std::list<Location>& parentLookup,
+    const std::deque<Location>& parentLookup,
     bool glitchedScoutableAsGlitched,
     const std::list< std::list<std::string> >& prevAccessRules,
     const std::list< std::list<std::string> >& prevVisibilityRules,
