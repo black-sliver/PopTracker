@@ -68,6 +68,7 @@ public:
     bool AddItems(const std::string& file);
     bool AddItemsFromString(std::string& s);
     bool AddLocations(const std::string& file);
+    bool AddLocationsFromString(std::string& s);
     bool AddMaps(const std::string& file);
     bool AddLayouts(const std::string& file);
     bool AddClasses(const std::string& file);
