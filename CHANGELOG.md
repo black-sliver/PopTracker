@@ -1,5 +1,12 @@
 # PopTracker Changelog
 
+## v0.35.4-rc2
+
+* Fixes
+  * Make `disabled_img` fall back to `img` if invalid
+* Other Changes
+  * Performance improvements
+
 ## v0.35.4-rc1
 
 * App Features
