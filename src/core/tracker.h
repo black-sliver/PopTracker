@@ -24,23 +24,23 @@ class Tracker;
     
 class Tracker final : public LuaInterface<Tracker> {
     friend class LuaInterface;
-    
+
 public:
     static constexpr int DEFAULT_EXEC_LIMIT = 600000;
-    
+
     Tracker(Pack* pack, lua_State *L);
-    virtual ~Tracker();
+    ~Tracker() override = default;
 
     static int luaErrorHandler(lua_State *L);
     static void luaTimeoutHook(lua_State *L, lua_Debug *);
-    
+
     // TODO: Use a helper to access Lua. This code doesn't belong in tracker
     // Attempt to call a lua func and return an integer value
-    static int runLuaFunction(lua_State *L, const std::string name);
+    static int runLuaFunction(lua_State *L, const std::string& name);
     // Attempt to call a lua func. Returns 0 on success
     // arg out is an output that gives the returned value from lua
-    static int runLuaFunction(lua_State *L, const std::string name, int &out);
-    
+    static int runLuaFunction(lua_State *L, const std::string& name, int &out);
+
     struct Object final : public LuaType {
         // NOTE: we could use (something like) std::variant<...> ?
         enum class RT { NIL, JsonItem, LuaItem, Section, Location } type;
@@ -55,7 +55,8 @@ public:
         Object (LuaItem *val) : type(RT::LuaItem), luaItem(val) {}
         Object (LocationSection *val) : type(RT::Section), section(val) {}
         Object (Location *val) : type(RT::Location), location(val) {}
-        virtual void Lua_Push(lua_State *L) const { // pushes instance to Lua stack
+        /// pushes instance to Lua stack
+        void Lua_Push(lua_State *L) const override {
             if (type == RT::JsonItem) jsonItem->Lua_Push(L);
             else if (type == RT::LuaItem) luaItem->Lua_Push(L);
             else if (type == RT::Section) section->Lua_Push(L);
@@ -63,7 +64,6 @@ public:
             else lua_pushnil(L);
         }
     };
-    
 
     bool AddItems(const std::string& file);
     bool AddItemsFromString(std::string& s);
@@ -76,7 +76,7 @@ public:
     LuaItem *CreateLuaItem();
     void UiHint(const std::string& name, const std::string& value);
     bool OpenLink(const std::string& url, const std::string& description = "");
-    
+
     Signal<const LocationSection&> onLocationSectionChanged;
     Signal<const std::string&> onLayoutChanged;
     Signal<const std::string&> onStateChanged;
@@ -174,7 +174,7 @@ protected:
 protected: // Lua interface implementation
     static constexpr const char Lua_Name[] = "Tracker";
     static const LuaInterface::MethodMap Lua_Methods;
-    
-    virtual int Lua_Index(lua_State *L, const char* key) override;
-    virtual bool Lua_NewIndex(lua_State *L, const char* key) override;
+
+    int Lua_Index(lua_State *L, const char* key) override;
+    bool Lua_NewIndex(lua_State *L, const char* key) override;
 };
