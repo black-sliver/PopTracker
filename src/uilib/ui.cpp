@@ -273,7 +273,34 @@ bool Ui::render()
                             }
                         }
                     }
+                    {
+                        auto winIt = _windows.find(ev.key.windowID);
+                        if (winIt != _windows.end()) {
+                            Widget* focus = winIt->second->getKeyboardFocus();
+                            if (focus) {
+                                focus->onKeyDown.emit(focus,
+                                        (int)ev.key.keysym.sym,
+                                        (int)(ev.key.keysym.mod & (KMOD_CTRL|KMOD_SHIFT|KMOD_GUI)));
+                            }
+                        }
+                    }
                     EVENT_UNLOCK(this);
+                    break;
+                }
+                case SDL_TEXTINPUT: {
+                    EVENT_LOCK(this);
+                    auto winIt = _windows.find(ev.text.windowID);
+                    if (winIt != _windows.end()) {
+                        Widget* focus = winIt->second->getKeyboardFocus();
+                        if (focus) {
+                            focus->onTextInput.emit(focus, std::string(ev.text.text));
+                        }
+                    }
+                    EVENT_UNLOCK(this);
+                    break;
+                }
+                case SDL_TEXTEDITING: {
+                    // IME text editing is not supported yet
                     break;
                 }
                 case SDL_WINDOWEVENT: {
