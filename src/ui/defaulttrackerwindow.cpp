@@ -92,7 +92,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
                 true);
     }
 
-    _loadPackWidget = new LoadPackWidget(0,0,0,0,_fontStore);
+    _loadPackWidget = new LoadPackWidget(0,0,0,0,_fontStore, this);
     _loadPackWidget->setPosition({0,0});
     _loadPackWidget->setSize(_size);
     _loadPackWidget->setBackground({0,0,0});
@@ -362,9 +362,11 @@ void DefaultTrackerWindow::showOpen()
 {
     _loadPackWidget->update();
     _loadPackWidget->setVisible(true);
+    _loadPackWidget->focusFilter();
 }
 void DefaultTrackerWindow::hideOpen()
 {
+    _loadPackWidget->releaseFilterFocus();
     _loadPackWidget->setVisible(false);
 }
 
