@@ -1,13 +1,6 @@
 # PopTracker Changelog
 
-## v0.35.4-rc2
-
-* Fixes
-  * Make `disabled_img` fall back to `img` if invalid
-* Other Changes
-  * Performance improvements
-
-## v0.35.4-rc1
+## v0.35.4
 
 * App Features
   * Add `--ap-host`, `--ap-slot` and `--ap-password` command line args for auto-connect
@@ -23,9 +16,11 @@
   * Fix wrong warning for toggle_badged having an invalid base_item
   * Avoid invalid calculations for MapWidget with no/invalid image
   * Better error handling in the Lua API
+  * Make `disabled_img` fall back to `img` if invalid
 * Other Changes
   * Switch macOS build to Universal2 (Intel + ARM)
   * Update dependencies and certificates
+  * Performance improvements
 
 ## v0.35.3
 
