@@ -139,18 +139,18 @@ function ScriptHost:LoadScript(luaFilename) end
 ---Once the script finishes, callback will be called on the next frame in the host context with the return value of the script as argument.
 ---@param luaFilename string file to run, relative to variant folder or root of the pack (will try both)
 ---@param arg any passed as global arg to the new script
----@param completePallback fun(result:any):nil called when the script finishes
+---@param completeCallback fun(result:any):nil called when the script finishes
 ---@param progressCallback fun(progress:any)? optional, called when the script calls ScriptHost:AsyncProgress
 ---@return ThreadProxy TBD
-function ScriptHost:RunScriptAsync(luaFilename, arg, completePallback, progressCallback) end
+function ScriptHost:RunScriptAsync(luaFilename, arg, completeCallback, progressCallback) end
 
 ---Same as RunScriptAsync, but run string instead of file.
 ---@see ScriptHost.RunScriptAsync
 ---@param arg any passed as global arg to the new script
----@param completePallback fun(result:any):nil called when the script finishes
+---@param completeCallback fun(result:any):nil called when the script finishes
 ---@param progressCallback fun(progress:any)? optional, called when the script calls ScriptHost:AsyncProgress
 ---@return ThreadProxy TBD
-function ScriptHost:RunStringAsync(script, arg, completePallback, progressCallback) end
+function ScriptHost:RunStringAsync(script, arg, completeCallback, progressCallback) end
 
 
 ---Queue call to main Lua's progressCallback with arg on next frame. Can only be used in async context/thread.
