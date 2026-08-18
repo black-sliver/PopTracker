@@ -136,11 +136,20 @@
     },
     "satisfactory_ap": {
         "name": "Satisfactory PopTracker",
-        "author": "Snileaf, builder_script",
+        "author": "Snileaf, builder_script, Satisfactory Archipelago Community, PopTracker Discord Server Community",
         "platform": "PC",
         "homepage": "https://github.com/snileaf/Satisfactory-poptracker",
         "versions_url": "https://raw.githubusercontent.com/snileaf/Satisfactory-poptracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/snileaf/Satisfactory-poptracker/versions/satisfactory-S.png",
         "description":  "The Satisfactory Archipelago PopTracker Pack."
+    },
+    "cloverpit_ap": {
+        "name": "CloverPit Archipelago",
+        "author": "Snileaf, builder_script, PopTracker Discord Server Community",
+        "platform": "PC",
+        "homepage": "https://github.com/snileaf/CloverPit-poptracker",
+        "versions_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/CloverPit.png",
+        "description":  "The CloverPit Archipelago PopTracker Pack."
     }
 }
