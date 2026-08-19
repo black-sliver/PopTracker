@@ -40,9 +40,10 @@ jobs:
           - os: ubuntu-latest
             shell: bash
             scan-build: scan-build-22
-          - os: windows-latest
-            shell: msys2 {0}
-            scan-build: scan-build
+          # scan-build broken in msys2 mingw-w64-x86_64
+          #- os: windows-latest
+          #  shell: msys2 {0}
+          #  scan-build: scan-build
 
     runs-on: ${{ matrix.os }}
 
