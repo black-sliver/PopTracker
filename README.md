@@ -5,6 +5,8 @@ List of packs and their update URLs provided by the community.
 Send PRs for `community-packs.json` on GitHub to add your pack or remove a pack with wrong or outdated authorship.
 You can use the pencil button to create a PR directly on GitHub.
 
+Follow the [checklist](./checklist.md) to make the review quicker.
+
 ## packs.json
 
 The list of uid -> pack info. Links should point directly to the file/download.
