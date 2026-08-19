@@ -1,6 +1,6 @@
 # PopTracker Pack List Checklist
 
-When changing or adding a pack to a packlist (e.g. [community-packs.json](./community-packs.json)),
+When changing or adding a pack to a packlist (e.g. [`community-packs.json`](./community-packs.json)),
 make sure to verify the following:
 
 * The new key in the top level object matches the `package_uid` in the `manifest.json` of packs that should be upgraded:
