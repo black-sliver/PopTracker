@@ -1,7 +1,7 @@
 #ifndef _POPTRACKER_H
 #define _POPTRACKER_H
 
-#include "version.h"
+#include <version.h>
 #include "app.h"
 #include "uilib/ui.h"
 #include "ui/defaulttrackerwindow.h"

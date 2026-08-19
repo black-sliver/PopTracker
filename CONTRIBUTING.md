@@ -8,7 +8,7 @@ Send PRs on GitHub.
 ## Compiler Support
 
 Both clang and gnu toolchains are supported. For CI and release builds, we use g++ on Linux, MSYS2's g++ on Windows and
-brew's clang++ + gcc-compat on macOS.
+brew's clang++ on macOS.
 
 We do not use MSVC.
 
@@ -16,18 +16,30 @@ We do not use MSVC.
 
 We aim to run untrusted packs at some point, so we use `-Werror` and enable a lot of warnings and some extra protection
 features to find potential mistakes and/or safely crash.
-PRs to clean up the Makefile are welcome.
 
 ## IDE Support
 
 *Currently only CLion is tested/used. PRs for other IDEs and detailed setup are welcome.*
 
+Check out the
+[List of IDEs that support Meson Build System](https://mesonbuild.com/IDE-integration.html#existing-integrations).
+
 ### CLion
 
-CLion has support for Makefile projects, but the configuration part may only work with clang.
-You can either install both g++ and clang and overwrite the compiler for the configuration part
-as shown in [doc/clion-make.png](doc/clion-make.png)
-or use clang + gcc-compat for dev (and g++ only in CI).
+Make sure the Meson plugin is enabled. When opening the project, select Meson.
+
+To upgrade from the old Makefile, you need to remove/rename the old `.idea/` folder before opening the project.
+
+If ccache is installed, Meson will automatically use it, but Clion struggles with that in Meson projects.
+In *Build, Execution, Deployment* → *Toolchains*, select a specific C and a specific C++ Compiler or create a new
+toolchain and assign that to Meson in *Build, Execution, Deployment* → *Meson*. This disables auto-detection in Meson.
+Use "Wipe and Reload Meson Project" to restart compiler detection in Clion.
+
+If ccache is required, this can be done by creating `ccache-<tool>` scripts for C Compiler and C++ Compiler that run
+`ccache <tool> $@`. Otherwise, just put e.g. `gcc` and `g++` there.
+
+For test integration, you may need to edit the `poptracker-test` configuration and set the working directory to the
+project root. Clion does not inherit the working directory from Meson.
 
 ## C++ Style
 
@@ -96,10 +108,28 @@ See [scan-build.yaml](../.github/workflows/scan-build.yaml).
 
 Consider testing with ASAN by passing WITH_ASAN=true to make.
 
+> [!IMPORTANT]  
+> This is outdated since we switched to Meson.
+
 ### Spell Checker
 
 We use codespell to find typos. You can `pip install codespell` or rely on the GitHub workflow.
 See `.codespellrc` if you want to exclude files/folders and `.codespellignore` if you want to exclude a word.
+
+## Meson Style (Build System)
+
+Follow [Meson's style recommendations](https://mesonbuild.com/Style-guide.html), but prefer 4 spaces over 2 spaces for
+consistency with all other files.
+
+Do not glob file paths because ninja can't know when to reconfigure the project then.
+(This is sadly different from our old single-step Makefile system.)
+
+* Header-only libs should be part of the source (submodule, copy-paste or Meson wrap).
+* Regular libs should come from the package manager or OS if no specific version or build config is required.
+* Optional libs may best be dlopened.
+* For Windows, we create a static EXE for portability while still retaining all the QoL from msys2.
+* For macOS, we link against brew libs and then replace them for portability in actual release.
+* We may build custom versions of some libs (inside the release build runner) for size/speed/security optimizations.
 
 ## Documentation Style
 

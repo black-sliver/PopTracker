@@ -21,14 +21,16 @@ pkgs.mkShell {
     pkgs.cmake
     pkgs.sdl2-compat
     pkgs.SDL2_image
+    pkgs.libwebp
     pkgs.SDL2_ttf
     pkgs.openssl
+    pkgs.meson
     libX11
   ];
 
   shellHook = ''
     echo "PopTracker build environment loaded"
-    echo "Run: make native CONF=RELEASE"
-    echo "RUN: ./build/<platform>/poptracker"
+    echo "Run: meson setup build && meson compile -C build"
+    echo "RUN: ./build/poptracker"
   '';
 }

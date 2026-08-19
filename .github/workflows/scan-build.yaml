@@ -39,11 +39,10 @@ jobs:
         include:
           - os: ubuntu-latest
             shell: bash
-            scan-build: scan-build-22
+            llvm-version: 22
           # scan-build broken in msys2 mingw-w64-x86_64
           #- os: windows-latest
           #  shell: msys2 {0}
-          #  scan-build: scan-build
 
     runs-on: ${{ matrix.os }}
 
@@ -60,7 +59,8 @@ jobs:
         timeout-minutes: 5
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
+          sudo apt-get install coreutils build-essential meson \
+            libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
       - name: Install dependencies (msys2)
         if: ${{ startsWith(matrix.os, 'windows') }}
         timeout-minutes: 5
@@ -81,6 +81,7 @@ jobs:
             mingw64/mingw-w64-x86_64-gtest
             mingw64/mingw-w64-x86_64-clang-analyzer
             mingw64/mingw-w64-x86_64-perl
+            mingw64/mingw-w64-x86_64-meson
             p7zip
       - name: Install newer Clang and scan-build command (ubuntu)
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
@@ -88,17 +89,16 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x ./llvm.sh
-          sudo ./llvm.sh 22
-          sudo apt install clang-tools-22
+          sudo ./llvm.sh ${{ matrix.llvm-version }}
+          sudo apt install clang-tools-${{ matrix.llvm-version }}
       - name: scan-build
         run: |
-          ${{ matrix.scan-build }} --status-bugs -o scan-build-reports \
-            --exclude build --exclude lib/lua \
-            --exclude lib/miniz \
-            make -j4
+          meson setup build
+          SCANBUILD=../contrib/scan-build-wrapper/scan-build.sh \
+            ninja -C build scan-build
       - name: Store report
         if: failure()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: scan-build-reports-${{ matrix.os }}
-          path: scan-build-reports
+          path: build/meson-logs/scanbuild

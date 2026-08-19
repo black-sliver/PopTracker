@@ -36,20 +36,22 @@ jobs:
           - ubuntu-24.04-arm
           - macos-latest  # for tests on macOS, we do regular arm and special x86_64 below
         shell: [bash]
-        extra_make_args: ['']  # default build
+        extra_meson_args: ['']  # default build
         include:
           - os: windows-latest
             shell: msys2 {0}
-            extra_make_args: ''
+            extra_meson_args: ''
+            msystem: mingw64
           #- os:  windows-11-arm  # platform detection in Makefile doesn't work currently
           #  shell: msys2 {0}
-          #  extra_make_args: ''
+          #  extra_meson_args: ''
+          #  msystem: CLANGARM64
           - os: macos-15-intel
             shell: bash
             # we now require 10.15 by default, but 10.13 should work with an extra dependency
-            extra_make_args: 'MACOS_DEPLOYMENT_TARGET=10.13'
+            extra_meson_args: '-Dmacos-deplyment-target=10.13'
 
-    name: Test ${{ matrix.os }} ${{ matrix.extra_make_args }}
+    name: Test ${{ matrix.os }} ${{ matrix.extra_meson_args }}
     runs-on: ${{ matrix.os }}
 
     defaults:
@@ -62,14 +64,16 @@ jobs:
       timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
+        sudo apt-get install coreutils build-essential meson \
+          libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - name: Install dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') }}
       timeout-minutes: 5
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 googletest || true
+        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 meson googletest || true
+        brew link --overwrite openssl@3.0
     - name: Install extra dependencies (brew)
-      if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_make_args, 'MACOS_DEPLOYMENT_TARGET') }}
+      if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_meson_args, 'macos-deplyment-target') }}
       timeout-minutes: 5
       run: |
         brew install boost || true
@@ -78,6 +82,7 @@ jobs:
       timeout-minutes: 5
       uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       with:
+        msystem: ${{ matrix.msystem }}
         release: false
         update: false
         install: >-
@@ -91,13 +96,15 @@ jobs:
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
+          mingw64/mingw-w64-x86_64-meson
+          mingw64/mingw-w64-x86_64-ntldd
           p7zip
     - name: Install dependencies (msys2, arm)
       if: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.os, 'arm')}}
       timeout-minutes: 5
       uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       with:
-        msystem: CLANGARM64
+        msystem: ${{ matrix.msystem }}
         update: true
         install: >-
           base-devel
@@ -111,10 +118,15 @@ jobs:
           clangarm64/mingw-w64-clang-aarch64-freetype
           clangarm64/mingw-w64-clang-aarch64-openssl
           clangarm64/mingw-w64-clang-aarch64-gtest
+          clangarm64/mingw-w64-clang-aarch64-meson
+          clangarm64/mingw-w64-clang-aarch64-ntldd
           p7zip
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
+    - name: Setup env
+      run: |
+        echo "extra_meson_args=${{ matrix.extra_meson_args }}" >> $GITHUB_ENV
     - name: Configure ASAN (macos-latest)
       if: ${{ startsWith(matrix.os, 'macos-latest') }}
       run: |
@@ -127,16 +139,38 @@ jobs:
       run: |
         # we use mingw on windows, which does not support ASAN
         # macos currently hangs when trying to run tests with ASAN + UBSAN on
-        echo "extra_make_args=WITH_ASAN=true WITH_UBSAN=true ${{ matrix.extra_make_args }}" >> $GITHUB_ENV
+        echo "extra_meson_args=-Db_sanitize=address,undefined ${{ env.extra_meson_args }}" >> $GITHUB_ENV
     - name: Enable UBSAN
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: |
-        echo "extra_make_args=WITH_UBSAN=true ${{ matrix.extra_make_args }}" >> $GITHUB_ENV
+        echo "extra_meson_args=-Db_sanitize=address,undefined ${{ env.extra_meson_args }}" >> $GITHUB_ENV
     - name: Build DEBUG
-      run: make native CONF=DEBUG ${{ env.extra_make_args }} -j4
-    - name: Run tests
-      timeout-minutes: 7
-      run: make test CONF=DEBUG ${{ env.extra_make_args }} -j4
+      run: |
+        meson setup ${{ env.extra_meson_args }} build
+        meson compile -v -C build
+    - name: List linked libraries (Windows)
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      run: ntldd build/poptracker.exe  # TODO: warn if not static
+    - name: List linked libraries (macos)
+      if: ${{ startsWith(matrix.os, 'macos') }}
+      run: otool -L build/poptracker
+    - name: List linked libraries (Linux)
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      run: ldd build/poptracker
+    - name: Build and run tests
+      timeout-minutes: 15
+      run: |
+        meson test -v -C build
+    - name: Store failure logs
+      if: failure()
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: ${{ matrix.os }}_failure
+        path: |
+          build/meson-logs/testlog.txt
+          build/poptracker.exe.manifest
+        if-no-files-found: ignore
+        compression-level: 9
 
   nix-shell-build:
     runs-on: ubuntu-latest
@@ -150,4 +184,14 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-25.05
     - run: |
-        nix-shell --run 'make -j4'
+        nix-shell --run 'AR=gcc-ar meson setup build && meson compile -v -C build'
+    - name: Store failure logs
+      if: failure()
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: nix_failure
+        path: |
+          build/meson-logs/**
+          build/compile_commands.json
+        if-no-files-found: ignore
+        compression-level: 9

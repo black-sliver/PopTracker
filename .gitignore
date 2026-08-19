@@ -2,6 +2,10 @@
 build/
 dist/
 
+# exclude custom cross compile configurations
+/cross_file.txt
+/cross_file.ini
+
 # exclude AppImage build files
 /appimage-build
 /AppDir
@@ -14,6 +18,7 @@ dist/
 thumbs.db
 gmon.out
 .cacert.sha256.etag
+.cacert.pem.sha256.etag
 
 # exclude unused and scratch pad files
 .trash
