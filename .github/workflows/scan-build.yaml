@@ -77,6 +77,7 @@ jobs:
             mingw64/mingw-w64-x86_64-openssl
             mingw64/mingw-w64-x86_64-gtest
             mingw64/mingw-w64-x86_64-clang-analyzer
+            mingw64/mingw-w64-x86_64-perl
             p7zip
       - name: Install newer Clang and scan-build command (ubuntu)
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
