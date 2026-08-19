@@ -64,16 +64,21 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Set env
+      run: |
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+        # force AppImage ARCH to x86_64 to match AppImage runtime and AppRun
+        ARCH=x86_64
+        echo "ARCH=$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
+        sudo apt-get install coreutils build-essential meson jq p7zip wget \
+          libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
-    - name: Set env
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
     - name: Set version
       run: |
         sed -i "s/version: latest/version: ${{ env.RELEASE_VERSION }}/g" linux/AppImageBuilder.yml
@@ -131,7 +136,7 @@ jobs:
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          appimage-build/linux-x86_64/poptracker
+          appimage-build/build/poptracker
           *.AppImage*
     - name: Create Release
       uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228  # v3.0.2
@@ -154,34 +159,35 @@ jobs:
           - ubuntu-22.04-arm
 
     steps:
-    - name: Install dependencies
-      timeout-minutes: 5
-      run: |
-        sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
-    - uses: actions/checkout@v7.0.1
-      with:
-        submodules: recursive
     - name: Set env
       shell: bash
       run: |
         echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
-        OS=`uname -s | tr A-Z a-z`
-        ARCH=`uname -m`
-        echo "OS=$OS" >> $GITHUB_ENV
-        echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
+        # TODO: validate RELEASE_VERSION matches Meson project version
+    - name: Install dependencies
+      timeout-minutes: 5
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install coreutils build-essential meson jq p7zip \
+          libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
+    - uses: actions/checkout@v7.0.1
+      with:
+        submodules: recursive
     - name: Build RELEASE
-      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
+      run: |
+        meson setup build
+        meson compile -C build
     - name: Run tests
-      run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
-    - name: Build DIST # this builds a .tar.xz
-      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+      run: |
+        meson test -C build
+    - name: Build DIST # this builds a .tar.xz, maybe .deb in the future
+      run: |
+        meson compile -C build package
     - name: Attest Build and Archive
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          build/${{ env.UNAME }}/poptracker
+          build/poptracker
           dist/*
     - name: Create Release
       uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228  # v3.0.2
@@ -205,33 +211,36 @@ jobs:
           - macos-15        # arm64 (Apple Silicon)
 
     steps:
-    - name: Install dependencies
-      timeout-minutes: 5
-      run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake googletest || true
-        # required, but pre-installed: libtool autoconf
-    - uses: actions/checkout@v7.0.1
-      with:
-        submodules: recursive
     - name: Set env
       shell: bash
       run: |
         echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
-        OS=darwin
         ARCH=`uname -m`
-        echo "OS=$OS" >> $GITHUB_ENV
         echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
+    - name: Install dependencies
+      timeout-minutes: 5
+      run: |
+        brew install coreutils automake meson jq \
+          SDL2 sdl2_ttf sdl2_image openssl@3.0 googletest || true
+        # required, but pre-installed: libtool autoconf
+        brew link --overwrite openssl@3.0
+    - uses: actions/checkout@v7.0.1
+      with:
+        submodules: recursive
     - name: Build RELEASE
-      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
+      run: |
+        meson setup build
+        meson compile -C build
     - name: Run tests
-      run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
-    - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
-      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+      run: |
+        meson test -C build
+    - name: Build DIST # this builds the app bundle
+      run: |
+        meson compile -C build package
     - name: Package app bundle for universal merge
       run: |
         # tar preserves the bundle's symlinks and permissions across the artifact round-trip.
-        tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build/${{ env.UNAME }}" poptracker.app
+        tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build" poptracker.app
     - name: Upload per-arch app bundle
       uses: actions/upload-artifact@v7.0.1
       with:
@@ -245,10 +254,10 @@ jobs:
     needs: release-macos
     runs-on: macos-15
     steps:
-    - uses: actions/checkout@v7.0.1
     - name: Set env
       shell: bash
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
+    - uses: actions/checkout@v7.0.1
     - name: Download per-arch app bundles
       uses: actions/download-artifact@v8.0.1
       with:
@@ -294,6 +303,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Set env
+      shell: msys2 {0}
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
     - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       timeout-minutes: 5
       with:
@@ -312,6 +324,9 @@ jobs:
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
+          mingw64/mingw-w64-x86_64-meson
+          mingw64/mingw-w64-x86_64-jq
+          mingw64/mingw-w64-x86_64-ntldd
           p7zip
           wget
           mingw-w64-x86_64-advancecomp
@@ -328,15 +343,21 @@ jobs:
       shell: msys2 {0}
       run: |
           pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
-    - name: Set env
-      shell: msys2 {0}
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
     - name: Build RELEASE
       shell: msys2 {0}
-      run: make native CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }} -j4
+      run: |
+        GCC_ARCH=$(gcc -dumpmachine | sed "s/-.*$//")
+        meson setup build \
+          -Dcpp_args="-I$(realpath ./win32-lib/$GCC_ARCH/include)" \
+          -Dcpp_link_args="-L$(realpath ./win32-lib/$GCC_ARCH/lib) -lpng -ljpeg -limm32 -lwinmm -lversion"
+        meson compile -C build
+    - name: List linked libraries
+      shell: msys2 {0}
+      run: ntldd build/poptracker.exe  # TODO: warn if not static
     - name: Run tests
       shell: msys2 {0}
-      run: make test CONF=RELEASE VERSION=${{ env.RELEASE_VERSION }}
+      run: |
+        meson test -C build
     - name: Download Updater
       shell: msys2 {0}
       env:
@@ -351,12 +372,13 @@ jobs:
         7z e -obuild/win64 updater.zip
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       shell: msys2 {0}
-      run: make CONF=DIST VERSION=${{ env.RELEASE_VERSION }}
+      run: |
+        meson compile -C build package
     - name: Attest Build and Archive
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          build/win64/poptracker.exe
+          build/poptracker.exe
           dist/*
     - name: Create Release
       uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228  # v3.0.2

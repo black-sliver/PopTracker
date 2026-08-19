@@ -1,4 +1,4 @@
-#include "version.h"
+#include <version.h>
 #include <winver.h>
 
 #if defined(NDEBUG) && APP_VERSION_PRERELEASE
@@ -11,11 +11,20 @@
 #    define APP_FILE_FLAGS VS_FF_DEBUG
 #endif
 
+#ifndef MANIFEST_PATH
+#    define MANIFEST_PATH_STR "../build/poptracker.exe.manifest"
+#else
+#    ifndef xstr
+#        define xstr(s) str(s)
+#        define str(s) #s
+#    endif
+#    define MANIFEST_PATH_STR xstr(MANIFEST_PATH)
+#endif
 
 LANGUAGE 0,0 // neutral
 
 id ICON "../assets/icon.ico"
-1 24 "../build/poptracker.exe.manifest"
+1 24 MANIFEST_PATH_STR
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     APP_VERSION_TUPLE_4I
