@@ -1,0 +1,4 @@
+# TODO: rename this file to meson.options once we drop support for Ubuntu 22.04
+
+option('gui-tests', type : 'boolean', value : false, description : 'Enable tests that **show** GUI elements.')
+option('macos-deplyment-target', type : 'string', value : '10.15', description : 'Min macos version for targets')
