@@ -300,7 +300,19 @@ a table representing an enum with the following constants: \
     - `greyscale`: same as `saturation|0`; since 0.32.2
     - `grayscale`: same as `greyscale`; since 0.35.4
     - NOTE: order matters, applied left to right
-  + inherit_codes: true will make stage3 provide codes for item, stage1, 2 and 3 (default true)
+  + inherit_codes: codes from previous stage, and any codes the previous stage inherited, are applied. Stage1 cannot inherit codes as it is the lowest stage, so inherit_codes does not apply to it.  
+    For a 4 stage progressive item, if stage3 has `inherit_codes` as `true`, and stage1, stage2, and stage4 are `false`, stage3 will inherit codes from only stage2.
+    Stage1, stage2, and stage4 will not inherit any codes.  
+    If stage1, stage2, and stage3 have `inherit_codes` as `true`, and stage4 is `false`, stage1 will not inherit any codes as it is the lowest stage, stage2 will inherit codes from stage 1, stage3 will inherit
+    codes from stage1 and stage2, and stage4 not inherit any codes.
+    | Stage    | Codes    | Inherit  | Resulting Codes |
+    | -------- | -------- | -------- | --------------- |
+    | 1        | a        | false    | a               |
+    | 2        | b        | false    | b               |
+    | 3        | c        | true     | b,c             |
+    | 4        | d        | true     | b,c,d           |
+    | 5        | e        | false    | e               |
+    | 6        | f        | true     | e,f             |
 
 * `"toggle"`:
   + only has on/off
