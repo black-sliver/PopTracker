@@ -10,3 +10,18 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "packlist"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    target-branch: "packlist"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 3
+      include:
+        - "*"
