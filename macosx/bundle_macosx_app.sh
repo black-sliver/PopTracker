@@ -3,6 +3,8 @@
 # script to fetch SDL and create macos .app bundle
 # (c) 2021 sbzappa
 
+# TODO: use meson install to create the folder structure
+
 EXE=
 VERSION=
 BUNDLE_NAME_SET=no

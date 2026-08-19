@@ -16,7 +16,8 @@ jobs:
         timeout-minutes: 5
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
+          sudo apt-get install coreutils build-essential meson \
+            libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
       - name: Install newer Clang (ubuntu)
         timeout-minutes: 5
         run: |
@@ -28,7 +29,10 @@ jobs:
         with:
           submodules: recursive
       - name: Build fuzzer
-        run: CC=clang-22 CXX=clang++-22 make fuzzer CONF=DEBUG WITH_FUZZER=1 WITH_ASAN=1 WITH_UBSAN=1 -j4
+        run: |
+          CC=clang-22 CXX=clang++-22 AR=llvm-ar-22 \
+            meson setup --buildtype debugoptimized -Doptimization=g -Db_sanitize=address,undefined build
+          meson compile -C build fuzzer
       - name: Restore corpus
         id: restore-corpus
         uses: actions/cache/restore@v6.1.0
@@ -42,9 +46,9 @@ jobs:
         run: |
           mkdir -p corpus
           python test/core/tools/make_zip.py
-          ./build/*/fuzzer -merge=1 corpus test/core/data
+          ./build/test/fuzzer -merge=1 corpus test/core/data
       - name: Run fuzzer
-        run: ./build/*/fuzzer -max_total_time=897 -workers=4 -jobs=4 corpus/
+        run: ./build/test/fuzzer -max_total_time=897 -workers=4 -jobs=4 corpus/
       - name: Store logs
         if: always()
         uses: actions/upload-artifact@v7.0.1
@@ -74,7 +78,7 @@ jobs:
         if: always()
         run: |
           mkdir new-corpus
-          ./build/*/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
+          ./build/test/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
       - name: Save corpus
         if: always()
         uses: actions/cache/save@v6.1.0

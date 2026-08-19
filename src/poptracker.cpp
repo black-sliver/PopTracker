@@ -22,6 +22,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shellapi.h>
+#include <winuser.h>
 #endif
 using nlohmann::json;
 using Ui::Dlg;
@@ -228,8 +229,13 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
             }
         }
 #if defined _WIN32 || defined WIN32
-        if (_config["ignore_hidpi"] == true)
+        if (_config["ignore_hidpi"] == true) {
+            #if _WIN32_WINNT >= 0x0600
             SetProcessDPIAware();
+            #else
+            fprintf(stderr, "Warning: requested DPIAware but API is not available in target Windows version!\n");
+            #endif
+        }
 #endif
 
 #ifndef WITHOUT_UPDATE_CHECK

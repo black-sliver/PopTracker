@@ -1,0 +1,1 @@
+const char* APP_VCS_TAG = "@VCS_TAG@";

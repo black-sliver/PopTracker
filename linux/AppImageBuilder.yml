@@ -109,7 +109,7 @@ AppDir:
     - usr/share/doc/*/NEWS.*
     - usr/share/doc/*/TODO.*
 #  test:
-#    # for now, don´t run GUI for automated testing
+#    # for now, don't run GUI for automated testing
 #    fedora-30:
 #      image: appimagecrafters/tests-env:fedora-30
 #      command: ./AppRun --list-packs
@@ -125,15 +125,18 @@ AppImage:
   # For latest runtime + stable builder, use --skip-appimage and package with appimagetool instead.
   update-information: guess
 script: |
+  # check and set paths
+  [ -z "$BUILD_DIR" ] && echo "BUILD_DIR not defined" >&2 && exit 1
+  [ -z "$TARGET_APPDIR" ] && echo "TARGET_APPDIR not defined" >&2 && exit 1
+  meson_build_dir="$BUILD_DIR/build"
+
+  # cleanup
   rm -rf "$TARGET_APPDIR" | true
-  INSTALL_ARCH=`uname -m`
 
-  make native CONF=RELEASE -j2  # -j${nproc} will peak at ~1.5GB RAM per CPU core
-  install -D "$BUILD_DIR/linux-${INSTALL_ARCH}/poptracker" "$TARGET_APPDIR/usr/bin/poptracker"
-  install -D "assets/icon.png" "$TARGET_APPDIR/usr/share/icons/poptracker.png"
-
-  cp -r assets "$TARGET_APPDIR/usr/bin/."
-
-  mkdir -p "$TARGET_APPDIR/usr/share/poptracker"
-  cp -r api schema key "$TARGET_APPDIR/usr/share/poptracker/."
-  rm "$TARGET_APPDIR/usr/share/poptracker/"*/README.md
+  # build
+  echo "$BUILD_DIR -> $meson_build_dir -> $TARGET_APPDIR"
+  mkdir -p "$BUILD_DIR"
+  meson setup --prefix /usr --bindir bin --datadir share "$meson_build_dir"
+  meson compile -j2 -C "$meson_build_dir"  # -j2 to limit memory usage
+  meson install -C "$meson_build_dir" --destdir "$TARGET_APPDIR"
+  rm -rf "$TARGET_APPDIR/usr/share/applications"  # AppImage has its own .desktop file
