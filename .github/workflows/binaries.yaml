@@ -57,6 +57,7 @@ jobs:
         echo "ARCH=$ARCH" >> $GITHUB_ENV
         echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
+      timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip libgtest-dev libgmock-dev
@@ -102,6 +103,7 @@ jobs:
         echo "ARCH=$ARCH" >> $GITHUB_ENV
         echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
+      timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
@@ -191,6 +193,7 @@ jobs:
         echo "ARCH=$ARCH" >> $GITHUB_ENV
         echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
+      timeout-minutes: 5
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake googletest || true
         # required, but pre-installed: libtool autoconf
@@ -294,6 +297,7 @@ jobs:
       run: |
         echo "UNAME=win64" >> $GITHUB_ENV
     - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
+      timeout-minutes: 5
       with:
         update: true
         cache: ${{ github.event_name != 'workflow_dispatch' }}

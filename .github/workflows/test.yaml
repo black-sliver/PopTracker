@@ -59,19 +59,23 @@ jobs:
     steps:
     - name: Install dependencies (apt)
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - name: Install dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') }}
+      timeout-minutes: 5
       run: |
         brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 googletest || true
     - name: Install extra dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_make_args, 'MACOS_DEPLOYMENT_TARGET') }}
+      timeout-minutes: 5
       run: |
         brew install boost || true
     - name: Install dependencies (msys2, x86_64)
       if: ${{ startsWith(matrix.os, 'windows') && !endsWith(matrix.os, 'arm')}}
+      timeout-minutes: 5
       uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       with:
         release: false
@@ -90,6 +94,7 @@ jobs:
           p7zip
     - name: Install dependencies (msys2, arm)
       if: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.os, 'arm')}}
+      timeout-minutes: 5
       uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       with:
         msystem: CLANGARM64
@@ -141,6 +146,7 @@ jobs:
       with:
         submodules: recursive
     - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+      timeout-minutes: 5
       with:
         nix_path: nixpkgs=channel:nixos-25.05
     - run: |

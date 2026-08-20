@@ -10,6 +10,7 @@ jobs:
   codespell:
     runs-on: ubuntu-latest
     name: Find typos
+    timeout-minutes: 5
 
     steps:
     - uses: actions/checkout@v7.0.1
