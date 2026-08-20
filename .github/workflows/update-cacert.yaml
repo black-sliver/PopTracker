@@ -12,6 +12,8 @@ permissions:
 jobs:
   update-cacert:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Check for cacert update

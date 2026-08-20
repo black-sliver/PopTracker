@@ -17,6 +17,8 @@ jobs:
   trigger_github_io_update:
     # NOTE: we use workflow_dispatch because repository_dispatch needs contents: write permissions
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - name: Delay
         env:
