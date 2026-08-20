@@ -1,4 +1,4 @@
-name: Codespell
+name: Find typos
 
 on:
   push:
@@ -9,7 +9,6 @@ permissions: {}
 jobs:
   codespell:
     runs-on: ubuntu-latest
-    name: Find typos
     timeout-minutes: 5
 
     steps:
