@@ -29,8 +29,9 @@ jobs:
           submodules: recursive
       - name: Build fuzzer
         run: CC=clang-22 CXX=clang++-22 make fuzzer CONF=DEBUG WITH_FUZZER=1 WITH_ASAN=1 WITH_UBSAN=1 -j4
-      - name: Cache/Restore corpus
-        uses: actions/cache@v6.1.0
+      - name: Restore corpus
+        id: restore-corpus
+        uses: actions/cache/restore@v6.1.0
         with:
           path: corpus
           key: fuzz-${{ runner.os }}-corpus
@@ -71,3 +72,8 @@ jobs:
         run: |
           mkdir new-corpus
           ./build/*/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
+      - name: Save corpus
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: corpus
+          key: ${{ steps.restore-corpus.outputs.cache-primary-key }}
