@@ -302,14 +302,14 @@ a table representing an enum with the following constants: \
     - NOTE: order matters, applied left to right
   + inherit_codes: `true` (the default) will make a stage also provide all codes the previous stage provides.
     See the table below for an example.
-    | Stage    | Codes    | Inherit  | Resulting Codes |
-    | -------- | -------- | -------- | --------------- |
-    | 1        | a        | false    | a               |
-    | 2        | b        | false    | b               |
-    | 3        | c        | true     | b,c             |
-    | 4        | d        | true     | b,c,d           |
-    | 5        | e        | false    | e               |
-    | 6        | f        | true     | e,f             |
+    | Stage    | `codes`  | `inherit_codes` | Resulting Codes |
+    | -------- | -------- | --------------- | --------------- |
+    | 1        | a        | `false`         | a               |
+    | 2        | b        | `false`         | b               |
+    | 3        | c        | `true`          | b,c             |
+    | 4        | d        | `true`          | b,c,d           |
+    | 5        | e        | `false`         | e               |
+    | 6        | f        | `true`          | e,f             |
 
 * `"toggle"`:
   + only has on/off
