@@ -34,7 +34,10 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: corpus
-          key: fuzz-${{ runner.os }}-corpus
+          restore-keys: |
+            fuzz-${{ runner.os }}-corpus-
+            fuzz-${{ runner.os }}-corpus
+          key: fuzz-${{ runner.os }}-corpus-${{ github.run_number }}-${{ github.run_attempt }}  # should be unique and not exist
       - name: Update corpus
         run: |
           mkdir -p corpus
@@ -73,6 +76,7 @@ jobs:
           mkdir new-corpus
           ./build/*/fuzzer -merge=1 new-corpus corpus && rm -r corpus && mv new-corpus corpus
       - name: Save corpus
+        if: always()
         uses: actions/cache/save@v6.1.0
         with:
           path: corpus
