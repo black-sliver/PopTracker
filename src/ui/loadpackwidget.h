@@ -7,29 +7,45 @@
 #include "../uilib/vbox.h"
 #include "../uilib/scrollvbox.h"
 #include "../uilib/label.h"
+#include "../uilib/button.h"
+#include "../uilib/imagebutton.h"
+#include "../uilib/textfield.h"
 #include "../uilib/fontstore.h"
 #include "../core/signal.h"
 #include <SDL2/SDL_ttf.h>
 
 #include "../core/fs.h"
+#include "../core/pack.h"
+#include <vector>
 
 namespace Ui {
+
+class Window;
 
 class LoadPackWidget : public SimpleContainer {
 public:
     using FONT = FontStore::FONT;
-    LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore);
+    LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore, Window *window=nullptr);
     
     void update();
+    void focusFilter();
+    void releaseFilterFocus();
     
     Signal<const fs::path&, const std::string&> onPackSelected;
-    
+     
     virtual void setSize(Size size) override; // TODO: have more intelligent hbox instead
     
 protected:
     FontStore *_fontStore;
     FONT _font;
     FONT _smallFont;
+    
+    Window *_window;
+    VBox *_root = nullptr;
+    HBox *_filterBar = nullptr;
+    TextField *_filter = nullptr;
+    Button *_btnClearFilter = nullptr;
+    ImageButton *_btnOpenFolder = nullptr;
     
     ScrollVBox *_packs;
     VBox *_variants;
@@ -38,6 +54,9 @@ protected:
     Label *_curVariantLabel = nullptr;
     Label *_curPackHover = nullptr;
     bool _disableHoverSelect = false;
+    std::vector<Pack::Info> _availablePacks;
+
+    void refreshPacks();
 
     static constexpr Color PACK_BG_DEFAULT = {32, 32, 32};
     static constexpr Color PACK_BG_ACTIVE = {32, 128, 32};
@@ -50,4 +69,3 @@ protected:
 } // namespace Ui
 
 #endif /* _UI_LOADPACKWIDGET_H */
-

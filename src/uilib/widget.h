@@ -243,6 +243,8 @@ public:
     Signal<> onMouseCancel;
     Signal<int,int,unsigned> onScroll;
     Signal<> onDestroy;
+    Signal<int,int> onKeyDown;
+    Signal<const std::string&> onTextInput;
 
 #ifndef NDEBUG
     void dumpInfo() {    
