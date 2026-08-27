@@ -1,4 +1,7 @@
 #include "trackerview.h"
+#include <cerrno>
+#include <cmath>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <fmt/format.h>
@@ -25,6 +28,57 @@ namespace Ui {
 
 
 constexpr int TOOL_MAX_DISPLACEMENT=5; // can be off by this amount
+
+enum class MapMarkerHintAction {
+    INVALID,
+    CLEAR,
+    SET,
+};
+
+struct MapMarkerHint {
+    MapMarkerHintAction action = MapMarkerHintAction::INVALID;
+    std::string id;
+    float x = 0.0f;
+    float y = 0.0f;
+};
+
+static bool parseMapMarkerCoordinate(const std::string& field, float& result)
+{
+    if (field.empty())
+        return false;
+
+    errno = 0;
+    char* end = nullptr;
+    const float value = std::strtof(field.c_str(), &end);
+    if (end == field.c_str() || *end != '\0' || errno == ERANGE || !std::isfinite(value))
+        return false;
+
+    result = value;
+    return true;
+}
+
+static MapMarkerHint parseMapMarkerHint(const std::string& value)
+{
+    const size_t firstComma = value.find(',');
+    if (firstComma == std::string::npos)
+        return value.empty() ? MapMarkerHint{} : MapMarkerHint{MapMarkerHintAction::CLEAR, value};
+
+    const size_t secondComma = value.find(',', firstComma + 1);
+    if (firstComma == 0 || secondComma == std::string::npos ||
+            value.find(',', secondComma + 1) != std::string::npos) {
+        return {};
+    }
+
+    MapMarkerHint hint;
+    hint.id = value.substr(0, firstComma);
+    if (!parseMapMarkerCoordinate(value.substr(firstComma + 1, secondComma - firstComma - 1), hint.x) ||
+        !parseMapMarkerCoordinate(value.substr(secondComma + 1), hint.y)) {
+        return {};
+    }
+
+    hint.action = MapMarkerHintAction::SET;
+    return hint;
+}
 
 static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const std::list<std::string>& mods)
 {
@@ -938,6 +992,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 if (name == "reset") {
                     w->setZoom(1);
                     w->setPan(0, 0);
+                    w->clearMarkers();
                 } else if (name.rfind("Zoom ", 0) == 0 &&
                         (name.substr(5) == mapname || name.substr(5) == numberedMapName)) {
                     size_t next = 0;
@@ -953,6 +1008,14 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                         if (next) {
                             w->setPanCenter(panCenterX, panCenterY);
                         }
+                    }
+                } else if (name.rfind("MapMarker ", 0) == 0 &&
+                        (name.substr(10) == mapname || name.substr(10) == numberedMapName)) {
+                    const MapMarkerHint hint = parseMapMarkerHint(value);
+                    if (hint.action == MapMarkerHintAction::SET) {
+                        w->setMarker(hint.id, hint.x, hint.y);
+                    } else if (hint.action == MapMarkerHintAction::CLEAR) {
+                        w->clearMarker(hint.id);
                     }
                 }
             }};

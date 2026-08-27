@@ -9,6 +9,8 @@ namespace Ui {
 static constexpr float ZOOM_IN_FACTOR = 1.25f;
 static constexpr float ZOOM_OUT_FACTOR = 0.8f;
 static constexpr float MAX_ZOOM = 1000.0f;
+static constexpr int MARKER_SIZE = 12;
+static constexpr int MARKER_BORDER_SIZE = 2;
 
 #define _DEFAULT_STATE_COLORS { \
     /* done */ \
@@ -390,6 +392,17 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
         }
     }
 
+    const Color markerColor = {0xff, 0xff, 0xff, 0xff};
+    for (const auto& [id, marker] : _markers) {
+        (void)id;
+        float centerX, centerY;
+        calculateImagePointScreenPosition(marker.x, marker.y, srcRect, dstRect, centerX, centerY);
+        const int innerX = static_cast<int>(centerX - MARKER_SIZE / 2.0f);
+        const int innerY = static_cast<int>(centerY - MARKER_SIZE / 2.0f);
+        drawDiamond(renderer, {innerX, innerY}, {MARKER_SIZE, MARKER_SIZE}, MARKER_BORDER_SIZE,
+            markerColor, markerColor, markerColor, markerColor);
+    }
+
     // Restore clipping
     SDL_RenderSetClipRect(renderer, nullptr);
 }
@@ -472,6 +485,16 @@ void MapWidget::calculateSrcAndDst(const int offX, const int offY, const bool cl
     };
 }
 
+void MapWidget::calculateImagePointScreenPosition(const float x, const float y, const SDL_Rect& srcRect,
+    const SDL_FRect& dstRect, float& screenX, float& screenY)
+{
+    const float scale = dstRect.w / static_cast<float>(srcRect.w);
+    screenX = static_cast<float>(static_cast<int>(
+        (x - static_cast<float>(srcRect.x)) * scale)) + dstRect.x;
+    screenY = static_cast<float>(static_cast<int>(
+        (y - static_cast<float>(srcRect.y)) * scale)) + dstRect.y;
+}
+
 void MapWidget::calculateLocationScreenRect(const Point& pos, const SDL_Rect& srcRect, const SDL_FRect& dstRect,
     const float baseScale, int& innerX, int& innerY, int& innerW, int& innerH, int& borderSize)
 {
@@ -485,9 +508,11 @@ void MapWidget::calculateLocationScreenRect(const Point& pos, const SDL_Rect& sr
         borderSize = 1;
 
     // Calculate screen position based on image position
-    const float scale = static_cast<float>(dstRect.w) / static_cast<float>(srcRect.w);
-    innerX = static_cast<int>(static_cast<float>(pos.x - srcRect.x) * scale) + dstRect.x - innerW / 2;
-    innerY = static_cast<int>(static_cast<float>(pos.y - srcRect.y) * scale) + dstRect.y - innerH / 2;
+    float centerX, centerY;
+    calculateImagePointScreenPosition(static_cast<float>(pos.x), static_cast<float>(pos.y), srcRect, dstRect,
+        centerX, centerY);
+    innerX = static_cast<int>(centerX - innerW / 2);
+    innerY = static_cast<int>(centerY - innerH / 2);
 }
 
 void MapWidget::addLocation(const std::string& id, Point&& point)
@@ -514,6 +539,21 @@ void MapWidget::setLocationHighlight(const std::string& id, Highlight highlight,
     if (it != _locations.end() && it->second.pos.size() >= n) {
         it->second.pos[n].highlight = highlight;
     }
+}
+
+void MapWidget::setMarker(const std::string& id, const float x, const float y)
+{
+    _markers[id] = {x, y};
+}
+
+void MapWidget::clearMarker(const std::string& id)
+{
+    _markers.erase(id);
+}
+
+void MapWidget::clearMarkers()
+{
+    _markers.clear();
 }
 
 std::tuple<float, float> MapWidget::getPanCenter() const

@@ -642,3 +642,13 @@ The following hint names are defined:
 * `"Zoom <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0
 * `"Pan <MapName>"`: value = `"<center_x>,<center_y>"`, pan map to put specific pixel in the center, since 0.34.0
 * `"Pan <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0
+* `"MapMarker <MapName>"`: value = `"<id>,<x>,<y>"` sets or moves the marker with id at the
+  image-space pixel coordinates x,y; value = `"<id>"` removes that marker. The marker remains a fixed
+  12-by-12 screen pixels while its center follows the map's zoom and pan, available since 0.36.0.
+* `"MapMarker <MapName>[<n>]"`: same as above but for the nth instance starting at 0. Without `[<n>]`,
+  the hint updates every visible instance of the named map, available since 0.36.0.
+
+Marker coordinates may be fractional or outside the map image. Markers are transient UI state: they are
+cleared by `reset`, are not saved, and must be republished after a layout rebuild. Empty ids, ids containing
+commas, and values that are not exactly `"<id>"` or `"<id>,<x>,<y>"` with finite numeric coordinates are
+ignored without changing existing markers, available since 0.36.0.

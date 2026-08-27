@@ -32,10 +32,19 @@ public:
         std::vector<Point> pos;
     };
 
+    struct Marker {
+        float x = 0.0f;
+        float y = 0.0f;
+    };
+
     // TODO: enum location state
     void addLocation(const std::string& name, Point&& point);
     void setLocationState(const std::string& name, int state, size_t n);
     void setLocationHighlight(const std::string& name, Highlight highlight, size_t n);
+
+    void setMarker(const std::string& id, float x, float y);
+    void clearMarker(const std::string& id);
+    void clearMarkers();
 
     // FIXME: this does not work if name is not unique
     Signal<const std::string&,int,int> onLocationHover; // FIXME: we should provide absolute AND relative mouse position through the Event stack
@@ -62,6 +71,7 @@ protected:
     int _absX=0;
     int _absY=0;
     std::map<std::string, Location> _locations;
+    std::map<std::string, Marker> _markers;
     std::optional<std::string> _locationHover; // TODO: store iterator instead of string?
 
     bool _hideClearedLocations = false;
@@ -89,6 +99,8 @@ private:
     /// Calling while .width or .height of size or autoSize is <1 is undefined.
     void calculateSrcAndDst(int offX, int offY, bool clip, float& baseScale, SDL_Rect& srcRect,
         SDL_FRect& dstRect) const;
+    static void calculateImagePointScreenPosition(float x, float y, const SDL_Rect& srcRect,
+        const SDL_FRect& dstRect, float& screenX, float& screenY);
     static void calculateLocationScreenRect(const Point& pos, const SDL_Rect& srcRect, const SDL_FRect& dstRect,
         float baseScale, int& innerX, int& innerY, int& innerW, int& innerH, int& borderSize);
 };
