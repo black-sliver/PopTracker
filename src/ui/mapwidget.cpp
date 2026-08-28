@@ -392,13 +392,13 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
         }
     }
 
-    const Color markerColor = {0xff, 0xff, 0xff, 0xff};
     for (const auto& [id, marker] : _markers) {
         (void)id;
         float centerX, centerY;
         calculateImagePointScreenPosition(marker.x, marker.y, srcRect, dstRect, centerX, centerY);
         const int innerX = static_cast<int>(centerX - MARKER_SIZE / 2.0f);
         const int innerY = static_cast<int>(centerY - MARKER_SIZE / 2.0f);
+        const Color& markerColor = marker.appearance.color;
         drawDiamond(renderer, {innerX, innerY}, {MARKER_SIZE, MARKER_SIZE}, MARKER_BORDER_SIZE,
             markerColor, markerColor, markerColor, markerColor);
     }
@@ -543,7 +543,12 @@ void MapWidget::setLocationHighlight(const std::string& id, Highlight highlight,
 
 void MapWidget::setMarker(const std::string& id, const float x, const float y)
 {
-    _markers[id] = {x, y};
+    setMarker(id, x, y, {});
+}
+
+void MapWidget::setMarker(const std::string& id, const float x, const float y, MarkerAppearance appearance)
+{
+    _markers[id] = {x, y, appearance};
 }
 
 void MapWidget::clearMarker(const std::string& id)

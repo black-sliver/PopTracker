@@ -642,13 +642,48 @@ The following hint names are defined:
 * `"Zoom <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0
 * `"Pan <MapName>"`: value = `"<center_x>,<center_y>"`, pan map to put specific pixel in the center, since 0.34.0
 * `"Pan <MapName>[<n>]"`: same as above but for the nth instance starting at 0, since 0.34.0
-* `"MapMarker <MapName>"`: value = `"<id>,<x>,<y>"` sets or moves the marker with id at the
-  image-space pixel coordinates x,y; value = `"<id>"` removes that marker. The marker remains a fixed
-  12-by-12 screen pixels while its center follows the map's zoom and pan, available since 0.36.0.
+* `"MapMarker <MapName>"`: value is a JSON object that sets, moves, or removes a transient marker. The
+  marker remains a fixed 12-by-12 screen pixels while its center follows the map's zoom and pan, available
+  since 0.36.0.
 * `"MapMarker <MapName>[<n>]"`: same as above but for the nth instance starting at 0. Without `[<n>]`,
   the hint updates every visible instance of the named map, available since 0.36.0.
 
-Marker coordinates may be fractional or outside the map image. Markers are transient UI state: they are
-cleared by `reset`, are not saved, and must be republished after a layout rebuild. Empty ids, ids containing
-commas, and values that are not exactly `"<id>"` or `"<id>,<x>,<y>"` with finite numeric coordinates are
-ignored without changing existing markers, available since 0.36.0.
+To set or replace a marker, provide an id and finite image-space coordinates:
+
+```json
+{
+  "id": "player",
+  "x": 414.5,
+  "y": 200.25
+}
+```
+
+The default appearance is a white diamond with a black border. A diamond may specify a fill color:
+
+```json
+{
+  "id": "player",
+  "x": 414.5,
+  "y": 200.25,
+  "appearance": {
+    "type": "diamond",
+    "color": "#ff0000"
+  }
+}
+```
+
+Colors are `#RRGGBB` or `#AARRGGBB`; the eight-digit form uses alpha first. To remove one marker, use an
+explicit removal object:
+
+```json
+{
+  "id": "player",
+  "remove": true
+}
+```
+
+Marker ids must be non-empty strings. Set operations require both `x` and `y`, and `appearance`, when
+provided, must contain `"type": "diamond"` with an optional valid color. Duplicate or unknown fields, wrong
+field types, non-finite or out-of-range coordinates, unsupported appearances, and malformed or ambiguous
+objects are ignored without changing existing marker state. Markers are transient UI state: they are cleared by
+`reset`, are not saved, and must be republished after a layout rebuild.

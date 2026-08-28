@@ -32,9 +32,19 @@ public:
         std::vector<Point> pos;
     };
 
+    struct MarkerAppearance {
+        enum class Type {
+            DIAMOND,
+        };
+
+        Type type = Type::DIAMOND;
+        Color color = {0xff, 0xff, 0xff, 0xff};
+    };
+
     struct Marker {
         float x = 0.0f;
         float y = 0.0f;
+        MarkerAppearance appearance;
     };
 
     // TODO: enum location state
@@ -43,6 +53,7 @@ public:
     void setLocationHighlight(const std::string& name, Highlight highlight, size_t n);
 
     void setMarker(const std::string& id, float x, float y);
+    void setMarker(const std::string& id, float x, float y, MarkerAppearance appearance);
     void clearMarker(const std::string& id);
     void clearMarkers();
 

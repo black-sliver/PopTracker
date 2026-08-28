@@ -173,7 +173,7 @@ TEST(MapWidgetMarker, WidgetClipContainsOffViewportMarker)
     EXPECT_TRUE(output.render(widget) == baseline);
 }
 
-TEST(TrackerViewMapMarkerHint, ParsesRoutesClearsAndResetsWithoutSaving)
+TEST(TrackerViewMapMarkerHint, ParsesJsonRoutesRemovesAndResetsWithoutSaving)
 {
     (void)getDefaultFont();
     lua_State* L = luaL_newstate();
@@ -199,29 +199,71 @@ TEST(TrackerViewMapMarkerHint, ParsesRoutesClearsAndResetsWithoutSaving)
         SoftwareRenderer output;
         const std::string baseline = output.render(*map);
 
-        tracker.UiHint("MapMarker map", "player,414.5,200.25");
+        const std::string defaultMarker = R"({"id":"player","x":414.5,"y":200.25})";
+        const std::string redMarker = R"({"id":"player","x":414.5,"y":200.25,"appearance":{"type":"diamond","color":"#ff0000"}})";
+        const std::string alphaMarker = R"({"id":"player","x":414.5,"y":200.25,"appearance":{"type":"diamond","color":"#8000ff00"}})";
+
+        tracker.UiHint("MapMarker map", defaultMarker);
+        const std::string defaultMarked = output.render(*map);
+        EXPECT_FALSE(defaultMarked == baseline);
+
+        tracker.UiHint("MapMarker map", redMarker);
         const std::string marked = output.render(*map);
-        EXPECT_FALSE(marked == baseline);
+        EXPECT_FALSE(marked == defaultMarked);
+
+        tracker.UiHint("MapMarker map", alphaMarker);
+        const std::string alphaMarked = output.render(*map);
+        EXPECT_FALSE(alphaMarked == marked);
+
+        // Set operations completely replace the appearance rather than retaining it.
+        tracker.UiHint("MapMarker map", defaultMarker);
+        EXPECT_TRUE(output.render(*map) == defaultMarked);
+        tracker.UiHint("MapMarker map", redMarker);
+        EXPECT_TRUE(output.render(*map) == marked);
+
         const auto savedHints = view.getHints();
         EXPECT_TRUE(std::none_of(savedHints.begin(), savedHints.end(), [](const auto& hint) {
             return hint.first.rfind("MapMarker ", 0) == 0;
         }));
 
         const std::vector<std::string> invalidValues = {
-            "", ",1,2", "player,1", "player,1,2,3", "player,1x,2", "player,1,2x",
-            "player,NaN,2", "player,inf,2", "player,-inf,2",
+            "", "not JSON", "[]", "null", "{}",
+            R"({"id":"","x":1,"y":2})", R"({"id":1,"x":1,"y":2})",
+            R"({"id":"player","x":1})", R"({"id":"player","y":2})",
+            R"({"id":"player","x":"1","y":2})", R"({"id":"player","x":true,"y":2})",
+            R"({"id":"player","x":null,"y":2})", R"({"id":"player","x":[],"y":2})",
+            R"({"id":"player","x":1,"y":"2"})", R"({"id":"player","x":1,"y":false})",
+            R"({"id":"player","x":NaN,"y":2})", R"({"id":"player","x":Infinity,"y":2})",
+            R"({"id":"player","x":-Infinity,"y":2})", R"({"id":"player","x":3.5e38,"y":2})",
+            R"({"id":"player","x":1,"y":3.5e38})", R"({"id":"player","x":1e400,"y":2})",
+            R"({"id":"player","remove":false})", R"({"id":"player","remove":"true"})",
+            R"({"id":"player","remove":true,"x":1,"y":2})", R"({"id":"player","extra":true,"x":1,"y":2})",
+            R"({"id":"player","x":1,"y":2,"label":"not yet supported"})",
+            R"({"id":"player","id":"other","x":1,"y":2})",
+            R"({"id":"player","x":1,"y":2,"appearance":null})",
+            R"({"id":"player","x":1,"y":2,"appearance":{}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":1}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"circle"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":1}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":"ff0000"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":"#f00"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":"#ff000"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":"#ff000g"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","type":"diamond"}})",
+            R"({"id":"player","x":1,"y":2,"appearance":{"type":"diamond","color":"#12ff0000","path":"images/player.png"}})",
         };
         for (const auto& value : invalidValues) {
-            tracker.UiHint("MapMarker map", value);
+            EXPECT_NO_THROW(tracker.UiHint("MapMarker map", value));
             EXPECT_TRUE(output.render(*map) == marked) << value;
         }
 
-        tracker.UiHint("MapMarker other", "player");
+        tracker.UiHint("MapMarker other", R"({"id":"player","remove":true})");
         EXPECT_TRUE(output.render(*map) == marked);
-        tracker.UiHint("MapMarker map[0]", "player");
+        tracker.UiHint("MapMarker map[0]", R"({"id":"player","remove":true})");
         EXPECT_TRUE(output.render(*map) == baseline);
 
-        tracker.UiHint("MapMarker map[0]", "player,-4.5,3.25");
+        // Coordinates remain valid when fractional or outside the map image.
+        tracker.UiHint("MapMarker map[0]", R"({"id":"player","x":-4.5,"y":3.25})");
         EXPECT_FALSE(output.render(*map) == baseline);
         tracker.UiHint("reset", "reset");
         EXPECT_TRUE(output.render(*map) == baseline);
@@ -258,12 +300,12 @@ TEST(TrackerViewMapMarkerHint, UnnumberedTargetsAllAndNumberedTargetsOneInstance
         const std::string firstBaseline = output.render(*first);
         const std::string secondBaseline = output.render(*second);
 
-        tracker.UiHint("MapMarker map", "player,414,200");
+        tracker.UiHint("MapMarker map", R"({"id":"player","x":414,"y":200})");
         EXPECT_FALSE(output.render(*first) == firstBaseline);
         EXPECT_FALSE(output.render(*second) == secondBaseline);
 
-        tracker.UiHint("MapMarker map", "player");
-        tracker.UiHint("MapMarker map[0]", "player,414,200");
+        tracker.UiHint("MapMarker map", R"({"id":"player","remove":true})");
+        tracker.UiHint("MapMarker map[0]", R"({"id":"player","x":414,"y":200})");
         EXPECT_FALSE(output.render(*first) == firstBaseline);
         EXPECT_TRUE(output.render(*second) == secondBaseline);
     }
