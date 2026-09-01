@@ -151,5 +151,14 @@
         "versions_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/CloverPit.png",
         "description":  "The CloverPit Archipelago PopTracker Pack."
+    },
+    "ff8_archipelago": {
+        "name": "Final Fantasy VIII (Archipelago)",
+        "author": "ff8_arch",
+        "platform": "pc",
+        "homepage": "https://github.com/wilsonao/ff8_arch",
+        "versions_url": "https://raw.githubusercontent.com/wilsonao/ff8_arch/main/tracker/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/wilsonao/ff8_arch/main/tracker/ff8_ap_tracker/images/gf_ifrit.png",
+        "description":  "Map + item tracker for the Final Fantasy VIII (Steam 2013) Archipelago world, with AP autotracking."
     }
 }
