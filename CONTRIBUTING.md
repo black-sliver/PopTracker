@@ -39,9 +39,9 @@ or use clang + gcc-compat for dev (and g++ only in CI).
   - `m_` for member variables is not required: just `_` is fine (read below)
   - `s_` for static members is not required
   - getters start with `get` - it would take a major refactor to change them all
-- include guards are `_FOLDER_FOLDER_FILENAME_H`,
-  closing `#endif` should have the name as comment
 - `#pragma once` is preferred over include guards for new code
+- when using include guards, they are named `_FOLDER_FOLDER_FILENAME_H`,
+  closing `#endif` should have the name as comment
 - camelCase
 - protected and private member variables start with `_`
 - local variables start with a lower case letter
@@ -51,7 +51,7 @@ or use clang + gcc-compat for dev (and g++ only in CI).
 - public member variables should only be used for simple structs - use getters/setters otherwise
 - getters start with `get`, setters with `set`
 - class names start with a capital letter
-- one exception to the above is the Lua Interface, which uses `T::Lua_CamelCase`
+- one exception to the above is the Lua Interface, which uses `T::Lua_PascalCase`
 - loops/iterations use `auto :` or `auto& :` where possible
 - use `std::string` or `std::string_view` (we target c++17)
 - there are a ton of violations, but new code should still try to check all the boxes
@@ -82,8 +82,8 @@ Use `diff -E -b --color=always -u ...` to compare upstream versions if style is 
   so we don't aim for `-fno-exceptions` at the moment
 - try to write fast code by default
 - assume threads are not cheap
-- use private (not protected) where possible to avoid going through vtables
-- implement small functions inline in header files for platforms where LTO does not work correctly
+- use private (not protected) where possible and avoid going through vtables
+- implement small functions inline in header files for platforms where LTO does not work properly
 
 ### Static Analysis
 
