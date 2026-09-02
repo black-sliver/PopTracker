@@ -10,7 +10,7 @@ We only use `make` at the moment. Feel free to create your own project/build set
 Unless we decide to include source to build all dependencies, they'll have to be installed system-wide or copied to
 win32-lib/lib. Static libs depend on your toolchain, so they are not included.
 
-- Lua is built from a submodule
+- Lua is built from a git submodule
 - Header-only libraries are included
 - For other dependencies:
     - Linux: use your package manager
