@@ -1,7 +1,12 @@
 name: Native Code Static Analysis
 
 on:
+  workflow_dispatch:
   push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
     paths:
       - '**.c'
       - '**.cc'
