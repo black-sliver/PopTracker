@@ -11,6 +11,8 @@
 #define APP_VERSION_EXTRA     "@VERSION_EXTRA@"
 /// set to 1 for any pre-release or 0 for release and post-release
 #define APP_VERSION_PRERELEASE @VERSION_PRERELEASE_FLAG@
+/// set to git commit hash or "dev" when unavailable; TODO: set to "" for (official) release tags
+extern const char* APP_VCS_TAG;
 
 #ifndef XSTR
 #define XSTR(s) STR(s)

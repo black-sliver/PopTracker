@@ -39,15 +39,14 @@ project(
 # TODO:   build common_src only once (into shared dependency?) when possible
 
 # TODO: Other stuff
-# TODO:   update build and release github action workflows
+# TODO:   update build, release and update-cacert github action workflows
+# TODO:   Makefile back compat: dist: run meson install
 
 # TODO: New stuff
-# TODO:   vcs tag
-# TODO:   write back-compat Makefile
 # TODO:   -Wshadow, -Wconversion
-# TODO:   ccache in CI
+# TODO:   ccache in CI?
 # TODO:   -ftrapv in fuzzer?
-# TODO:   switch to meson dist for _full-source.tar.xz ?
+# TODO:   switch to meson dist for _full-source.tar.xz?
 
 static_exe = false  # TODO: add a build option?
 use_boost_filesystem = false  # TODO: add a build option?
@@ -144,11 +143,6 @@ common_include_dirs = [include_directories(
 embed_lib_src = files(
     'lib/fmt/src/format.cc',
 )
-
-main_exe_src = common_src + embed_lib_src + files([
-  'src/main.cpp',
-  'src/app.cpp',
-])
 
 # defines
 
@@ -265,6 +259,10 @@ versions_h = configure_file(
     install : false,
 )
 common_include_dirs += [include_directories('.')]  # why does this work?!
+# vcs_tag can not be in version.h because generation would run in parallel to compilation
+# TODO: set VCS_TAS to an empty string when clean and HEAD is a release tag
+version_cpp = vcs_tag(input : 'src/version.cpp.in', output : 'version.cpp', fallback : 'dev')
+common_src += [version_cpp]  # TODO: only add to main_exe_src?
 
 # platform and architecture specific configuration
 
@@ -349,6 +347,11 @@ endif
 
 main_exe_name = meson.project_name().to_lower()
 main_exe_description = meson.project_name()
+
+main_exe_src = common_src + embed_lib_src + files([
+    'src/main.cpp',
+    'src/app.cpp',
+])
 
 main_exe_include_dirs = common_include_dirs
 

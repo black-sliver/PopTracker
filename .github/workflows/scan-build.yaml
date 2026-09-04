@@ -1,7 +1,12 @@
 name: Native Code Static Analysis
 
 on:
+  workflow_dispatch:
   push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
     paths:
       - '**.c'
       - '**.cc'
@@ -11,6 +16,8 @@ on:
       - '**.hh'
       - '**.hpp'
       - '**.ipp'
+      - '**.h.in'
+      - '**/meson.build'
       - '.github/workflows/scan-build.yaml'
   pull_request:
     paths:
@@ -22,6 +29,8 @@ on:
       - '**.hh'
       - '**.hpp'
       - '**.ipp'
+      - '**.h.in'
+      - '**/meson.build'
       - '.github/workflows/scan-build.yaml'
 
 concurrency:

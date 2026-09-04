@@ -167,8 +167,10 @@ jobs:
       with:
         name: ${{ matrix.os }}_failure
         path: |
-          build/meson-logs/testlog.txt
-          build/poptracker.exe.manifest
+          build/meson-logs/**
+          build/*.h
+          build/*.json
+          build/*.manifest
         if-no-files-found: ignore
         compression-level: 9
 
@@ -192,6 +194,8 @@ jobs:
         name: nix_failure
         path: |
           build/meson-logs/**
-          build/compile_commands.json
+          build/*.h
+          build/*.json
+          build/*.manifest
         if-no-files-found: ignore
         compression-level: 9

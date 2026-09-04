@@ -13,7 +13,7 @@ bench_exe_include_dirs = main_exe_include_dirs
 bench_exe_deps = common_deps + [sltbench_dep]
 
 bench_exe = executable(
-    'poptracker-bench',
+    'poptracker-benchmark',
     sources : bench_exe_src,
     dependencies : bench_exe_deps,
     include_directories : bench_exe_include_dirs,
