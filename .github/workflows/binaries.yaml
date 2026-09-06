@@ -395,6 +395,6 @@ jobs:
     - name: Store DEBUG
       uses: actions/upload-artifact@v7.0.1
       with:
-        path: dist/poptracker-win64-debug.zip
+        path: dist/poptracker-${{ env.UNAME }}-debug.zip
         archive: false
         if-no-files-found: error
