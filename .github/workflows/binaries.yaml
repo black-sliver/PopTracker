@@ -227,13 +227,6 @@ jobs:
         otool -L ./poptracker
         ./poptracker --version
         ./poptracker --list-packs
-    - name: Attest Build and AppBundle
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
-      with:
-        subject-path: |
-          build/${{ env.UNAME }}/poptracker.app/Contents/MacOS/poptracker
-          dist/*
     - name: Package app bundle for universal merge
       run: |
         # tar (rather than uploading the .app directly) preserves the bundle's
