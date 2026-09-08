@@ -1115,7 +1115,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
     }
     else if (node.getType() == "layout") {
         _layoutRefs.push_back(node.getKey());
-        return addLayoutNode(container, _tracker->getLayout(node.getKey()), depth+1);
+        if (_tracker->hasLayout(node.getKey())) {
+            return addLayoutNode(container, _tracker->getLayout(node.getKey()), depth+1);
+        }
+        else {
+            fprintf(stderr, "Missing layout for: %s\n", node.getKey().c_str());
+            return false;
+        }
     }
     else if (node.getType() == "text") {
         Label *w = new Label(node.getPosition().x, node.getPosition().y, 0, 0, _font, node.getText());
