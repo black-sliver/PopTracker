@@ -62,6 +62,27 @@ build() {
     cd ../../..
 }
 
+install() {
+    TARGET="$1"
+    ARCH="$2"
+    BUILD="build/$TARGET"
+    DST="../win32-lib/$ARCH"
+    echo "$BUILD/... -> $DST"
+    mkdir -p "$DST"/include/SDL2
+    mkdir -p "$DST"/lib
+    cp "$SDL_SRC"/include/*  "$DST/include/SDL2/"
+    cp "$IMAGE_SRC"/include/*  "$DST/include/SDL2/"
+    cp "$TTF_SRC"/*.h  "$DST/include/SDL2/"
+    cp "$BUILD"/sdl/include/* "$DST/include/SDL2/"
+    cp "$BUILD"/sdl/build/.libs/* "$DST/lib/"
+    cp "$BUILD"/sdl/build/*.la "$DST/lib/"
+    cp "$BUILD"/sdl2_image/.libs/* "$DST/lib/"
+    cp "$BUILD"/sdl2_image/*.la "$DST/lib/"
+    cp "$BUILD"/sdl2_ttf/.libs/* "$DST/lib/"
+    cp "$BUILD"/sdl2_ttf/*.la "$DST/lib/"
+    ls "$DST"/*
+}
+
 build $SDL_SRC "sdl" $TARGET_WIN64  "$SDL_FEATURE_FLAGS"
 build $IMAGE_SRC "sdl2_image" $TARGET_WIN64 "$IMAGE_FEATURE_FLAGS"
 build $TTF_SRC "sdl2_ttf" $TARGET_WIN64 "$TTF_FEATURE_FLAGS"
@@ -70,3 +91,5 @@ build $SDL_SRC "sdl" $TARGET_WIN32 "$SDL_FEATURE_FLAGS"
 build $IMAGE_SRC "sdl2_image" $TARGET_WIN32 "$IMAGE_FEATURE_FLAGS"
 build $TTF_SRC "sdl2_ttf" $TARGET_WIN32 "$TTF_FEATURE_FLAGS"
 
+install $TARGET_WIN32 i686
+install $TARGET_WIN64 x86_64
