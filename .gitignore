@@ -8,6 +8,10 @@ dist/
 *.AppImage
 *.AppImage.zsync
 
+# exclude AppImage tools
+/appimage-builder
+/appimagetool
+
 # exclude cache files
 *~
 .DS_Store
