@@ -358,6 +358,7 @@ public:
         return _ap->LocationScouts(locations, createAsHint);
     }
 
+    /// Returns true if message was sent to the server
     bool HintItem(const std::string& item)
     {
         if (!_ap)
@@ -365,6 +366,7 @@ public:
         return _ap->Say("!hint " + item);
     }
 
+    /// Returns true if message was sent to the server
     bool HintLocation(const std::string& location)
     {
         if (!_ap)
