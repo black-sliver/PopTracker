@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=PopTracker
+Exec=poptracker %f
+Icon=poptracker
+Type=Application
+Terminal=false
+Categories=Utility;

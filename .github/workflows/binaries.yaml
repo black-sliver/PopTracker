@@ -48,40 +48,31 @@ jobs:
           - ubuntu-22.04-arm
 
     steps:
-    - name: Set env
-      shell: bash
-      run: |
-        OS=`uname -s | tr A-Z a-z`
-        ARCH=`uname -m`
-        echo "OS=$OS" >> $GITHUB_ENV
-        echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip libgtest-dev libgmock-dev
+        sudo apt-get install coreutils build-essential meson jq p7zip \
+          libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
     - name: Build RELEASE
-      run: make native CONF=RELEASE -j4
-    - name: Run tests
-      run: make test CONF=RELEASE
-    - name: Get version
       run: |
-        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
-        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
-        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
-        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
-    - name: Build DIST # this builds a release ZIP, maybe .deb in the future
-      run: make CONF=DIST
+        meson setup build
+        meson compile -C build
+    - name: Run tests
+      run: |
+        meson test -C build
+    - name: Build DIST # this builds a .tar.xz, maybe .deb in the future
+      run: |
+        meson compile -C build package
     - name: Attest Build and Archive
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          build/${{ env.UNAME }}/poptracker
+          build/poptracker
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v7.0.1
@@ -97,16 +88,15 @@ jobs:
     - name: Set env
       shell: bash
       run: |
-        OS=`uname -s | tr A-Z a-z`
-        ARCH=`uname -m`
-        echo "OS=$OS" >> $GITHUB_ENV
+        # force AppImage ARCH to x86_64 to match AppImage runtime and AppRun
+        ARCH=x86_64
         echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       timeout-minutes: 5
       run: |
         sudo apt-get update -y -qq
-        sudo apt-get install coreutils build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev p7zip wget libgtest-dev libgmock-dev
+        sudo apt-get install coreutils build-essential meson jq p7zip wget \
+          libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libgtest-dev libgmock-dev
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
@@ -165,13 +155,19 @@ jobs:
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          appimage-build/${{ env.UNAME }}/poptracker
+          appimage-build/build/poptracker
           *.AppImage*
     - name: Store AppImage
       uses: actions/upload-artifact@v7.0.1
       with:
-        name: AppImage-${{ env.ARCH }}
-        path: "*.AppImage*"
+        path: "*.AppImage"
+        archive: false
+        if-no-files-found: error
+    - name: Store zsync
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        path: "*.AppImage.zsync"
+        archive: false
         if-no-files-found: error
 
   build-macos:
@@ -187,16 +183,15 @@ jobs:
     - name: Set env
       shell: bash
       run: |
-        OS=darwin
         ARCH=`uname -m`
-        echo "OS=$OS" >> $GITHUB_ENV
         echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "UNAME=$OS-$ARCH" >> $GITHUB_ENV
     - name: Install dependencies
       timeout-minutes: 5
       run: |
-        brew install coreutils SDL2 sdl2_ttf sdl2_image openssl@3.0 automake googletest || true
+        brew install coreutils automake meson jq \
+          SDL2 sdl2_ttf sdl2_image openssl@3.0 googletest || true
         # required, but pre-installed: libtool autoconf
+        brew link --overwrite openssl@3.0
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
@@ -204,47 +199,40 @@ jobs:
       if: ${{ github.event_name != 'workflow_dispatch' }}
       uses: actions/cache@v6.1.0
       with:
-        key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.cache-name }}-${{ hashFiles('macosx/*.sh') }}
+        key: libs-${{ runner.os }}-${{ runner.arch }}--${{ hashFiles('macosx/*.sh') }}
         path: |
           macosx/build
           macosx/libs
     - name: Build RELEASE
-      run: make native CONF=RELEASE -j4
-    - name: Run tests
-      run: make test CONF=RELEASE
-    - name: Get version
       run: |
-        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
-        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
-        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
-        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
+        meson setup build
+        meson compile -C build
+    - name: Run tests
+      run: |
+        meson test -C build
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
-      run: make CONF=DIST
+      run: |
+        meson compile -C build package
     - name: Check DIST
       run: |
-        du -sh ./build/${{ env.UNAME }}/poptracker.app
-        cd ./build/${{ env.UNAME }}/poptracker.app/Contents/MacOS
+        du -sh ./build/poptracker.app
+        cd ./build/poptracker.app/Contents/MacOS
         otool -L ./poptracker
         ./poptracker --version
         ./poptracker --list-packs
-    - name: Attest Build and AppBundle
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
-      with:
-        subject-path: |
-          build/${{ env.UNAME }}/poptracker.app/Contents/MacOS/poptracker
-          dist/*
     - name: Package app bundle for universal merge
       run: |
         # tar (rather than uploading the .app directly) preserves the bundle's
         # symlinks and permissions across the artifact round-trip.
-        tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build/${{ env.UNAME }}" poptracker.app
+        tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build" poptracker.app
     - name: Upload per-arch app bundle
       uses: actions/upload-artifact@v7.0.1
       with:
         name: macos-app-${{ env.ARCH }}
         path: poptracker-${{ env.ARCH }}.tar.gz
         if-no-files-found: error
+        retention-days: 1  # the minimum; merging into universal should run immediately after
+        compression-level: 0  # already compressed
 
   build-macos-universal:
     needs: build-macos
@@ -314,6 +302,9 @@ jobs:
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
+          mingw64/mingw-w64-x86_64-meson
+          mingw64/mingw-w64-x86_64-jq
+          mingw64/mingw-w64-x86_64-ntldd
           p7zip
           wget
           mingw-w64-x86_64-advancecomp
@@ -324,7 +315,7 @@ jobs:
       if: ${{ github.event_name != 'workflow_dispatch' }}
       uses: actions/cache@v6.1.0
       with:
-        key: libs-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('win32/*.sh') }}
+        key: libs-${{ runner.os }}-${{ runner.arch }}--${{ hashFiles('win32/*.sh') }}
         path: |
           win32-lib
           win32-lib-src
@@ -340,17 +331,19 @@ jobs:
           pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
     - name: Build RELEASE
       shell: msys2 {0}
-      run: make native CONF=RELEASE -j4
+      run: |
+        GCC_ARCH=$(gcc -dumpmachine | sed "s/-.*$//")
+        meson setup build \
+          -Dcpp_args="-I$(realpath ./win32-lib/$GCC_ARCH/include)" \
+          -Dcpp_link_args="-L$(realpath ./win32-lib/$GCC_ARCH/lib) -lpng -ljpeg -limm32 -lwinmm -lversion"
+        meson compile -v -C build
+    - name: List linked libraries
+      shell: msys2 {0}
+      run: ntldd build/poptracker.exe  # TODO: warn if not static
     - name: Run tests
       shell: msys2 {0}
-      run: make test CONF=RELEASE
-    - name: Get version
-      shell: msys2 {0}
       run: |
-        POP_VERSION=`./build/${{ env.UNAME }}/poptracker --version`
-        POP_NAME=poptracker_`./build/${{ env.UNAME }}/poptracker --version | tr '.' '-'`
-        echo "POP_VERSION=$POP_VERSION" >> $GITHUB_ENV
-        echo "POP_NAME=$POP_NAME" >> $GITHUB_ENV
+        meson test -C build
     - name: Download Updater
       shell: msys2 {0}
       env:
@@ -362,16 +355,17 @@ jobs:
         wget -O updater.zip \
           "https://github.com/black-sliver/PopUpdater/releases/download/${UPDATER_VERSION}/PopUpdater_${UPDATER_VERSION}_${UPDATER_OS}-${UPDATER_ARCH}.zip"
         echo "${UPDATER_ZIP_HASH} updater.zip" | sha256sum -c
-        7z e -obuild/win64 updater.zip
+        7z e -obuild/ updater.zip
     - name: Build DIST # this builds a release ZIP
       shell: msys2 {0}
-      run: make CONF=DIST
+      run: |
+        meson compile -C build package
     - name: Attest Build and Archive
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          build/${{ env.UNAME }}/poptracker.exe
+          build/poptracker.exe
           dist/*
     - name: Store DIST
       uses: actions/upload-artifact@v7.0.1
@@ -382,19 +376,19 @@ jobs:
     - name: Build DEBUG
       shell: msys2 {0}
       run: |
-        make clean
-        make native CONF=DEBUG -j4
-        7z a -mx=9 dist/poptracker-${{ env.UNAME }}-debug.zip build/${{ env.UNAME }}/poptracker.exe
+        meson setup --reconfigure --buildtype debugoptimized -Doptimization=g build
+        meson compile -C build
+        7z a -mx=9 dist/poptracker-${{ env.UNAME }}-debug.zip build/poptracker.exe
     - name: Attest Debug Build and Archive
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
       with:
         subject-path: |
-          build/${{ env.UNAME }}/poptracker.exe
+          build/poptracker.exe
           dist/poptracker-${{ env.UNAME }}-debug.zip
     - name: Store DEBUG
       uses: actions/upload-artifact@v7.0.1
       with:
-        path: dist/poptracker-win64-debug.zip
+        path: dist/poptracker-${{ env.UNAME }}-debug.zip
         archive: false
         if-no-files-found: error

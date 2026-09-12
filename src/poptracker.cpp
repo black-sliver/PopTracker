@@ -22,6 +22,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shellapi.h>
+#include <winuser.h>
 #endif
 using nlohmann::json;
 using Ui::Dlg;
@@ -228,8 +229,13 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
             }
         }
 #if defined _WIN32 || defined WIN32
-        if (_config["ignore_hidpi"] == true)
+        if (_config["ignore_hidpi"] == true) {
+            #if _WIN32_WINNT >= 0x0600
             SetProcessDPIAware();
+            #else
+            fprintf(stderr, "Warning: requested DPIAware but API is not available in target Windows version!\n");
+            #endif
+        }
 #endif
 
 #ifndef WITHOUT_UPDATE_CHECK
@@ -376,6 +382,18 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
         Pack::addSearchPath(_appPackDir); // system packs
         Pack::addOverrideSearchPath(appPath / "user-override"); // portable/system overrides
         Assets::addSearchPath(appPath / "assets"); // system assets
+    }
+
+    if (appPath.filename().u8string() == "bin"
+            || (!appPath.has_filename() && appPath.parent_path().filename().u8string() == "bin")
+    ) {
+        // Add */share/poptracker/* to search paths to fit common unix-like file system layout when running from */bin.
+        // We do this during runtime (not configure time), so the same executable can be installed in multiple ways.
+        auto systemDataDir = appPath / ".." / "share" / "poptracker";
+        Pack::addSearchPath(systemDataDir / "packs"); // system packs in .../share/poptracker
+        Pack::addOverrideSearchPath(systemDataDir / "user-override"); // system overrides in .../share/poptracker
+        Assets::addSearchPath(systemDataDir / "assets"); // system assets in .../share/poptracker
+        // TODO: set _appPackDir to systemDataDir/packs if appPath/packs does not exist?
     }
 
     _asio = new asio::io_service();

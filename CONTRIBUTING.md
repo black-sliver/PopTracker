@@ -8,7 +8,7 @@ Send PRs on GitHub.
 ## Compiler Support
 
 Both clang and gnu toolchains are supported. For CI and release builds, we use g++ on Linux, MSYS2's g++ on Windows and
-brew's clang++ + gcc-compat on macOS.
+brew's clang++ on macOS.
 
 We do not use MSVC.
 
@@ -16,18 +16,30 @@ We do not use MSVC.
 
 We aim to run untrusted packs at some point, so we use `-Werror` and enable a lot of warnings and some extra protection
 features to find potential mistakes and/or safely crash.
-PRs to clean up the Makefile are welcome.
 
 ## IDE Support
 
 *Currently only CLion is tested/used. PRs for other IDEs and detailed setup are welcome.*
 
+Check out the
+[List of IDEs that support Meson Build System](https://mesonbuild.com/IDE-integration.html#existing-integrations).
+
 ### CLion
 
-CLion has support for Makefile projects, but the configuration part may only work with clang.
-You can either install both g++ and clang and overwrite the compiler for the configuration part
-as shown in [doc/clion-make.png](doc/clion-make.png)
-or use clang + gcc-compat for dev (and g++ only in CI).
+Make sure the Meson plugin is enabled. When opening the project, select Meson.
+
+To upgrade from the old Makefile, you need to remove/rename the old `.idea/` folder before opening the project.
+
+If ccache is installed, Meson will automatically use it, but Clion struggles with that in Meson projects.
+In *Build, Execution, Deployment* → *Toolchains*, select a specific C and a specific C++ Compiler or create a new
+toolchain and assign that to Meson in *Build, Execution, Deployment* → *Meson*. This disables auto-detection in Meson.
+Use "Wipe and Reload Meson Project" to restart compiler detection in Clion.
+
+If ccache is required, this can be done by creating `ccache-<tool>` scripts for C Compiler and C++ Compiler that run
+`ccache <tool> $@`. Otherwise, just put e.g. `gcc` and `g++` there.
+
+For test integration, you may need to edit the `poptracker-test` configuration and set the working directory to the
+project root. Clion does not inherit the working directory from Meson.
 
 ## C++ Style
 
@@ -39,9 +51,9 @@ or use clang + gcc-compat for dev (and g++ only in CI).
   - `m_` for member variables is not required: just `_` is fine (read below)
   - `s_` for static members is not required
   - getters start with `get` - it would take a major refactor to change them all
-- include guards are `_FOLDER_FOLDER_FILENAME_H`,
-  closing `#endif` should have the name as comment
 - `#pragma once` is preferred over include guards for new code
+- when using include guards, they are named `_FOLDER_FOLDER_FILENAME_H`,
+  closing `#endif` should have the name as comment
 - camelCase
 - protected and private member variables start with `_`
 - local variables start with a lower case letter
@@ -51,7 +63,7 @@ or use clang + gcc-compat for dev (and g++ only in CI).
 - public member variables should only be used for simple structs - use getters/setters otherwise
 - getters start with `get`, setters with `set`
 - class names start with a capital letter
-- one exception to the above is the Lua Interface, which uses `T::Lua_CamelCase`
+- one exception to the above is the Lua Interface, which uses `T::Lua_PascalCase`
 - loops/iterations use `auto :` or `auto& :` where possible
 - use `std::string` or `std::string_view` (we target c++17)
 - there are a ton of violations, but new code should still try to check all the boxes
@@ -82,8 +94,8 @@ Use `diff -E -b --color=always -u ...` to compare upstream versions if style is 
   so we don't aim for `-fno-exceptions` at the moment
 - try to write fast code by default
 - assume threads are not cheap
-- use private (not protected) where possible to avoid going through vtables
-- implement small functions inline in header files for platforms where LTO does not work correctly
+- use private (not protected) where possible and avoid going through vtables
+- implement small functions inline in header files for platforms where LTO does not work properly
 
 ### Static Analysis
 
@@ -94,12 +106,27 @@ See [scan-build.yaml](../.github/workflows/scan-build.yaml).
 
 ### Address Sanitizer
 
-Consider testing with ASAN by passing WITH_ASAN=true to make.
+Consider testing with ASAN by passing `-Db_sanitize=address` to `meson setup`.
 
 ### Spell Checker
 
 We use codespell to find typos. You can `pip install codespell` or rely on the GitHub workflow.
 See `.codespellrc` if you want to exclude files/folders and `.codespellignore` if you want to exclude a word.
+
+## Meson Style (Build System)
+
+Follow [Meson's style recommendations](https://mesonbuild.com/Style-guide.html), but prefer 4 spaces over 2 spaces for
+consistency with all other files.
+
+* Do not glob file paths because ninja can't know when to reconfigure the project then.
+  This is different from our old single-step Makefile system.  
+  Files are listed in the corresponding `meson.build`, e.g. files in `src/` are added to `src/meson.build`.
+* Header-only libs should be part of the source (submodule, copy-paste or Meson wrap).
+* Regular libs should come from the package manager or OS if no specific version or build config is required.
+* Optional libs may best be dlopened.
+* For Windows, we create a static EXE for portability while still retaining all the QoL from msys2.
+* For macOS, we link against brew libs and then replace them for portability in actual release.
+* We may build custom versions of some libs (inside the release build runner) for size/speed/security optimizations.
 
 ## Documentation Style
 
