@@ -42,6 +42,7 @@ project(
 # TODO:   ccache in CI?
 # TODO:   -ftrapv in fuzzer?
 # TODO:   switch to meson dist for _full-source.tar.xz?
+# TODO:   use f-strings everywhere
 
 static_exe = false  # TODO: add a build option?
 use_boost_filesystem = false  # TODO: add a build option?
@@ -210,10 +211,18 @@ if host_machine.system() == 'windows'
     endif
 elif host_machine.system() == 'darwin'
     brew_prefix = run_command('brew', '--prefix', check : true).stdout().strip()
-    message('Using brew prefix: @0@'.format(brew_prefix))
+    message(f'Using brew prefix: @brew_prefix@')
     deplyment_target = get_option('macos-deplyment-target')
-    message('Using macosx-version-min=@0@'.format(deplyment_target))
-    add_project_arguments('-mmacosx-version-min=' + deplyment_target, language : ['c', 'cpp'])
+    message(f'Using macosx-version-min=@deplyment_target@')
+    override_options += ['werror=false']
+    # Note: Meson's werror does not differentiate between CC and LD, so it needs to be turned off for macos
+    #       when using macosx-version-min with brew.
+    add_project_arguments(f'-mmacosx-version-min=@deplyment_target@', language : ['c', 'cpp'])
+    add_project_link_arguments(
+        f'-mmacosx-version-min=@deplyment_target@',
+        '-v', # show linker command line for debugging
+        language : ['c', 'cpp']
+    )
     if deplyment_target.version_compare('<10.15')
         use_boost_filesystem = true  # TODO: only if undefined (not set via option)?
     endif
