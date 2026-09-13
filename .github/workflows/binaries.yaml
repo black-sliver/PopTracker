@@ -206,13 +206,13 @@ jobs:
     - name: Build RELEASE
       run: |
         meson setup build
-        meson compile -C build
+        meson compile -vC build
     - name: Run tests
       run: |
         meson test -C build
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       run: |
-        meson compile -C build package
+        meson compile -vC build package
     - name: Check DIST
       run: |
         du -sh ./build/poptracker.app

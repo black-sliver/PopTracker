@@ -230,13 +230,13 @@ jobs:
     - name: Build RELEASE
       run: |
         meson setup build
-        meson compile -C build
+        meson compile -vC build
     - name: Run tests
       run: |
         meson test -C build
     - name: Build DIST # this builds the app bundle
       run: |
-        meson compile -C build package
+        meson compile -vC build package
     - name: Package app bundle for universal merge
       run: |
         # tar preserves the bundle's symlinks and permissions across the artifact round-trip.
