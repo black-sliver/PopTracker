@@ -212,6 +212,7 @@ elif host_machine.system() == 'darwin'
     brew_prefix = run_command('brew', '--prefix', check : true).stdout().strip()
     message('Using brew prefix: @0@'.format(brew_prefix))
     deplyment_target = get_option('macos-deplyment-target')
+    message('Using macosx-version-min=@0@'.format(deplyment_target))
     add_project_arguments('-mmacosx-version-min=' + deplyment_target, language : ['c', 'cpp'])
     if deplyment_target.version_compare('<10.15')
         use_boost_filesystem = true  # TODO: only if undefined (not set via option)?
