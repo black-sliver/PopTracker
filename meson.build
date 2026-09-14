@@ -214,9 +214,13 @@ elif host_machine.system() == 'darwin'
     message(f'Using brew prefix: @brew_prefix@')
     deplyment_target = get_option('macos-deplyment-target')
     message(f'Using macosx-version-min=@deplyment_target@')
-    override_options += ['werror=false']
-    # Note: Meson's werror does not differentiate between CC and LD, so it needs to be turned off for macos
-    #       when using macosx-version-min with brew.
+    if get_option('werror')
+        # NOTE: Linking with mismatching macosx-version-min (from brew) generates a linker warning, so we have to turn
+        #       off Meson's werror and manually add -Werror to just the compiler (not the linker).
+        message(f'Disabling werror for linker')
+        override_options += ['werror=false']
+        add_project_arguments(f'-Werror', language : ['c', 'cpp'])
+    endif
     add_project_arguments(f'-mmacosx-version-min=@deplyment_target@', language : ['c', 'cpp'])
     add_project_link_arguments(
         f'-mmacosx-version-min=@deplyment_target@',

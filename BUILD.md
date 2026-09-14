@@ -111,10 +111,10 @@ The build found in Releases is done with a customized sdl2, so the builds differ
 ## Build on macOS
 
 - run `brew install coreutils meson SDL2 sdl2_ttf sdl2_image openssl@3.0`
-- run `meson setup -Dwerror=false build && meson compile -C build`
+- run `meson setup build && meson compile -C build`
 - or run the deprecated `make CONF=RELEASE`
 
-The build will link against brew libraries. This also means we need to disable warnings-as-errors.
+The build will link against brew libraries.
 
 If you run `meson compile -C build appbundle` or `meson compile -C build package` or `./macosx/package.sh`,
 this will build non-brew versions of the libraries and replace the references in the resulting app bundle.\
