@@ -24,7 +24,7 @@ jobs:
           PR_TITLE: '[Bot] Update cacert.pem'
           PR_BODY: 'Update cacert.pem to latest from curl.se'
         run: |
-          make update-cacert
+          ./scripts/update-cacert.sh
           if git diff --quiet; then
             echo "Already up to date"
           else

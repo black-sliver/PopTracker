@@ -1,0 +1,4 @@
+# define files or folders relative to project root that should be ignored by scan-build
+# wildcards are not supported
+lib/lua
+lib/miniz
