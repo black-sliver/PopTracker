@@ -71,8 +71,8 @@ jobs:
       timeout-minutes: 5
       run: |
         brew install coreutils meson jq \
-          SDL2 sdl2_ttf sdl2_image openssl@3.0 googletest || true
-        brew link --overwrite openssl@3.0
+          SDL2 sdl2_ttf sdl2_image openssl@3.5 googletest || true
+        brew link --overwrite openssl@3.5
     - name: Install extra dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_meson_args, 'macos-deplyment-target') }}
       timeout-minutes: 5

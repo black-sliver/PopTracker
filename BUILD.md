@@ -110,7 +110,7 @@ The build found in Releases is done with a customized sdl2, so the builds differ
 
 ## Build on macOS
 
-- run `brew install coreutils meson SDL2 sdl2_ttf sdl2_image openssl@3.0`
+- run `brew install coreutils meson SDL2 sdl2_ttf sdl2_image openssl@3.5`
 - run `meson setup build && meson compile -C build`
 - or run the deprecated `make CONF=RELEASE`
 
