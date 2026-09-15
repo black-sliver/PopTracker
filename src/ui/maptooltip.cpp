@@ -189,7 +189,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
             hbox->setVisible(visible);
             auto highlight = sec.getHighlight();
             auto highlightColor = MapWidget::HighlightColors[highlight];
-            highlightColor.a = TooltipOpacity;
+            highlightColor.a = (highlightColor.a * TooltipOpacity) / 255;
             hbox->setBackground(highlightColor);
             container->addChild(hbox);
             if (container != sectionContainer)
@@ -298,7 +298,7 @@ void MapTooltip::update(Tracker* tracker, std::function<void(Item*, const BaseIt
             }
             auto highlight = sec.getHighlight();
             auto highlightColor = MapWidget::HighlightColors[highlight];
-            highlightColor.a = TooltipOpacity;
+            highlightColor.a = (highlightColor.a * TooltipOpacity) / 255;
             container->setBackground(highlightColor);
         }
         if (lbl) {
