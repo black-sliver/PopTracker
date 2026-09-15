@@ -59,6 +59,9 @@ jobs:
         shell: ${{ matrix.shell }}
 
     steps:
+    - uses: actions/checkout@v7.0.1
+      with:
+        submodules: recursive
     - name: Install dependencies (apt)
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       timeout-minutes: 5
@@ -70,9 +73,7 @@ jobs:
       if: ${{ startsWith(matrix.os, 'macos') }}
       timeout-minutes: 5
       run: |
-        brew install coreutils meson jq \
-          SDL2 sdl2_ttf sdl2_image openssl@3.5 googletest || true
-        brew link --overwrite openssl@3.5
+        brew bundle --file=macosx/dev-Brewfile
     - name: Install extra dependencies (brew)
       if: ${{ startsWith(matrix.os, 'macos') && contains(matrix.extra_meson_args, 'macos-deplyment-target') }}
       timeout-minutes: 5
@@ -122,9 +123,6 @@ jobs:
           clangarm64/mingw-w64-clang-aarch64-meson
           clangarm64/mingw-w64-clang-aarch64-ntldd
           p7zip
-    - uses: actions/checkout@v7.0.1
-      with:
-        submodules: recursive
     - name: Setup env
       run: |
         echo "extra_meson_args=${{ matrix.extra_meson_args }}" >> $GITHUB_ENV

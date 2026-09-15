@@ -1,0 +1,11 @@
+brew "coreutils"
+brew "libtool"
+brew "autoconf"
+brew "automake"
+brew "meson"
+brew "jq"
+brew "SDL2"
+brew "sdl2_ttf"
+brew "sdl2_image"
+brew "openssl@3.5", link: :overwrite
+brew "googletest"
