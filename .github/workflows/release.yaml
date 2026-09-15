@@ -217,16 +217,13 @@ jobs:
         echo "RELEASE_VERSION=${GITHUB_REF#refs/*/v}" >> $GITHUB_ENV
         ARCH=`uname -m`
         echo "ARCH=$ARCH" >> $GITHUB_ENV
-    - name: Install dependencies
-      timeout-minutes: 5
-      run: |
-        brew install coreutils automake meson jq \
-          SDL2 sdl2_ttf sdl2_image openssl@3.5 googletest || true
-        # required, but pre-installed: libtool autoconf
-        brew link --overwrite openssl@3.5
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
+    - name: Install dependencies
+      timeout-minutes: 5
+      run: |
+        brew bundle --file=macosx/dev-Brewfile
     - name: Build RELEASE
       run: |
         meson setup build
