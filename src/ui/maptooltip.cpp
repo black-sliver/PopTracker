@@ -25,6 +25,7 @@ namespace Ui {
 }
 
 Widget::Color MapTooltip::StateColors[] = _DEFAULT_SECTION_COLORS;
+uint8_t MapTooltip::TooltipOpacity = 0xbf;
 
 
 static uint8_t mix(uint8_t v, uint8_t w, uint8_t weight)
@@ -53,6 +54,8 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
 {
     bool compact = true;
     _id = locid;
+
+    setBackground({0x00, 0x00, 0x00, TooltipOpacity});
 
     setPadding(2*OFFSET);
     setSpacing(OFFSET);
