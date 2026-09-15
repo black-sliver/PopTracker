@@ -154,6 +154,14 @@ static uint8_t readOpacity(const json& value, uint8_t fallback)
     return static_cast<uint8_t>(opacity + 0.5);
 }
 
+static void logColorChange(const char* label, const Ui::Widget::Color& oldColor, const Ui::Widget::Color& newColor)
+{
+    printf("%s: #%02x%02x%02x%02x -> #%02x%02x%02x%02x\n",
+        label,
+        oldColor.r, oldColor.g, oldColor.b, oldColor.a,
+        newColor.r, newColor.g, newColor.b, newColor.a);
+}
+
 PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, bool cli, const json& args)
 {
     _args = args;
@@ -175,6 +183,7 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     std::string colorsData;
     auto colorsFilename = getConfigPath(APPNAME, "colors.json", _isPortable);
     if (readFile(colorsFilename, colorsData)) {
+        printf("Loading colors from \"%s\"...\n", sanitize_print(colorsFilename).c_str());
         _colors = parse_jsonc(colorsData);
         if (_colors.is_object()) {
             const char* tooltipOpacityKey = nullptr;
@@ -189,7 +198,15 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
             }
             if (tooltipOpacity != _colors.end()) {
                 if (tooltipOpacity->is_number_integer() || tooltipOpacity->is_number_unsigned() || tooltipOpacity->is_number_float()) {
+                    auto oldOpacity = Ui::MapTooltip::TooltipOpacity;
                     Ui::MapTooltip::TooltipOpacity = readOpacity(*tooltipOpacity, Ui::MapTooltip::TooltipOpacity);
+                    printf("  %s: %s -> alpha %u\n",
+                        tooltipOpacityKey,
+                        tooltipOpacity->dump().c_str(),
+                        Ui::MapTooltip::TooltipOpacity);
+                    if (oldOpacity != Ui::MapTooltip::TooltipOpacity) {
+                        printf("  Tooltip background alpha changed from %u to %u\n", oldOpacity, Ui::MapTooltip::TooltipOpacity);
+                    }
                 } else {
                     fprintf(stderr, "Warning: invalid '%s' in colors.json\n", tooltipOpacityKey);
                 }
@@ -205,12 +222,28 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
                     }
                     if (i >= countOf(Ui::MapWidget::StateColors)) break;
                     Ui::MapWidget::StateColors[i] = v.get<std::string>();
-                    if (i == 0 || i == 2) // not changing touch [1] reachable: white
+                    printf("  MapWidget.StateColors[%zd]: %s -> #%02x%02x%02x%02x\n",
+                        i,
+                        v.dump().c_str(),
+                        Ui::MapWidget::StateColors[i].r,
+                        Ui::MapWidget::StateColors[i].g,
+                        Ui::MapWidget::StateColors[i].b,
+                        Ui::MapWidget::StateColors[i].a);
+                    if (i == 0 || i == 2) { // not changing touch [1] reachable: white
+                        auto oldTooltipColor = Ui::MapTooltip::StateColors[i];
                         Ui::MapTooltip::StateColors[i] = Ui::MapWidget::StateColors[i];
-                    if (i == 4)
+                        logColorChange("    MapTooltip.StateColors mirrored", oldTooltipColor, Ui::MapTooltip::StateColors[i]);
+                    }
+                    if (i == 4) {
+                        auto oldTooltipColor = Ui::MapTooltip::StateColors[3];
                         Ui::MapTooltip::StateColors[3] = Ui::MapWidget::StateColors[i];
-                    if (i == 8)
+                        logColorChange("    MapTooltip.StateColors[3]", oldTooltipColor, Ui::MapTooltip::StateColors[3]);
+                    }
+                    if (i == 8) {
+                        auto oldTooltipColor = Ui::MapTooltip::StateColors[4];
                         Ui::MapTooltip::StateColors[4] = Ui::MapWidget::StateColors[i];
+                        logColorChange("    MapTooltip.StateColors[4]", oldTooltipColor, Ui::MapTooltip::StateColors[4]);
+                    }
                     i++;
                 }
             } else if (!stateColors.is_null()) {
@@ -228,10 +261,21 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
                         fprintf(stderr, "Warning: unknown key '%s' in 'MapWidget.HighlightColors' in colors.json\n",
                             pair.key().c_str());
                     } else {
+                        auto oldHighlightColor = Ui::MapWidget::HighlightColors[highlight];
                         Ui::MapWidget::HighlightColors[highlight] = Ui::Widget::Color::FromStringWithDefaultAlpha(
                             pair.value().get<std::string>(),
                             Ui::MapWidget::HighlightColors[highlight].a
                         );
+                        printf("  MapWidget.HighlightColors.%s: %s -> #%02x%02x%02x%02x\n",
+                            pair.key().c_str(),
+                            pair.value().dump().c_str(),
+                            Ui::MapWidget::HighlightColors[highlight].r,
+                            Ui::MapWidget::HighlightColors[highlight].g,
+                            Ui::MapWidget::HighlightColors[highlight].b,
+                            Ui::MapWidget::HighlightColors[highlight].a);
+                        if (oldHighlightColor != Ui::MapWidget::HighlightColors[highlight]) {
+                            logColorChange("    Highlight color changed", oldHighlightColor, Ui::MapWidget::HighlightColors[highlight]);
+                        }
                     }
                 }
             } else if (!highlightColors.is_null()) {
