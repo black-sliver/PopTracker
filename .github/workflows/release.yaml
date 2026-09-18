@@ -24,6 +24,8 @@ env:
   APPRUN_HOOKS_URL: 'https://github.com/AppImageCrafters/AppRun/releases/download/v2.0.0/libapprun_hooks-Release-x86_64.so'
   APPRUN_HOOKS_HASH: '1f64dd2161be3242f106c891b2daf27bbdd2103c20b28f57f61a56cdccb1eb6a'
   APPRUN_HOOKS_NAME: 'libapprun_hooks-Release-x86_64.so'
+  ADVANCECOMP_URL: 'https://github.com/amadvance/advancecomp/releases/download/v2.6/advancecomp-2.6-windows-x64.zip'
+  ADVANCECOMP_HASH: '39478e2810d2e6fecea321d11a8e8aad678e9e52f83c684d85dcb70342607704'
 
 jobs:
   release-main:
@@ -326,7 +328,15 @@ jobs:
           mingw64/mingw-w64-x86_64-ntldd
           p7zip
           wget
-          mingw-w64-x86_64-advancecomp
+    - name: Install advzip
+      shell: msys2 {0}
+      run: |
+        # TODO: switch back to msys package once we switch to ucrt
+        wget -O advancecomp.zip \
+          "${ADVANCECOMP_URL}"
+        echo "${ADVANCECOMP_HASH} advancecomp.zip" | sha256sum -c
+        mkdir -p "$HOME/.local/bin"
+        7z e "-o$HOME/.local/bin" advancecomp.zip '*.exe'
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
@@ -370,6 +380,7 @@ jobs:
     - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
       shell: msys2 {0}
       run: |
+        export PATH="$PATH:$HOME/.local/bin"  # advzip
         meson compile -C build package
     - name: Attest Build and Archive
       uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
