@@ -444,13 +444,13 @@ function Archipelago:LocationChecks(locations) end
 function Archipelago:LocationScouts(locations, sendAsHint) end
 
 ---Asks the server for an item hint.
----Shortcut for using the !hint command.
+---Shortcut for using the !hint command. Supported since 0.35.5.
 ---@param item string either ID or name
 ---@return boolean true on success
 function Archipelago:HintItem(item) end
 
 ---Asks the server for a location hint.
----Shortcut for using the !hint_location command.
+---Shortcut for using the !hint_location command. Supported since 0.35.5.
 ---@param location string either ID or name
 ---@return boolean true on success
 function Archipelago:HintLocation(location) end
