@@ -68,6 +68,8 @@ shift
     fi
     if type advzip >/dev/null 2>&1; then
       advzip --recompress -4 "$zip_name"
+    else
+      echo "NOTE: advzip not found! Install advzip to optimize release ZIP!" >&2
     fi
 	)
   mkdir -p "$dist_dir"
