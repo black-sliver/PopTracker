@@ -1,0 +1,25 @@
+name: shellcheck
+
+on:
+  workflow_dispatch:
+  push:
+    paths: &filter_paths
+      - '.github/workflows/shellcheck.yaml'
+      - '**.sh'
+  pull_request:
+    paths: *filter_paths
+
+permissions: {}
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-26.04-arm  # arm64 runners have been faster than x64 recently
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: 'shellcheck **.sh'
+        shell: bash
+        run: |
+          # shellcheck comes preinstalled on ubuntu runner images
+          git ls-files | grep '.*\.sh$' | xargs shellcheck
