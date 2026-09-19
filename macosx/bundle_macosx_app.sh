@@ -3,6 +3,8 @@
 # script to fetch SDL and create macos .app bundle
 # (c) 2021 sbzappa
 
+# shellcheck disable=SC2001
+
 # TODO: use meson install to create the folder structure
 
 EXE=
@@ -18,7 +20,7 @@ BUILD_DIR="build"
 LIB_DIR="libs"
 
 function usage() {
-  echo "Usage: `basename $0` [--version=] [--bundle-name=] [--deployment-target=] [--do-not-build-thirdparty] [--clear-thirdparty-dirs] [binary]"
+  echo "Usage: $(basename "$0") [--version=] [--bundle-name=] [--deployment-target=] [--do-not-build-thirdparty] [--clear-thirdparty-dirs] [binary]"
 }
 
 if test $# -eq 0; then
@@ -28,7 +30,7 @@ fi
 
 while test $# -gt 0; do
   case "$1" in
-  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  -*=*) optarg=$(echo "$1" | sed 's/[-_a-zA-Z0-9]*=//') ;;
   *) optarg= ;;
   esac
 
@@ -51,26 +53,26 @@ while test $# -gt 0; do
       ;;
     *)
       EXE=$1
-      if test $BUNDLE_NAME_SET = no ; then
-        BUNDLE_NAME=`basename $1`
+      if test "$BUNDLE_NAME_SET" = no ; then
+        BUNDLE_NAME=$(basename "$1")
       fi
       ;;
   esac
   shift
 done
 
-SRC_DIR=`dirname $0`
+SRC_DIR=$(dirname "$0")
 
-if test $CLEAR_THIRD_PARTY = yes ; then
-  rm -fr $SRC_DIR/$BUILD_DIR
-  rm -fr $SRC_DIR/$LIB_DIR
+if test "$CLEAR_THIRD_PARTY" = yes ; then
+  rm -fr "${SRC_DIR:?}/$BUILD_DIR"
+  rm -fr "${SRC_DIR:?}/$LIB_DIR"
 fi
 
 # Early out if executable is not specified.
 [ -z "$EXE" ] && exit 0
 
-APP_NAME=`basename $EXE`
-DST_DIR=`dirname $EXE`
+APP_NAME=$(basename "$EXE")
+DST_DIR=$(dirname "$EXE")
 
 ROOT_DIR="$SRC_DIR/.."
 SRC_ASSETS_DIR="$ROOT_DIR/assets"
@@ -92,16 +94,16 @@ ICON="$SRC_DIR/$ICON_NAME.icns"
 DST_ICON="$APP_BUNDLE_RESOURCES_DIR/$ICON_NAME.icns"
 
 # Create app folder structure
-rm -fr $APP_BUNDLE_DIR
+rm -fr "$APP_BUNDLE_DIR"
 
-mkdir -p $APP_BUNDLE_MACOS_DIR
-mkdir -p $APP_BUNDLE_FRAMEWORKS_DIR
-mkdir -p $APP_BUNDLE_RESOURCES_DIR
+mkdir -p "$APP_BUNDLE_MACOS_DIR"
+mkdir -p "$APP_BUNDLE_FRAMEWORKS_DIR"
+mkdir -p "$APP_BUNDLE_RESOURCES_DIR"
 
 # Create Info.plist in app bundle
 APP_BUNDLE_INFO_PLIST="$APP_BUNDLE_CONTENTS_DIR/Info.plist"
 
-cat <<EOT >> $APP_BUNDLE_INFO_PLIST
+cat <<EOT >> "$APP_BUNDLE_INFO_PLIST"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -127,12 +129,12 @@ cat <<EOT >> $APP_BUNDLE_INFO_PLIST
 EOT
 
 # Copy icon into app bundle
-cp $ICON $DST_ICON
+cp "$ICON" "$DST_ICON"
 
 # Copy binary into app bundle
-cp $EXE $DST_EXE
-cp -r $SRC_ASSETS_DIR $APP_BUNDLE_MACOS_DIR
-cp -r $DOCS $APP_BUNDLE_MACOS_DIR
+cp "$EXE" "$DST_EXE"
+cp -r "$SRC_ASSETS_DIR" "$APP_BUNDLE_MACOS_DIR"
+cp -r "$DOCS" "$APP_BUNDLE_MACOS_DIR"
 
 # Copy schema, api and key into app bundle
 cp -r "$SRC_API_DIR" "$APP_BUNDLE_RESOURCES_DIR"
@@ -144,10 +146,10 @@ rm "$APP_BUNDLE_RESOURCES_DIR/"*/README.md
 # This won't work with libraries installed with brew.
 
 
-if test $BUILD_THIRD_PARTY = yes ; then
-  sh $SRC_DIR/build_thirdparty.sh \
-    --deployment-target=$DEPLOYMENT_TARGET \
-    --build-dir=$BUILD_DIR \
+if test "$BUILD_THIRD_PARTY" = yes ; then
+  sh "$SRC_DIR/build_thirdparty.sh" \
+    --deployment-target="$DEPLOYMENT_TARGET" \
+    --build-dir="$BUILD_DIR" \
     --lib-dir=$LIB_DIR || exit 1
 fi
 
@@ -159,70 +161,70 @@ LIB_PNG="libpng16.16.dylib"
 LIB_OPENSSL="libssl.3.dylib"
 LIB_CRYPTO="libcrypto.3.dylib"
 
-cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_IMAGE" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_TTF" $APP_BUNDLE_FRAMEWORKS_DIR
-[ -f "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" $APP_BUNDLE_FRAMEWORKS_DIR
-[ -f "$SRC_DIR/$LIB_DIR/$LIB_PNG" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_PNG" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_OPENSSL" $APP_BUNDLE_FRAMEWORKS_DIR
-cp "$SRC_DIR/$LIB_DIR/$LIB_CRYPTO" $APP_BUNDLE_FRAMEWORKS_DIR
+cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2" "$APP_BUNDLE_FRAMEWORKS_DIR"
+cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_IMAGE" "$APP_BUNDLE_FRAMEWORKS_DIR"
+cp "$SRC_DIR/$LIB_DIR/$LIB_SDL2_TTF" "$APP_BUNDLE_FRAMEWORKS_DIR"
+[ -f "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_FREETYPE" "$APP_BUNDLE_FRAMEWORKS_DIR"
+[ -f "$SRC_DIR/$LIB_DIR/$LIB_PNG" ] && cp "$SRC_DIR/$LIB_DIR/$LIB_PNG" "$APP_BUNDLE_FRAMEWORKS_DIR"
+cp "$SRC_DIR/$LIB_DIR/$LIB_OPENSSL" "$APP_BUNDLE_FRAMEWORKS_DIR"
+cp "$SRC_DIR/$LIB_DIR/$LIB_CRYPTO" "$APP_BUNDLE_FRAMEWORKS_DIR"
 
 # Change paths on libSDL
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2 $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2
+install_name_tool -id "@executable_path/../Frameworks/$LIB_SDL2" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2"
 
 # Change paths on libSDL_image
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2_IMAGE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE
+install_name_tool -id "@executable_path/../Frameworks/$LIB_SDL2_IMAGE" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE"
 
-OLD_LIB_SDL2=`otool -LX  $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE | grep $LIB_SDL2 | awk '{print $1}'`
-install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE
+OLD_LIB_SDL2=$(otool -LX  "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE" | grep "$LIB_SDL2" | awk '{print $1}')
+install_name_tool -change "$OLD_LIB_SDL2" @executable_path/../Frameworks/$LIB_SDL2 "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_IMAGE"
 
 # Change paths on libSDL_ttf
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_SDL2_TTF $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
+install_name_tool -id "@executable_path/../Frameworks/$LIB_SDL2_TTF" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF"
 
-OLD_LIB_SDL2=`otool -LX  $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF | grep $LIB_SDL2 | awk '{print $1}'`
-OLD_LIB_FREETYPE=`otool -LX  $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF | grep $LIB_FREETYPE | awk '{print $1}'`
+OLD_LIB_SDL2=$(otool -LX  "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF" | grep "$LIB_SDL2" | awk '{print $1}')
+OLD_LIB_FREETYPE=$(otool -LX  "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF" | grep "$LIB_FREETYPE" | awk '{print $1}')
 
-install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
-[ -f "$OLD_LIB_FREETYPE" ] && install_name_tool -change $OLD_LIB_FREETYPE @executable_path/../Frameworks/$LIB_FREETYPE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF
+install_name_tool -change "$OLD_LIB_SDL2" "@executable_path/../Frameworks/$LIB_SDL2" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF"
+[ -f "$OLD_LIB_FREETYPE" ] && install_name_tool -change "$OLD_LIB_FREETYPE" "@executable_path/../Frameworks/$LIB_FREETYPE" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_SDL2_TTF"
 
 # Change paths on libpng
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_PNG $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_PNG
+install_name_tool -id "@executable_path/../Frameworks/$LIB_PNG" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_PNG"
 
 # Change paths on Freetype
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_FREETYPE $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
+install_name_tool -id "@executable_path/../Frameworks/$LIB_FREETYPE" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE"
 
-OLD_LIB_PNG=`otool -LX $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE | grep $LIB_PNG | awk '{print $1}'`
-[ -f "$OLD_LIB_PNG" ] && install_name_tool -change $OLD_LIB_PNG @executable_path/../Frameworks/$LIB_PNG $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE
+OLD_LIB_PNG=$(otool -LX "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE" | grep "$LIB_PNG" | awk '{print $1}')
+[ -f "$OLD_LIB_PNG" ] && install_name_tool -change "$OLD_LIB_PNG" "@executable_path/../Frameworks/$LIB_PNG" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_FREETYPE"
 
 # Change paths on libOpenSSL
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_OPENSSL $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL
+install_name_tool -id "@executable_path/../Frameworks/$LIB_OPENSSL" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL"
 
-OLD_LIB_CRYPTO=`otool -LX $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL | grep $LIB_CRYPTO | awk '{print $1}'`
-install_name_tool -change $OLD_LIB_CRYPTO @executable_path/../Frameworks/$LIB_CRYPTO $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL
+OLD_LIB_CRYPTO=$(otool -LX "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL" | grep "$LIB_CRYPTO" | awk '{print $1}')
+install_name_tool -change "$OLD_LIB_CRYPTO" "@executable_path/../Frameworks/$LIB_CRYPTO" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_OPENSSL"
 
 # Change paths on libCrypto
 
-install_name_tool -id @executable_path/../Frameworks/$LIB_CRYPTO $APP_BUNDLE_FRAMEWORKS_DIR/$LIB_CRYPTO
+install_name_tool -id "@executable_path/../Frameworks/$LIB_CRYPTO" "$APP_BUNDLE_FRAMEWORKS_DIR/$LIB_CRYPTO"
 
 # Change paths on main EXE
 
-OLD_LIB_SDL2=`otool -LX $EXE | grep $LIB_SDL2 | awk '{print $1}'`
-OLD_LIB_SDL2_IMAGE=`otool -LX $EXE | grep $LIB_SDL2_IMAGE | awk '{print $1}'`
-OLD_LIB_SDL2_TTF=`otool -LX $EXE | grep $LIB_SDL2_TTF | awk '{print $1}'`
-OLD_LIB_OPENSSL=`otool -LX $EXE | grep $LIB_OPENSSL | awk '{print $1}'`
-OLD_LIB_CRYPTO=`otool -LX $EXE | grep $LIB_CRYPTO | awk '{print $1}'`
+OLD_LIB_SDL2=$(otool -LX "$EXE" | grep "$LIB_SDL2" | awk '{print $1}')
+OLD_LIB_SDL2_IMAGE=$(otool -LX "$EXE" | grep "$LIB_SDL2_IMAGE" | awk '{print $1}')
+OLD_LIB_SDL2_TTF=$(otool -LX "$EXE" | grep "$LIB_SDL2_TTF" | awk '{print $1}')
+OLD_LIB_OPENSSL=$(otool -LX "$EXE" | grep "$LIB_OPENSSL" | awk '{print $1}')
+OLD_LIB_CRYPTO=$(otool -LX "$EXE" | grep "$LIB_CRYPTO" | awk '{print $1}')
 
-install_name_tool -change $OLD_LIB_SDL2 @executable_path/../Frameworks/$LIB_SDL2 $DST_EXE
-install_name_tool -change $OLD_LIB_SDL2_IMAGE @executable_path/../Frameworks/$LIB_SDL2_IMAGE $DST_EXE
-install_name_tool -change $OLD_LIB_SDL2_TTF @executable_path/../Frameworks/$LIB_SDL2_TTF $DST_EXE
-install_name_tool -change $OLD_LIB_OPENSSL @executable_path/../Frameworks/$LIB_OPENSSL $DST_EXE
-install_name_tool -change $OLD_LIB_CRYPTO @executable_path/../Frameworks/$LIB_CRYPTO $DST_EXE
+install_name_tool -change "$OLD_LIB_SDL2" "@executable_path/../Frameworks/$LIB_SDL2" "$DST_EXE"
+install_name_tool -change "$OLD_LIB_SDL2_IMAGE" "@executable_path/../Frameworks/$LIB_SDL2_IMAGE" "$DST_EXE"
+install_name_tool -change "$OLD_LIB_SDL2_TTF" "@executable_path/../Frameworks/$LIB_SDL2_TTF" "$DST_EXE"
+install_name_tool -change "$OLD_LIB_OPENSSL" "@executable_path/../Frameworks/$LIB_OPENSSL" "$DST_EXE"
+install_name_tool -change "$OLD_LIB_CRYPTO" "@executable_path/../Frameworks/$LIB_CRYPTO" "$DST_EXE"
 
 # Re-sign the bundle (ad-hoc).
 #
