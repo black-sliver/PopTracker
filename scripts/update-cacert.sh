@@ -6,6 +6,8 @@
 # Falls back to wget if curl is not available.
 # run with ./scripts/update-cacert.sh or meson compile -C build update-cacert
 
+# shellcheck disable=SC2015
+
 set -e
 
 CACERT_URL="https://curl.se/ca/cacert.pem"
