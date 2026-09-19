@@ -233,6 +233,22 @@ void Window::grabFocus()
     SDL_SetWindowInputFocus(_win);
 }
 
+void Window::setKeyboardFocus(Widget* w)
+{
+    if (_keyboardFocus == w) return;
+    if (_keyboardFocus) {
+        SDL_StopTextInput();
+        _keyboardFocus->onDestroy -= this;
+    }
+    _keyboardFocus = w;
+    if (_keyboardFocus) {
+        SDL_StartTextInput();
+        _keyboardFocus->onDestroy += {this, [this](void* destroyed) {
+            if (_keyboardFocus == destroyed) _keyboardFocus = nullptr;
+        }};
+    }
+}
+
 bool Window::getAlwaysOnTop() const
 {
     return _isAlwaysOnTop;
