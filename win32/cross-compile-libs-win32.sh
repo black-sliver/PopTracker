@@ -56,10 +56,12 @@ build() {
     echo "$SRC -> $DST"
     if [ -d "$DST" ]; then rm -R "$DST" ; fi
     mkdir -p "$DST"
-    cd "$DST"
-    ../../../$SRC/configure $CONFIGURE_FLAGS
-    make -j15
-    cd ../../..
+    (
+      cd "$DST" || exit 1
+      # shellcheck disable=SC2086
+      "../../../$SRC/configure" $CONFIGURE_FLAGS
+      make -j15
+    )
 }
 
 install() {
