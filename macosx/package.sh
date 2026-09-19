@@ -8,8 +8,8 @@ set -e
 app="poptracker"
 
 if [ -z "$MESON_SOURCE_ROOT" ]; then
-  # shellcheck disable=SC3054
-  if [ -z "${BASH_SOURCE[0]}" ]; then
+  # shellcheck disable=SC3054,SC2128
+  if [ -z "${BASH_SOURCE}" ]; then
     MESON_SOURCE_ROOT="."  # fall back to assume running from source root
   else
     MESON_SOURCE_ROOT="$( dirname -- "${BASH_SOURCE[0]}"; )/..";
