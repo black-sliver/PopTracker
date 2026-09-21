@@ -82,7 +82,6 @@ public:
     void render(Renderer renderer, const int offX, const int offY) override {
         if (_backgroundColor.a > 0) {
             const auto& c = _backgroundColor;
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
             SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
             SDL_Rect r = { offX+_pos.left-_margin.left,
                            offY+_pos.top-_margin.top,
