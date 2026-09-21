@@ -202,7 +202,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
         addChild(sectionContainer);
 
     setMinSize(getMinSize() || MIN_SIZE);
-    setBackground({0x00, 0x00, 0x00, TooltipOpacity}); 
+    setBackground({0x00,0x00,0x00,TooltipOpacity});
     setSize(getAutoSize());
     setGrow(0,0);
 }
