@@ -436,9 +436,14 @@ test(
 
 if host_machine.system() == 'windows'
     # try to print VersionInfo
-    # TODO: check that it matches the version
+    # TODO: check that output matches the expected version
     powershell = find_program('powershell', required : false)  # only for test
     if powershell.found()
+        if meson.version().version_compare('>=1.4.0')
+            main_exe_path = main_exe.full_path()
+        else
+            main_exe_path = 'poptracker.exe'  # assume running from build dir
+        endif
         test(
             'VersionInfo',
             powershell,
@@ -446,10 +451,11 @@ if host_machine.system() == 'windows'
                 '-NoLogo',
                 '-NoProfile',
                 '-Command',
-                '(Get-Item -Path "@0@").VersionInfo | Format-List -Force'.format(main_exe),
+                f'(Get-Item -Path "@main_exe_path@").VersionInfo | Format-List -Force',
             ],
             # verbose : true,  # always print the version; requires meson >= 0.62. Do this once we drop Ubuntu 22.04.
             depends : main_exe,
+            timeout : 60,  # somehow that one has been hanging in CI
         )
     endif
 endif
