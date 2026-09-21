@@ -28,6 +28,7 @@ public:
     static constexpr Size MIN_SIZE={ 32,32 };
     static constexpr int OFFSET=2;
 
+    static uint8_t TooltipOpacity;
     static Widget::Color StateColors[5];
     static Widget::Color getSectionColor(AccessibilityLevel reachable, bool cleared);
 

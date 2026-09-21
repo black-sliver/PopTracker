@@ -25,6 +25,7 @@ namespace Ui {
 }
 
 Widget::Color MapTooltip::StateColors[] = _DEFAULT_SECTION_COLORS;
+uint8_t MapTooltip::TooltipOpacity = 0xbf;
 
 
 static uint8_t mix(uint8_t v, uint8_t w, uint8_t weight)
@@ -54,6 +55,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
     bool compact = true;
     _id = locid;
 
+    setBackground({0x00,0x00,0x00,TooltipOpacity});
     setPadding(2*OFFSET);
     setSpacing(OFFSET);
 
@@ -186,7 +188,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
             hbox->setVisible(visible);
             auto highlight = sec.getHighlight();
             auto highlightColor = MapWidget::HighlightColors[highlight];
-            highlightColor.a /= 4;
+            highlightColor.a = (highlightColor.a * TooltipOpacity) / 255;
             hbox->setBackground(highlightColor);
             container->addChild(hbox);
             if (container != sectionContainer)
@@ -200,7 +202,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
         addChild(sectionContainer);
 
     setMinSize(getMinSize() || MIN_SIZE);
-    setBackground({0x00,0x00,0x00,0xbf});
+    setBackground({0x00,0x00,0x00,TooltipOpacity});
     setSize(getAutoSize());
     setGrow(0,0);
 }
@@ -295,7 +297,7 @@ void MapTooltip::update(Tracker* tracker, std::function<void(Item*, const BaseIt
             }
             auto highlight = sec.getHighlight();
             auto highlightColor = MapWidget::HighlightColors[highlight];
-            highlightColor.a /= 4;
+            highlightColor.a = (highlightColor.a * TooltipOpacity) / 255;
             container->setBackground(highlightColor);
         }
         if (lbl) {

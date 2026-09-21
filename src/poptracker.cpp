@@ -138,6 +138,20 @@ static json windowToJson(Ui::Window* win)
     };
 }
 
+static uint8_t readOpacity(const json& value, uint8_t fallback)
+{
+    if (!(value.is_number_integer() || value.is_number_unsigned() || value.is_number_float())) {
+        return fallback;
+    }
+
+    double opacity = value.get<double>();
+    opacity *= 255.0;
+    if (opacity < 0.0) opacity = 0.0;
+    if (opacity > 255.0) opacity = 255.0;
+
+    return static_cast<uint8_t>(opacity + 0.5);
+}
+
 PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, bool cli, const json& args)
 {
     _args = args;
@@ -161,6 +175,15 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     if (readFile(colorsFilename, colorsData)) {
         _colors = parse_jsonc(colorsData);
         if (_colors.is_object()) {
+            auto tooltipOpacity = _colors.find("MapTooltip.Opacity");
+            if (tooltipOpacity != _colors.end()) {
+                if (tooltipOpacity->is_number()) {
+                    Ui::MapTooltip::TooltipOpacity = readOpacity(*tooltipOpacity, Ui::MapTooltip::TooltipOpacity);
+                } else {
+                    fprintf(stderr, "Warning: invalid opacity in colors.json\n");
+                }
+            }
+
             auto& stateColors = _colors["MapWidget.StateColors"];
             if (stateColors.is_array()) {
                 ssize_t i = 0;
