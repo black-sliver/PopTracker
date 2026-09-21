@@ -134,14 +134,10 @@ jobs:
         echo "ASAN_OPTIONS=detect_container_overflow=0" >> $GITHUB_ENV
     - name: Enable ASAN and UBSAN
       # if: ${{ !startsWith(matrix.os, 'windows') }}
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      if: ${{ startsWith(matrix.os, 'ubuntu') || matrix.os == 'macos-latest' }}
       run: |
         # we use mingw on windows, which does not support ASAN
-        # macos currently hangs when trying to run tests with ASAN + UBSAN on
-        echo "extra_meson_args=-Db_sanitize=address,undefined ${{ env.extra_meson_args }}" >> $GITHUB_ENV
-    - name: Enable UBSAN
-      if: ${{ startsWith(matrix.os, 'macos') }}
-      run: |
+        # macos-*-intel is very slow recently, so only enabling for macos-latest, not macos-*
         echo "extra_meson_args=-Db_sanitize=address,undefined ${{ env.extra_meson_args }}" >> $GITHUB_ENV
     - name: Build DEBUG
       run: |
