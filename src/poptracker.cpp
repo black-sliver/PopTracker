@@ -175,16 +175,12 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     if (readFile(colorsFilename, colorsData)) {
         _colors = parse_jsonc(colorsData);
         if (_colors.is_object()) {
-            const char* tooltipOpacityKey = nullptr;
             auto tooltipOpacity = _colors.find("MapTooltip.Opacity");
-            if (tooltipOpacity != _colors.end()) {
-                tooltipOpacityKey = "MapTooltip.Opacity";
-            }
             if (tooltipOpacity != _colors.end()) {
                 if (tooltipOpacity->is_number()) {
                     Ui::MapTooltip::TooltipOpacity = readOpacity(*tooltipOpacity, Ui::MapTooltip::TooltipOpacity);
                 } else {
-                    fprintf(stderr, "Warning: invalid '%s' in colors.json\n", tooltipOpacityKey);
+                    fprintf(stderr, "Warning: invalid opacity in colors.json\n");
                 }
             }
 
@@ -198,15 +194,12 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
                     }
                     if (i >= countOf(Ui::MapWidget::StateColors)) break;
                     Ui::MapWidget::StateColors[i] = v.get<std::string>();
-                    if (i == 0 || i == 2) { // not changing touch [1] reachable: white
+                    if (i == 0 || i == 2) // not changing touch [1] reachable: white
                         Ui::MapTooltip::StateColors[i] = Ui::MapWidget::StateColors[i];
-                    }
-                    if (i == 4) {
+                    if (i == 4)
                         Ui::MapTooltip::StateColors[3] = Ui::MapWidget::StateColors[i];
-                    }
-                    if (i == 8) {
+                    if (i == 8)
                         Ui::MapTooltip::StateColors[4] = Ui::MapWidget::StateColors[i];
-                    }
                     i++;
                 }
             } else if (!stateColors.is_null()) {

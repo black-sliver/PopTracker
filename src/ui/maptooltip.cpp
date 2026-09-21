@@ -55,8 +55,7 @@ MapTooltip::MapTooltip(int x, int y, FONT font, FONT smallFont, int quality, Tra
     bool compact = true;
     _id = locid;
 
-    setBackground({0x00, 0x00, 0x00, TooltipOpacity});
-
+    setBackground({0x00,0x00,0x00,TooltipOpacity});
     setPadding(2*OFFSET);
     setSpacing(OFFSET);
 
