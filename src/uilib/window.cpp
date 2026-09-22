@@ -34,17 +34,20 @@ Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const 
 #ifdef DEFAULT_SCALE_QUALITY_HINT
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, DEFAULT_SCALE_QUALITY_HINT, SDL_HINT_DEFAULT);
 #endif
-    
-    _ren = SDL_CreateRenderer(_win, -1, 0 /*| SDL_RENDERER_PRESENTVSYNC*/ /*| SDL_RENDERER_ACCELERATED*/);
+
+    constexpr Uint32 flags = 0; // default / from hints
+    _ren = SDL_CreateRenderer(_win, -1, flags);
     if (!_ren) {
         printf(" error\n");
         fprintf(stderr, "Error creating renderer: %s\n", SDL_GetError());
         return;
     }
-    
+
     SDL_RendererInfo info;
     if (SDL_GetRendererInfo(_ren, &info) == 0) {
-        printf(" %s\n", info.name);
+        _rendererFlags = info.flags;
+        const bool vsync = !!(_rendererFlags & SDL_RENDERER_PRESENTVSYNC);
+        printf(" %s%s\n", info.name, vsync ? " with vsync" : "");
     } else {
         printf(" unknown\n");
     }
@@ -242,15 +245,6 @@ void Window::setAlwaysOnTop(bool alwaysOnTop)
 {
     _isAlwaysOnTop = alwaysOnTop;
     SDL_SetWindowAlwaysOnTop(_win, _isAlwaysOnTop ? SDL_TRUE : SDL_FALSE);
-}
-
-bool Window::isAccelerated()
-{
-    SDL_RendererInfo info;
-    if (SDL_GetRendererInfo(_ren, &info) == 0) {
-        return info.flags & SDL_RENDERER_ACCELERATED;
-    }
-    return false;
 }
 
 } // namsepace

@@ -42,7 +42,7 @@ protected:
     std::list<Hotkey> _hotkeys;
 
 public:
-    Ui(const char *name, bool fallbackRenderer);
+    Ui(const char *name, bool fallbackRenderer, bool vsync);
     virtual ~Ui();
     template <class T>
     T *createWindow(const char *title, SDL_Surface* icon=nullptr, const Position& pos={-1,-1}, const Size& size={0,0}, const WindowConfig& config={})
