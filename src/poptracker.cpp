@@ -507,7 +507,9 @@ bool PopTracker::start()
     }
 #endif
 
-    _ui = new Ui::Ui(APPNAME, _config["software_renderer"] ? true : false);
+    _ui = new Ui::Ui(APPNAME,
+        _config["software_renderer"] ? true : false,
+        false);
     _ui->setFPSLimit(_config["fps_limit"].get<unsigned>(), _config["software_fps_limit"].get<unsigned>());
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {

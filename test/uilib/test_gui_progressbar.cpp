@@ -10,7 +10,7 @@ TEST(ProgressBarGuiTest, TestGui) {
 #ifndef WITH_GUI_TESTS
     GTEST_SKIP();
 #endif
-    Ui::Ui ui("Test", false);
+    Ui::Ui ui("Test", false, false);
     Ui::Window* win = ui.createWindow<Ui::Window>("Test", nullptr, Ui::Position::UNDEFINED, {232, 48});
     const auto pgb = new Ui::ProgressBar(16, 16, 200, 6, 100, 50);
     win->addChild(pgb);
