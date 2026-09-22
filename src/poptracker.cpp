@@ -235,6 +235,8 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
         _config["log"] = false;
     if (_config["software_renderer"].type() != json::value_t::boolean)
         _config["software_renderer"] = false;
+    if (!_config["vsync"].is_boolean())
+        _config["vsync"] = false;
     if (_config["enable_screensaver"].type() != json::value_t::boolean)
         _config["enable_screensaver"] = true;
     if (!_config["show_always_on_top_button"].is_boolean())
@@ -509,7 +511,7 @@ bool PopTracker::start()
 
     _ui = new Ui::Ui(APPNAME,
         _config["software_renderer"] ? true : false,
-        false);
+        _config["vsync"] ? true : false);
     _ui->setFPSLimit(_config["fps_limit"].get<unsigned>(), _config["software_fps_limit"].get<unsigned>());
     _ui->onWindowDestroyed += {this, [this](void*, Ui::Window *win) {
         if (win == _broadcast) {
