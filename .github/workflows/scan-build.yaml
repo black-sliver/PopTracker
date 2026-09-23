@@ -7,7 +7,7 @@ on:
       - 'main'
     tags:
       - 'v*'
-    paths:
+    paths: &filter_paths
       - '**.c'
       - '**.cc'
       - '**.cpp'
@@ -18,20 +18,11 @@ on:
       - '**.ipp'
       - '**.h.in'
       - '**/meson.build'
+      - 'contrib/scan-build-wrapper/**'
+      - '.scan-build-ignore'
       - '.github/workflows/scan-build.yaml'
   pull_request:
-    paths:
-      - '**.c'
-      - '**.cc'
-      - '**.cpp'
-      - '**.cxx'
-      - '**.h'
-      - '**.hh'
-      - '**.hpp'
-      - '**.ipp'
-      - '**.h.in'
-      - '**/meson.build'
-      - '.github/workflows/scan-build.yaml'
+    paths: *filter_paths
 
 concurrency:
   # Cancels pending runs when a PR gets updated. (For push we'd use ref.)
