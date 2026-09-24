@@ -1,4 +1,6 @@
+#include <thread>
 #include <gtest/gtest.h>
+#include <SDL2/SDL.h>
 #include "../../src/core/fileutil.h"
 #include "../../src/core/fs.h"
 #include "../../src/core/jsonutil.h"
@@ -141,4 +143,26 @@ TEST(PackTest, ReadFileOverrideLimit) {
     EXPECT_EQ(full, testData);
     EXPECT_EQ(full, part1);
     EXPECT_EQ(full, part2);
+}
+
+TEST(PackTest, SmallImageCacheConcurrency) {
+    const Pack pack("examples/rules_test");
+    const std::string filename = "images/items/c.png";
+    // Make sure all required libs are initialized on the main thread (not a worker)
+    SDL_FreeSurface(pack.getImage("images/items/a.png"));
+    // Load the same image in multiple threads
+    constexpr size_t N = 3;
+    std::vector<SDL_Surface*> surfs(N, nullptr);
+    std::vector<std::thread> threads(N);
+    for (size_t i = 0; i < N; ++i) {
+        threads[i] = std::thread([&surfs, &pack, &filename, i] {
+            surfs[i] = pack.getImage(filename);
+            SDL_TLSCleanup(); // clean up SDL's thread local storage
+        });
+    }
+    for (size_t i = 0; i < N; ++i) {
+        threads[i].join();
+        EXPECT_EQ(surfs[0], surfs[i]);
+        SDL_FreeSurface(surfs[i]); // either a no-op (cached) or required (uncached)
+    }
 }
