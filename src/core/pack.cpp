@@ -435,7 +435,7 @@ SDL_Surface* Pack::getImage(const std::string &userFile) const
         const auto it = _smallImageCache.find(userFile);
         if (it != _smallImageCache.end()) {
 #ifndef SDL_DONTFREE
-            // refcount is not be thread safe, so use a fake ref count
+            // refcount is not thread-safe, and we can't disable it, so use a high fake ref count
             it->second->refcount = std::numeric_limits<decltype(it->second->refcount)>::max() / 2;
 #endif
             return it->second;
@@ -450,14 +450,21 @@ SDL_Surface* Pack::getImage(const std::string &userFile) const
     if (surface && surface->w <= 4096 && surface->h <= 4096 && surface->w * surface->h <= 4096) {
         // cache 64x64 (16KB) and smaller
         std::lock_guard lock(_smallImageMutex);
+        const auto [it, inserted] = _smallImageCache.try_emplace(userFile, surface);
+        if (inserted) {
 #ifdef SDL_DONTFREE
-        // manipulating refcount may not be thread-safe, so make it owned by Pack and ignore refcount
-        surface->flags |= SDL_DONTFREE;
-#else
-        // refcount is not be thread safe, so use a fake ref count
+            // manipulating refcount may not be thread-safe, so make it owned by Pack and ignore refcount
+            surface->flags |= SDL_DONTFREE;
+#endif
+        } else {
+            // we lost the race against another thread loading the same image
+            SDL_FreeSurface(surface);
+            surface = it->second;
+        }
+#ifndef SDL_DONTFREE
+        // refcount is not thread-safe, and we can't disable it, so use a high fake ref count
         surface->refcount = std::numeric_limits<decltype(surface->refcount)>::max() / 2;
 #endif
-        _smallImageCache.emplace(userFile, surface);
     }
     return surface;
 }
