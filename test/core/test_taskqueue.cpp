@@ -155,7 +155,8 @@ TEST(TaskQueue, Prioritize) {
 }
 
 TEST(TaskQueue, AutoCancel) {
-    {
+    try {
+        testing::internal::CaptureStderr();
         pop::TaskQueue<int> queue;
         queue.enqueue([] {
             return 1;
@@ -163,5 +164,12 @@ TEST(TaskQueue, AutoCancel) {
         queue.enqueue([] {
             return 2;
         });
-    } // queue goes out of scope here and runs deconstructor
+        // queue goes out of scope here and runs deconstructor
+    } catch (...) {
+        fprintf(stderr, "%s", testing::internal::GetCapturedStderr().c_str());
+        throw;
+    }
+    const auto capture = testing::internal::GetCapturedStderr();
+    EXPECT_TRUE(capture.find("2 queued tasks") && capture.find("2 pending results"))
+        << "Expected warning on stderr, got " << capture;
 }
