@@ -29,6 +29,21 @@ TEST(Tracker, GetLocationSection) {
     lua_close(L);
 }
 
+#define EXPECT_BAD_OPEN_LINK(tracker, url, warning) { \
+    testing::internal::CaptureStderr(); \
+    try { \
+        EXPECT_FALSE(tracker.OpenLink(url)); \
+    } catch (...) { \
+        fprintf(stderr, "%s", testing::internal::GetCapturedStderr().c_str()); \
+        throw; \
+    } \
+    const auto capture = testing::internal::GetCapturedStderr(); \
+    EXPECT_TRUE(capture.find(warning) != std::string::npos) << "Expected \"" warning "\" on stderr, got " << capture; \
+}
+
+#define EXPECT_INVALID_OPEN_LINK(tracker, url) EXPECT_BAD_OPEN_LINK(tracker, url, "invalid")
+#define EXPECT_UNSECURED_OPEN_LINK(tracker, url) EXPECT_BAD_OPEN_LINK(tracker, url, "unsecured")
+
 TEST(OpenLink, InvalidLinks)
 {
     lua_State* L = luaL_newstate();
@@ -36,10 +51,25 @@ TEST(OpenLink, InvalidLinks)
     pack.setVariant("var_at");
     Tracker tracker(&pack, L);
 
-    std::string longString(2048, 'a');
-    EXPECT_EQ(tracker.OpenLink("https://www.youtube.com/" + longString), false);
-    EXPECT_EQ(tracker.OpenLink("https://www.y\"outube.com/"), false);
-    EXPECT_EQ(tracker.OpenLink("https://www.y^outube.com/"), false);
+    const std::string longString(2048, 'a');
+    EXPECT_INVALID_OPEN_LINK(tracker, "https://www.example.com/" + longString);
+    EXPECT_INVALID_OPEN_LINK(tracker, "https://\".example.com/");
+    EXPECT_INVALID_OPEN_LINK(tracker, "https://www.example.com/^");
 
     lua_close(L);
 }
+
+TEST(OpenLink, UnsecuredSchema)
+{
+    lua_State* L = luaL_newstate();
+    Pack pack("examples/rules_test");
+    pack.setVariant("var_at");
+    Tracker tracker(&pack, L);
+
+    EXPECT_UNSECURED_OPEN_LINK(tracker, "http://www.example.com/");
+    EXPECT_UNSECURED_OPEN_LINK(tracker, "ftp://www.example.com/");
+
+    lua_close(L);
+}
+
+// TODO: mock MsgBox and ShellExecute and test message escaping and happy code paths
