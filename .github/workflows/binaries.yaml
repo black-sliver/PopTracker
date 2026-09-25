@@ -39,6 +39,8 @@ env:
   APPRUN_HOOKS_NAME: 'libapprun_hooks-Release-x86_64.so'
   ADVANCECOMP_URL: 'https://github.com/amadvance/advancecomp/releases/download/v2.6/advancecomp-2.6-windows-x64.zip'
   ADVANCECOMP_HASH: '39478e2810d2e6fecea321d11a8e8aad678e9e52f83c684d85dcb70342607704'
+  JQ_WIN64_URL: 'https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-win64.exe'
+  JQ_WIN64_HASH: 'a6fc67fedaf9128a3309a1e2ebb8b986aeccf70122ee46d2cb4849e423f0c627'
 
 jobs:
   build-ubuntu:
@@ -302,19 +304,22 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           mingw64/mingw-w64-x86_64-meson
-          mingw64/mingw-w64-x86_64-jq
           mingw64/mingw-w64-x86_64-ntldd
           p7zip
           wget
-    - name: Install advzip
+    - name: Install advzip and jq
       shell: msys2 {0}
       run: |
-        # TODO: switch back to msys package once we switch to ucrt
+        # TODO: switch back to msys packages once we switch to ucrt
         wget -O advancecomp.zip \
           "${ADVANCECOMP_URL}"
         echo "${ADVANCECOMP_HASH} advancecomp.zip" | sha256sum -c
+        wget -O jq.exe \
+          "${JQ_WIN64_URL}"
+        echo "${JQ_WIN64_HASH} jq.exe" | sha256sum -c
         mkdir -p "$HOME/.local/bin"
         7z e "-o$HOME/.local/bin" advancecomp.zip '*.exe'
+        mv jq.exe "$HOME/.local/bin/"
     - uses: actions/checkout@v7.0.1
       with:
         submodules: recursive
