@@ -683,22 +683,22 @@ bool Tracker::OpenLink(const std::string& url, const std::string& description)
 
     std::string proto, host, port, path;
     if (url.length() > 2048 || !HTTP::parse_uri(url, proto, host, port, path)) {
-        printf("WARNING: Attempted to open invalid link: \"%.2048s\".\n", sanitize_print(url).c_str());
+        fprintf(stderr, "WARNING: Attempted to open invalid link: \"%.2048s\".\n", sanitize_print(url).c_str());
         return false;
     }
 
     if (proto != "https") {
-        printf("WARNING: Attempted to open unsecured link: \"%s\".\n", sanitize_print(url).c_str());
+        fprintf(stderr, "WARNING: Attempted to open unsecured link: \"%s\".\n", sanitize_print(url).c_str());
         return false;
     }
 
-    auto desc = sanitize_shell(description);
+    const auto desc = sanitize_shell(description);
     std::string msg = "The pack is trying to open a link to:\n\n" + sanitize_print(url) + "\n\n";
     if (!desc.empty())
         msg += desc + "\n\n";
     msg += "Would you like to open it?";
 
-    auto res = Ui::Dlg::MsgBox(
+    const auto res = Ui::Dlg::MsgBox(
         "PopTracker", msg, 
         Ui::Dlg::Buttons::YesNo, Ui::Dlg::Icon::Question
     );
