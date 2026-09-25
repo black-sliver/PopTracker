@@ -170,6 +170,6 @@ TEST(TaskQueue, AutoCancel) {
         throw;
     }
     const auto capture = testing::internal::GetCapturedStderr();
-    EXPECT_TRUE(capture.find("2 queued tasks") && capture.find("2 pending results"))
+    EXPECT_TRUE(capture.find("2 pending results") != std::string::npos)
         << "Expected warning on stderr, got " << capture;
 }
