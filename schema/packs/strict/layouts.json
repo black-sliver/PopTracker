@@ -58,22 +58,8 @@
                                 }
                             }
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "viewbox_type_if_block": {
@@ -100,22 +86,8 @@
                                 }
                             }
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "canvas_type_if_block": {
@@ -147,7 +119,7 @@
                         "items": {
                             "allOf": [
                                 {
-                                    "$ref": "#/$defs/layout"
+                                    "$ref": "#/$defs/layout_base"
                                 },
                                 {
                                     "properties": {
@@ -175,24 +147,11 @@
                                         }
                                     }
                                 }
-                            ]
+                            ],
+                            "unevaluatedProperties": false
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "dock_type_if_block": {
@@ -214,7 +173,7 @@
                         "items": {
                             "allOf": [
                                 {
-                                    "$ref": "#/$defs/layout"
+                                    "$ref": "#/$defs/layout_base"
                                 },
                                 {
                                     "properties": {
@@ -230,24 +189,11 @@
                                         }
                                     }
                                 }
-                            ]
+                            ],
+                            "unevaluatedProperties": false
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "array_type_if_block": {
@@ -277,22 +223,8 @@
                             "horizontal",
                             "vertical"
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "tabbed_type_if_block": {
@@ -340,22 +272,8 @@
                             },
                             "additionalProperties": false
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "group_type_if_block": {
@@ -424,22 +342,8 @@
                             }
                         },
                         "additionalProperties": false
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "item_type_if_block": {
@@ -459,22 +363,8 @@
                     "item": {
                         "description": "Code identifier of the item.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "itemgrid_type_if_block": {
@@ -525,22 +415,8 @@
                         "description": "Width of the items.",
                         "type": "number",
                         "minimum": 0
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
+                    }
                 },
-                "additionalProperties": false,
                 "dependentSchemas": {
                     "item_size": {
                         "properties": {
@@ -581,22 +457,8 @@
                             "description": "Code identifier of a map.",
                             "type": "string"
                         }
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "layout_type_if_block": {
@@ -615,22 +477,8 @@
                     "key": {
                         "description": "Name of the layout to display.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "recentpins_type_if_block": {
@@ -665,22 +513,8 @@
                             "horizontal",
                             "vertical"
                         ]
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
         "text_type_if_block": {
@@ -699,25 +533,11 @@
                     "text": {
                         "description": "Text to display.",
                         "type": "string"
-                    },
-                    "type": true,
-                    "background": true,
-                    "h_alignment": true,
-                    "v_alignment": true,
-                    "max_height": true,
-                    "max_width": true,
-                    "item_h_alignment": true,
-                    "item_v_alignment": true,
-                    "dropshadow": true,
-                    "margin": true,
-                    "item_margin": true,
-                    "dock": true,
-                    "class": true
-                },
-                "additionalProperties": false
+                    }
+                }
             }
         },
-        "layout": {
+        "layout_base": {
             "type": "object",
             "properties": {
                 "type": {
@@ -832,7 +652,7 @@
                     "description": "Name of class to pull fallback values from.",
                     "type": "string"
                 }
-            },            
+            },
             "allOf": [
                 {
                     "$ref": "#/$defs/container_type_if_block"
@@ -871,6 +691,14 @@
                     "$ref": "#/$defs/canvas_type_if_block"
                 }
             ]
+        },
+        "layout": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/layout_base"
+                }
+            ],
+            "unevaluatedProperties": false
         }
     }
 }
