@@ -115,6 +115,6 @@ fuzzer_exe = executable(
     include_directories : test_exe_include_dirs,
     override_options : override_options,
     build_by_default : false,
-    cpp_args : ['-fsanitize=fuzzer,address', '-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION'],
-    link_args : ['-fsanitize=fuzzer,address'],
+    cpp_args : ['-fsanitize=fuzzer,address,undefined', '-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION'],
+    link_args : ['-fsanitize=fuzzer,address,undefined'],
 )
