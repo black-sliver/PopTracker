@@ -56,6 +56,7 @@ common_src += files(
     'uilib/label.cpp',
     'uilib/progressbar.cpp',
     'uilib/tabs.cpp',
+    'uilib/textfield.cpp',
     'uilib/texturemanager.cpp',
     'uilib/timer.cpp',
     'uilib/tooltip.cpp',
