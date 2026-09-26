@@ -31,7 +31,7 @@ jobs:
       - name: Build fuzzer
         run: |
           CC=clang-22 CXX=clang++-22 AR=llvm-ar-22 \
-            meson setup --buildtype debugoptimized -Doptimization=g -Db_sanitize=address,undefined build
+            meson setup -Dauto-lto=false --buildtype debugoptimized -Doptimization=2 -Db_sanitize=address,undefined build
           meson compile -C build fuzzer
       - name: Restore corpus
         id: restore-corpus

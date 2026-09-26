@@ -137,11 +137,13 @@ endif
 
 if build_type != 'debug'
     # performance-concious build type
-    override_options += ['b_lto=true']
-    # It looks like b_lto=true does not add optimization level to the linker, so we do it ourselves.
-    # FIXME: we are probably missing another switch? Or is this a bug?
-    if optimization_level in ['1', '2', '3', 'g', 's', 'z']
-        add_project_link_arguments('-O' + optimization_level, language : ['c', 'cpp'])
+    if get_option('auto-lto')
+        override_options += ['b_lto=true']
+        # It looks like b_lto=true does not add optimization level to the linker, so we do it ourselves.
+        # FIXME: are we missing a setup option or is this a bug?
+        if optimization_level in ['1', '2', '3', 'g', 's', 'z']
+            add_project_link_arguments('-O' + optimization_level, language : ['c', 'cpp'])
+        endif
     endif
 endif
 
