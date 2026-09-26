@@ -26,23 +26,6 @@ static std::string urlEncode(const std::string& in)
     }
     return out;
 }
-
-// static std::string urlEncode(const std::string& in)
-// {
-//     static const char hex[] = "0123456789ABCDEF";
-//     std::string out;
-//     for (unsigned char c : in) {
-//         if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/')
-//             out += (char)c;
-//         else {
-//             out += '%';
-//             out += hex[(c>>4)&0xf];
-//             out += hex[c&0xf];
-//         }
-//     }
-//     return out;
-// }
-
 static void openPackDirectory()
 {
     for (const auto& searchPath : Pack::getSearchPaths()) {
