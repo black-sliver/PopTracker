@@ -1,6 +1,7 @@
 #include "loadpackwidget.h"
 #include "../core/pack.h"
 #include "../core/assets.h"
+#include "../core/util.h"
 #include "../uilib/hbox.h"
 #include "../uilib/vbox.h"
 #include "../uilib/scrollvbox.h"
@@ -8,35 +9,54 @@
 #include "../uilib/imagebutton.h"
 #include "defaults.h" // DEFAULT_FONT_*
 #include <SDL2/SDL.h>
+#include <fmt/format.h>
 #include <cctype>
 
 namespace Ui {
 
 static std::string urlEncode(const std::string& in)
 {
-    static const char hex[] = "0123456789ABCDEF";
     std::string out;
+    out.reserve(in.size());
     for (unsigned char c : in) {
         if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/')
             out += (char)c;
-        else {
-            out += '%';
-            out += hex[(c>>4)&0xf];
-            out += hex[c&0xf];
-        }
+        else
+            out += fmt::format("%{:02X}", c);
     }
     return out;
 }
 
+// static std::string urlEncode(const std::string& in)
+// {
+//     static const char hex[] = "0123456789ABCDEF";
+//     std::string out;
+//     for (unsigned char c : in) {
+//         if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/')
+//             out += (char)c;
+//         else {
+//             out += '%';
+//             out += hex[(c>>4)&0xf];
+//             out += hex[c&0xf];
+//         }
+//     }
+//     return out;
+// }
+
 static void openPackDirectory()
 {
     for (const auto& searchPath : Pack::getSearchPaths()) {
-        if (!fs::is_directory(searchPath))
+        fs::error_code ec;
+        if (!fs::is_directory(searchPath, ec))
             continue;
-        std::string url = "file://" + urlEncode(searchPath.u8string());
+        fs::path dir = fs::absolute(searchPath, ec);
+        if (ec)
+            continue;
+        dir.make_preferred();
+        std::string url = "file://" + urlEncode(dir.u8string());
         if (SDL_OpenURL(url.c_str()) == 0)
             return;
-        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s'\n", searchPath.u8string().c_str());
+        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s'\n", sanitize_print(searchPath).c_str());
     }
 }
 
@@ -156,8 +176,7 @@ void LoadPackWidget::update()
 static std::string toLower(const std::string& in)
 {
     std::string out = in;
-    for (auto& c : out)
-        if (c >= 'A' && c <= 'Z') c += 'a'-'A';
+    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
     return out;
 }
 
@@ -175,13 +194,15 @@ void LoadPackWidget::refreshPacks()
 
     int shown = 0;
     for (auto& pack : _availablePacks) {
+        const std::string packLabel = " " + pack.packName + " " + pack.version;
         if (!filter.empty()) {
-            std::string name = toLower(pack.packName + " " + pack.gameName + " " + pack.version);
-            if (name.find(filter) == std::string::npos)
+            const bool match = toLower(packLabel).find(filter) != std::string::npos
+                            || toLower(pack.gameName).find(filter) != std::string::npos;
+            if (!match)
                 continue;
         }
         shown++;
-        auto lbl = new Label(0, 0, 0, 0, _font, " " + pack.packName + " " + pack.version); // TODO: button instead of label
+        auto lbl = new Label(0, 0, 0, 0, _font, packLabel); // TODO: button instead of label
         lbl->setGrow(1,0);
         lbl->setTextAlignment(Label::HAlign::LEFT, Label::VAlign::MIDDLE);
         lbl->setMinSize({64,lbl->getAutoHeight()});

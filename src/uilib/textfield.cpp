@@ -69,10 +69,6 @@ TextField::TextField(int x, int y, int w, int h, FONT font, Window *window)
     }};
 }
 
-TextField::~TextField()
-{
-}
-
 int TextField::getTextWidth(const std::string& text) const
 {
     int w = 0;

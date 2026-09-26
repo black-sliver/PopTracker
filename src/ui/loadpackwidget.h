@@ -32,7 +32,7 @@ public:
     void releaseFilterFocus();
     
     Signal<const fs::path&, const std::string&> onPackSelected;
-     
+
     virtual void setSize(Size size) override; // TODO: have more intelligent hbox instead
     
 protected:
