@@ -1,5 +1,4 @@
-#ifndef _UILIB_TEXTFIELD_H
-#define _UILIB_TEXTFIELD_H
+#pragma once
 
 #include <SDL2/SDL_ttf.h>
 #include <string>
@@ -13,7 +12,7 @@ class TextField : public Widget {
 public:
     using FONT = TTF_Font*;
     TextField(int x, int y, int w, int h, FONT font, Window *window=nullptr);
-    virtual ~TextField();
+    virtual ~TextField() = default;
 
     virtual void render(Renderer renderer, int offX, int offY) override;
 
@@ -43,5 +42,3 @@ protected:
 };
 
 } // namespace Ui
-
-#endif // _UILIB_TEXTFIELD_H
