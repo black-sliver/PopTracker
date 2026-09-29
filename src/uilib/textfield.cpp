@@ -9,17 +9,17 @@ static bool startsCodepoint(unsigned char b)
     return (b & 0x80) == 0 || (b & 0xc0) == 0xc0;
 }
 
-static int prevCodepoint(const std::string& s, int i)
+static size_t prevCodepoint(const std::string& s, size_t i)
 {
-    int j = i - 1;
+    size_t j = i - 1;
     while (j > 0 && !startsCodepoint((unsigned char)s[j])) j--;
     return j;
 }
 
-static int nextCodepoint(const std::string& s, int i)
+static size_t nextCodepoint(const std::string& s, size_t i)
 {
-    int j = i + 1;
-    while (j < (int)s.length() && !startsCodepoint((unsigned char)s[j])) j++;
+    size_t j = i + 1;
+    while (j < s.length() && !startsCodepoint((unsigned char)s[j])) j++;
     return j;
 }
 
@@ -46,10 +46,10 @@ TextField::TextField(int x, int y, int w, int h, FONT font, Window *window)
 
     onKeyDown += {this, [this](void*, int key, int mod) {
         (void)mod;
-        int len = (int)_text.length();
+        size_t len = _text.length();
         if (key == SDLK_BACKSPACE) {
             if (_cursor > 0) {
-                int start = prevCodepoint(_text, _cursor);
+                size_t start = prevCodepoint(_text, _cursor);
                 _text.erase(start, _cursor - start);
                 _cursor = start;
                 onTextChanged.emit(this, _text);
@@ -84,9 +84,44 @@ TextField::TextField(int x, int y, int w, int h, FONT font, Window *window)
 
     onTextInput += {this, [this](void*, const std::string& text) {
         _text.insert(_cursor, text);
-        _cursor += (int)text.length();
+        _cursor += text.length();
         onTextChanged.emit(this, _text);
     }};
+}
+
+void TextField::invalidateTexture()
+{
+    _texture.reset();
+    _textureRenderer = nullptr;
+    _textureText.clear();
+    _textureColor = {0,0,0,0};
+    _textureW = _textureH = 0;
+}
+
+SDL_Texture* TextField::getTexture(Renderer renderer, const std::string& text, Widget::Color color)
+{
+    if (_texture && (_textureRenderer != renderer
+                    || _textureText != text
+                    || _textureColor.r != color.r || _textureColor.g != color.g
+                    || _textureColor.b != color.b || _textureColor.a != color.a)) {
+        invalidateTexture();
+    }
+    if (!_texture && _font) {
+        SDL_Color col = {color.r, color.g, color.b, color.a};
+        SDL_Surface* surf = RenderText(_font, text.c_str(), col, Label::HAlign::LEFT);
+        if (surf) {
+            _texture.reset(SDL_CreateTextureFromSurface(renderer, surf));
+            _textureW = surf->w;
+            _textureH = surf->h;
+            SDL_FreeSurface(surf);
+        }
+        if (_texture) {
+            _textureRenderer = renderer;
+            _textureText = text;
+            _textureColor = color;
+        }
+    }
+    return _texture.get();
 }
 
 int TextField::getTextWidth(const std::string& text) const
@@ -98,10 +133,10 @@ int TextField::getTextWidth(const std::string& text) const
 
 void TextField::setCursorToPos(int x)
 {
-    int len = (int)_text.length();
-    int best = 0;
+    size_t len = _text.length();
+    size_t best = 0;
     int bestDist = abs(x - getTextWidth(_text));
-    for (int i = nextCodepoint(_text, 0); i <= len; i = nextCodepoint(_text, i)) {
+    for (size_t i = nextCodepoint(_text, 0); i <= len; i = nextCodepoint(_text, i)) {
         int dist = abs(x - getTextWidth(_text.substr(0, i)));
         if (dist < bestDist) {
             bestDist = dist;
@@ -115,8 +150,23 @@ void TextField::setText(const std::string& text)
 {
     if (_text == text) return;
     _text = text;
-    _cursor = (int)_text.length();
+    _cursor = _text.length();
     onTextChanged.emit(this, _text);
+}
+
+void TextField::setPlaceholder(const std::string& placeholder)
+{
+    if (_placeholder == placeholder) return;
+    _placeholder = placeholder;
+    invalidateTexture();
+}
+
+void TextField::setTextColor(Widget::Color c)
+{
+    if (_textColor.r == c.r && _textColor.g == c.g && _textColor.b == c.b && _textColor.a == c.a)
+        return;
+    _textColor = c;
+    invalidateTexture();
 }
 
 void TextField::clear()
@@ -144,17 +194,13 @@ void TextField::render(Renderer renderer, int offX, int offY)
     const std::string& text = _text.empty() ? _placeholder : _text;
     Widget::Color color = _text.empty() ? _placeholderColor : _textColor;
     if (!text.empty() && _font) {
-        SDL_Color col = {color.r, color.g, color.b, color.a};
-        SDL_Surface* surf = RenderText(_font, text.c_str(), col, Label::HAlign::LEFT);
-        if (surf) {
-            SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
-            SDL_Rect dest = { offX+_pos.left+2, offY+_pos.top+(_size.height-surf->h)/2, surf->w, surf->h };
-            SDL_Rect src = { 0,0,surf->w,surf->h };
+        SDL_Texture* tex = getTexture(renderer, text, color);
+        if (tex) {
+            SDL_Rect dest = { offX+_pos.left+2, offY+_pos.top+(_size.height-_textureH)/2, _textureW, _textureH };
+            SDL_Rect src = { 0,0,_textureW,_textureH };
             if (dest.w > _size.width-4) { dest.w = _size.width-4; src.w = dest.w; }
             if (dest.h > _size.height) { dest.h = _size.height; src.h = dest.h; }
             SDL_RenderCopy(renderer, tex, &src, &dest);
-            SDL_DestroyTexture(tex);
-            SDL_FreeSurface(surf);
         }
     }
 
