@@ -39,6 +39,7 @@ test_common_src = common_src + embed_lib_src + files(
     'uilib/test_img.cpp',
     'uilib/test_tabs.cpp',
     'uilib/test_textutil.cpp',
+    'uilib/test_textfield.cpp',
     'uilib/test_widget_color.cpp',
     # Note: GUI test files are always compiled to show them as "skipped", but need WITH_GUI_TESTS define to run.
     'uilib/test_gui_progressbar.cpp',
