@@ -13,7 +13,7 @@
     },
     {
       "name": "PopTracker Items",
-      "description": "Item tracking definitions and configurations for a PopTracker pack",
+      "description": "Item definitions and configurations for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/items.json",
       "fileMatch": [
         "items.json",
