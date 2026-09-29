@@ -3,7 +3,7 @@
   "version": 1,
   "schemas": [
     {
-      "name": "PopTracker Classes",
+      "name": "PopTracker Strict Classes",
       "description": "Class definitions for PopTracker pack layouts and components",
       "url": "https://poptracker.github.io/schema/packs/strict/classes.json",
       "fileMatch": [
@@ -12,8 +12,8 @@
       ]
     },
     {
-      "name": "PopTracker Items",
-      "description": "Item tracking definitions and configurations for a PopTracker pack",
+      "name": "PopTracker Strict Items",
+      "description": "Item definitions and configurations for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/strict/items.json",
       "fileMatch": [
         "items.json",
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "name": "PopTracker Layouts",
+      "name": "PopTracker Strict Layouts",
       "description": "UI element layouts, tracker panels, and grid configurations for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/strict/layouts.json",
       "fileMatch": [
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "name": "PopTracker Locations",
+      "name": "PopTracker Strict Locations",
       "description": "Location, section, and access rule definitions for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/strict/locations.json",
       "fileMatch": [
@@ -41,7 +41,7 @@
       ]
     },
     {
-      "name": "PopTracker Manifest",
+      "name": "PopTracker Strict Manifest",
       "description": "Pack manifest and metadata configuration for PopTracker",
       "url": "https://poptracker.github.io/schema/packs/strict/manifest.json",
       "fileMatch": [
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "PopTracker Maps",
+      "name": "PopTracker Strict Maps",
       "description": "Map image configurations and tracking overlay settings for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/strict/maps.json",
       "fileMatch": [
@@ -58,7 +58,7 @@
       ]
     },
     {
-      "name": "PopTracker Settings",
+      "name": "PopTracker Strict Settings",
       "description": "User settings and custom options configuration for a PopTracker pack",
       "url": "https://poptracker.github.io/schema/packs/strict/settings.json",
       "fileMatch": [
