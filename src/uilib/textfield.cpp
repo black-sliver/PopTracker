@@ -4,6 +4,25 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
+static bool startsCodepoint(unsigned char b)
+{
+    return (b & 0x80) == 0 || (b & 0xc0) == 0xc0;
+}
+
+static int prevCodepoint(const std::string& s, int i)
+{
+    int j = i - 1;
+    while (j > 0 && !startsCodepoint((unsigned char)s[j])) j--;
+    return j;
+}
+
+static int nextCodepoint(const std::string& s, int i)
+{
+    int j = i + 1;
+    while (j < (int)s.length() && !startsCodepoint((unsigned char)s[j])) j++;
+    return j;
+}
+
 namespace Ui {
 
 TextField::TextField(int x, int y, int w, int h, FONT font, Window *window)
@@ -30,22 +49,23 @@ TextField::TextField(int x, int y, int w, int h, FONT font, Window *window)
         int len = (int)_text.length();
         if (key == SDLK_BACKSPACE) {
             if (_cursor > 0) {
-                _text.erase(_cursor-1, 1);
-                _cursor--;
+                int start = prevCodepoint(_text, _cursor);
+                _text.erase(start, _cursor - start);
+                _cursor = start;
                 onTextChanged.emit(this, _text);
             }
         }
         else if (key == SDLK_DELETE) {
             if (_cursor < len) {
-                _text.erase(_cursor, 1);
+                _text.erase(_cursor, nextCodepoint(_text, _cursor) - _cursor);
                 onTextChanged.emit(this, _text);
             }
         }
         else if (key == SDLK_LEFT) {
-            if (_cursor > 0) _cursor--;
+            if (_cursor > 0) _cursor = prevCodepoint(_text, _cursor);
         }
         else if (key == SDLK_RIGHT) {
-            if (_cursor < len) _cursor++;
+            if (_cursor < len) _cursor = nextCodepoint(_text, _cursor);
         }
         else if (key == SDLK_HOME) {
             _cursor = 0;
@@ -81,7 +101,7 @@ void TextField::setCursorToPos(int x)
     int len = (int)_text.length();
     int best = 0;
     int bestDist = abs(x - getTextWidth(_text));
-    for (int i=1; i<=len; i++) {
+    for (int i = nextCodepoint(_text, 0); i <= len; i = nextCodepoint(_text, i)) {
         int dist = abs(x - getTextWidth(_text.substr(0, i)));
         if (dist < bestDist) {
             bestDist = dist;

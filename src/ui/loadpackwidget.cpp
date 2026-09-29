@@ -156,11 +156,12 @@ void LoadPackWidget::update()
     refreshPacks();
 }
 
-static std::string toLower(const std::string& in)
-{
-    std::string out = in;
-    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
-    return out;
+// ASCII-only case folding, for case-insensitive substring matching.
+// Not true Unicode toLower, a dependency like ICU would be needed but heavy.
+static std::string toLower(std::string s) {
+    for (auto& c : s)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return s;
 }
 
 void LoadPackWidget::refreshPacks()
