@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 #include "font_helper.h"
 #include "../../src/uilib/textfield.h"
+#include <SDL2/SDL.h>
+#include <cstring>
+#include <vector>
 
 using namespace Ui;
 
@@ -45,6 +48,185 @@ static const std::string E_ACUTE  = "\xC3\xA9";                     // e-acute, 
 static const std::string HI       = "\xE6\x97\xA5";                 // CJK, 3 bytes
 static const std::string NIHON    = "\xE6\x97\xA5" "\xE6\x9C\xAC";  // two CJK chars
 static const std::string GAME     = "\xF0\x9F\x8E\xAE";             // 4 bytes
+
+static SDL_Window*& testWindow()
+{
+    static SDL_Window* win = nullptr;
+    return win;
+}
+
+static SDL_Renderer* headlessRenderer()
+{
+    static bool tried = false;
+    static SDL_Renderer* ren = nullptr;
+    if (tried)
+        return ren;
+    tried = true;
+
+    SDL_SetHint(SDL_HINT_VIDEODRIVER, "dummy");
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+        return nullptr;
+    SDL_Window* win = SDL_CreateWindow("textfield-test", 0, 0, 256, 32, SDL_WINDOW_HIDDEN);
+    testWindow() = win;
+    if (!win)
+        return nullptr;
+    ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE);
+    return ren;
+}
+
+struct Signature {
+    long long r = 0, g = 0, b = 0;
+    int lit = 0;
+    bool operator==(const Signature& o) const { return r == o.r && g == o.g && b == o.b && lit == o.lit; }
+};
+
+static Signature signature(SDL_Renderer* renderer, const Widget::Color& bg)
+{
+    int w = 0, h = 0;
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+    Uint32 enumFmt = 0;
+    if (SDL_Texture* target = SDL_GetRenderTarget(renderer))
+        SDL_QueryTexture(target, &enumFmt, nullptr, nullptr, nullptr);
+    if (enumFmt == 0 && testWindow())
+        enumFmt = SDL_GetWindowPixelFormat(testWindow());
+    SDL_PixelFormat* fmt = SDL_AllocFormat(enumFmt);
+    Signature sig;
+    if (!fmt)
+        return sig;
+    const int bpp = fmt->BytesPerPixel;
+    std::vector<Uint8> px((size_t)w * h * bpp);
+    SDL_RenderReadPixels(renderer, nullptr, (SDL_PixelFormatEnum)enumFmt, px.data(), w * bpp);
+    for (int i = 0; i < w * h; i++) {
+        Uint32 raw = 0;
+        std::memcpy(&raw, &px[(size_t)i * bpp], bpp);
+        Uint8 r = 0, g = 0, b = 0, a = 0;
+        SDL_GetRGBA(raw, fmt, &r, &g, &b, &a);
+        sig.r += r;
+        sig.g += g;
+        sig.b += b;
+        if (r != bg.r || g != bg.g || b != bg.b)
+            sig.lit++;
+    }
+    SDL_FreeFormat(fmt);
+    return sig;
+}
+
+static void renderOnce(SDL_Renderer* renderer, TextField& tf, const Widget::Color& bg)
+{
+    SDL_SetRenderDrawColor(renderer, bg.r, bg.g, bg.b, 0);
+    SDL_RenderClear(renderer);
+    tf.render(renderer, 0, 0);
+    SDL_RenderPresent(renderer);
+}
+
+static Signature signatureForFreshField(SDL_Renderer* ren, const Widget::Color& bg,
+                                       const std::string& text, const Widget::Color* color = nullptr)
+{
+    TextField fresh(0, 0, 200, 0, getDefaultFont());
+    fresh.setBackground(bg);
+    if (color)
+        fresh.setTextColor(*color);
+    fresh.setText(text);
+    renderOnce(ren, fresh, bg);
+    return signature(ren, bg);
+}
+
+TEST(TextFieldCacheRenderTest, DrawsText) {
+    SDL_Renderer* ren = headlessRenderer();
+    if (!ren) GTEST_SKIP() << "no headless SDL video driver";
+    const Widget::Color bg = {0, 0, 0, 0};
+    TextField tf(0, 0, 200, 0, getDefaultFont());   // no window -> no caret
+    tf.setBackground(bg);
+    tf.setText("MMMM");
+    renderOnce(ren, tf, bg);
+    EXPECT_GT(signature(ren, bg).lit, 0) << "text drew no pixels";
+}
+
+TEST(TextFieldCacheRenderTest, CacheIsStableAcrossRenders) {
+    SDL_Renderer* ren = headlessRenderer();
+    if (!ren) GTEST_SKIP() << "no headless SDL video driver";
+    const Widget::Color bg = {0, 0, 0, 0};
+    TextField tf(0, 0, 200, 0, getDefaultFont());
+    tf.setBackground(bg);
+    tf.setText("MMMM");
+    renderOnce(ren, tf, bg);
+    const Signature first = signature(ren, bg);
+    for (int i = 0; i < 5; i++)
+        renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == first) << "cached texture renders inconsistently";
+}
+
+TEST(TextFieldCacheRenderTest, TextChangeInvalidatesCache) {
+    SDL_Renderer* ren = headlessRenderer();
+    if (!ren) GTEST_SKIP() << "no headless SDL video driver";
+    const Widget::Color bg = {0, 0, 0, 0};
+    TextField tf(0, 0, 200, 0, getDefaultFont());
+    tf.setBackground(bg);
+
+    tf.setText("MMMM");
+    renderOnce(ren, tf, bg);
+    const Signature first = signature(ren, bg);
+    const Signature expectedSecond = signatureForFreshField(ren, bg, "iiii");
+    ASSERT_GT(first.lit, 0);
+    ASSERT_GT(expectedSecond.lit, 0);
+    ASSERT_FALSE(first == expectedSecond) << "pick two strings that render differently";
+
+    tf.setText("iiii");
+    renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == expectedSecond) << "stale texture served after text change";
+
+    tf.setText("MMMM");
+    renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == first) << "re-render differs after retyping same text";
+}
+
+TEST(TextFieldCacheRenderTest, PlaceholderChangesInvalidateCache) {
+    SDL_Renderer* ren = headlessRenderer();
+    if (!ren) GTEST_SKIP() << "no headless SDL video driver";
+    const Widget::Color bg = {0, 0, 0, 0};
+    TextField tf(0, 0, 200, 0, getDefaultFont());
+    tf.setBackground(bg);
+    tf.setPlaceholder("MMMM");
+    renderOnce(ren, tf, bg);
+    const Signature first = signature(ren, bg);
+    ASSERT_GT(first.lit, 0) << "placeholder drew no pixels";
+
+    // same trick: compare against a fresh field showing a different placeholder
+    TextField fresh(0, 0, 200, 0, getDefaultFont());
+    fresh.setBackground(bg);
+    fresh.setPlaceholder("iiii");
+    renderOnce(ren, fresh, bg);
+    const Signature expectedSecond = signature(ren, bg);
+    ASSERT_GT(expectedSecond.lit, 0);
+    ASSERT_FALSE(first == expectedSecond) << "pick two placeholders that render differently";
+
+    tf.setPlaceholder("iiii");
+    renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == expectedSecond) << "stale placeholder texture served";
+}
+
+TEST(TextFieldCacheRenderTest, TextColorChangeInvalidatesCache) {
+    SDL_Renderer* ren = headlessRenderer();
+    if (!ren) GTEST_SKIP() << "no headless SDL video driver";
+    const Widget::Color bg = {0, 0, 0, 0};
+    const Widget::Color red = {255, 0, 0, 255};
+    TextField tf(0, 0, 200, 0, getDefaultFont());
+    tf.setBackground(bg);
+    tf.setText("MMMM");
+    renderOnce(ren, tf, bg);
+    const Signature white = signature(ren, bg);
+    ASSERT_GT(white.lit, 0);
+    const Signature expectedRed = signatureForFreshField(ren, bg, "MMMM", &red);
+    ASSERT_GT(expectedRed.lit, 0);
+    ASSERT_FALSE(white == expectedRed) << "pick a colour that renders differently";
+
+    tf.setTextColor(red);
+    renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == expectedRed) << "stale texture served after colour change";
+    tf.setTextColor({255, 255, 255, 0});
+    renderOnce(ren, tf, bg);
+    EXPECT_TRUE(signature(ren, bg) == white) << "stale texture served after colour change back";
+}
 
 TEST(TextFieldTest, AsciiStillEdits) {
     TextField tf(0, 0, 200, 0, getDefaultFont());
