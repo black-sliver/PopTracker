@@ -158,7 +158,6 @@ void TextField::setPlaceholder(const std::string& placeholder)
 {
     if (_placeholder == placeholder) return;
     _placeholder = placeholder;
-    invalidateTexture();
 }
 
 void TextField::setTextColor(Widget::Color c)
@@ -166,7 +165,6 @@ void TextField::setTextColor(Widget::Color c)
     if (_textColor.r == c.r && _textColor.g == c.g && _textColor.b == c.b && _textColor.a == c.a)
         return;
     _textColor = c;
-    invalidateTexture();
 }
 
 void TextField::clear()
