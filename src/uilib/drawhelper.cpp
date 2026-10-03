@@ -363,7 +363,9 @@ void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
         SDL_RenderGeometry(renderer, nullptr, verts, 3, indices, 3);
     }
 
-    {
+    if (tC == lC) {
+        lC = bC;
+    } else if (tC != bC && lC != bC) {
         float x1 = il, x2 = il + iw / 2, x3 = il + iw;
         float y1 = it, y2 = it + ih, y3 = it + 2 * ih / 3;
 
@@ -383,6 +385,24 @@ void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
             {{x2, y3}, bColor, {0, 0}},
         };
         SDL_RenderGeometry(renderer, nullptr, verts, 9, nullptr, 0);
+        return;
+    }
+    {
+        float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+        float y1 = it, y2 = it + ih;
+
+        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+
+        SDL_Vertex verts[] = {
+            {{x1, y2}, tColor, {0, 0}},
+            {{x2, y1}, tColor, {0, 0}},
+            {{x2, y2}, tColor, {0, 0}},
+            {{x3, y2}, lColor, {0, 0}},
+            {{x2, y1}, lColor, {0, 0}},
+            {{x2, y2}, lColor, {0, 0}},
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
     }
 }
 
