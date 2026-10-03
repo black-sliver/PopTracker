@@ -333,7 +333,7 @@
                             },
                             "shape": {
                                 "description": "Overrides the location shape defined on the map.",
-                                "enum": [null, "rect", "diamond", "trapezoid"]
+                                "enum": [null, "rect", "diamond", "trapezoid", "triangle"]
                             },
                             "restrict_visibility_rules": {
                                 "example": [

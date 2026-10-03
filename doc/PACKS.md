@@ -395,7 +395,7 @@ Maps are referenced by name in layouts.
             "name": "map_identifier",
             "location_size": 24, // size of locations on the map, unit is pixels of img
             "location_border_thickness": 2, // border around the locations
-            "location_shape": "rect", // or "diamond", since 0.26.2, or "trapezoid", since 0.32.0
+            "location_shape": "rect", // or "diamond", since 0.26.2, or "trapezoid", since 0.32.0, or "triangle", since UNDEFINED.
             "img": "path/to/img.png"
         },
         ...

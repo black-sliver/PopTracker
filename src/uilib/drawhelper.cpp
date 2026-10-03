@@ -2,6 +2,7 @@
 #include "imghelper.h"
 #include "texturemanager.h"
 #include "../core/assets.h"
+#include <cmath>
 
 namespace Ui {
 
@@ -310,6 +311,81 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
     }
 }
 
+void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
+        Widget::Color tC, Widget::Color lC, Widget::Color bC)
+{
+    bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff;
+
+    float il = pos.left;
+    float it = pos.top;
+    float iw = size.width;
+    float ih = size.height;
+
+    constexpr float sqrt3 = 1.7320508075688772f;
+
+    float ol = il - borderWidth * sqrt3;
+    float ot = it - borderWidth * 2;
+    float ow = iw + 2 * sqrt3 * borderWidth;
+    float oh = ih + 3 * borderWidth;
+    SDL_Color borderColor = {0, 0, 0, 255};
+
+    if (hasAlpha) {
+        float x1 = ol, x2 = il, x3 = il + iw / 2, x4 = ol + ow, x5 = il + iw;
+        float y1 = ot, y2 = it, y3 = it + ih, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x2, y3}, borderColor, {0, 0}},
+            {{x4, y4}, borderColor, {0, 0}},
+            {{x5, y3}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x3, y2}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+            1, 2, 3,
+            0, 1, 4,
+            1, 4, 5,
+            2, 3, 4,
+            3, 4, 5,
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 6, indices, 18);
+    } else {
+        float x1 = ol, x3 = il + iw / 2, x4 = ol + ow;
+        float y1 = ot, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x4, y4}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 3, indices, 3);
+    }
+
+    {
+        float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+        float y1 = it, y2 = it + ih, y3 = it + 2 * ih / 3;
+
+        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+        SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+
+        SDL_Vertex verts[] = {
+            {{x1, y2}, tColor, {0, 0}},
+            {{x2, y1}, tColor, {0, 0}},
+            {{x2, y3}, tColor, {0, 0}},
+            {{x1, y2}, lColor, {0, 0}},
+            {{x3, y2}, lColor, {0, 0}},
+            {{x2, y3}, lColor, {0, 0}},
+            {{x3, y2}, bColor, {0, 0}},
+            {{x2, y1}, bColor, {0, 0}},
+            {{x2, y3}, bColor, {0, 0}},
+        };
+        SDL_RenderGeometry(renderer, nullptr, verts, 9, nullptr, 0);
+    }
+}
+
 void drawRectGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
 {
     constexpr int glowSize = 10;
@@ -510,6 +586,82 @@ void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, c
 
         1, 7, 2,
         2, 7, 4,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 14, 11,
+        11, 14, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
+}
+
+void drawTriangleGlow(Renderer renderer, Position pos, Size size, Widget::Color color)
+{
+    constexpr int glowSize = 10;
+    const float centre = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2;
+    constexpr int glowOff1 = 12;
+    constexpr int glowOff2 = 14;
+    constexpr int glowOff3 = 6;
+    const float x1  = static_cast<float>(pos.left) - glowOff2;
+    const float x2  = static_cast<float>(pos.left) - glowOff1;
+    const float x3  = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x4  = centre - glowOff1;
+    const float x5  = centre - glowOff3;
+    const float x6  = centre;
+    const float x7  = centre;
+    const float x8  = centre + glowOff3;
+    const float x9  = centre + glowOff1;
+    const float x10 = static_cast<float>(pos.left + size.width); // NOLINT(*-use-auto)
+    const float x11 = static_cast<float>(pos.left + size.width) + glowOff1;
+    const float x12 = static_cast<float>(pos.left + size.width) + glowOff2;
+    const float y1  = static_cast<float>(pos.top) - glowSize;
+    const float y2  = static_cast<float>(pos.top); // NOLINT(*-use-auto)
+    const float y3  = static_cast<float>(pos.top + size.height); // NOLINT(*-use-auto)
+    const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
+
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    const SDL_Vertex verts[] = {
+        {{x5, y1}, c, {0, 0}},
+        {{x6, y2}, c, {0.49, 0.49}},
+        {{x6, y1}, c, {0.49, 0}},
+        {{x4, y2}, c, {0, 0.49}},
+
+        {{x7, y1}, c, {0.51, 0}},
+        {{x9, y2}, c, {1, 0.49}},
+        {{x8, y1}, c, {1, 0}},
+        {{x7, y2}, c, {0.51, 0.49}},
+
+        {{x10, y3}, c, {0.51, 0.51}},
+        {{x12, y4}, c, {1, 1}},
+        {{x11, y3}, c, {1, 0.51}},
+        {{x10, y4}, c, {0.51, 1}},
+
+        {{x2, y3}, c, {0, 0.51}},
+        {{x3, y4}, c, {0.49, 1}},
+        {{x3, y3}, c, {0.49, 0.51}},
+        {{x1, y4}, c, {0, 1}},
+    };
+
+    const int indices[] = {
+        2, 1, 3,
+        3, 0, 2,
 
         4, 7, 5,
         5, 6, 4,

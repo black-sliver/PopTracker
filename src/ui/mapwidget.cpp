@@ -174,8 +174,9 @@ void MapWidget::connectSignals()
                 int innerX, innerY, innerW, innerH, borderSize;
                 calculateLocationScreenRect(pos, srcRect, dstRect, baseScale,
                     innerX, innerY, innerW, innerH, borderSize);
-                const int outerW = innerW + 2 * borderSize;
-                const int outerH = innerH + 2 * borderSize;
+                constexpr float sqrt3 = 1.7320508075688772f;
+                const int outerW = innerW + (pos.shape == Shape::TRIANGLE ? 2 * sqrt3 : 2) * borderSize;
+                const int outerH = innerH + (pos.shape == Shape::TRIANGLE ? 3 : 2) * borderSize;
 
                 if (x1 >= innerX - borderSize && x1 < innerX - borderSize + outerW &&
                     y1 >= innerY - borderSize && y1 < innerY - borderSize + outerH)
@@ -335,8 +336,10 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                 calculateLocationScreenRect(pos, srcRect, dstRect, baseScale, innerX, innerY, innerW, innerH, borderSize);
 
                 // Skip locations that are outside the widget area
-                const int outerW = innerW + 2 * borderSize;
-                const int outerH = innerH + 2 * borderSize;
+                //
+                constexpr float sqrt3 = 1.7320508075688772f;
+                const int outerW = innerW + (pos.shape == Shape::TRIANGLE ? 2 * sqrt3 : 2) * borderSize;
+                const int outerH = innerH + (pos.shape == Shape::TRIANGLE ? 3 : 2) * borderSize;
                 if (innerX + outerW < widgetX || innerX > widgetX + widgetW ||
                     innerY + outerH < widgetY || innerY > widgetY + widgetH) {
                     continue;
@@ -349,25 +352,38 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     if (highlight == Highlight::NONE)
                         continue;
                     const Color c = HighlightColors[highlight];
-                    if (pos.shape == Shape::DIAMOND)
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
                         drawDiamondGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
-                    else if (pos.shape == Shape::TRAPEZOID)
+                        break;
+                    case Shape::TRAPEZOID:
                         drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
-                    else
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        break;
+                    default:
                         drawRectGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        break;
+                    }
                 } else if (!SplitRects || state < 0 || state >= countOf(triangleValues)) {
                     // uniform shape
                     const Color& c = (state < 0 || state >= countOf(StateColors)) ?
                             StateColors[countOf(StateColors) - 1] : StateColors[state];
-                    if (pos.shape == Shape::DIAMOND)
-                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
-                    else if (pos.shape == Shape::TRAPEZOID)
-                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
-                    else
-                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
+                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        break;
+                    case Shape::TRAPEZOID:
+                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c);
+                        break;
+                    default:
+                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        break;
+                    }
                 } else {
                     // split shape
                     const int* values = triangleValues[state];
@@ -376,15 +392,20 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     const Color& botC = StateColors[values[2]];
                     const Color& rightC = StateColors[values[3]];
 
-                    if (pos.shape == Shape::DIAMOND)
-                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                topC, leftC, botC, rightC);
-                    else if (pos.shape == Shape::TRAPEZOID)
-                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                topC, leftC, botC, rightC);
-                    else
-                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                topC, leftC, botC, rightC);
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
+                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        break;
+                    case Shape::TRAPEZOID:
+                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC);
+                        break;
+                    default:
+                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        break;
+                    }
                 }
             }
         }
