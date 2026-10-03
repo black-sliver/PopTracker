@@ -224,6 +224,22 @@ USB2SNES::USB2SNES(const std::string& name)
             const auto it = features.find("NO_ROM_READ");
             bool no_rom_read = (it == features.end()) ? false : it->second;
             auto& actwatchlist = no_rom_read ? no_rom_watchlist : watchlist;
+            if (!actwatchlist.empty() && last_watch >= actwatchlist.size()) {
+                // at the end of watch list -> sleep and start at 0 again
+                last_watch = 0;
+                if (update_interval>0) { // limit updates per second
+                    const auto t = static_cast<unsigned long>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now() - last_update).count());
+                    watchlock.unlock();
+                    // FIXME: do partial sleeps and break when destruction is requested or update_interval changed
+                    // WORK-AROUND: limit sleep time to 1sec
+                    const auto sleep_t =
+                        (t + 1000 < update_interval) ? 1000 : (t < update_interval) ? (update_interval - t) : 1;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_t));
+                    watchlock.lock();
+                    // NOTE: actwatchlist.empty() could've changed while we release the lock, so we check again below.
+                }
+            }
             if (actwatchlist.empty()) {
                 watchlock.unlock();
                 // limit to 10 times a second
@@ -234,20 +250,6 @@ USB2SNES::USB2SNES(const std::string& name)
             } else {
                 // read data from watches
                 last_op = Op::READ;
-                if (last_watch >= actwatchlist.size()) {
-                    last_watch = 0;
-                    if (update_interval>0) { // limit updates per second
-                        unsigned long t = (unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_update).count();
-                        {
-                            watchlock.unlock();
-                            // FIXME: do multiple partial sleeps and break when destruction is requested or update_interval changed
-                            // WORK-AROUND: limit sleep time to 1sec
-                            unsigned long sleept = (t+1000<update_interval) ? 1000 : (t<update_interval) ? (update_interval-t) : 1;
-                            std::this_thread::sleep_for(std::chrono::milliseconds(sleept));
-                        }
-                        watchlock.lock();
-                    }
-                }
                 if (last_watch == 0) {
                     update_count++;
                     last_update = std::chrono::system_clock::now();
