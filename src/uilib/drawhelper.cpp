@@ -312,7 +312,7 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
 }
 
 void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
-        Widget::Color tC, Widget::Color lC, Widget::Color bC)
+        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC)
 {
     bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff;
 
@@ -363,46 +363,131 @@ void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
         SDL_RenderGeometry(renderer, nullptr, verts, 3, indices, 3);
     }
 
+    int numColors;
     if (tC == lC) {
-        lC = bC;
-    } else if (tC != bC && lC != bC) {
-        float x1 = il, x2 = il + iw / 2, x3 = il + iw;
-        float y1 = it, y2 = it + ih, y3 = it + 2 * ih / 3;
-
-        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
-        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
-        SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
-
-        SDL_Vertex verts[] = {
-            {{x1, y2}, tColor, {0, 0}},
-            {{x2, y1}, tColor, {0, 0}},
-            {{x2, y3}, tColor, {0, 0}},
-            {{x1, y2}, lColor, {0, 0}},
-            {{x3, y2}, lColor, {0, 0}},
-            {{x2, y3}, lColor, {0, 0}},
-            {{x3, y2}, bColor, {0, 0}},
-            {{x2, y1}, bColor, {0, 0}},
-            {{x2, y3}, bColor, {0, 0}},
-        };
-        SDL_RenderGeometry(renderer, nullptr, verts, 9, nullptr, 0);
-        return;
+        if (tC == bC) {
+            if (tC == rC) {
+                numColors = 1;
+            } else {
+                lC = rC;
+                numColors = 2;
+            }
+        } else {
+            lC = bC;
+            if (bC == rC || tC == rC) {
+                numColors = 2;
+            } else {
+                bC = rC;
+                numColors = 3;
+            }
+        }
+    } else if (tC == bC || lC == bC) {
+        if (tC == rC || lC == rC) {
+            numColors = 2;
+        } else {
+            bC = rC;
+            numColors = 3;
+        }
+    } else {
+        numColors = (tC == rC || lC == rC || bC == rC) ? 3 : 4;
     }
-    {
-        float x1 = il, x2 = il + iw / 2, x3 = il + iw;
-        float y1 = it, y2 = it + ih;
+    switch (numColors) {
+    case 1:
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih;
 
-        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
-        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
 
-        SDL_Vertex verts[] = {
-            {{x1, y2}, tColor, {0, 0}},
-            {{x2, y1}, tColor, {0, 0}},
-            {{x2, y2}, tColor, {0, 0}},
-            {{x3, y2}, lColor, {0, 0}},
-            {{x2, y1}, lColor, {0, 0}},
-            {{x2, y2}, lColor, {0, 0}},
-        };
-        SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x3, y2}, tColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 3, nullptr, 0);
+        }
+        break;
+    case 2:
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x2, y2}, tColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x2, y1}, lColor, {0, 0}},
+                {{x2, y2}, lColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+        }
+        break;
+    case 3: 
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih, y3 = it + 2 * ih / 3;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+            SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x2, y3}, tColor, {0, 0}},
+                {{x1, y2}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x2, y3}, lColor, {0, 0}},
+                {{x3, y2}, bColor, {0, 0}},
+                {{x2, y1}, bColor, {0, 0}},
+                {{x2, y3}, bColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 9, nullptr, 0);
+        }
+        break;
+    case 4:
+        {
+            float x1 = il, x2 = il + iw / 3, x3 = il + iw / 2, x4 = il + 2 * iw / 3, x5 = il + iw;
+            float y1 = it, y2 = it + 4 * ih / 9, y3 = it + 7 * ih / 9, y4 = it + ih;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+            SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+            SDL_Color rColor = {rC.r, rC.g, rC.b, rC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y4}, lColor, {0, 0}},
+                {{x2, y3}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x1, y4}, lColor, {0, 0}},
+                {{x3, y1}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+
+                {{x5, y4}, rColor, {0, 0}},
+                {{x4, y3}, rColor, {0, 0}},
+                {{x3, y2}, rColor, {0, 0}},
+                {{x5, y4}, rColor, {0, 0}},
+                {{x3, y1}, rColor, {0, 0}},
+                {{x3, y2}, rColor, {0, 0}},
+
+                {{x1, y4}, bColor, {0, 0}},
+                {{x2, y3}, bColor, {0, 0}},
+                {{x4, y3}, bColor, {0, 0}},
+                {{x1, y4}, bColor, {0, 0}},
+                {{x4, y3}, bColor, {0, 0}},
+                {{x5, y4}, bColor, {0, 0}},
+
+                {{x2, y3}, tColor, {0, 0}},
+                {{x4, y3}, tColor, {0, 0}},
+                {{x3, y2}, tColor, {0, 0}},
+            };
+            SDL_RenderGeometry(renderer, nullptr, verts, 21, nullptr, 0);
+        }
+        break;
     }
 }
 

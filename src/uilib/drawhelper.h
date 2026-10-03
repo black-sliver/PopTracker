@@ -20,7 +20,7 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
 void drawTrapezoidGlow(Renderer renderer, Position pos, Size size, Widget::Color color);
 
 void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
-        Widget::Color topC, Widget::Color leftC, Widget::Color botC);
+        Widget::Color topC, Widget::Color leftC, Widget::Color botC, Widget::Color rightC);
 
 void drawTriangleGlow(Renderer renderer, Position pos, Size size, Widget::Color color);
 

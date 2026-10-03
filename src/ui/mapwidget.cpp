@@ -378,7 +378,7 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                         drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c);
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
                         break;
                     default:
                         drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
@@ -400,7 +400,7 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                         drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC);
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
                         break;
                     default:
                         drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
