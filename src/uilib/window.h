@@ -49,6 +49,7 @@ protected:
 
     Position _lastMousePos;
     Widget* _tooltip = nullptr;
+    Widget* _keyboardFocus = nullptr;
     bool _isAlwaysOnTop = false;
 
     void clear();
@@ -83,6 +84,9 @@ public:
     void grabFocus();
     bool getAlwaysOnTop() const;
     virtual void setAlwaysOnTop(bool alwaysOnTop);
+
+    void setKeyboardFocus(Widget* w);
+    Widget* getKeyboardFocus() const { return _keyboardFocus; }
 
     bool isAccelerated() const
     {
