@@ -22,6 +22,7 @@ Map Map::FromJSON(json& j)
     map._locationSize = to_int(j["location_size"], map._locationSize);
     map._locationBorderThickness = to_int(j["location_border_thickness"], map._locationBorderThickness);
     map._locationShape = ::Location::MapLocation::ShapeFromString(to_string(j["location_shape"], ""));
+    map._locationOrientation = ::Location::MapLocation::OrientationFromString(to_string(j["location_orientation"], ""));
     map._img = to_string(j["img"], "");
     return map;
 }

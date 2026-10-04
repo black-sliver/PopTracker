@@ -926,6 +926,7 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                     pair.second.getSize(map.getLocationSize()),
                     pair.second.getBorderThickness(map.getLocationBorderThickness()),
                     pair.second.getShape(map.getLocationShape()),
+                    pair.second.getOrientation(map.getLocationOrientation()),
                 });
             }
 #ifndef NDEBUG

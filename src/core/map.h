@@ -9,6 +9,7 @@
 class Map final {
 public:
     typedef ::Location::MapLocation::Shape LocationShape;
+    typedef ::Location::MapLocation::Orientation LocationOrientation;
 
     static Map FromJSON(nlohmann::json& j);
     static Map FromJSON(nlohmann::json&& j);
@@ -18,6 +19,7 @@ protected:
     int _locationSize=65;
     int _locationBorderThickness=8;
     LocationShape _locationShape = LocationShape::UNSPECIFIED;
+    LocationOrientation _locationOrientation = LocationOrientation::UNSPECIFIED;
     std::string _img;
 
 public:
@@ -26,6 +28,10 @@ public:
     LocationShape getLocationShape() const
     {
         return _locationShape;
+    }
+    LocationOrientation getLocationOrientation() const
+    {
+        return _locationOrientation;
     }
     const std::string& getImage() const { return _img; } 
 };

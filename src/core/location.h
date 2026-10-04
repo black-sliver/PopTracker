@@ -20,7 +20,15 @@ public:
             DIAMOND,
             TRAPEZOID,
             TRIANGLE,
-            CIRCLE,
+            CONCAVE_KITE,
+        };
+
+        enum class Orientation {
+            UNSPECIFIED,
+            NORTH,
+            SOUTH,
+            EAST,
+            WEST,
         };
 
         static Shape ShapeFromString(const std::string& s) {
@@ -32,7 +40,21 @@ public:
                 return Shape::TRAPEZOID;
             if (s == "triangle")
                 return Shape::TRIANGLE;
+            if (s == "concave_kite")
+                return Shape::CONCAVE_KITE;
             return Shape::UNSPECIFIED;
+        }
+
+        static Orientation OrientationFromString(const std::string& s) {
+            if (s == "north")
+                return Orientation::NORTH;
+            else if (s == "south")
+                return Orientation::SOUTH;
+            else if (s == "east")
+                return Orientation::EAST;
+            else if (s == "west")
+                return Orientation::WEST;
+            return Orientation::UNSPECIFIED;
         }
 
     protected:
@@ -44,6 +66,7 @@ public:
         std::list<std::list<std::string> > _visibilityRules;
         std::list<std::list<std::string> > _invisibilityRules;
         Shape _shape = Shape::UNSPECIFIED;
+        Orientation _orientation = Orientation::NORTH;
 
     public:
         // getters
@@ -55,6 +78,10 @@ public:
         Shape getShape(Shape parent) const
         {
             return _shape == Shape::UNSPECIFIED ? parent : _shape;
+        }
+        Orientation getOrientation(Orientation parent) const
+        {
+            return _orientation == Orientation::UNSPECIFIED ? parent : _orientation;
         }
 
         const std::list<std::list<std::string>>& getVisibilityRules() const { return _visibilityRules; }

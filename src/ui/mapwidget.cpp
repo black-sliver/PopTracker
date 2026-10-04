@@ -174,9 +174,8 @@ void MapWidget::connectSignals()
                 int innerX, innerY, innerW, innerH, borderSize;
                 calculateLocationScreenRect(pos, srcRect, dstRect, baseScale,
                     innerX, innerY, innerW, innerH, borderSize);
-                constexpr float sqrt3 = 1.7320508075688772f;
-                const int outerW = innerW + (pos.shape == Shape::TRIANGLE ? 2 * sqrt3 : 2) * borderSize;
-                const int outerH = innerH + (pos.shape == Shape::TRIANGLE ? 3 : 2) * borderSize;
+                const int outerW = innerW + 2 * borderSize;
+                const int outerH = innerH + 2 * borderSize;
 
                 if (x1 >= innerX - borderSize && x1 < innerX - borderSize + outerW &&
                     y1 >= innerY - borderSize && y1 < innerY - borderSize + outerH)
@@ -337,15 +336,14 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
 
                 // Skip locations that are outside the widget area
                 //
-                constexpr float sqrt3 = 1.7320508075688772f;
-                const int outerW = innerW + (pos.shape == Shape::TRIANGLE ? 2 * sqrt3 : 2) * borderSize;
-                const int outerH = innerH + (pos.shape == Shape::TRIANGLE ? 3 : 2) * borderSize;
+                const int outerW = innerW + 2 * borderSize;
+                const int outerH = innerH + 2 * borderSize;
                 if (innerX + outerW < widgetX || innerX > widgetX + widgetW ||
                     innerY + outerH < widgetY || innerY > widgetY + widgetH) {
                     continue;
                 }
 
-                const Highlight highlight = pos.highlight;
+                const Highlight highlight = Highlight::PRIORITY;
 
                 if (pass == 0) {
                     // glow
@@ -357,10 +355,13 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                         drawDiamondGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
                         break;
                     case Shape::TRAPEZOID:
-                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKiteGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
                         break;
                     default:
                         drawRectGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
@@ -375,10 +376,16 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                         drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
                         break;
                     case Shape::TRAPEZOID:
-                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKite(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
                         break;
                     default:
                         drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
@@ -394,13 +401,20 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
 
                     switch (pos.shape) {
                     case Shape::DIAMOND:
-                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC);
                         break;
                     case Shape::TRAPEZOID:
-                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC, pos.orientation);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC, pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKite(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC, pos.orientation);
                         break;
                     default:
                         drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);

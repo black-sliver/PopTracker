@@ -13,6 +13,7 @@ namespace Ui {
 class MapWidget final : public Image {
 public:
     typedef ::Location::MapLocation::Shape Shape;
+    typedef ::Location::MapLocation::Orientation Orientation;
 
     MapWidget(int x, int y, int w, int h, const char* filename);
     MapWidget(int x, int y, int w, int h, const void* data, size_t len);
@@ -24,6 +25,7 @@ public:
         int size = 0;
         int borderThickness = 0;
         Shape shape = Shape::UNSPECIFIED;
+        Orientation orientation = Orientation::UNSPECIFIED;
         int state = 1;
         Highlight highlight = Highlight::NONE;
     };

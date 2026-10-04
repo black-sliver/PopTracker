@@ -38,8 +38,13 @@
             },
             "location_shape": {
                 "description": "Shape of the map locations.",
-                "enum": ["rect", "diamond", "trapezoid", "triangle"],
+                "enum": ["rect", "diamond", "trapezoid", "triangle", "concave_kite"],
                 "default": "rect"
+            },
+            "location_orientation": {
+                "description": "The orientation of the location shape on the map.",
+                "enum": ["north", "south", "east", "west"],
+                "default": "north"
             },
             "img": {
                 "description": "Image of the map.",

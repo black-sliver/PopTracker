@@ -395,7 +395,10 @@ Maps are referenced by name in layouts.
             "name": "map_identifier",
             "location_size": 24, // size of locations on the map, unit is pixels of img
             "location_border_thickness": 2, // border around the locations
-            "location_shape": "rect", // or "diamond", since 0.26.2, or "trapezoid", since 0.32.0, or "triangle", since UNDEFINED.
+            "location_shape": "rect", // or "diamond", since 0.26.2, or "trapezoid", since 0.32.0,
+                                      // or "triangle" or "concave_kite", since UNDEFINED.
+            "location_orientation": "north", // or "south", "east", or "west". Field added in UNDEFINED.
+                                             // Only affects trapezoid, triangle, and concave kite shapes.
             "img": "path/to/img.png"
         },
         ...
