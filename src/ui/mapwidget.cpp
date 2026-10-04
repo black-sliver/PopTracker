@@ -338,8 +338,10 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                 //
                 const int outerW = innerW + 2 * borderSize;
                 const int outerH = innerH + 2 * borderSize;
-                if (innerX + outerW < widgetX || innerX > widgetX + widgetW ||
-                    innerY + outerH < widgetY || innerY > widgetY + widgetH) {
+                const int outerX = innerX - borderSize;
+                const int outerY = innerY - borderSize;
+                if (outerX + outerW < widgetX || outerX > widgetX + widgetW ||
+                    outerY + outerH < widgetY || outerY > widgetY + widgetH) {
                     continue;
                 }
 
