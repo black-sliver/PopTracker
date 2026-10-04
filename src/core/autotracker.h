@@ -132,7 +132,7 @@ public:
         bool spawnedWorkers = false;
         
         if (_snes) {
-            if (_snes->mayBlockOnExit()) {
+            if (USB2SNES::mayBlockOnExit()) {
                 // delete() may wait for socket timeout -> run destructor in another thread
                 auto snes = _snes;
                 std::thread([snes]() { delete snes; }).detach();
@@ -575,7 +575,7 @@ public:
                 // which may block. as a work-around we start a new USB2SNES and
                 // destruct the old one on a different thread.
                 // We should probably rewrite USB2SNES support.
-                if (_snes->mayBlockOnExit()) {
+                if (USB2SNES::mayBlockOnExit()) {
                     auto snes = _snes;
                     std::thread([snes]() { delete snes; }).detach();
                 } else {

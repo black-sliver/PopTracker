@@ -1,15 +1,15 @@
-#ifndef _USB2SNES_H_INCLUDED
-#define _USB2SNES_H_INCLUDED
+#pragma once
 
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/client.hpp>
-#include <thread>
-#include <mutex>
 #include <chrono>
-#include <vector>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
+#include <vector>
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
+
 
 class USB2SNES {
     public:
@@ -28,10 +28,10 @@ class USB2SNES {
             DATA = 2,
         };
 
-        USB2SNES(const std::string& appname);
-        ~USB2SNES();
-        bool connect(std::vector<std::string> uris = {QUSB2SNES_URI,LEGACY_URI});
-        bool disconnect();
+        explicit USB2SNES(const std::string& appname);
+        virtual ~USB2SNES();
+        bool connect(const std::vector<std::string>& uris = {QUSB2SNES_URI,LEGACY_URI});
+        void disconnect();
         Change poll();
         static constexpr auto QUSB2SNES_URI = "ws://localhost:23074";
         static constexpr auto LEGACY_URI = "ws://localhost:8080";
@@ -45,15 +45,15 @@ class USB2SNES {
         bool read(uint32_t addr, unsigned len, void* out);
         template<typename T>
         T readInt(uint32_t addr);
-        
-        bool hasFeature(std::string feat);
+
+        bool hasFeature(const std::string& feat);
         void setUpdateInterval(size_t interval) { update_interval = interval; }
         void clearCache();
         std::string getDeviceName();
         void nextDevice();
 
-        bool mayBlockOnExit() const;
-        
+        static bool mayBlockOnExit();
+
     protected:
         typedef websocketpp::client<websocketpp::config::asio_client> WSClient;
         struct Version {
@@ -61,33 +61,54 @@ class USB2SNES {
             int vminor;
             int vrevision;
             std::string extra;
-            Version(const std::string& vs)
-                    : vmajor(0), vminor(0), vrevision(0) {
+
+            explicit Version(const std::string& vs)
+                : vmajor(0), vminor(0), vrevision(0)
+            {
                 char* next = nullptr;
-                vmajor = (int)strtol(vs.c_str(), &next, 10);
-                if (next && *next) vminor = (int)strtol(next+1, &next, 10);
-                if (next && *next) vrevision = (int)strtol(next+1, &next, 10);
-                if (next && *next) extra = next+1;
+                vmajor = static_cast<int>(strtol(vs.c_str(), &next, 10));
+                if (next && *next) vminor = static_cast<int>(strtol(next + 1, &next, 10));
+                if (next && *next) vrevision = static_cast<int>(strtol(next + 1, &next, 10));
+                if (next && *next) extra = next + 1;
             }
-            Version(int ma=0,int mi=0, int rev=0, std::string ex="")
-                    : vmajor(ma), vminor(mi), vrevision(rev), extra(std::move(ex)) {}
+
+            Version(const int ma, const int mi, const int rev = 0, std::string ex = "")
+                : vmajor(ma), vminor(mi), vrevision(rev), extra(std::move(ex))
+            {}
+
+            Version()
+                : Version(0, 0)
+            {}
+
             void clear() { *this = {}; }
-            bool empty() const { 
+
+            bool empty() const
+            {
                 return vmajor==0 && vminor==0 && vrevision==0 && extra.empty();
             }
-            std::string to_string() const {
+
+            std::string to_string() const
+            {
                 return std::to_string(vmajor) + "." +
                        std::to_string(vminor) + "." + 
                        std::to_string(vrevision) + (extra.empty()?"":"-") +
                        extra;
             }
-            int compare(const Version& other) const {
-                if (other.vmajor>vmajor) return -1;
-                else if (other.vmajor<vmajor) return 1;
-                if (other.vminor>vminor) return -1;
-                else if (other.vminor<vminor) return 1;
-                if (other.vrevision>vrevision) return -1;
-                else if (other.vrevision<vrevision) return 1;
+
+            int compare(const Version& other) const
+            {
+                if (other.vmajor > vmajor)
+                    return -1;
+                if (other.vmajor < vmajor)
+                    return 1;
+                if (other.vminor > vminor)
+                    return -1;
+                if (other.vminor < vminor)
+                    return 1;
+                if (other.vrevision > vrevision)
+                    return -1;
+                if (other.vrevision < vrevision)
+                    return 1;
                 return 0;
             }
             bool operator<(const Version& other) const { return compare(other)<0; }
@@ -97,17 +118,17 @@ class USB2SNES {
             bool operator==(const Version& other) const { return compare(other)==0; }
             bool operator!=(const Version& other) const { return !(*this==other); }
         };
+
         WSClient client;
         WSClient::connection_ptr conn;
-        // we have 1 mutex per data access
-        // + 1 mutex for checking/requesting socket state (wsmutex)
-        // + 1 mutex for the actual work(er/socket) (we can not destroy it while it's busy)
-        std::mutex wsmutex; // FIXME: this is getting out of hand
-        std::mutex workmutex;
-        std::mutex datamutex;
-        std::mutex watchmutex;
-        std::mutex statemutex;
-        
+
+        // FIXME: number of mutex is getting out of hand
+        std::mutex ws_mutex;
+        std::mutex work_mutex;
+        std::mutex data_mutex;
+        std::mutex watch_mutex;
+        std::mutex state_mutex;
+
         std::thread worker;
         std::string appname;
         std::string appid;
@@ -115,6 +136,8 @@ class USB2SNES {
         bool ws_connected = false;
         bool ws_connecting = false;
         bool snes_connected = false;
+        bool disconnecting = false; ///< Tells worker to stop. Hold state_mutex while accessing.
+
         enum class Op {
             NONE,
             GET_VERSION,
@@ -123,13 +146,14 @@ class USB2SNES {
             READ,
             PING,
         };
+
         Op last_op = Op::NONE;
         std::string last_dev_name;
         size_t last_dev = 0;
         size_t last_watch = 0;
         uint32_t last_addr = 0;
-        unsigned last_len = 0;
-        std::string rxbuf;
+        size_t last_len = 0;
+        std::string rx_buf;
         std::vector<uint32_t> watchlist;
         std::vector<uint32_t> no_rom_watchlist;
         std::map<uint32_t, uint8_t> data;
@@ -146,20 +170,21 @@ class USB2SNES {
         Version backend_version;
         bool is_qusb2snes_uri = false;
         size_t next_uri = 0;
-        size_t optimum_read_block_size = 512; // NOTE: qusb2snes 0.7.19 on linux read takes 20ms/128B, so "native" 512 has worse performance. TODO: fix this in qusb2snes
+        size_t optimum_read_block_size = 512; // NOTE: QUsb2Snes 0.7.19 on linux read takes 20ms/128B, so "native" 512 has worse performance. TODO: fix this in QUsb2Snes
         size_t read_holes_are_free = true;//false;
         Mapping mapping = Mapping::UNKNOWN;
 
-        uint32_t mapaddr(uint32_t addr);
+        uint32_t mapAddr(uint32_t addr) const;
+        bool sleepUnlessDisconnect(unsigned long ms); ///< Sleep for ms milliseconds. Returns false if disconnected.
 };
 
 template<typename T>
 T USB2SNES::readInt(uint32_t addr)
 {
     T res=0;
-    addr = mapaddr(addr);
+    addr = mapAddr(addr);
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
+        std::lock_guard data_lock(data_mutex);
         for (size_t n=0; n<sizeof(T); n++) {
             res <<= 8;
             res += data[addr+sizeof(T)-n-1];
@@ -171,12 +196,12 @@ T USB2SNES::readInt(uint32_t addr)
 static inline USB2SNES::Change operator|(USB2SNES::Change lhs, USB2SNES::Change rhs)
 {
     return static_cast<USB2SNES::Change>(
-            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(lhs) |
-            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(rhs)
+            static_cast<std::underlying_type_t<USB2SNES::Change>>(lhs) |
+            static_cast<std::underlying_type_t<USB2SNES::Change>>(rhs)
     );
 }
 
-static inline USB2SNES::Change& operator|=(USB2SNES::Change& lhs, USB2SNES::Change rhs)
+static inline USB2SNES::Change& operator|=(USB2SNES::Change& lhs, const USB2SNES::Change rhs)
 {
     return lhs = lhs | rhs;
 }
@@ -184,15 +209,11 @@ static inline USB2SNES::Change& operator|=(USB2SNES::Change& lhs, USB2SNES::Chan
 static inline USB2SNES::Change operator&(USB2SNES::Change lhs, USB2SNES::Change rhs)
 {
     return static_cast<USB2SNES::Change>(
-            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(lhs) &
-            static_cast<typename std::underlying_type<USB2SNES::Change>::type>(rhs)
+            static_cast<std::underlying_type_t<USB2SNES::Change>>(lhs) &
+            static_cast<std::underlying_type_t<USB2SNES::Change>>(rhs)
     );
 }
 
-static inline bool operator!(USB2SNES::Change e) {
+static inline bool operator!(const USB2SNES::Change e) {
     return e == static_cast<USB2SNES::Change>(0);
 }
-
-
-#endif // _USB2SNES_H_INCLUDED
-

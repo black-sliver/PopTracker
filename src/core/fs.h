@@ -35,6 +35,7 @@
 namespace fs {
     using std::filesystem::path;
     using std::filesystem::current_path;
+    using std::filesystem::absolute;
     using std::filesystem::is_regular_file;
     using std::filesystem::equivalent;
     using std::filesystem::u8path;
@@ -63,6 +64,7 @@ namespace fs {
 
 namespace fs {
     using boost::filesystem::current_path;
+    using boost::filesystem::absolute;
     using boost::filesystem::is_regular_file;
     using boost::filesystem::equivalent;
     using boost::filesystem::create_directories;

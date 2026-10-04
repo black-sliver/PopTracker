@@ -12,35 +12,23 @@
 
 using json = nlohmann::json;
 
-
 // TODO: clean this up, maybe split the ws part off?
 
 #define MINIMAL_LOGGING
 //#define VERBOSE
 //#define TIME_READ
-//#ifndef DETACH_THREAD_ON_EXIT // avoid blocking on delete(). not yet implemented
+//#define DETACH_THREAD_ON_EXIT // avoid blocking on delete(). not yet implemented
 
 
-bool USB2SNES::wsConnected()
-{
-    std::lock_guard<std::mutex> statelock(statemutex);
-    return ws_connected;
-}
-bool USB2SNES::snesConnected()
-{
-    std::lock_guard<std::mutex> statelock(statemutex);
-    return snes_connected;
-}
-
-static const json jSCAN = {
+static const json jDeviceList = {
     { "Opcode", "DeviceList" },
     { "Space", "SNES" }
 };
-static const json jGETVERSION = {
+static const json jAppVersion = {
     { "Opcode", "AppVersion" },
     { "Space", "SNES" }
 };
-static const json jINFO = {
+static const json jInfo = {
     { "Opcode", "Info" },
     { "Space", "SNES" }
 };
@@ -51,9 +39,10 @@ USB2SNES::USB2SNES(const std::string& name)
     appname = name;
     // append a random sequence to it
     std::srand(std::time(nullptr));
-    const char idchars[] = "0123456789abcdef";
-    for (int i=0; i<4; i++) appid += idchars[std::rand()%strlen(idchars)];
-    
+    constexpr char id_chars[] = "0123456789abcdef";
+    for (int i=0; i<4; i++)
+        appid += id_chars[std::rand()%strlen(id_chars)];
+
 #ifdef MINIMAL_LOGGING
     client.clear_access_channels(websocketpp::log::alevel::all);
     client.set_access_channels(websocketpp::log::alevel::none | websocketpp::log::alevel::app);
@@ -63,27 +52,28 @@ USB2SNES::USB2SNES(const std::string& name)
 #endif
     client.clear_error_channels(websocketpp::log::elevel::all);
     client.set_error_channels(websocketpp::log::elevel::warn|websocketpp::log::elevel::rerror|websocketpp::log::elevel::fatal);
-    
+
     client.init_asio();
-    
-    client.set_message_handler([this] (websocketpp::connection_hdl hdl, WSClient::message_ptr msg)
+
+    client.set_message_handler([this] (const websocketpp::connection_hdl& hdl, const WSClient::message_ptr& msg)
     {
-        std::unique_lock<std::mutex> lock(workmutex);
+        std::unique_lock lock(work_mutex);
         {
-            std::lock_guard<std::mutex> wslock(wsmutex);
-            if (!ws_open) return; // shutting down
+            std::lock_guard ws_lock(ws_mutex);
+            if (!ws_open)
+                return; // shutting down
         }
-        
+
         switch (last_op) {
             case Op::GET_VERSION:
             {
-                json res = json::parse(msg->get_payload());
-                auto results = res.find("Results");
-                if (results != res.end() && results->size()>0) {
+                const json res = json::parse(msg->get_payload());
+                const auto results = res.find("Results");
+                if (results != res.end() && !results->empty()) {
                     // FIXME: sanitize usb2snes_version and qusb2snes_version (they may be printed to terminal)
                     usb2snes_version = results->at(0).get<std::string>();
                     if (is_qusb2snes_uri && usb2snes_version.rfind("QUsb2Snes-",0)==0)
-                        qusb2snes_version = usb2snes_version.substr(10);
+                        qusb2snes_version = Version{usb2snes_version.substr(10)};
                     else
                         qusb2snes_version.clear();
                 }
@@ -96,24 +86,29 @@ USB2SNES::USB2SNES(const std::string& name)
             }
             case Op::SCAN:
             {
-                json res = json::parse(msg->get_payload());
-                auto results = res.find("Results");
+                const json res = json::parse(msg->get_payload());
+                const auto results = res.find("Results");
                 // HANDLE RESULT
                 if (results != res.end()) {
-                    if (results->size() > 0) {
+                    if (!results->empty()) {
                         printf("Got %u scan results: %s (last %u)\n", (unsigned)results->size(), results->dump().c_str(), (unsigned)last_dev);
                         if (last_dev>=results->size()) last_dev=0;
                         last_dev_name = results->at(last_dev);
                         printf("Connecting to %s\n", last_dev_name.c_str());
-                        json jCONN = {
+                        json jAttach = {
                             {"Opcode", "Attach"},
                             {"Space", "SNES"},
                             {"Operands", {last_dev_name}}
                         };
+                        {
+                            std::lock_guard state_lock(state_mutex);
+                            if (disconnecting)
+                                return;
+                        }
                         last_op = Op::CONNECT;
-                        client.send(hdl,jCONN.dump(),websocketpp::frame::opcode::text);
-                        client.send(hdl,jINFO.dump(),websocketpp::frame::opcode::text);
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        client.send(hdl, jAttach.dump(), websocketpp::frame::opcode::text);
+                        client.send(hdl, jInfo.dump(), websocketpp::frame::opcode::text);
+                        sleepUnlessDisconnect(100);
                         return;
                     }
                 }
@@ -123,7 +118,7 @@ USB2SNES::USB2SNES(const std::string& name)
             {
                 features.clear();
                 if (strncmp(msg->get_payload().c_str(),"USBA", 4)==0) {
-                    // if we get this, there was probably crap in the receive buffer of qusb2snes.
+                    // if we get this, there was probably crap in the receive buffer of QUsb2Snes.
                     printf("Received invalid response. Ignoring.\n");
                     return; // Actual reply should follow
                 }
@@ -132,10 +127,10 @@ USB2SNES::USB2SNES(const std::string& name)
                                                     msg->get_payload().c_str());
 #endif
                 try {
-                    std::lock_guard<std::mutex> statelock(statemutex);
-                    json res = json::parse(msg->get_payload());
-                    auto results = res.find("Results");
-                    if (results != res.end() && results->size()>0) { // check more
+                    std::lock_guard state_lock(state_mutex);
+                    const json res = json::parse(msg->get_payload());
+                    const auto results = res.find("Results");
+                    if (results != res.end() && !results->empty()) { // check more
                         // FIXME: sanitize backend and backend_version (they may be printed to terminal)
                         snes_connected = true;
                         state_changed = true;
@@ -144,16 +139,16 @@ USB2SNES::USB2SNES(const std::string& name)
                         else
                             backend = "SD2SNES";
                         backend_version = Version(results->at(0).get<std::string>());
-                        for (auto& res: *results) {
-                            if (res.is_string()) {
-                                std::string s = res.get<std::string>();
-                                if (s.rfind("FEAT_",0)==0 || s.rfind("NO_",0)==0) {
+                        for (const auto& result: *results) {
+                            if (result.is_string()) {
+                                const auto s = result.get<std::string>();
+                                if (s.rfind("FEAT_", 0) == 0 || s.rfind("NO_", 0) == 0) {
                                     features[s] = true;
                                 }
                             }
                         }
                         printf("Connected to %s %s\n", backend.c_str(), backend_version.to_string().c_str());
-                        if (backend != "NWAccess") // qusb has the better name for emunw in scan result
+                        if (backend != "NWAccess") // QUsb has the better name for emunw in scan result
                             last_dev_name = backend;
                         last_dev_name = last_dev_name.substr(0, last_dev_name.find(" - ")); // cut away extra from qusb
                         read_holes_are_free = (backend == "SD2SNES") ? 512 : 128; // max hole size is a balance between wss delay and actual read cost, this is for qusb2snes 0.7.19
@@ -174,165 +169,185 @@ USB2SNES::USB2SNES(const std::string& name)
             }
             case Op::READ:
             {
-                std::lock_guard<std::mutex> datalock(datamutex);
+                std::lock_guard data_lock(data_mutex);
                 #ifndef MINIMAL_LOGGING
-                printf("Read result: @$%06x=<%u>0x%02x...\n", (unsigned)last_addr, (unsigned)last_len, (uint8_t)msg->get_payload()[0]);
+                printf("Read result: @$%06x=<%zu>0x%02x...\n",
+                    static_cast<unsigned>(last_addr),
+                    last_len,
+                    static_cast<uint8_t>(msg->get_payload()[0]));
                 #endif
-                rxbuf += msg->get_payload();
-                unsigned read_len = rxbuf.size();
+                rx_buf += msg->get_payload();
+                size_t read_len = rx_buf.size();
 #ifdef TIME_READ
                 unsigned long long t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
                 if (read_len < last_len) {
-                    printf("[%04u] Partial read: %u/%u\n", (unsigned)(t%10000), (unsigned)msg->get_payload().size(), last_len);
+                    printf("[%04llu] Partial read: %zu/%zu\n", t % 10000, msg->get_payload().size(), last_len);
                 } else {
-                    printf("[%04u] Completed read: %u/%u\n", (unsigned)(t%10000), read_len, last_len);
+                    printf("[%04llu] Completed read: %zu/%zu\n", t % 10000, read_len, last_len);
                 }
 #endif
                 if (read_len < last_len) {
                     // TODO: we probably should add some sort of receive timeout
                     return; // await more data;
-                } else if (read_len != last_len) {
-                    printf("Read $%06x expected %u bytes but got %u bytes answer\n", (unsigned)last_addr, last_len, (unsigned)(rxbuf.size()+msg->get_payload().size()));
+                }
+                if (read_len != last_len) {
+                    printf("Read $%06x expected %zu bytes but got %zu bytes answer\n",
+                        static_cast<unsigned>(last_addr),
+                        last_len,
+                        rx_buf.size() + msg->get_payload().size());
                 }
                 if (last_len<read_len) read_len = last_len;
                 for (unsigned i=0; i<read_len; i++) {
-                    if (data[last_addr+i] != (uint8_t)rxbuf[i])
+                    if (data[last_addr+i] != static_cast<uint8_t>(rx_buf[i]))
                         data_changed = true;
-                    data[last_addr+i] = (uint8_t)rxbuf[i];
+                    data[last_addr+i] = static_cast<uint8_t>(rx_buf[i]);
                 }
-                rxbuf.clear(); 
+                rx_buf.clear();
                 break;
             }
             default:
                 // FIXME: remove control chars before printing to terminal
                 printf("unhandled message: %s\n", msg->get_payload().c_str());
         }
-        
+
         bool tmp_snes_connected;
         {
-            std::lock_guard<std::mutex> statelock(statemutex);
+            std::lock_guard state_lock(state_mutex);
             tmp_snes_connected = snes_connected;
         }
         if (!tmp_snes_connected) {
             // limit to 10 times a second
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (!sleepUnlessDisconnect(100))
+                return; // disconnecting
             // rescan
             last_op = Op::SCAN;
-            client.send(hdl,jSCAN.dump(),websocketpp::frame::opcode::text);
+            client.send(hdl, jDeviceList.dump(), websocketpp::frame::opcode::text);
         } else {
-            std::unique_lock<std::mutex> watchlock(watchmutex);
+            std::unique_lock watch_lock(watch_mutex);
             const auto it = features.find("NO_ROM_READ");
             bool no_rom_read = (it == features.end()) ? false : it->second;
-            auto& actwatchlist = no_rom_read ? no_rom_watchlist : watchlist;
-            if (actwatchlist.empty()) {
-                watchlock.unlock();
+            auto& act_watchlist = no_rom_read ? no_rom_watchlist : watchlist;
+            if (!act_watchlist.empty() && last_watch >= act_watchlist.size()) {
+                // at the end of watch list -> sleep and start at 0 again
+                last_watch = 0;
+                if (update_interval>0) { // limit updates per second
+                    const auto t = static_cast<unsigned long>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now() - last_update).count());
+                    const auto sleep_t = (t < update_interval) ? (update_interval - t) : 1;
+                    watch_lock.unlock();
+                    // NOTE: capping sleep_t to 1000 for back compat; TODO: remove this behavior in the future.
+                    if (!sleepUnlessDisconnect(sleep_t > 1000 ? 1000 : sleep_t))
+                        return; // disconnecting
+                    watch_lock.lock();
+                    // NOTE: act_watchlist.empty() could've changed while we release the lock, so we check again below.
+                }
+            }
+            if (act_watchlist.empty()) {
+                watch_lock.unlock();
                 // limit to 10 times a second
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                if (!sleepUnlessDisconnect(100))
+                    return; // disconnecting
                 // ping
                 last_op = Op::PING;
-                client.send(hdl,jINFO.dump(),websocketpp::frame::opcode::text);
+                printf("Ping %s\n", ws_open ? "open" : "closing");
+                client.send(hdl, jInfo.dump(), websocketpp::frame::opcode::text);
             } else {
                 // read data from watches
-                last_op = Op::READ;
-                if (last_watch >= actwatchlist.size()) {
-                    last_watch = 0;
-                    if (update_interval>0) { // limit updates per second
-                        unsigned long t = (unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_update).count();
-                        {
-                            watchlock.unlock();
-                            // FIXME: do multiple partial sleeps and break when destruction is requested or update_interval changed
-                            // WORK-AROUND: limit sleep time to 1sec
-                            unsigned long sleept = (t+1000<update_interval) ? 1000 : (t<update_interval) ? (update_interval-t) : 1;
-                            std::this_thread::sleep_for(std::chrono::milliseconds(sleept));
-                        }
-                        watchlock.lock();
-                    }
-                }
                 if (last_watch == 0) {
                     update_count++;
                     last_update = std::chrono::system_clock::now();
                     std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - last_ups_display;
                     if (elapsed.count() >= 5 && update_count>0) {
-                        double ups = (double)update_count / elapsed.count();
+                        double ups = static_cast<double>(update_count) / elapsed.count();
                         last_ups_display = std::chrono::system_clock::now();
                         update_count = 0;
-                        printf("UPS: %7.3f\n", (float)ups);
+                        printf("UPS: %7.3f\n", static_cast<float>(ups));
                     }
                 }
-                last_addr = actwatchlist[last_watch];
+                last_addr = act_watchlist[last_watch];
                 last_len  = 1;
                 uint32_t tmp = last_addr;
                 // read consecutive watches in one go
-                while (last_watch+1<actwatchlist.size()) {
-                    unsigned next = actwatchlist[last_watch+1];
-                    if (next<=tmp) break; // we should never reach this
-                    if (next-tmp>read_holes_are_free) break;
-                    if (last_len+(next-tmp)>optimum_read_block_size) break;
-                    last_len+=(next-tmp);
-                    tmp=next;
+                while (last_watch + 1 < act_watchlist.size()) {
+                    unsigned next = act_watchlist[last_watch + 1];
+                    if (next <= tmp)
+                        break; // we should never reach this
+                    if (next - tmp > read_holes_are_free)
+                        break;
+                    if (last_len + (next - tmp) > optimum_read_block_size)
+                        break;
+                    last_len += (next - tmp);
+                    tmp = next;
                     last_watch++;
                 }
-                char saddr[9]; snprintf(saddr, sizeof(saddr), "%06X", (unsigned)last_addr);
-                char slen[9];  snprintf(slen,  sizeof(slen),  "%X",   (unsigned)last_len);
-                json jREAD = {
+                char addr_str[9], len_str[9];
+                snprintf(addr_str, sizeof(addr_str), "%06X", static_cast<unsigned>(last_addr));
+                snprintf(len_str, sizeof(len_str), "%zX", last_len);
+                const json jRead = {
                     {"Opcode", "GetAddress"},
                     {"Space", "SNES"},
-                    {"Operands", {saddr,slen}}
+                    {"Operands", {addr_str, len_str}}
                 };
-                client.send(hdl,jREAD.dump(),websocketpp::frame::opcode::text);
+                {
+                    std::lock_guard state_lock(state_mutex);
+                    if (disconnecting)
+                        return;
+                }
+                last_op = Op::READ;
+                client.send(hdl, jRead.dump(), websocketpp::frame::opcode::text);
                 last_watch++;
             }
         }
     });
-    
-    client.set_open_handler([this] (websocketpp::connection_hdl hdl)
+
+    client.set_open_handler([this] (const websocketpp::connection_hdl& hdl)
     {
-        std::lock_guard<std::mutex> lock(workmutex);
+        std::lock_guard lock(work_mutex);
         {
-            std::lock_guard<std::mutex> wslock(wsmutex);
+            std::lock_guard ws_lock(ws_mutex);
             if (!ws_open) return; // shutting down
         }
-        std::string uri = client.get_con_from_hdl(hdl)->get_uri()->str();
-        is_qusb2snes_uri = (uri.length()>=7 && uri.compare(uri.length()-7, 7, ":23074/")==0);
+        const std::string uri = client.get_con_from_hdl(hdl)->get_uri()->str();
+        is_qusb2snes_uri = (uri.length() >= 7 && uri.compare(uri.length() - 7, 7, ":23074/") == 0);
         {
-            std::lock_guard<std::mutex> statelock(statemutex);
+            std::lock_guard state_lock(state_mutex);
             ws_connected = true;
             snes_connected = false;
             state_changed = true;
         }
         printf("* connection to %s opened *\n", uri.c_str());
-                
+
         static const json jNAME = {
             { "Opcode", "Name" },
             { "Space", "SNES" },
             { "Operands", {appname+" "+appid}}
         };
-        client.send(hdl,jNAME.dump(),websocketpp::frame::opcode::text);
+        client.send(hdl, jNAME.dump(), websocketpp::frame::opcode::text);
         last_op = Op::GET_VERSION;
-        client.send(hdl,jGETVERSION.dump(),websocketpp::frame::opcode::text);
+        client.send(hdl, jAppVersion.dump(), websocketpp::frame::opcode::text);
     });
-    
-    client.set_fail_handler([this] (websocketpp::connection_hdl)
+
+    client.set_fail_handler([this] (const websocketpp::connection_hdl&)
     {
-        std::lock_guard<std::mutex> lock(workmutex);
+        std::lock_guard lock(work_mutex);
 #ifdef VERBOSE // will generate an error in websocket's logging facility anyway
         printf("* connection to %s failed *\n",
                 client.get_con_from_hdl(hdl)->get_uri()->str().c_str());
 #endif
         next_uri++;
         {
-            std::lock_guard<std::mutex> statelock(statemutex);
+            std::lock_guard state_lock(state_mutex);
             ws_connected = false;
             snes_connected = false;
             state_changed = true;
         }
         last_op = Op::NONE;
     });
-    
-    client.set_close_handler([this] (websocketpp::connection_hdl hdl)
+
+    client.set_close_handler([this] (const websocketpp::connection_hdl &hdl)
     {
-        std::lock_guard<std::mutex> lock(workmutex);
-        std::string uri = client.get_con_from_hdl(hdl)->get_uri()->str();
+        std::lock_guard lock(work_mutex);
+        const std::string uri = client.get_con_from_hdl(hdl)->get_uri()->str();
         next_uri=0;
         features.clear();
         usb2snes_version.clear();
@@ -341,7 +356,7 @@ USB2SNES::USB2SNES(const std::string& name)
         backend.clear();
         backend_version.clear();
         {
-            std::lock_guard<std::mutex> statelock(statemutex);
+            std::lock_guard state_lock(state_mutex);
             if (ws_connected || snes_connected) state_changed = true;
             ws_connected = false;
             snes_connected = false;
@@ -354,7 +369,7 @@ USB2SNES::USB2SNES(const std::string& name)
 USB2SNES::~USB2SNES()
 {
     {
-        std::lock_guard<std::mutex> watchlock(watchmutex);
+        std::lock_guard watch_lock(watch_mutex);
         watchlist.clear();
         no_rom_watchlist.clear();
     }
@@ -363,16 +378,18 @@ USB2SNES::~USB2SNES()
     {
         #error "This needs state owned by worker on heap"
         printf("USB2SNES: detaching worker...\n");
-        std::lock_guard<std::mutex> lock(workmutex);
-        if (worker.joinable()) worker.detach();
+        std::lock_guard lock(work_mutex);
+        if (worker.joinable())
+            worker.detach();
     }
 #else
     printf("USB2SNES: joining worker...\n");
-    if (worker.joinable()) worker.join();
+    if (worker.joinable())
+        worker.join();
 #endif
 }
 
-bool USB2SNES::mayBlockOnExit() const
+bool USB2SNES::mayBlockOnExit()
 {
 #ifdef DETACH_THREAD_ON_EXIT
     return false;
@@ -381,126 +398,162 @@ bool USB2SNES::mayBlockOnExit() const
 #endif
 }
 
-bool USB2SNES::connect(std::vector<std::string> uris)
+bool USB2SNES::connect(const std::vector<std::string>& uris)
 {
     {
-        std::lock_guard<std::mutex> wslock(wsmutex);
-        if (ws_open) return false;
+        std::lock_guard ws_lock(ws_mutex);
+        if (ws_open)
+            return false;
         ws_open = true;
     }
-    
-    if (worker.joinable()) worker.join(); // if previously disconnected
-    worker = std::thread([uris,this]() {
+
+    if (worker.joinable())
+        worker.join(); // if previously disconnected
+    worker = std::thread([uris, this]() {
         do {
             {
-                std::lock_guard<std::mutex> lock(workmutex);
+                std::lock_guard lock(work_mutex);
                 {
-                    std::lock_guard<std::mutex> wslock(wsmutex);
-                    if (!ws_open) return true; // shutting down
+                    std::lock_guard ws_lock(ws_mutex);
+                    if (!ws_open)
+                        return true; // shutting down
                 }
                 if (next_uri>=uris.size()) next_uri=0;
-                auto uri = uris[next_uri];
+                const auto& uri = uris[next_uri];
                 websocketpp::lib::error_code ec;
                 conn = client.get_connection(uri, ec);
                 if (ec) {
                     printf("Could not create connection because: %s\n", ec.message().c_str());
                     {
-                        std::lock_guard<std::mutex> wslock(wsmutex);
+                        std::lock_guard ws_lock(ws_mutex);
                         ws_open = false;
                         return false;
                     }
                 }
                 client.connect(conn);
                 {
-                    std::lock_guard<std::mutex> wslock(wsmutex);
+                    std::lock_guard ws_lock(ws_mutex);
                     ws_open = true;
                     ws_connecting = true;
                 }
             }
             client.run();
             {
-                std::lock_guard<std::mutex> lock(workmutex);
+                std::lock_guard lock(work_mutex);
                 ws_connecting = false;
                 conn = nullptr;
             }
             client.reset();
-            if (next_uri>=uris.size()) { // last in list -> pause
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            if (next_uri >= uris.size()) { // last in list -> pause
+                // FIXME: this can block for the full second during disconnect since we don't hold the work_mutex
+                sleepUnlessDisconnect(1000);
             }
         } while (true);
     });
     return true;
 }
-bool USB2SNES::disconnect()
+
+void USB2SNES::disconnect()
 {
     printf("USB2SNES: disconnect\n");
     {
-        std::lock_guard<std::mutex> lock(workmutex);
-        std::lock_guard<std::mutex> wslock(wsmutex);
-        if (!ws_open) return true;
+        // tell worker to stop working
+        // NOTE: this is not a condition variable because it needs to stay active until ws_open is false.
+        std::lock_guard lock(state_mutex);
+        disconnecting = true;
+    }
+    {
+        // once worker is done, mark ws as closing
+        std::lock_guard lock(work_mutex);
+        std::lock_guard ws_lock(ws_mutex);
+        if (!ws_open)
+            return;
         ws_open = false;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     {
-        std::lock_guard<std::mutex> lock(workmutex);
-        std::string res;
+        // reset disconnecting
+        std::lock_guard lock(state_mutex);
+        disconnecting = false;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    {
+        std::lock_guard lock(work_mutex);
         try {
-            if (conn) conn->close(websocketpp::close::status::going_away, res);
+            if (conn)
+                conn->close(websocketpp::close::status::going_away, "");
         } catch (...) {}
     }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    return true;
 }
 
 USB2SNES::Change USB2SNES::poll()
 {
-    USB2SNES::Change res = USB2SNES::Change::NONE;
+    auto res = Change::NONE;
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
+        std::lock_guard data_lock(data_mutex);
         if (data_changed)
             res |= Change::DATA;
         data_changed = false;
     }
     {
-        std::lock_guard<std::mutex> statelock(statemutex);
+        std::lock_guard state_lock(state_mutex);
         if (state_changed)
             res |= Change::STATE;
         state_changed = false;
     }
     return res;
 }
-uint32_t USB2SNES::mapaddr(uint32_t addr)
+
+bool USB2SNES::wsConnected()
+{
+    std::lock_guard state_lock(state_mutex);
+    return ws_connected;
+}
+
+bool USB2SNES::snesConnected()
+{
+    std::lock_guard state_lock(state_mutex);
+    return snes_connected;
+}
+
+uint32_t USB2SNES::mapAddr(uint32_t addr) const
 {
     // WRAM
-    if ((addr>>16)==0x7e || (addr>>16)==0x7f) return 0xF50000 + (addr&0x1ffff);
+    if ((addr >> 16) == 0x7e || (addr >> 16) == 0x7f)
+        return 0xF50000 + (addr&0x1ffff);
 
     // CART
     switch (mapping) {
         case Mapping::LOROM:
             // FASTROM MIRROR
-            if (addr>=0x800000) addr -= 0x800000;
+            if (addr >= 0x800000)
+                addr -= 0x800000;
             // SRAM
-            if ((addr>>16) >= 0x70 && (addr>>16) <= 0x7f && (addr&0xffff) < 0x8000)
-                return 0xe00000 + ((addr>>16)-0x70) * 0x8000 + (addr&0xffff);
+            if ((addr >> 16) >= 0x70 && (addr >> 16) <= 0x7f && (addr & 0xffff) < 0x8000)
+                return 0xe00000 + ((addr >> 16) - 0x70) * 0x8000 + (addr & 0xffff);
             // WRAM in lower banks
-            if ((addr&0xffff) < 0x2000)
+            if ((addr & 0xffff) < 0x2000)
                 return 0xf50000 + (addr&0x1fff);
             // RESERVED / HARDWARE
-            if ((addr&0xffff) < 0x8000)
+            if ((addr & 0xffff) < 0x8000)
                 return 0;
             // ROM
-            return ((addr&0x7f0000) >> 1) + (addr&0x7fff); // pretty sure this is correct
+            return ((addr & 0x7f0000) >> 1) + (addr & 0x7fff); // pretty sure this is correct
             break;
 
         case Mapping::HIROM:
             // FASTROM MIRROR
-            if (addr>=0x800000) addr -= 0x800000;
+            if (addr >= 0x800000)
+                addr -= 0x800000;
             // SRAM
-            if ((addr>>16) >= 0x20 && (addr>>16) <= 0x3f && (addr&0xffff) >= 0x6000 && (addr&0xffff) <= 0x7fff)
-                return 0xe00000 + ((addr>>16)-0x20) * 0x2000 + (addr&0xffff)-0x6000;
+            if ((addr >> 16) >= 0x20 && (addr >> 16) <= 0x3f && (addr & 0xffff) >= 0x6000 && (addr & 0xffff) <= 0x7fff)
+                return 0xe00000 + ((addr >> 16) - 0x20) * 0x2000 + (addr & 0xffff) - 0x6000;
             // WRAM in lower banks
-            if (/*addr>=0x000000 && */addr<=0x3fffff && (addr&0xffff) < 0x2000)
-                return 0xf50000 + (addr&0x1fff);
+            if (/*addr >= 0x000000 && */addr <= 0x3fffff && (addr & 0xffff) < 0x2000)
+                return 0xf50000 + (addr & 0x1fff);
             // ROM
             return addr & 0x3fffff;
             break;
@@ -508,48 +561,48 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
         case Mapping::EXLOROM:
             // NOTE: this is probably completely wrong, but we need *something*
             // SRAM
-            if ((addr>>16) >= 0xf0 && (addr>>16) <= 0xff && (addr&0xffff) < 0x8000)
-                return 0xe00000 + ((addr>>16)-0x70) * 0x8000 + (addr&0xffff);
+            if ((addr >> 16) >= 0xf0 && (addr >> 16) <= 0xff && (addr & 0xffff) < 0x8000)
+                return 0xe00000 + ((addr >> 16) - 0x70) * 0x8000 + (addr & 0xffff);
             // WRAM in lower banks
-            if ((addr&0xffff) < 0x2000)
-                return 0xf50000 + (addr&0x1fff);
+            if ((addr & 0xffff) < 0x2000)
+                return 0xf50000 + (addr & 0x1fff);
             // RESERVED / HARDWARE
-            if ((addr&0xffff) < 0x8000)
+            if ((addr & 0xffff) < 0x8000)
                 return 0;
             // ROM1
-            if (addr&0x800000)
-                return ((addr&0x7f0000) >> 1) + (addr&0x7fff);
+            if (addr & 0x800000)
+                return ((addr & 0x7f0000) >> 1) + (addr & 0x7fff);
             // ROM2
-            return 0x400000 + ((addr&0x7f0000) >> 1) + (addr&0x7fff);
+            return 0x400000 + ((addr & 0x7f0000) >> 1) + (addr & 0x7fff);
 
         case Mapping::EXHIROM:
             // ROM1
-            if (addr>=0xc00000 && addr<=0xffffff)
+            if (addr >= 0xc00000 && addr <= 0xffffff)
                 return addr & 0x3fffff;
-            if (addr>=0x800000 && addr<=0xbfffff && (addr&0x8000))
+            if (addr >= 0x800000 && addr <= 0xbfffff && (addr & 0x8000))
                 return addr & 0x3f7fff; // this may be wrong
             // ROM2
-            if (addr>=0x400000 && addr<0x7e0000)
+            if (addr >= 0x400000 && addr < 0x7e0000)
                 return 0x400000 + (addr & 0x3ffff);
-            if (/*addr>=0x000000 && */addr<=0x3fffff && (addr&0x8000))
+            if (/*addr >= 0x000000 && */addr <= 0x3fffff && (addr & 0x8000))
                 return 0x400000 + (addr & 0x3f7fff); // this may be wrong
             // SRAM
-            if (addr>=0xa00000 && addr<=0xbfffff && (addr&0x7fff)>=0x6000)
-                return 0xe00000 + ((addr>>16)-0xa0) * 0x2000 + (addr&0xffff)-0x6000;
+            if (addr >= 0xa00000 && addr <= 0xbfffff && (addr & 0x7fff) >= 0x6000)
+                return 0xe00000 + ((addr >> 16) - 0xa0) * 0x2000 + (addr & 0xffff) - 0x6000;
             // WRAM in lower banks
-            if ((addr&0xffff) < 0x2000)
-                return 0xf50000 + (addr&0x1fff);
+            if ((addr & 0xffff) < 0x2000)
+                return 0xf50000 + (addr & 0x1fff);
             break;
 
         case Mapping::SA1:
             // copied from https://github.com/alttpo/snes/blob/main/mapping/sa1rom/mapping.go
             // ROM
-            if (addr>=0xc00000)
+            if (addr >= 0xc00000)
                 return addr & 0x3fffff;
             // MIXED fast
-            if (addr>=0x800000) {
-                auto offs = addr & 0xffff;
-                auto bank = addr >> 16;
+            if (addr >= 0x800000) {
+                const auto offs = addr & 0xffff;
+                const auto bank = addr >> 16;
                 if (offs >= 0x8000)
                     return ((bank - 0x80 + 0x40) << 15) | (offs & 0x7fff);
                 if (offs >= 0x6000)
@@ -560,21 +613,21 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
                     return 0xf50000 + offs;
                 break; // unmapped or SA-1 registers
             }
-            if (addr>=0x500000) {
+            if (addr >= 0x500000) {
                 break; // unmapped?
             }
-            if (addr>=0x440000) {
+            if (addr >= 0x440000) {
                 // BW-RAM image dynamically selects a single $2000 sized block
                 return 0xe00000 + (addr & 0x1FFF);
             }
-            if (addr>=0x400000) {
+            if (addr >= 0x400000) {
                 // BW-RAM area: linearly mapped
                 return 0xe00000 + addr - 0x400000;
             }
             // MIXED slow
-            if (addr<0x400000) {
-                auto offs = addr & 0xffff;
-                auto bank = addr >> 16;
+            if (addr < 0x400000) {
+                const auto offs = addr & 0xffff;
+                const auto bank = addr >> 16;
                 if (offs >= 0x8000)
                     return (bank << 15) + (offs & 0x7fff);
                 if (offs >= 0x6000)
@@ -587,18 +640,19 @@ uint32_t USB2SNES::mapaddr(uint32_t addr)
             break; // unmapped or SA-1 registers
 
         case Mapping::UNKNOWN: // old behavior; TODO: auto-detect when unknown
-            return addr&0x3ffff; // NOTE: this can not access SRAM
+            return addr & 0x3ffff; // NOTE: this can not access SRAM
     }
 
     // unmapped
     return 0;
 }
-static bool is_rom(uint32_t usb2snes_addr)
+
+static bool isRom(const uint32_t usb2snes_addr)
 {
     return usb2snes_addr < 0xe00000;
 }
 
-void USB2SNES::setMapping(USB2SNES::Mapping value)
+void USB2SNES::setMapping(const Mapping value)
 {
     // FIXME: all old watches are invalid now
     mapping = value;
@@ -611,13 +665,13 @@ USB2SNES::Mapping USB2SNES::getMapping() const
 
 void USB2SNES::addWatch(uint32_t addr, const unsigned len)
 {
-    addr = mapaddr(addr);
+    addr = mapAddr(addr);
     {
         // TODO: only lock if we know that we will modify the watchlist
-        std::lock_guard<std::mutex> watch_lock(watchmutex);
+        std::lock_guard watch_lock(watch_mutex);
         bool modified = false;
         size_t old_size = watchlist.size();
-        for (size_t i=0; i<len; i++) {
+        for (size_t i = 0; i < len; i++) {
             if (std::find(watchlist.begin(), watchlist.end(), addr + i) == watchlist.end()) {
                 watchlist.push_back(addr + i);
                 modified = true;
@@ -645,8 +699,8 @@ void USB2SNES::addWatch(uint32_t addr, const unsigned len)
 
         modified = false;
         old_size = no_rom_watchlist.size();
-        for (size_t i=0; i<len; i++) {
-            if (is_rom(addr + i)) continue;
+        for (size_t i = 0; i < len; i++) {
+            if (isRom(addr + i)) continue;
             if (std::find(no_rom_watchlist.begin(), no_rom_watchlist.end(), addr + i)
                     == no_rom_watchlist.end()) {
                 no_rom_watchlist.push_back(addr + i);
@@ -673,9 +727,9 @@ void USB2SNES::addWatch(uint32_t addr, const unsigned len)
 
 void USB2SNES::removeWatch(uint32_t addr, const unsigned len)
 {
-    addr = mapaddr(addr);
+    addr = mapAddr(addr);
     {
-        std::lock_guard<std::mutex> watch_lock(watchmutex);
+        std::lock_guard watch_lock(watch_mutex);
         const auto feature = features.find("NO_ROM_READ");
         const bool no_rom_read = (feature == features.end()) ? false : feature->second;
         const bool has_last_watch_addr = no_rom_read ? (last_watch < no_rom_watchlist.size())
@@ -708,40 +762,42 @@ void USB2SNES::removeWatch(uint32_t addr, const unsigned len)
     }
 }
 
-uint8_t USB2SNES::read(uint32_t addr)
+uint8_t USB2SNES::read(const uint32_t addr)
 {
-    uint32_t usb2snes_addr = mapaddr(addr);
+    const uint32_t usb2snes_addr = mapAddr(addr);
 #ifdef USB2SNES_ALLOW_READ_WITHOUT_WATCH
     uint8_t val;
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
+        std::lock_guard data_lock(data_mutex);
         val = data[usb2snes_addr];
         for (const auto& w: watchlist)
-            if (w >= usb2snes_addr) return val;
+            if (w >= usb2snes_addr)
+                return val;
     }
     // value is not being watched -> add watch
     addWatch(addr);
     return val;
 #else
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
+        std::lock_guard data_lock(data_mutex);
         return data[usb2snes_addr];
     }
 #endif
 }
 
-bool USB2SNES::read(uint32_t addr, unsigned len, void* out)
+bool USB2SNES::read(const uint32_t addr, const unsigned len, void* out)
 {
-    uint8_t* dst = (uint8_t*)out;
-    uint32_t usb2snes_addr = mapaddr(addr);
+    auto* dst = static_cast<uint8_t *>(out);
+    const uint32_t usb2snes_addr = mapAddr(addr);
 #ifdef USB2SNES_ALLOW_READ_WITHOUT_WATCH
     bool missing = true;
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
-        for (size_t i=0; i<len; i++) dst[i] = data[usb2snes_addr+i];
-        for (size_t i=0; i<watchlist.size(); i++) {
+        std::lock_guard data_lock(data_mutex);
+        for (size_t i = 0; i < len; i++)
+            dst[i] = data[usb2snes_addr + i];
+        for (size_t i = 0; i < watchlist.size(); i++) {
             if (watchlist[i] == usb2snes_addr) {
-                if (watchlist.size()>=i+len && watchlist[i+len-1] == usb2snes_addr+len-1)
+                if (watchlist.size() >= i + len && watchlist[i + len - 1] == usb2snes_addr + len - 1)
                     missing = false;
                 break;
             } else if (watchlist[i] > usb2snes_addr) {
@@ -749,40 +805,68 @@ bool USB2SNES::read(uint32_t addr, unsigned len, void* out)
             }
         }
     }
-    if (missing) addWatch(addr, len);
+    if (missing)
+        addWatch(addr, len);
 #else
     {
-        std::lock_guard<std::mutex> datalock(datamutex);
-        for (size_t i=0; i<len; i++) dst[i] = data[usb2snes_addr+i];
+        std::lock_guard datalock(data_mutex);
+        for (size_t i = 0; i < len; i++)
+            dst[i] = data[usb2snes_addr + i];
     }
     return true;
 #endif
 }
 
-bool USB2SNES::hasFeature(std::string feat)
+bool USB2SNES::hasFeature(const std::string& feat)
 {
-    std::lock_guard<std::mutex> lock(workmutex);
+    std::lock_guard lock(work_mutex);
     const auto it = features.find(feat);
-    if (it == features.end()) return false;
+    if (it == features.end())
+        return false;
     return it->second;
 }
 
 void USB2SNES::clearCache()
 {
-    std::lock_guard<std::mutex> lock(datamutex);
+    std::lock_guard lock(data_mutex);
     data.clear();
 }
 
 std::string USB2SNES::getDeviceName()
 {
-    std::lock_guard<std::mutex> lock(workmutex);
+    std::lock_guard lock(work_mutex);
     return last_dev_name;
 }
 
 void USB2SNES::nextDevice()
 {
-    std::lock_guard<std::mutex> lock(workmutex);
-    std::lock_guard<std::mutex> statelock(statemutex);
+    std::lock_guard lock(work_mutex);
+    std::lock_guard state_lock(state_mutex);
     last_dev++;
     snes_connected = false;
+}
+
+bool USB2SNES::sleepUnlessDisconnect(const unsigned long ms)
+{
+    auto now = std::chrono::system_clock::now();
+    const auto end = now + std::chrono::milliseconds(ms);
+    while (now < end) {
+        // NOTE: not using a condition variable, because disconnecting has to be sticky
+        auto sleep_time = end - now;
+        if (sleep_time > std::chrono::milliseconds(10))
+            sleep_time = std::chrono::milliseconds(10);
+        {
+            std::lock_guard state_lock(state_mutex);
+            if (disconnecting)
+                return false; // cancel
+        }
+        std::this_thread::sleep_for(sleep_time);
+        now = std::chrono::system_clock::now();
+    }
+    {
+        std::lock_guard state_lock(state_mutex);
+        if (disconnecting)
+            return false; // cancel
+    }
+    return true; // slept
 }
