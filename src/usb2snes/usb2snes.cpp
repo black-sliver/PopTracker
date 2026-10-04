@@ -100,10 +100,15 @@ USB2SNES::USB2SNES(const std::string& name)
                             {"Space", "SNES"},
                             {"Operands", {last_dev_name}}
                         };
+                        {
+                            std::lock_guard state_lock(state_mutex);
+                            if (disconnecting)
+                                return;
+                        }
                         last_op = Op::CONNECT;
                         client.send(hdl, jAttach.dump(), websocketpp::frame::opcode::text);
                         client.send(hdl, jInfo.dump(), websocketpp::frame::opcode::text);
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        sleepUnlessDisconnect(100);
                         return;
                     }
                 }
@@ -212,7 +217,8 @@ USB2SNES::USB2SNES(const std::string& name)
         }
         if (!tmp_snes_connected) {
             // limit to 10 times a second
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (!sleepUnlessDisconnect(100))
+                return; // disconnecting
             // rescan
             last_op = Op::SCAN;
             client.send(hdl, jDeviceList.dump(), websocketpp::frame::opcode::text);
@@ -227,12 +233,11 @@ USB2SNES::USB2SNES(const std::string& name)
                 if (update_interval>0) { // limit updates per second
                     const auto t = static_cast<unsigned long>(std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::system_clock::now() - last_update).count());
+                    const auto sleep_t = (t < update_interval) ? (update_interval - t) : 1;
                     watch_lock.unlock();
-                    // FIXME: do partial sleeps and break when destruction is requested or update_interval changed
-                    // WORK-AROUND: limit sleep time to 1sec
-                    const auto sleep_t =
-                        (t + 1000 < update_interval) ? 1000 : (t < update_interval) ? (update_interval - t) : 1;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_t));
+                    // NOTE: capping sleep_t to 1000 for back compat; TODO: remove this behavior in the future.
+                    if (!sleepUnlessDisconnect(sleep_t > 1000 ? 1000 : sleep_t))
+                        return; // disconnecting
                     watch_lock.lock();
                     // NOTE: act_watchlist.empty() could've changed while we release the lock, so we check again below.
                 }
@@ -240,14 +245,14 @@ USB2SNES::USB2SNES(const std::string& name)
             if (act_watchlist.empty()) {
                 watch_lock.unlock();
                 // limit to 10 times a second
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                if (!sleepUnlessDisconnect(100))
+                    return; // disconnecting
                 // ping
                 last_op = Op::PING;
                 printf("Ping %s\n", ws_open ? "open" : "closing");
                 client.send(hdl, jInfo.dump(), websocketpp::frame::opcode::text);
             } else {
                 // read data from watches
-                last_op = Op::READ;
                 if (last_watch == 0) {
                     update_count++;
                     last_update = std::chrono::system_clock::now();
@@ -283,6 +288,12 @@ USB2SNES::USB2SNES(const std::string& name)
                     {"Space", "SNES"},
                     {"Operands", {addr_str, len_str}}
                 };
+                {
+                    std::lock_guard state_lock(state_mutex);
+                    if (disconnecting)
+                        return;
+                }
+                last_op = Op::READ;
                 client.send(hdl, jRead.dump(), websocketpp::frame::opcode::text);
                 last_watch++;
             }
@@ -434,7 +445,8 @@ bool USB2SNES::connect(const std::vector<std::string>& uris)
             }
             client.reset();
             if (next_uri >= uris.size()) { // last in list -> pause
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                // FIXME: this can block for the full second during disconnect since we don't hold the work_mutex
+                sleepUnlessDisconnect(1000);
             }
         } while (true);
     });
@@ -445,13 +457,27 @@ void USB2SNES::disconnect()
 {
     printf("USB2SNES: disconnect\n");
     {
+        // tell worker to stop working
+        // NOTE: this is not a condition variable because it needs to stay active until ws_open is false.
+        std::lock_guard lock(state_mutex);
+        disconnecting = true;
+    }
+    {
+        // once worker is done, mark ws as closing
         std::lock_guard lock(work_mutex);
         std::lock_guard ws_lock(ws_mutex);
         if (!ws_open)
             return;
         ws_open = false;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    {
+        // reset disconnecting
+        std::lock_guard lock(state_mutex);
+        disconnecting = false;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
     {
         std::lock_guard lock(work_mutex);
         try {
@@ -459,6 +485,7 @@ void USB2SNES::disconnect()
                 conn->close(websocketpp::close::status::going_away, "");
         } catch (...) {}
     }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
@@ -817,4 +844,29 @@ void USB2SNES::nextDevice()
     std::lock_guard state_lock(state_mutex);
     last_dev++;
     snes_connected = false;
+}
+
+bool USB2SNES::sleepUnlessDisconnect(const unsigned long ms)
+{
+    auto now = std::chrono::system_clock::now();
+    const auto end = now + std::chrono::milliseconds(ms);
+    while (now < end) {
+        // NOTE: not using a condition variable, because disconnecting has to be sticky
+        auto sleep_time = end - now;
+        if (sleep_time > std::chrono::milliseconds(10))
+            sleep_time = std::chrono::milliseconds(10);
+        {
+            std::lock_guard state_lock(state_mutex);
+            if (disconnecting)
+                return false; // cancel
+        }
+        std::this_thread::sleep_for(sleep_time);
+        now = std::chrono::system_clock::now();
+    }
+    {
+        std::lock_guard state_lock(state_mutex);
+        if (disconnecting)
+            return false; // cancel
+    }
+    return true; // slept
 }
