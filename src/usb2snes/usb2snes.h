@@ -136,6 +136,7 @@ class USB2SNES {
         bool ws_connected = false;
         bool ws_connecting = false;
         bool snes_connected = false;
+        bool disconnecting = false; ///< Tells worker to stop. Hold state_mutex while accessing.
 
         enum class Op {
             NONE,
@@ -174,6 +175,7 @@ class USB2SNES {
         Mapping mapping = Mapping::UNKNOWN;
 
         uint32_t mapAddr(uint32_t addr) const;
+        bool sleepUnlessDisconnect(unsigned long ms); ///< Sleep for ms milliseconds. Returns false if disconnected.
 };
 
 template<typename T>
