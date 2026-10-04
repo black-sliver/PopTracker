@@ -343,7 +343,7 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     continue;
                 }
 
-                const Highlight highlight = Highlight::PRIORITY;
+                const Highlight highlight = pos.highlight;
 
                 if (pass == 0) {
                     // glow
