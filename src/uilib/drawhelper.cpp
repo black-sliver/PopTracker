@@ -394,9 +394,9 @@ void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
 
     constexpr float sqrt5recip = 0.4472135954999579;
 
-    float ol = il - borderWidth * 2 * sqrt5recip;
+    float ol = il - borderWidth * 0.5 * (1 + sqrt5recip);
     float ot = it - borderWidth;
-    float ow = iw + 4 * sqrt5recip * borderWidth;
+    float ow = iw + (1 + sqrt5recip) * borderWidth;
     float oh = ih + (1 + sqrt5recip) * borderWidth;
     SDL_Color borderColor = {0, 0, 0, 255};
 
