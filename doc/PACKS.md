@@ -400,13 +400,13 @@ Maps are referenced by name in layouts.
                                             // the total dimensions of the icon (including the border)
                                             // are size + 2 * border thickness
             "location_border_strength": 2, // the strength of the border around the location
-                                           // this is an alternative parameter to the location border thickness,
+                                           // this is an optional alternative parameter to the location border thickness,
                                            // which specifies the thickness of the stroke of the border around the shape instead.
                                            // it is related to border thickness in the following ways:
                                            // for rect and trapezoid, it is the same;
                                            // for diamond, it is border thickness / sqrt(2);
                                            // for triangle, it is border thickness / sqrt(5);
-                                           // for concave_kite, it is border thickness * (sqrt(5) + sqrt(13)) / 2.
+                                           // for concave_kite, it is border thickness * 2 / (sqrt(5) + sqrt(13)).
                                            //
                                            // if this value is specified, it overrides the location_border_thickness
                                            // parameter, but it will still be overridden by the border thickness parameter
