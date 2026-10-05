@@ -409,14 +409,14 @@ Maps are referenced by name in layouts.
                                            // for concave_kite, it is border thickness * 2 / (sqrt(5) + sqrt(13)).
                                            //
                                            // if this value is specified, it overrides the location_border_thickness
-                                           // parameter, but it will still be overridden by the border thickness parameter
+                                           // parameter, but it will still be overridden by the border_thickness parameter
                                            // assigned to specific locations.
                                            //
-                                           // added in UNDEFINED.
+                                           // field added in 0.36.0.
             "location_shape": "rect", // or "diamond", since 0.26.2, or "trapezoid", since 0.32.0,
-                                      // or "triangle" or "concave_kite", since UNDEFINED.
-            "location_orientation": "north", // or "south", "east", or "west". Field added in UNDEFINED.
-                                             // Only affects trapezoid, triangle, and concave kite shapes.
+                                      // or "triangle" or "concave_kite", since 0.36.0.
+            "location_orientation": "north", // or "south", "east", or "west". field added in 0.36.0.
+                                             // only affects trapezoid, triangle, and concave kite shapes.
             "img": "path/to/img.png"
         },
         ...
@@ -462,7 +462,7 @@ Locations define drops on maps, rules to have them accessible as well as the loo
                             "y": 234,
                             "size": 24, // override map default, since 0.21.1
                             "border_thickness": 2, // override map default, since 0.21.1
-                            "border_strength": 2, // override map default, since UNDEFINED
+                            "border_strength": 2, // override map default, since 0.36.0
                             "shape": "rect", // override map default, since 0.26.2
                             "restrict_visibility_rules": [
                                 ...  // additional visibility rules for individual map locations, since 0.26
