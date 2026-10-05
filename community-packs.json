@@ -151,5 +151,14 @@
         "versions_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/CloverPit.png",
         "description":  "The CloverPit Archipelago PopTracker Pack."
+    },
+    "control_ap": {
+        "name": "Control Archipelago",
+        "author": "Snileaf, builder_script, Control Archipelago Community",
+        "platform": "PC",
+        "homepage": "https://github.com/snileaf/Control-poptracker",
+        "versions_url": "https://raw.githubusercontent.com/snileaf/Control-poptracker/versions/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/snileaf/Control-poptracker/versions/Control%20Icon.png",
+        "description":  "The Control Archipelago PopTracker Pack."
     }
 }
