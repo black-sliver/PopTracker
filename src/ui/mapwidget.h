@@ -23,7 +23,7 @@ public:
         int x = 0;
         int y = 0;
         int size = 0;
-        int borderThickness = 0;
+        float borderThickness = 0.0f;
         Shape shape = Shape::UNSPECIFIED;
         Orientation orientation = Orientation::UNSPECIFIED;
         int state = 1;

@@ -517,7 +517,7 @@ void MapWidget::calculateLocationScreenRect(const Point& pos, const SDL_Rect& sr
     innerH = static_cast<int>(lround(static_cast<float>(pos.size) / baseScale));
     if (innerW < 1) innerW = 1;
     if (innerH < 1) innerH = 1;
-    borderSize = static_cast<int>(lround(static_cast<float>(pos.borderThickness) / baseScale));
+    borderSize = static_cast<int>(lround(pos.borderThickness / baseScale));
     if (borderSize < 1 && pos.borderThickness > 0)
         borderSize = 1;
 

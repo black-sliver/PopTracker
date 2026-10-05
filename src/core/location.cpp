@@ -260,6 +260,7 @@ Location::MapLocation Location::MapLocation::FromJSON(json& j)
     maploc._y = to_int(j["y"],0);    
     maploc._size = to_int(j["size"],-1);
     maploc._borderThickness = to_int(j["border_thickness"],-1);
+    maploc._borderStrength = to_int(j["border_strength"],-1);
     maploc._shape = Location::MapLocation::ShapeFromString(to_string(j["shape"], ""));
     maploc._orientation = Location::MapLocation::OrientationFromString(to_string(j["orientation"], ""));
 

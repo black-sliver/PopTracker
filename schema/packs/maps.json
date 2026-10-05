@@ -36,6 +36,19 @@
                     }
                 ]
             },
+            "location_border_strength": {
+                "description": "Strength of the border around the locations.",
+                "anyOf": [
+                    {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    {
+                        "type": "string",
+                        "pattern": "^\\s*[0-9]*\\s*$"
+                    }
+                ]
+            },
             "location_shape": {
                 "description": "Shape of the map locations.",
                 "enum": ["rect", "diamond", "trapezoid", "triangle", "concave_kite"],

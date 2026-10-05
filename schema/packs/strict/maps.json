@@ -18,6 +18,11 @@
                         "type": "number",
                         "minimum": 0
                     },
+                    "location_border_strength": {
+                        "description": "Strength of the border around the locations.",
+                        "type": "number",
+                        "minimum": 0
+                    },
                     "location_shape": true,
                     "img": true
                 },

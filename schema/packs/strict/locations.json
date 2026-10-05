@@ -260,6 +260,11 @@
                                 "type": "number",
                                 "minimum": -1
                             },
+                            "border_strength": {
+                                "description": "Overrides the location border strength defined on the map.",
+                                "type": "number",
+                                "minimum": -1
+                            },
                             "shape": {
                                 "description": "Overrides the location shape defined on the map.",
                                 "enum": [null, "rect", "diamond", "trapezoid", "triangle", "concave_kite"]

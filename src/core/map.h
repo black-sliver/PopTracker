@@ -18,6 +18,7 @@ public:
 protected:
     int _locationSize=65;
     int _locationBorderThickness=8;
+    int _locationBorderStrength=-1;
     LocationShape _locationShape = LocationShape::UNSPECIFIED;
     LocationOrientation _locationOrientation = LocationOrientation::UNSPECIFIED;
     std::string _img;
@@ -25,6 +26,7 @@ protected:
 public:
     int getLocationSize() const { return _locationSize; }
     int getLocationBorderThickness() const { return _locationBorderThickness; }
+    int getLocationBorderStrength() const { return _locationBorderStrength; }
     LocationShape getLocationShape() const
     {
         return _locationShape;
