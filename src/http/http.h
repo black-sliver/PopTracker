@@ -145,6 +145,7 @@ public:
             const auto endpoints = resolver->resolve(host, port, ec);
             if (ec) {
                 std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
+                delete resolver;
                 return false;
             }
 
