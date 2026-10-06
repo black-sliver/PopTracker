@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "font_helper.h"
 #include "../../src/uilib/textfield.h"
+#include "../../src/uilib/hbox.h"
 #include <SDL2/SDL.h>
 #include <cstring>
 #include <stdexcept>
@@ -329,4 +330,16 @@ TEST(TextFieldTest, ClickBeforeTextPutsCursorAtStart) {
     tf.onClick.emit(nullptr, -5, 0, BUTTON_LEFT);
     tf.onTextInput.emit(nullptr, "X");
     EXPECT_EQ(tf.getText(), "Xabc");
+}
+
+TEST(TextFieldTest, ContainerDispatchClickPastTextPutsCursorAtEnd) {
+    HBox box(0, 0, 400, 40);
+    TextField* tf = new TextField(0, 0, 400, 0, getDefaultFont());
+    box.addChild(tf);
+    tf->setText("abc");
+    const int x = tf->getLeft() + textWidth("abc") + 50;
+    box.onMouseDown.emit(&box, x, 5, BUTTON_LEFT);
+    box.onClick.emit(&box, x, 5, BUTTON_LEFT);
+    tf->onTextInput.emit(nullptr, "X");
+    EXPECT_EQ(tf->getText(), "abcX");
 }
