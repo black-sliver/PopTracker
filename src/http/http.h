@@ -160,8 +160,7 @@ public:
             bool load_system_certs = true;
             if (!certFile.empty()) {
                 http_debug << "HTTP: loading " << certFile << "\n";
-                asio::error_code ec;
-                ctx.load_verify_file(certFile, ec);
+                ctx.load_verify_file(certFile, ec); // NOLINT(*-unused-return-value) // return value is deprecated
                 if (ec) {
                     std::cout << "HTTP: error loading certs from "
                               << certFile << ": "
@@ -198,7 +197,7 @@ public:
             if (port.empty()) port = "80";
             resolver = new tcp::resolver(io_context);
             asio::error_code ec;
-            auto endpoints = resolver->resolve(host, port, ec);
+            const auto endpoints = resolver->resolve(host, port, ec);
             if (ec) {
                 std::cout << "HTTP: failed to resolve host: " << ec.message() << "\n";
                 delete resolver;
