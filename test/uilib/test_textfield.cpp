@@ -313,3 +313,20 @@ TEST(TextFieldTest, EmptyFieldIsSafe) {
     key(tf, SDLK_BACKSPACE);
     EXPECT_EQ(tf.getText(), "");
 }
+
+TEST(TextFieldTest, ClickPastTextEndPutsCursorAtEnd) {
+    TextField tf(0, 0, 400, 0, getDefaultFont());
+    tf.setText("abc");
+    const int w = textWidth("abc");
+    tf.onClick.emit(nullptr, w + 50, 0, BUTTON_LEFT);
+    tf.onTextInput.emit(nullptr, "X");
+    EXPECT_EQ(tf.getText(), "abcX");
+}
+
+TEST(TextFieldTest, ClickBeforeTextPutsCursorAtStart) {
+    TextField tf(0, 0, 400, 0, getDefaultFont());
+    tf.setText("abc");
+    tf.onClick.emit(nullptr, -5, 0, BUTTON_LEFT);
+    tf.onTextInput.emit(nullptr, "X");
+    EXPECT_EQ(tf.getText(), "Xabc");
+}

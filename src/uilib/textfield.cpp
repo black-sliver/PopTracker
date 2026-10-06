@@ -135,7 +135,8 @@ void TextField::setCursorToPos(int x)
 {
     size_t len = _text.length();
     size_t best = 0;
-    int bestDist = abs(x - getTextWidth(_text));
+    // distance from click to cursor position 0, which sits left of all text
+    int bestDist = abs(x);
     for (size_t i = nextCodepoint(_text, 0); i <= len; i = nextCodepoint(_text, i)) {
         int dist = abs(x - getTextWidth(_text.substr(0, i)));
         if (dist < bestDist) {
