@@ -19,13 +19,34 @@ static std::string urlEncode(const std::string& in)
     std::string out;
     out.reserve(in.size());
     for (unsigned char c : in) {
-        if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/')
+        if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/' || c==':')
             out += (char)c;
         else
             out += fmt::format("%{:02X}", c);
+
     }
     return out;
 }
+static std::string fileUrlFromGenericString(std::string p)
+{
+    if (p.compare(0, 2, "//") == 0) {
+        return "file:" + urlEncode(p);
+    }
+    if (p.empty() || p[0] != '/') {
+        p.insert(p.begin(), '/');
+    }
+    return "file://" + urlEncode(p);
+}
+
+static std::string pathToFileUrl(const fs::path& path)
+{
+    std::string p = path.u8string();
+#ifdef _WIN32
+    std::replace(p.begin(), p.end(), '\\', '/');
+#endif
+    return fileUrlFromGenericString(std::move(p));
+}
+
 static void openPackDirectory()
 {
     for (const auto& searchPath : Pack::getSearchPaths()) {
@@ -35,11 +56,11 @@ static void openPackDirectory()
         fs::path dir = fs::absolute(searchPath, ec);
         if (ec)
             continue;
-        dir.make_preferred();
-        std::string url = "file://" + urlEncode(dir.u8string());
+        std::string url = pathToFileUrl(dir);
         if (SDL_OpenURL(url.c_str()) == 0)
             return;
-        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s'\n", sanitize_print(searchPath).c_str());
+        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(searchPath).c_str(), sanitize_print(url).c_str());
+
     }
 }
 
