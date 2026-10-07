@@ -54,6 +54,7 @@ public:
             const auto cmp = [&code](const std::string& s) {
                 return code.length() == s.length() && strcasecmp(code.c_str(), s.c_str()) == 0;
             };
+
             return std::find_if(_codes.begin(), _codes.end(), cmp) != _codes.end();
 #else
             return std::find(_codes.begin(), _codes.end(), code) != _codes.end();
@@ -69,8 +70,17 @@ public:
         const std::string& getName() const { return _name; }
     };
 
+    struct NestedSubItem final {
+        std::string item;
+        std::string hAlignment = "center";
+        std::string vAlignment = "center";
+        int width = -1;
+        int height = -1;
+    };
+
 protected:
     std::vector<Stage> _stages;
+    std::vector<NestedSubItem> _nestedSubItems;
     bool _imgOverridden = false;
     std::string _imgOverride;
     bool _minCountChanged = false;
@@ -101,6 +111,8 @@ public:
     }
 
     size_t getStageCount() const override { return _stages.size(); }
+
+    const std::vector<NestedSubItem>& getNestedSubItems() const { return _nestedSubItems; }
     
     const std::string& getImage(size_t stage) const override
     {

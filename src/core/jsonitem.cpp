@@ -84,6 +84,8 @@ JsonItem JsonItem::FromJSON(json& j)
     } else if (item._type == Type::STATIC) {
         item._allowDisabled = false; // always false
         item._stage1 = 1;
+    } else if (item._type == Type::NESTED_TOGGLE) {
+        item._allowDisabled = true;
     }
 
     if (j["stages"].type() == json::value_t::array) {
@@ -111,8 +113,37 @@ JsonItem JsonItem::FromJSON(json& j)
         item._stage1 = 1;
     }
 
-    if (item._type == Type::TOGGLE_BADGED && j["base_item"].is_string()) {
+    if ((item._type == Type::TOGGLE_BADGED || item._type == Type::NESTED_TOGGLE)
+            && j["base_item"].is_string()) {
         item._baseItem = j["base_item"];
+    }
+
+    if (item._type == Type::NESTED_TOGGLE && j["sub_items"].is_array()) {
+        for (const auto& v : j["sub_items"]) {
+            if (!v.is_object() || !v["item"].is_string())
+                continue;
+            NestedSubItem sub;
+            sub.item = v["item"].get<std::string>();
+            if (v["h_alignment"].is_string())
+                sub.hAlignment = v["h_alignment"].get<std::string>();
+            if (v["v_alignment"].is_string())
+                sub.vAlignment = v["v_alignment"].get<std::string>();
+            if (v["item_size"].is_string()) {
+                const auto value = v["item_size"].get<std::string>();
+                const auto comma = value.find(',');
+                try {
+                    sub.width = std::stoi(value.substr(0, comma));
+                    if (comma != std::string::npos)
+                        sub.height = std::stoi(value.substr(comma + 1));
+                } catch (const std::exception&) {
+                    sub.width = sub.height = -1;
+                }
+            } else if (v["item_size"].is_array() && v["item_size"].size() >= 2) {
+                sub.width = v["item_size"][0].get<int>();
+                sub.height = v["item_size"][1].get<int>();
+            }
+            item._nestedSubItems.push_back(std::move(sub));
+        }
     }
 
     if (item._type == Type::TOGGLE || item._type == Type::TOGGLE_BADGED || item._type == Type::PROGRESSIVE_TOGGLE) {

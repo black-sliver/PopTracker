@@ -385,6 +385,31 @@ a table representing an enum with the following constants: \
     }
 ```
 
+* `"nested_toggle"`:
+  + display `"sub_items"` over `"base_item"`
+  + toggle state of `"sub_items"` and `"base_item"` with left/right mouse button
+  + uses `"item_size"` to change `"sub_items"` size, defaults to layout's `"item_size"`,`"item_height"` and `"item_width"`
+  + uses `"h_alignment"` and `"v_alignment"` to change `"sub_items"` alignment over `"base_item"`
+```jsonc
+    {
+        "name": "Some Item",
+        "type": "nested_toggle",
+        "base_item": "base_item_code",
+        "codes": "some_item"
+        "sub_items": [
+            {
+                "item": "sub_item_code",
+                "h_alignment": "{left,right,center,stretch}", // optional, defaults to center
+                "v_alignment": "{top,bottom,center,stretch}", // optional, defaults to center
+                "item_size":   "<horizontal>,<vertical>" // optional, defaults to layout's item_size, item_height and item_width
+            },
+            {
+            ...
+            }
+        ]
+    }
+```
+
 
 ### Maps
 
