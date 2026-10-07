@@ -93,6 +93,7 @@ protected:
 
     Item* makeItem(int x, int y, int w, int h, const std::string& code);
     Item* makeItem(int x, int y, int w, int h, const ::BaseItem& item, int stage1=-1, int stage2=0);
+    Container* makeNestedToggle(int x, int y, int w, int h, const JsonItem& item);
     Item* makeLocationIcon(int x, int y, int w, int h, const std::string& locid, const LocationSection& sec, bool opened, bool compact);
 
     ScrollVBox* makeMapTooltip(const std::string& location, int x, int y);
