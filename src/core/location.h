@@ -19,6 +19,16 @@ public:
             RECT,
             DIAMOND,
             TRAPEZOID,
+            TRIANGLE,
+            CONCAVE_KITE,
+        };
+
+        enum class Orientation {
+            UNSPECIFIED,
+            NORTH,
+            SOUTH,
+            EAST,
+            WEST,
         };
 
         static Shape ShapeFromString(const std::string& s) {
@@ -28,7 +38,40 @@ public:
                 return Shape::DIAMOND;
             if (s == "trapezoid")
                 return Shape::TRAPEZOID;
+            if (s == "triangle")
+                return Shape::TRIANGLE;
+            if (s == "concave_kite")
+                return Shape::CONCAVE_KITE;
             return Shape::UNSPECIFIED;
+        }
+
+        static constexpr float ShapeBorderStrengthCoefficient(Shape s) {
+            // if C is the below coefficient, then thickness = C * strength.
+            switch (s) {
+            case Shape::UNSPECIFIED:
+            case Shape::RECT:
+            case Shape::TRAPEZOID:
+                return 1.0f;
+            case Shape::DIAMOND:
+                return 1.41421356237310f; // equal to sqrt(2)
+            case Shape::TRIANGLE:
+                return 2.23606797749979f; // equal to sqrt(5)
+            case Shape::CONCAVE_KITE:
+                return 2.92080962648189f; // equal to (sqrt(5)+sqrt(13))/2
+            }
+            return 0.0f;
+        }
+
+        static Orientation OrientationFromString(const std::string& s) {
+            if (s == "north")
+                return Orientation::NORTH;
+            else if (s == "south")
+                return Orientation::SOUTH;
+            else if (s == "east")
+                return Orientation::EAST;
+            else if (s == "west")
+                return Orientation::WEST;
+            return Orientation::UNSPECIFIED;
         }
 
     protected:
@@ -37,9 +80,11 @@ public:
         int _y = 0;
         int _size = -1;
         int _borderThickness = -1;
+        int _borderStrength = -1;
         std::list<std::list<std::string> > _visibilityRules;
         std::list<std::list<std::string> > _invisibilityRules;
         Shape _shape = Shape::UNSPECIFIED;
+        Orientation _orientation = Orientation::NORTH;
 
     public:
         // getters
@@ -47,10 +92,24 @@ public:
         int getX() const { return _x; }
         int getY() const { return _y; }
         int getSize(int parent) const { return _size < 1 ? parent : _size; }
-        int getBorderThickness(int parent) const { return _borderThickness < 0 ? parent : _borderThickness; }
+        float getBorderThickness(Shape shape, int parentThickness, int parentStrength) const {
+            if (_borderStrength >= 0) {
+                return _borderStrength * ShapeBorderStrengthCoefficient(shape);
+            } else if (_borderThickness >= 0) {
+                return _borderThickness;
+            } else if (parentStrength >= 0) {
+                return parentStrength * ShapeBorderStrengthCoefficient(shape);
+            } else {
+                return parentThickness;
+            }
+        }
         Shape getShape(Shape parent) const
         {
             return _shape == Shape::UNSPECIFIED ? parent : _shape;
+        }
+        Orientation getOrientation(Orientation parent) const
+        {
+            return _orientation == Orientation::UNSPECIFIED ? parent : _orientation;
         }
 
         const std::list<std::list<std::string>>& getVisibilityRules() const { return _visibilityRules; }

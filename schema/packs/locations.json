@@ -331,9 +331,26 @@
                                     }
                                 ]
                             },
+                            "border_strength": {
+                                "description": "Overrides the location border strength defined on the map.",
+                                "anyOf": [
+                                    {
+                                        "type": "number",
+                                        "minimum": -1
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^\\s*-?[0-9]*\\s*$"
+                                    }
+                                ]
+                            },
                             "shape": {
                                 "description": "Overrides the location shape defined on the map.",
-                                "enum": [null, "rect", "diamond", "trapezoid"]
+                                "enum": [null, "rect", "diamond", "trapezoid", "triangle", "concave_kite"]
+                            },
+                            "orientation": {
+                                "description": "The orientation of the location shape on the map.",
+                                "enum": [null, "north", "south", "east", "west"]
                             },
                             "restrict_visibility_rules": {
                                 "example": [

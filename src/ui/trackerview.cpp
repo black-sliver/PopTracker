@@ -921,11 +921,13 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             w->setMinSize({200,200});
             for (const auto& pair : _tracker->getMapLocations(mapname)) {
                 // NOTE: state and highlight are set later
+                auto shape = pair.second.getShape(map.getLocationShape());
                 w->addLocation(pair.first, {
                     pair.second.getX(), pair.second.getY(),
                     pair.second.getSize(map.getLocationSize()),
-                    pair.second.getBorderThickness(map.getLocationBorderThickness()),
-                    pair.second.getShape(map.getLocationShape()),
+                    pair.second.getBorderThickness(shape, map.getLocationBorderThickness(), map.getLocationBorderStrength()),
+                    shape,
+                    pair.second.getOrientation(map.getLocationOrientation()),
                 });
             }
 #ifndef NDEBUG

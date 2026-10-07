@@ -2,6 +2,7 @@
 #include "imghelper.h"
 #include "texturemanager.h"
 #include "../core/assets.h"
+#include <cmath>
 
 namespace Ui {
 
@@ -10,6 +11,70 @@ static SDL_Texture* getGlowTexture(Renderer renderer)
     static fs::path glowAsset = asset("glow64.png");
     SDL_Texture* tex = TextureManager::get(renderer, glowAsset);
     return tex;
+}
+
+static void rotateVertices(SDL_Vertex *vertices, size_t numVertices, Position pos, Size size, Orientation orientation)
+{
+    float cx = pos.left + static_cast<float>(size.width) / 2, cy = pos.top + static_cast<float>(size.height) / 2;
+    switch (orientation) {
+    case Orientation::SOUTH:
+        for (size_t i = 0; i < numVertices; ++i) {
+            SDL_FPoint p = vertices[i].position;
+            vertices[i].position.x = 2 * cx - p.x;
+            vertices[i].position.y = 2 * cy - p.y;
+        }
+        break;
+    case Orientation::WEST:
+        for (size_t i = 0; i < numVertices; ++i) {
+            SDL_FPoint p = vertices[i].position;
+            vertices[i].position.x = p.y - cy + cx;
+            vertices[i].position.y = cx - p.x + cy;
+        }
+        break;
+    case Orientation::EAST:
+        for (size_t i = 0; i < numVertices; ++i) {
+            SDL_FPoint p = vertices[i].position;
+            vertices[i].position.x = cy - p.y + cx;
+            vertices[i].position.y = p.x - cx + cy;
+        }
+        break;
+    case Orientation::UNSPECIFIED:
+    case Orientation::NORTH:
+        break;
+    }
+}
+
+static void cycleColors(Widget::Color& topC, Widget::Color& leftC, Widget::Color& botC, Widget::Color& rightC,
+        Orientation orientation)
+{
+    Widget::Color buf;
+    switch (orientation) {
+    case Orientation::SOUTH:
+        buf = topC;
+        topC = botC;
+        botC = buf;
+        buf = leftC;
+        leftC = rightC;
+        rightC = buf;
+        break;
+    case Orientation::WEST:
+        buf = topC;
+        topC = leftC;
+        leftC = botC;
+        botC = rightC;
+        rightC = buf;
+        break;
+    case Orientation::EAST:
+        buf = topC;
+        topC = rightC;
+        rightC = botC;
+        botC = leftC;
+        leftC = buf;
+        break;
+    case Orientation::UNSPECIFIED:
+    case Orientation::NORTH:
+        break;
+    }
 }
 
 void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
@@ -64,7 +129,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx, fy + fh}, botRightColor, {0, 0}},
             {{fx + fw, fy + fh}, botRightColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, botRightVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, botRightVerts, std::size(botRightVerts), nullptr, 0);
     } else {
         SDL_Color botColor = {botC.r, botC.g, botC.b, botC.a};
         SDL_Vertex botVerts[] = {
@@ -72,7 +137,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx + fw, fy + fw}, botColor, {0, 0}},
             {{fx + fw/2, fy + fh/2}, botColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, botVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, botVerts, std::size(botVerts), nullptr, 0);
     }
 
     if (botC != rightC) {
@@ -82,7 +147,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx + fw/2, fy + fh/2}, rightColor, {0, 0}},
             {{fx + fw, fy + fh}, rightColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, rightVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, rightVerts, std::size(rightVerts), nullptr, 0);
     }
 
     if (topC == leftC && topC != botC) {
@@ -92,7 +157,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx, fy + fh}, topLeftColor, {0, 0}},
             {{fx + fw, fy}, topLeftColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, topLeftVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, topLeftVerts, std::size(topLeftVerts), nullptr, 0);
     }
 
     if (topC != leftC && topC != botC) {
@@ -102,7 +167,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx + fw/2, fy + fh/2}, topColor, {0, 0}},
             {{fx + fw, fy}, topColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, topVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, topVerts, std::size(topVerts), nullptr, 0);
     }
 
     if (leftC != topC && leftC != botC) {
@@ -112,7 +177,7 @@ void drawRect(Renderer renderer, Position pos, Size size, int borderWidth,
             {{fx, fy + fh}, leftColor, {0, 0}},
             {{fx + fw/2, fy + fh/2}, leftColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, leftVerts, 3, nullptr, 0);
+        SDL_RenderGeometry(renderer, nullptr, leftVerts, std::size(leftVerts), nullptr, 0);
     }
 }
 
@@ -157,7 +222,7 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
             1, 7, 6,
             7, 1, 0,
         };
-        SDL_RenderGeometry(renderer, nullptr, verts, 8, indices, 24);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
     } else {
         // border as bigger background rect
         float x1 = ol, x2 = ol + ow/2, x3 = ol + ow;
@@ -173,7 +238,7 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
             0, 1, 2,
             2, 1, 3
         };
-        SDL_RenderGeometry(renderer, nullptr, verts, 4, indices, 6);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
     }
 
     {
@@ -186,7 +251,7 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
                 {{x2, y3}, leftColor, {0, 0}},
                 {{x2, y1}, leftColor, {0, 0}},
             };
-            SDL_RenderGeometry(renderer, nullptr, verts, 3, nullptr, 0);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
         } else {
             SDL_Color tlColor = {tlC.r, tlC.g, tlC.b, tlC.a};
             SDL_Color blColor = {blC.r, blC.g, blC.b, blC.a};
@@ -198,7 +263,7 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
                 {{x2, y3}, blColor, {0, 0}},
                 {{x2, y2}, blColor, {0, 0}},
             };
-            SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
         }
 
         if (brC == trC) {
@@ -208,7 +273,7 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
                 {{x2, y3}, rightColor, {0, 0}},
                 {{x3, y2}, rightColor, {0, 0}},
             };
-            SDL_RenderGeometry(renderer, nullptr, verts, 3, nullptr, 0);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
         } else {
             SDL_Color trColor = {trC.r, trC.g, trC.b, trC.a};
             SDL_Color brColor = {brC.r, brC.g, brC.b, brC.a};
@@ -220,14 +285,16 @@ void drawDiamond(Renderer renderer, Position pos, Size size, int borderWidth,
                 {{x2, y2}, brColor, {0, 0}},
                 {{x2, y3}, brColor, {0, 0}},
             };
-            SDL_RenderGeometry(renderer, nullptr, verts, 6, nullptr, 0);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
         }
     }
 }
 
 void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
-        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC)
+        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC,
+        Orientation orientation)
 {
+    cycleColors(tC, lC, bC, rC, orientation);
     bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff || rC.a != 0xff;
 
     float il = pos.left;
@@ -266,7 +333,8 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
             7, 1, 6,
             7, 0, 1,
         };
-        SDL_RenderGeometry(renderer, nullptr, verts, 8, indices, 24);
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
     } else {
         // border as bigger background shape
         float x1 = ol, x3 = ol + ow/4, x6 = ol + 3*ow/4, x8 = ol + ow;
@@ -281,7 +349,8 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
             0, 3, 1,
             1, 3, 2
         };
-        SDL_RenderGeometry(renderer, nullptr, verts, 4, indices, 6);
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
     }
 
     {
@@ -306,7 +375,290 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
             {{x4, y1}, rColor, {0, 0}},
             {{x3, y2}, rColor, {0, 0}},
         };
-        SDL_RenderGeometry(renderer, nullptr, verts, 12, nullptr, 0);
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+    }
+}
+
+void drawTriangle(Renderer renderer, Position pos, Size size, int borderWidth,
+        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC,
+        Orientation orientation)
+{
+    cycleColors(tC, lC, bC, rC, orientation);
+    bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff;
+
+    float il = pos.left;
+    float it = pos.top;
+    float iw = size.width;
+    float ih = size.height;
+
+    constexpr float sqrt5recip = 0.4472135954999579;
+
+    float ol = il - borderWidth * 0.5 * (1 + sqrt5recip);
+    float ot = it - borderWidth;
+    float ow = iw + (1 + sqrt5recip) * borderWidth;
+    float oh = ih + (1 + sqrt5recip) * borderWidth;
+    SDL_Color borderColor = {0, 0, 0, 255};
+
+    if (hasAlpha) {
+        float x1 = ol, x2 = il, x3 = il + iw / 2, x4 = ol + ow, x5 = il + iw;
+        float y1 = ot, y2 = it, y3 = it + ih, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x2, y3}, borderColor, {0, 0}},
+            {{x4, y4}, borderColor, {0, 0}},
+            {{x5, y3}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x3, y2}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 2,
+            1, 2, 3,
+            0, 1, 4,
+            1, 4, 5,
+            2, 3, 4,
+            3, 4, 5,
+        };
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
+    } else {
+        float x1 = ol, x3 = il + iw / 2, x4 = ol + ow;
+        float y1 = ot, y4 = ot + oh;
+        SDL_Vertex verts[] = {
+            {{x1, y4}, borderColor, {0, 0}},
+            {{x4, y4}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+        };
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+    }
+
+    int numColors;
+    if (tC == lC) {
+        if (tC == bC) {
+            if (tC == rC) {
+                numColors = 1;
+            } else {
+                lC = rC;
+                numColors = 2;
+            }
+        } else {
+            lC = bC;
+            if (bC == rC || tC == rC) {
+                numColors = 2;
+            } else {
+                bC = rC;
+                numColors = 3;
+            }
+        }
+    } else if (tC == bC || lC == bC) {
+        if (tC == rC || lC == rC) {
+            numColors = 2;
+        } else {
+            bC = rC;
+            numColors = 3;
+        }
+    } else {
+        numColors = (tC == rC || lC == rC || bC == rC) ? 3 : 4;
+    }
+    switch (numColors) {
+    case 1:
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x3, y2}, tColor, {0, 0}},
+            };
+            rotateVertices(verts, std::size(verts), pos, size, orientation);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+        }
+        break;
+    case 2:
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x2, y2}, tColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x2, y1}, lColor, {0, 0}},
+                {{x2, y2}, lColor, {0, 0}},
+            };
+            rotateVertices(verts, std::size(verts), pos, size, orientation);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+        }
+        break;
+    case 3: 
+        {
+            float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+            float y1 = it, y2 = it + ih, y3 = it + 2 * ih / 3;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+            SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y2}, tColor, {0, 0}},
+                {{x2, y1}, tColor, {0, 0}},
+                {{x2, y3}, tColor, {0, 0}},
+                {{x1, y2}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x2, y3}, lColor, {0, 0}},
+                {{x3, y2}, bColor, {0, 0}},
+                {{x2, y1}, bColor, {0, 0}},
+                {{x2, y3}, bColor, {0, 0}},
+            };
+            rotateVertices(verts, std::size(verts), pos, size, orientation);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+        }
+        break;
+    case 4:
+        {
+            float x1 = il, x2 = il + iw / 3, x3 = il + iw / 2, x4 = il + 2 * iw / 3, x5 = il + iw;
+            float y1 = it, y2 = it + 4 * ih / 9, y3 = it + 7 * ih / 9, y4 = it + ih;
+
+            SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+            SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+            SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+            SDL_Color rColor = {rC.r, rC.g, rC.b, rC.a};
+
+            SDL_Vertex verts[] = {
+                {{x1, y4}, lColor, {0, 0}},
+                {{x2, y3}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+                {{x1, y4}, lColor, {0, 0}},
+                {{x3, y1}, lColor, {0, 0}},
+                {{x3, y2}, lColor, {0, 0}},
+
+                {{x5, y4}, rColor, {0, 0}},
+                {{x4, y3}, rColor, {0, 0}},
+                {{x3, y2}, rColor, {0, 0}},
+                {{x5, y4}, rColor, {0, 0}},
+                {{x3, y1}, rColor, {0, 0}},
+                {{x3, y2}, rColor, {0, 0}},
+
+                {{x1, y4}, bColor, {0, 0}},
+                {{x2, y3}, bColor, {0, 0}},
+                {{x4, y3}, bColor, {0, 0}},
+                {{x1, y4}, bColor, {0, 0}},
+                {{x4, y3}, bColor, {0, 0}},
+                {{x5, y4}, bColor, {0, 0}},
+
+                {{x2, y3}, tColor, {0, 0}},
+                {{x4, y3}, tColor, {0, 0}},
+                {{x3, y2}, tColor, {0, 0}},
+            };
+            rotateVertices(verts, std::size(verts), pos, size, orientation);
+            SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
+        }
+        break;
+    }
+}
+
+void drawConcaveKite(Renderer renderer, Position pos, Size size, int borderWidth,
+        Widget::Color tC, Widget::Color lC, Widget::Color bC, Widget::Color rC,
+        Orientation orientation)
+{
+    cycleColors(tC, lC, bC, rC, orientation);
+    bool hasAlpha = tC.a != 0xff || lC.a != 0xff || bC.a != 0xff;
+
+    float il = pos.left;
+    float it = pos.top;
+    float iw = size.width;
+    float ih = size.height;
+    float imh = 2 * ih / 3;
+
+    // this is 1/2 * (3 * sqrt(5) + sqrt(13)) / (sqrt(5) + sqrt(13)),
+    constexpr float coeff = 0.8827822185373188;
+    float ol = il - coeff * borderWidth;
+    float ot = it - (2 * coeff - 1) * borderWidth;
+    float ow = iw + 2 * coeff * borderWidth;
+    float omh = imh + 4 * coeff / 3 * borderWidth;
+    float oh = ih + 2 * coeff * borderWidth;
+    SDL_Color borderColor = {0, 0, 0, 255};
+
+    if (hasAlpha) {
+        float x1 = ol, x2 = il, x3 = il + iw / 2, x4 = il + iw, x5 = ol + ow;
+        float y1 = ot, y2 = it, y3 = it + imh, y4 = it + ih, y5 = ot + omh, y6 = ot + oh;
+
+        SDL_Vertex verts[] = {
+            {{x1, y6}, borderColor, {0, 0}},
+            {{x2, y4}, borderColor, {0, 0}},
+            {{x5, y6}, borderColor, {0, 0}},
+            {{x4, y4}, borderColor, {0, 0}},
+            {{x3, y1}, borderColor, {0, 0}},
+            {{x3, y2}, borderColor, {0, 0}},
+            {{x3, y3}, borderColor, {0, 0}},
+            {{x3, y5}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 1, 7,
+            1, 6, 7,
+            2, 3, 7,
+            3, 6, 7,
+            0, 1, 4,
+            1, 4, 5,
+            2, 3, 4,
+            3, 4, 5,
+        };
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
+    } else {
+        float x1 = ol, x2 = il + iw / 2, x3 = ol + ow;
+        float y1 = ot, y2 = ot + omh, y3 = ot + oh;
+
+        SDL_Vertex verts[] = {
+            {{x1, y3}, borderColor, {0, 0}},
+            {{x3, y3}, borderColor, {0, 0}},
+            {{x2, y1}, borderColor, {0, 0}},
+            {{x2, y2}, borderColor, {0, 0}},
+        };
+        int indices[] = {
+            0, 2, 3,
+            1, 2, 3,
+        };
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
+    }
+
+    {
+        float x1 = il, x2 = il + iw / 2, x3 = il + iw;
+        float y1 = it, y2 = it + imh / 2, y3 = it + imh, y4 = it + ih;
+
+        SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
+        SDL_Color lColor = {lC.r, lC.g, lC.b, lC.a};
+        SDL_Color bColor = {bC.r, bC.g, bC.b, bC.a};
+        SDL_Color rColor = {rC.r, rC.g, rC.b, rC.a};
+
+        SDL_Vertex verts[] = {
+            {{x1, y4}, tColor, {0, 0}},
+            {{x2, y2}, tColor, {0, 0}},
+            {{x2, y1}, tColor, {0, 0}},
+
+            {{x1, y4}, lColor, {0, 0}},
+            {{x2, y3}, lColor, {0, 0}},
+            {{x2, y2}, lColor, {0, 0}},
+
+            {{x3, y4}, bColor, {0, 0}},
+            {{x2, y3}, bColor, {0, 0}},
+            {{x2, y2}, bColor, {0, 0}},
+
+            {{x3, y4}, rColor, {0, 0}},
+            {{x2, y2}, rColor, {0, 0}},
+            {{x2, y1}, rColor, {0, 0}},
+        };
+        rotateVertices(verts, std::size(verts), pos, size, orientation);
+        SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), nullptr, 0);
     }
 }
 
@@ -456,7 +808,8 @@ void drawDiamondGlow(Renderer renderer, const Position pos, const Size size, con
     SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
 }
 
-void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color)
+void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color,
+        Orientation orientation)
 {
     constexpr int glowSize = 10;
     const float left2 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 4;
@@ -482,7 +835,7 @@ void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, c
     const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
 
     const SDL_Color c = {color.r, color.g, color.b, color.a};
-    const SDL_Vertex verts[] = {
+    SDL_Vertex verts[] = {
         {{x5, y1}, c, {0, 0}},
         {{x6, y2}, c, {0.49, 0.49}},
         {{x6, y1}, c, {0.49, 0}},
@@ -533,6 +886,168 @@ void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, c
     const auto tex = getGlowTexture(renderer);
     if (!tex)
         return;
+    rotateVertices(verts, std::size(verts), pos, size, orientation);
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
+}
+
+void drawTriangleGlow(Renderer renderer, Position pos, Size size, Widget::Color color,
+        Orientation orientation)
+{
+    constexpr int glowSize = 10;
+    const float centre = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2;
+    constexpr int glowOff1 = 12;
+    constexpr int glowOff2 = 14;
+    constexpr int glowOff3 = 6;
+    const float x1  = static_cast<float>(pos.left) - glowOff2;
+    const float x2  = static_cast<float>(pos.left) - glowOff1;
+    const float x3  = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x4  = centre - glowOff1;
+    const float x5  = centre - glowOff3;
+    const float x6  = centre;
+    const float x7  = centre;
+    const float x8  = centre + glowOff3;
+    const float x9  = centre + glowOff1;
+    const float x10 = static_cast<float>(pos.left + size.width); // NOLINT(*-use-auto)
+    const float x11 = static_cast<float>(pos.left + size.width) + glowOff1;
+    const float x12 = static_cast<float>(pos.left + size.width) + glowOff2;
+    const float y1  = static_cast<float>(pos.top) - glowSize;
+    const float y2  = static_cast<float>(pos.top); // NOLINT(*-use-auto)
+    const float y3  = static_cast<float>(pos.top + size.height); // NOLINT(*-use-auto)
+    const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
+
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    SDL_Vertex verts[] = {
+        {{x5, y1}, c, {0, 0}},
+        {{x6, y2}, c, {0.49, 0.49}},
+        {{x6, y1}, c, {0.49, 0}},
+        {{x4, y2}, c, {0, 0.49}},
+
+        {{x7, y1}, c, {0.51, 0}},
+        {{x9, y2}, c, {1, 0.49}},
+        {{x8, y1}, c, {1, 0}},
+        {{x7, y2}, c, {0.51, 0.49}},
+
+        {{x10, y3}, c, {0.51, 0.51}},
+        {{x12, y4}, c, {1, 1}},
+        {{x11, y3}, c, {1, 0.51}},
+        {{x10, y4}, c, {0.51, 1}},
+
+        {{x2, y3}, c, {0, 0.51}},
+        {{x3, y4}, c, {0.49, 1}},
+        {{x3, y3}, c, {0.49, 0.51}},
+        {{x1, y4}, c, {0, 1}},
+    };
+
+    const int indices[] = {
+        2, 1, 3,
+        3, 0, 2,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 14, 11,
+        11, 14, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    rotateVertices(verts, std::size(verts), pos, size, orientation);
+    SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
+}
+
+void drawConcaveKiteGlow(Renderer renderer, Position pos, Size size, Widget::Color color,
+        Orientation orientation)
+{
+    constexpr int glowSize = 10;
+    const float centre = static_cast<float>(pos.left) + static_cast<float>(size.width) / 2;
+    constexpr int glowOff1 = 12;
+    constexpr int glowOff2 = 14;
+    constexpr int glowOff3 = 6;
+    const float x1  = static_cast<float>(pos.left) - glowOff2;
+    const float x2  = static_cast<float>(pos.left) - glowOff1;
+    const float x3  = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x4  = centre - glowOff1;
+    const float x5  = centre - glowOff3;
+    const float x6  = centre;
+    const float x7  = centre;
+    const float x8  = centre + glowOff3;
+    const float x9  = centre + glowOff1;
+    const float x10 = static_cast<float>(pos.left + size.width); // NOLINT(*-use-auto)
+    const float x11 = static_cast<float>(pos.left + size.width) + glowOff1;
+    const float x12 = static_cast<float>(pos.left + size.width) + glowOff2;
+    const float y1  = static_cast<float>(pos.top) - glowSize;
+    const float y2  = static_cast<float>(pos.top); // NOLINT(*-use-auto)
+    const float y3  = static_cast<float>(pos.top + size.height); // NOLINT(*-use-auto)
+    const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
+    const float y5  = static_cast<float>(pos.top) + static_cast<float>(2 * size.height) / 3;
+
+    const SDL_Color c = {color.r, color.g, color.b, color.a};
+    SDL_Vertex verts[] = {
+        {{x5, y1}, c, {0, 0}},
+        {{x6, y2}, c, {0.49, 0.49}},
+        {{x6, y1}, c, {0.49, 0}},
+        {{x4, y2}, c, {0, 0.49}},
+
+        {{x7, y1}, c, {0.51, 0}},
+        {{x9, y2}, c, {1, 0.49}},
+        {{x8, y1}, c, {1, 0}},
+        {{x7, y2}, c, {0.51, 0.49}},
+
+        {{x10, y3}, c, {0.51, 0.51}},
+        {{x12, y4}, c, {1, 1}},
+        {{x11, y3}, c, {1, 0.51}},
+        {{x10, y4}, c, {0.51, 1}},
+
+        {{x2, y3}, c, {0, 0.51}},
+        {{x3, y4}, c, {0.49, 1}},
+        {{x3, y3}, c, {0.49, 0.51}},
+        {{x1, y4}, c, {0, 1}},
+
+        {{x7, y5}, c, {0.5, 0.51}},
+    };
+
+    const int indices[] = {
+        2, 1, 3,
+        3, 0, 2,
+
+        4, 7, 5,
+        5, 6, 4,
+
+        7, 8, 10,
+        10, 5, 7,
+
+        8, 11, 9,
+        9, 10, 8,
+
+        8, 16, 11,
+        11, 16, 13,
+
+        13, 14, 12,
+        12, 15, 13,
+
+        14, 1, 3,
+        3, 12, 14,
+
+        16, 14, 13,
+    };
+
+    const auto tex = getGlowTexture(renderer);
+    if (!tex)
+        return;
+    rotateVertices(verts, std::size(verts), pos, size, orientation);
     SDL_RenderGeometry(renderer, tex, verts, std::size(verts), indices, std::size(indices));
 }
 

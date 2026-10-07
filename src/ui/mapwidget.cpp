@@ -335,10 +335,13 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                 calculateLocationScreenRect(pos, srcRect, dstRect, baseScale, innerX, innerY, innerW, innerH, borderSize);
 
                 // Skip locations that are outside the widget area
+                //
                 const int outerW = innerW + 2 * borderSize;
                 const int outerH = innerH + 2 * borderSize;
-                if (innerX + outerW < widgetX || innerX > widgetX + widgetW ||
-                    innerY + outerH < widgetY || innerY > widgetY + widgetH) {
+                const int outerX = innerX - borderSize;
+                const int outerY = innerY - borderSize;
+                if (outerX + outerW < widgetX || outerX > widgetX + widgetW ||
+                    outerY + outerH < widgetY || outerY > widgetY + widgetH) {
                     continue;
                 }
 
@@ -349,25 +352,47 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     if (highlight == Highlight::NONE)
                         continue;
                     const Color c = HighlightColors[highlight];
-                    if (pos.shape == Shape::DIAMOND)
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
                         drawDiamondGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
-                    else if (pos.shape == Shape::TRAPEZOID)
-                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
-                    else
+                        break;
+                    case Shape::TRAPEZOID:
+                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKiteGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        break;
+                    default:
                         drawRectGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        break;
+                    }
                 } else if (!SplitRects || state < 0 || state >= countOf(triangleValues)) {
                     // uniform shape
                     const Color& c = (state < 0 || state >= countOf(StateColors)) ?
                             StateColors[countOf(StateColors) - 1] : StateColors[state];
-                    if (pos.shape == Shape::DIAMOND)
-                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
-                    else if (pos.shape == Shape::TRAPEZOID)
-                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
-                    else
-                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                c, c, c, c);
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
+                        drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        break;
+                    case Shape::TRAPEZOID:
+                        drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKite(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c,
+                                pos.orientation);
+                        break;
+                    default:
+                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, c, c, c, c);
+                        break;
+                    }
                 } else {
                     // split shape
                     const int* values = triangleValues[state];
@@ -376,15 +401,27 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     const Color& botC = StateColors[values[2]];
                     const Color& rightC = StateColors[values[3]];
 
-                    if (pos.shape == Shape::DIAMOND)
+                    switch (pos.shape) {
+                    case Shape::DIAMOND:
                         drawDiamond(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
                                 topC, leftC, botC, rightC);
-                    else if (pos.shape == Shape::TRAPEZOID)
+                        break;
+                    case Shape::TRAPEZOID:
                         drawTrapezoid(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                topC, leftC, botC, rightC);
-                    else
-                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
-                                topC, leftC, botC, rightC);
+                                topC, leftC, botC, rightC, pos.orientation);
+                        break;
+                    case Shape::TRIANGLE:
+                        drawTriangle(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC, pos.orientation);
+                        break;
+                    case Shape::CONCAVE_KITE:
+                        drawConcaveKite(renderer, {innerX, innerY}, {innerW, innerH}, borderSize,
+                                topC, leftC, botC, rightC, pos.orientation);
+                        break;
+                    default:
+                        drawRect(renderer, {innerX, innerY}, {innerW, innerH}, borderSize, topC, leftC, botC, rightC);
+                        break;
+                    }
                 }
             }
         }
@@ -480,7 +517,7 @@ void MapWidget::calculateLocationScreenRect(const Point& pos, const SDL_Rect& sr
     innerH = static_cast<int>(lround(static_cast<float>(pos.size) / baseScale));
     if (innerW < 1) innerW = 1;
     if (innerH < 1) innerH = 1;
-    borderSize = static_cast<int>(lround(static_cast<float>(pos.borderThickness) / baseScale));
+    borderSize = static_cast<int>(lround(pos.borderThickness / baseScale));
     if (borderSize < 1 && pos.borderThickness > 0)
         borderSize = 1;
 
