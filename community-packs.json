@@ -151,5 +151,14 @@
         "versions_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/versions.json",
         "icon_url": "https://raw.githubusercontent.com/snileaf/CloverPit-poptracker/versions/CloverPit.png",
         "description":  "The CloverPit Archipelago PopTracker Pack."
+    },
+    "ooa_brooty": {
+        "name": "Oracle of Ages Randomizer",
+        "author": "Brooty, Dranzior",
+        "platform": "gbc",
+        "homepage": "https://github.com/Dranzior/ooa_brooty/",
+        "versions_url": "https://raw.githubusercontent.com/Dranzior/ooa_brooty/master/versions.json",
+        "icon_url": "https://raw.githubusercontent.com/Dranzior/ooa_brooty/master/images/items/harp.png",
+        "description": "The Legend of Zelda: Oracle of Ages Archipelago PopTracker pack"
     }
 }
