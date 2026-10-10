@@ -27,8 +27,13 @@ static std::string urlEncode(const std::string& in)
     }
     return out;
 }
+
 static std::string fileUrlFromGenericString(std::string p)
 {
+#ifdef _WIN32
+    return "file:///" + urlEncode(p);
+
+#else
     if (p.compare(0, 2, "//") == 0) {
         return "file:" + urlEncode(p);
     }
@@ -36,16 +41,18 @@ static std::string fileUrlFromGenericString(std::string p)
         p.insert(p.begin(), '/');
     }
     return "file://" + urlEncode(p);
+
+#endif
 }
 
-static std::string pathToFileUrl(const fs::path& path)
-{
-    std::string p = path.u8string();
+    static std::string pathToFileUrl(const fs::path& path)
+    {
+        std::string p = path.u8string();
 #ifdef _WIN32
-    std::replace(p.begin(), p.end(), '\\', '/');
+        std::replace(p.begin(), p.end(), '\\', '/');
 #endif
-    return fileUrlFromGenericString(std::move(p));
-}
+        return fileUrlFromGenericString(std::move(p));
+    }
 
 static void openPackDirectory()
 {
@@ -53,12 +60,18 @@ static void openPackDirectory()
         fs::error_code ec;
         if (!fs::is_directory(searchPath, ec))
             continue;
+
         fs::path dir = fs::absolute(searchPath, ec);
         if (ec)
             continue;
+
+        if (searchPath.u8string().compare(0, 2, "\\\\") == 0)  // Absolute UNC Path, restore search path, see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99333
+            dir = searchPath;
+
         std::string url = pathToFileUrl(dir);
         if (SDL_OpenURL(url.c_str()) == 0)
             return;
+
         fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(searchPath).c_str(), sanitize_print(url).c_str());
 
     }
