@@ -45,14 +45,14 @@ static std::string fileUrlFromGenericString(std::string p)
 #endif
 }
 
-    static std::string pathToFileUrl(const fs::path& path)
-    {
-        std::string p = path.u8string();
+static std::string pathToFileUrl(const fs::path& path)
+{
+    std::string p = path.u8string();
 #ifdef _WIN32
-        std::replace(p.begin(), p.end(), '\\', '/');
+    std::replace(p.begin(), p.end(), '\\', '/');
 #endif
-        return fileUrlFromGenericString(std::move(p));
-    }
+    return fileUrlFromGenericString(std::move(p));
+}
 
 static void openPackDirectory()
 {
