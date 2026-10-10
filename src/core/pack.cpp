@@ -423,7 +423,7 @@ Ui::Size Pack::getImageSize(const std::string &userFile) const
     if (ReadFile(userFile, data, true, Ui::getMaxImageHeaderLength()))
         size = Ui::getImageSize(data);
     else
-        fprintf(stderr, "Error reading image file %s to get size\n", sanitize_print(userFile).c_str());
+        fprintf(stderr, "Error reading image file \"%s\" to get size\n", sanitize_print(userFile).c_str());
     _imageSizeCache.emplace(userFile, size);
     return size;
 }
