@@ -14,7 +14,7 @@
 
 namespace Ui {
 
-static std::string urlEncode(const std::string& in)
+static std::string fileUrlEncode(const std::string& in)
 {
     std::string out;
     out.reserve(in.size());
@@ -27,15 +27,22 @@ static std::string urlEncode(const std::string& in)
     }
     return out;
 }
+
 static std::string fileUrlFromGenericString(std::string p)
 {
+#ifdef _WIN32
+    return "file:///" + fileUrlEncode(p);
+
+#else
     if (p.compare(0, 2, "//") == 0) {
-        return "file:" + urlEncode(p);
+        return "file:" + fileUrlEncode(p);
     }
     if (p.empty() || p[0] != '/') {
         p.insert(p.begin(), '/');
     }
-    return "file://" + urlEncode(p);
+    return "file://" + fileUrlEncode(p);
+
+#endif
 }
 
 static std::string pathToFileUrl(const fs::path& path)
@@ -53,12 +60,18 @@ static void openPackDirectory()
         fs::error_code ec;
         if (!fs::is_directory(searchPath, ec))
             continue;
+
         fs::path dir = fs::absolute(searchPath, ec);
         if (ec)
             continue;
+
+        if (searchPath.u8string().compare(0, 2, "\\\\") == 0)  // Absolute UNC Path, restore search path, see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99333
+            dir = searchPath;
+
         std::string url = pathToFileUrl(dir);
         if (SDL_OpenURL(url.c_str()) == 0)
             return;
+
         fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(searchPath).c_str(), sanitize_print(url).c_str());
 
     }
