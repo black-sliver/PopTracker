@@ -30,18 +30,13 @@ static std::string fileUrlEncode(const std::string& in)
 
 static std::string fileUrlFromGenericString(std::string p)
 {
-#ifdef _WIN32
-    return "file:///" + fileUrlEncode(p);
-
-#else
+    #ifdef _WIN32
     if (p.compare(0, 2, "//") == 0) {
         return "file:" + fileUrlEncode(p);
     }
-    if (p.empty() || p[0] != '/') {
-        p.insert(p.begin(), '/');
-    }
+    return "file:///" + fileUrlEncode(p);
+#else
     return "file://" + fileUrlEncode(p);
-
 #endif
 }
 
