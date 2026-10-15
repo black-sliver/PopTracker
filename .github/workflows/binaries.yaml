@@ -79,7 +79,7 @@ jobs:
           build/poptracker
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: dist/*
         archive: false
@@ -162,13 +162,13 @@ jobs:
           appimage-build/build/poptracker
           *.AppImage*
     - name: Store AppImage
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: "*.AppImage"
         archive: false
         if-no-files-found: error
     - name: Store zsync
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: "*.AppImage.zsync"
         archive: false
@@ -227,7 +227,7 @@ jobs:
         # symlinks and permissions across the artifact round-trip.
         tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build" poptracker.app
     - name: Upload per-arch app bundle
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: macos-app-${{ env.ARCH }}
         path: poptracker-${{ env.ARCH }}.tar.gz
@@ -271,7 +271,7 @@ jobs:
           poptracker.app/Contents/MacOS/poptracker
           dist/*
     - name: Store universal ZIP
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: dist/*
         archive: false
@@ -381,7 +381,7 @@ jobs:
           build/poptracker.exe
           dist/*
     - name: Store DIST
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: dist/*
         archive: false
@@ -400,7 +400,7 @@ jobs:
           build/poptracker.exe
           dist/poptracker-${{ env.UNAME }}-debug.zip
     - name: Store DEBUG
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         path: dist/poptracker-${{ env.UNAME }}-debug.zip
         archive: false

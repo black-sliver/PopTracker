@@ -158,7 +158,7 @@ jobs:
         meson test -v -C build
     - name: Store failure logs
       if: failure()
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: ${{ matrix.os }}_failure
         path: |
@@ -184,7 +184,7 @@ jobs:
         nix-shell --run 'AR=gcc-ar meson setup build && meson compile -v -C build'
     - name: Store failure logs
       if: failure()
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: nix_failure
         path: |

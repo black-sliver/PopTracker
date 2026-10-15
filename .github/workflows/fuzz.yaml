@@ -65,7 +65,7 @@ jobs:
         run: ./build/test/fuzzer -max_total_time=897 -workers=4 -jobs=4 corpus/
       - name: Store logs
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: log
           path: fuzz-*.log
@@ -74,7 +74,7 @@ jobs:
           retention-days: 3
       - name: Store oom
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: oom
           path: oom-*
@@ -82,7 +82,7 @@ jobs:
           retention-days: 3
       - name: Store crashes
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: crash
           path: crash-*
