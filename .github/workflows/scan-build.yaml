@@ -98,7 +98,7 @@ jobs:
             ninja -C build scan-build
       - name: Store report
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: scan-build-reports-${{ matrix.os }}
           path: build/meson-logs/scanbuild

@@ -243,7 +243,7 @@ jobs:
         # tar preserves the bundle's symlinks and permissions across the artifact round-trip.
         tar -czf "poptracker-${{ env.ARCH }}.tar.gz" -C "build" poptracker.app
     - name: Upload per-arch app bundle
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: macos-app-${{ env.ARCH }}
         path: poptracker-${{ env.ARCH }}.tar.gz
