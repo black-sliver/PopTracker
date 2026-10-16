@@ -50,8 +50,9 @@ public:
             switch (s) {
             case Shape::UNSPECIFIED:
             case Shape::RECT:
-            case Shape::TRAPEZOID:
                 return 1.0f;
+            case Shape::TRAPEZOID:
+                return 1.18046042171637f; // equal to (sqrt(37)+1)/6
             case Shape::DIAMOND:
                 return 1.41421356237310f; // equal to sqrt(2)
             case Shape::TRIANGLE:
