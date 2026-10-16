@@ -300,19 +300,25 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
     float il = pos.left;
     float it = pos.top;
     float iw = size.width;
+    float itl = il + iw / 6;
+    float itw = 2 * iw / 3;
     float ih = size.height;
 
+    // this is 6 / (sqrt(37) + 1)
+    constexpr float coeff = 0.8471270883830366;
     float ol = il - borderWidth;
-    float ot = it - borderWidth;
+    float ot = it - coeff * borderWidth;
     float ow = iw + 2 * borderWidth;
-    float oh = ih + 2 * borderWidth;
+    float otl = ol + ow / 6;
+    float otw = 2 * ow / 3;
+    float oh = ih + 2 * coeff * borderWidth;
     SDL_Color borderColor = {0, 0, 0, 255};
 
     if (hasAlpha) {
         // we have to draw 4 individual lines for border
-        float x1 = ol, x2 = ol + borderWidth, x3 = ol + ow/4, x4 = ol + ow/4 + borderWidth;
-        float x5 = ol + 3*ow/4 - borderWidth, x6 = ol + 3*ow/4, x7 = ol + ow - borderWidth, x8 = ol + ow;
-        float y1 = ot, y2 = ot + borderWidth, y3 = ot + oh - borderWidth, y4 = ot + oh;
+        float x1 = ol, x2 = il, x3 = otl, x4 = itl;
+        float x5 = itl + itw, x6 = otl + otw, x7 = il + iw, x8 = ol + ow;
+        float y1 = ot, y2 = it, y3 = it + ih, y4 = ot + oh;
         SDL_Vertex verts[] = {
             {{x1, y4}, borderColor, {0, 0}},
             {{x2, y3}, borderColor, {0, 0}},
@@ -337,7 +343,7 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
         SDL_RenderGeometry(renderer, nullptr, verts, std::size(verts), indices, std::size(indices));
     } else {
         // border as bigger background shape
-        float x1 = ol, x3 = ol + ow/4, x6 = ol + 3*ow/4, x8 = ol + ow;
+        float x1 = ol, x3 = otl, x6 = otl + otw, x8 = ol + ow;
         float y1 = ot, y4 = ot + oh;
         SDL_Vertex verts[] = {
             {{x1, y4}, borderColor, {0, 0}},
@@ -354,7 +360,7 @@ void drawTrapezoid(Renderer renderer, Position pos, Size size, int borderWidth,
     }
 
     {
-        float x1 = il, x2 = ol + ow/4 + borderWidth, x3 = il + iw/2, x4 = ol + 3*ow/4 - borderWidth, x5 = il + iw;
+        float x1 = il, x2 = itl, x3 = il + iw/2, x4 = itl + itw, x5 = il + iw;
         float y1 = it, y2 = it + ih/2, y3 = it + ih;
 
         SDL_Color tColor = {tC.r, tC.g, tC.b, tC.a};
@@ -821,29 +827,35 @@ void drawDiamondGlow(Renderer renderer, const Position pos, const Size size, con
 void drawTrapezoidGlow(Renderer renderer, const Position pos, const Size size, const Widget::Color color,
         Orientation orientation, int borderWidth)
 {
-    (void)borderWidth;
     constexpr int glowSize = 10;
-    const float left2 = static_cast<float>(pos.left) + static_cast<float>(size.width) / 4;
-    const float width2 = static_cast<float>(size.width) / 2;
+    // this is 6 / (sqrt(37) + 1)
+    constexpr float coeff = 0.8471270883830366;
+    const float outerLeft = static_cast<float>(pos.left - borderWidth);
+    const float outerTop = static_cast<float>(pos.top) - coeff * static_cast<float>(borderWidth);
+    const float outerWidth = static_cast<float>(size.width + 2 * borderWidth);
+    const float outerHeight = static_cast<float>(size.height) + 2 * coeff * static_cast<float>(borderWidth);
+
+    const float left2 = outerLeft + outerWidth / 6;
+    const float width2 = 2 * outerWidth / 3;
     constexpr int glowOff1 = 12;
     constexpr int glowOff2 = 14;
     constexpr int glowOff3 = 6;
-    const float x1  = static_cast<float>(pos.left) - glowOff2;
-    const float x2  = static_cast<float>(pos.left) - glowOff1;
-    const float x3  = static_cast<float>(pos.left); // NOLINT(*-use-auto)
+    const float x1  = outerLeft - glowOff2;
+    const float x2  = outerLeft - glowOff1;
+    const float x3  = outerLeft; // NOLINT(*-use-auto)
     const float x4  = left2 - glowOff1;
     const float x5  = left2 - glowOff3;
     const float x6  = left2;
     const float x7  = left2 + width2;
     const float x8  = left2 + width2 + glowOff3;
     const float x9  = left2 + width2 + glowOff1;
-    const float x10 = static_cast<float>(pos.left + size.width); // NOLINT(*-use-auto)
-    const float x11 = static_cast<float>(pos.left + size.width) + glowOff1;
-    const float x12 = static_cast<float>(pos.left + size.width) + glowOff2;
-    const float y1  = static_cast<float>(pos.top) - glowSize;
-    const float y2  = static_cast<float>(pos.top); // NOLINT(*-use-auto)
-    const float y3  = static_cast<float>(pos.top + size.height); // NOLINT(*-use-auto)
-    const float y4  = static_cast<float>(pos.top + size.height) + glowSize;
+    const float x10 = outerLeft + outerWidth; // NOLINT(*-use-auto)
+    const float x11 = outerLeft + outerWidth + glowOff1;
+    const float x12 = outerLeft + outerWidth + glowOff2;
+    const float y1  = outerTop - glowSize;
+    const float y2  = outerTop; // NOLINT(*-use-auto)
+    const float y3  = outerTop + outerHeight; // NOLINT(*-use-auto)
+    const float y4  = outerTop + outerHeight + glowSize;
 
     const SDL_Color c = {color.r, color.g, color.b, color.a};
     SDL_Vertex verts[] = {
