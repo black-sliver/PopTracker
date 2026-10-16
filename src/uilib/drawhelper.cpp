@@ -1021,6 +1021,7 @@ void drawConcaveKiteGlow(Renderer renderer, Position pos, Size size, Widget::Col
     const float y3  = outerTop + outerHeight; // NOLINT(*-use-auto)
     const float y4  = outerTop + outerHeight + glowSize;
     const float y5  = outerTop + outerMidHeight;
+    const float y6  = outerTop + outerMidHeight + glowSize;
 
     const SDL_Color c = {color.r, color.g, color.b, color.a};
     SDL_Vertex verts[] = {
@@ -1045,6 +1046,7 @@ void drawConcaveKiteGlow(Renderer renderer, Position pos, Size size, Widget::Col
         {{x1, y4}, c, {0, 1}},
 
         {{x7, y5}, c, {0.5, 0.51}},
+        {{x7, y6}, c, {0.5, 1}},
     };
 
     const int indices[] = {
@@ -1061,7 +1063,8 @@ void drawConcaveKiteGlow(Renderer renderer, Position pos, Size size, Widget::Col
         9, 10, 8,
 
         8, 16, 11,
-        11, 16, 13,
+        11, 16, 17,
+        17, 16, 13,
 
         13, 14, 12,
         12, 15, 13,
