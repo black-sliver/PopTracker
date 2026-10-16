@@ -345,7 +345,7 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     continue;
                 }
 
-                const Highlight highlight = pos.highlight;
+                const Highlight highlight = Highlight::PRIORITY;
 
                 if (pass == 0) {
                     // glow
@@ -354,19 +354,19 @@ void MapWidget::render(Renderer renderer, const int offX, const int offY)
                     const Color c = HighlightColors[highlight];
                     switch (pos.shape) {
                     case Shape::DIAMOND:
-                        drawDiamondGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        drawDiamondGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, borderSize);
                         break;
                     case Shape::TRAPEZOID:
-                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        drawTrapezoidGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation, borderSize);
                         break;
                     case Shape::TRIANGLE:
-                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        drawTriangleGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation, borderSize);
                         break;
                     case Shape::CONCAVE_KITE:
-                        drawConcaveKiteGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation);
+                        drawConcaveKiteGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, pos.orientation, borderSize);
                         break;
                     default:
-                        drawRectGlow(renderer, {innerX, innerY}, {innerW, innerH}, c);
+                        drawRectGlow(renderer, {innerX, innerY}, {innerW, innerH}, c, borderSize);
                         break;
                     }
                 } else if (!SplitRects || state < 0 || state >= countOf(triangleValues)) {
