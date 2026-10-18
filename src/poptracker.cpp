@@ -375,7 +375,7 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     auto homePath = fs::home_path();
 
     auto homePopTrackerPath = homePath / "PopTracker";
-    _homePackDir = homePopTrackerPath / "packs";
+    _homePackDir = Pack::getDefaultPackDir();
     _appPackDir = appPath / "packs";
 
     if (!homePath.empty()) {

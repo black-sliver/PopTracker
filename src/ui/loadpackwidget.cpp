@@ -70,6 +70,19 @@ static void openPackDirectory()
         fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(searchPath).c_str(), sanitize_print(url).c_str());
 
     }
+
+    fs::path dir = Pack::getDefaultPackDir();
+    if (dir.empty())
+        return;
+    fs::error_code ec;
+    fs::create_directories(dir, ec);
+    if (ec) {
+        fprintf(stderr, "LoadPackWidget: could not create pack directory '%s' (%s)\n", sanitize_print(dir).c_str(), ec.message().c_str());
+        return;
+    }
+    std::string url = pathToFileUrl(dir);
+    if (SDL_OpenURL(url.c_str()) != 0)
+        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(dir).c_str(), sanitize_print(url).c_str());
 }
 
 LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore, Window *window)

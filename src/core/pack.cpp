@@ -579,6 +579,14 @@ const std::vector<fs::path>& Pack::getSearchPaths()
     return _searchPaths;
 }
 
+fs::path Pack::getDefaultPackDir()
+{
+    auto homePath = fs::home_path();
+    if (homePath.empty())
+        return {};
+    return homePath / "PopTracker" / "packs";
+}
+
 void Pack::addOverrideSearchPath(const fs::path& path)
 {
     addPath(path, _overrideSearchPaths);
