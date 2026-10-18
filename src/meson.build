@@ -67,6 +67,9 @@ common_src += files(
 
 if host_machine.system() == 'windows'
     common_src += files('uilib/dlg_win32.cpp')
+elif host_machine.system() == 'darwin'
+    add_languages('objcpp')
+    common_src += files('uilib/dlg_cocoa.mm')
 else
     common_src += files('uilib/dlg_tinyfd.cpp')
 endif

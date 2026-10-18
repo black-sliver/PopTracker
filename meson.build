@@ -59,16 +59,16 @@ common_include_dirs = []
 
 # defines
 
-add_project_arguments('-DASIO_STANDALONE', '-DASIO_HEADER_ONLY', language : ['c', 'cpp'])
-add_project_arguments('-DJSON_HAS_CPP_17', language : ['c', 'cpp'])  # ignore detection. we don't support anything older
-add_project_arguments('-DLUA_CPP', language : ['c', 'cpp'])  # we compile lua as cpp instead of c
+add_project_arguments('-DASIO_STANDALONE', '-DASIO_HEADER_ONLY', language : ['c', 'cpp', 'objcpp'])
+add_project_arguments('-DJSON_HAS_CPP_17', language : ['c', 'cpp', 'objcpp'])  # Ignore detection. 17 (or 1z) required.
+add_project_arguments('-DLUA_CPP', language : ['c', 'cpp', 'objcpp'])  # We compile lua as CPP instead of C.
 
 # strip dead code
 
-add_project_arguments('-ffunction-sections', '-fdata-sections', language: ['c', 'cpp'])
+add_project_arguments('-ffunction-sections', '-fdata-sections', language: ['c', 'cpp', 'objcpp'])
 add_project_link_arguments(
     cpp_compiler.get_supported_link_arguments('-Wl,-dead_strip', '-Wl,--gc-sections'),
-    language : ['c', 'cpp'],
+    language : ['c', 'cpp', 'objcpp'],
 )
 
 # hardening
@@ -78,15 +78,15 @@ add_project_arguments(
     '-fstack-protector-strong',
     '-fpic',
     '-fPIE',
-    language : ['c', 'cpp'],
+    language : ['c', 'cpp', 'objcpp'],
 )
 add_project_arguments(
     cpp_compiler.get_supported_arguments('-fstack-clash-protection'),
-    language: ['c', 'cpp'],
+    language: ['c', 'cpp', 'objcpp'],
 )
 add_project_link_arguments(
     '-fstack-protector-strong',
-    language : ['c', 'cpp'],
+    language : ['c', 'cpp', 'objcpp'],
 )
 
 # disable some warnings to allow -Werror
@@ -104,7 +104,7 @@ add_project_link_arguments(
     '-Wno-stringop-overflow',  # false positives with GCC in lua and fmt
     '-Wno-odr',  # unsure if ODR violations are real or not
     '-Wno-lto-type-mismatch',  # as above
-    language : ['c', 'cpp'],
+    language : ['c', 'cpp', 'objcpp'],
 )
 
 # optimizations
@@ -115,11 +115,11 @@ if build_type == 'debug' or build_type == 'debugoptimized'
         '-fno-omit-frame-pointer',
         '-DLUA_USE_APICHECK',
         '-DLUAI_ASSERT',
-        language : ['c', 'cpp'],
+        language : ['c', 'cpp', 'objcpp'],
     )
     add_project_link_arguments(
         '-fno-omit-frame-pointer',
-        language : ['c', 'cpp'],
+        language : ['c', 'cpp', 'objcpp'],
     )
 else
     # remove debug-only code and symbols
@@ -142,7 +142,7 @@ if build_type != 'debug'
         # It looks like b_lto=true does not add optimization level to the linker, so we do it ourselves.
         # FIXME: are we missing a setup option or is this a bug?
         if optimization_level in ['1', '2', '3', 'g', 's', 'z']
-            add_project_link_arguments('-O' + optimization_level, language : ['c', 'cpp'])
+            add_project_link_arguments('-O' + optimization_level, language : ['c', 'cpp', 'objcpp'])
         endif
     endif
 endif
@@ -197,13 +197,13 @@ common_src += [version_cpp]  # TODO: only add to main_exe_src?
 # platform and architecture specific configuration
 
 if host_machine.system() == 'windows'
-    add_project_arguments('-D_WIN32_WINNT=0x0601', '-DWIN32_LEAN_AND_MEAN', language : ['c', 'cpp'])
+    add_project_arguments('-D_WIN32_WINNT=0x0601', '-DWIN32_LEAN_AND_MEAN', language : ['c', 'cpp', 'objcpp'])
     add_project_link_arguments(
         '-mwindows',
         '-Wl,--dynamicbase',
         '-Wl,--high-entropy-va',
         '-Wl,--nxcompat',
-        language: ['c', 'cpp'],
+        language: ['c', 'cpp', 'objcpp'],
     )
     static_exe = true  # TODO: only if undefined (not set via option)?
     if meson.version().version_compare('>=1.3.0')
@@ -221,13 +221,13 @@ elif host_machine.system() == 'darwin'
         #       off Meson's werror and manually add -Werror to just the compiler (not the linker).
         message(f'Disabling werror for linker')
         override_options += ['werror=false']
-        add_project_arguments(f'-Werror', language : ['c', 'cpp'])
+        add_project_arguments(f'-Werror', language : ['c', 'cpp', 'objcpp'])
     endif
-    add_project_arguments(f'-mmacosx-version-min=@deplyment_target@', language : ['c', 'cpp'])
+    add_project_arguments(f'-mmacosx-version-min=@deplyment_target@', language : ['c', 'cpp', 'objcpp'])
     add_project_link_arguments(
         f'-mmacosx-version-min=@deplyment_target@',
         '-v', # show linker command line for debugging
-        language : ['c', 'cpp']
+        language : ['c', 'cpp', 'objcpp']
     )
     if deplyment_target.version_compare('<10.15')
         use_boost_filesystem = true  # TODO: only if undefined (not set via option)?
@@ -238,13 +238,13 @@ elif host_machine.system() == 'darwin'
 endif
 
 if static_exe
-    add_project_link_arguments('-static', '-static-pie', language : ['c', 'cpp'])
+    add_project_link_arguments('-static', '-static-pie', language : ['c', 'cpp', 'objcpp'])
 endif
 
 if use_boost_filesystem
     message('Using boost::filesystem')
-    add_project_arguments('-DNO_STD_FILESYSTEM', language : ['c', 'cpp'])
-    add_project_link_arguments('-lboost_filesystem', language : ['c', 'cpp'])
+    add_project_arguments('-DNO_STD_FILESYSTEM', language : ['c', 'cpp', 'objcpp'])
+    add_project_link_arguments('-lboost_filesystem', language : ['c', 'cpp', 'objcpp'])
 endif
 
 # source files
@@ -310,6 +310,10 @@ if host_machine.system() == 'windows'
     ws2_dep = cpp_compiler.find_library('ws2_32', required : true)
     crypt_dep = cpp_compiler.find_library('crypt32', required : true)
     common_deps += [wsock_dep, ws2_dep, crypt_dep]
+endif
+
+if host_machine.system() == 'darwin'
+    common_deps += dependency('appleframeworks', modules: ['AppKit', 'UniformTypeIdentifiers'])
 endif
 
 # main executable
