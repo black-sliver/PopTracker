@@ -375,7 +375,7 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     auto homePath = fs::home_path();
 
     auto homePopTrackerPath = homePath / "PopTracker";
-    _homePackDir = Pack::getDefaultPackDir();
+    _homePackDir = homePopTrackerPath / "packs";
     _appPackDir = appPath / "packs";
 
     if (!homePath.empty()) {
@@ -1179,11 +1179,9 @@ bool PopTracker::InstallPack(const std::string& uid, PackManager::confirmation_c
     return res;
 }
 
-const fs::path& PopTracker::getPackInstallDir() const
+fs::path PopTracker::getPackInstallDir() const
 {
-    if ((!_isPortable && fs::is_directory(_homePackDir)) || !isWritable(_appPackDir))
-        return _homePackDir;
-    return _appPackDir;
+    return Pack::getDefaultPackDir();
 }
 
 void PopTracker::unloadTracker()

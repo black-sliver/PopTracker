@@ -72,8 +72,6 @@ static void openPackDirectory()
     }
 
     fs::path dir = Pack::getDefaultPackDir();
-    if (dir.empty())
-        return;
     fs::error_code ec;
     fs::create_directories(dir, ec);
     if (ec) {

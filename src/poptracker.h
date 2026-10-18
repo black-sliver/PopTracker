@@ -77,7 +77,7 @@ private:
     void showBroadcast();
     void toggleAlwaysOnTop();
 
-    const fs::path& getPackInstallDir() const;
+    fs::path getPackInstallDir() const;
 
     bool saveConfig();
 

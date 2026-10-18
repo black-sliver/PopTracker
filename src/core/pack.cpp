@@ -581,10 +581,14 @@ const std::vector<fs::path>& Pack::getSearchPaths()
 
 fs::path Pack::getDefaultPackDir()
 {
+    auto appPath = fs::app_path();
+    bool isPortable = !appPath.empty() && fs::is_regular_file(appPath / "portable.txt");
     auto homePath = fs::home_path();
-    if (homePath.empty())
-        return {};
-    return homePath / "PopTracker" / "packs";
+    auto homePackDir = homePath.empty() ? fs::path() : homePath / "PopTracker" / "packs";
+    auto appPackDir = appPath / "packs";
+    if ((!isPortable && fs::is_directory(homePackDir)) || !isWritable(appPackDir))
+        return homePackDir.empty() ? appPackDir : homePackDir;
+    return appPackDir;
 }
 
 void Pack::addOverrideSearchPath(const fs::path& path)
