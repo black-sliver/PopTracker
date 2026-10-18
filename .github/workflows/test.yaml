@@ -99,7 +99,6 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           mingw64/mingw-w64-x86_64-meson
-          mingw64/mingw-w64-x86_64-ntldd
           p7zip
     - name: Install dependencies (msys2, arm)
       if: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.os, 'arm')}}
@@ -121,7 +120,6 @@ jobs:
           clangarm64/mingw-w64-clang-aarch64-openssl
           clangarm64/mingw-w64-clang-aarch64-gtest
           clangarm64/mingw-w64-clang-aarch64-meson
-          clangarm64/mingw-w64-clang-aarch64-ntldd
           p7zip
     - name: Setup env
       run: |
@@ -143,9 +141,6 @@ jobs:
       run: |
         meson setup ${{ env.extra_meson_args }} build
         meson compile -v -C build
-    - name: List linked libraries (Windows)
-      if: ${{ startsWith(matrix.os, 'windows') }}
-      run: ntldd build/poptracker.exe  # TODO: warn if not static
     - name: List linked libraries (macos)
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: otool -L build/poptracker
