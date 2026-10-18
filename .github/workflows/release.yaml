@@ -326,7 +326,6 @@ jobs:
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
           mingw64/mingw-w64-x86_64-meson
-          mingw64/mingw-w64-x86_64-ntldd
           p7zip
           wget
     - name: Install advzip and jq
@@ -363,9 +362,6 @@ jobs:
           -Dcpp_args="-I$(realpath ./win32-lib/$GCC_ARCH/include)" \
           -Dcpp_link_args="-L$(realpath ./win32-lib/$GCC_ARCH/lib) -lpng -ljpeg -limm32 -lwinmm -lversion"
         meson compile -C build
-    - name: List linked libraries
-      shell: msys2 {0}
-      run: ntldd build/poptracker.exe  # TODO: warn if not static
     - name: Run tests
       shell: msys2 {0}
       run: |
