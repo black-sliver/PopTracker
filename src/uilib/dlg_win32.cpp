@@ -1,30 +1,18 @@
 #include "dlg.h"
 
-#if defined __WIN32__
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <list>
+#include <string>
 #include <windows.h>
 
 #include <commdlg.h>
-#else
-#include <cstdio>
-#include <tinyfiledialogs.h>
-
-#include <tinyfiledialogs.cpp>
-#endif
-
-
-// NOTE: tinyfd_inputBox does not work in wine
+#include "../core/fs.h"
 
 
 namespace Ui {
 
-std::mutex Dlg::_mutex;
-bool Dlg::_hasGUI = false;
-bool Dlg::_hasGUISet = false;
-
-
-#ifdef __WIN32__
 #define  ID_INPUT     200
 #define  ID_INFOTEXT  201
 #define  BUTTON_CLASS       0x0080
@@ -265,11 +253,9 @@ err:
     free(dlgbuf);
     return (ret > 0) ? ret : 0;
 }
-#endif
 
 bool Dlg::InputBox(const std::string& title, const std::string& message, const std::string& dflt, std::string& result, bool password)
 {
-#ifdef __WIN32__
     char buf[256]; memset(buf, 0, sizeof(buf));
     memcpy(buf, dflt.c_str(), std::min(dflt.length()+1, sizeof(buf)-1));
     int res = InputBoxU(nullptr, message.c_str(), title.c_str(), buf, 256, password);
@@ -277,22 +263,10 @@ bool Dlg::InputBox(const std::string& title, const std::string& message, const s
     if (res != IDOK) return false;
     result = buf;
     return true;
-#else
-    std::lock_guard lock(_mutex);
-    // NOTE: some of tinyfd's UI providers do not like `'` and/or `\` in the default. The output is fine though.
-    // TODO: switch to a different dialog system for Linux and macOS
-    const bool defaultInvalid = dflt.find_first_of("'\\") != std::string::npos;
-    const char* res = tinyfd_inputBox(title.c_str(), message.c_str(),
-        password ? nullptr : defaultInvalid ? "" : dflt.c_str());
-    if (res)
-        result = res;
-    return !!res;
-#endif
 }
 
 Dlg::Result Dlg::MsgBox(const std::string& title, const std::string& message, Dlg::Buttons btns, Dlg::Icon icon, Dlg::Result dflt)
 {
-#ifdef __WIN32__
     UINT type = btns == Buttons::OKCancel ? MB_OKCANCEL :
                 btns == Buttons::YesNo ? MB_YESNO :
                 btns == Buttons::YesNoCancel ? MB_YESNOCANCEL : MB_OK;
@@ -325,31 +299,10 @@ Dlg::Result Dlg::MsgBox(const std::string& title, const std::string& message, Dl
     if (res == IDNO) return Dlg::Result::No;
 
     return Dlg::Result::Cancel;
-#else
-    const char* tfdicons[] = { "", "info", "warning", "error", "question" };
-    const char* tfdicon = tfdicons[(int)icon];
-    int res; 
-    switch (btns) {
-        case Dlg::Buttons::OK:
-            tinyfd_messageBox(title.c_str(), message.c_str(), "ok",  tfdicon, 0);
-            return Dlg::Result::OK;
-        case Dlg::Buttons::OKCancel:
-            res = tinyfd_messageBox(title.c_str(), message.c_str(),  "okcancel",  tfdicon, dflt==Dlg::Result::OK ? 1 : 0);
-            return res ? Dlg::Result::OK : Dlg::Result::Cancel;
-        case Dlg::Buttons::YesNo:
-            res = tinyfd_messageBox(title.c_str(), message.c_str(), "yesno", tfdicon, (dflt==Dlg::Result::Yes||dflt==Dlg::Result::OK) ? 1 : 0);
-            return res ? Dlg::Result::Yes : Dlg::Result::No;
-        case Dlg::Buttons::YesNoCancel:
-            res = tinyfd_messageBox(title.c_str(), message.c_str(), "yesnocancel", tfdicon, dflt==Dlg::Result::No ? 2 : dflt==Dlg::Result::Yes ? 1 : 0);
-            return res == 2 ? Dlg::Result::No : res ? Dlg::Result::Yes : Dlg::Result::Cancel;
-    }
-    return Dlg::Result::Cancel;
-#endif
 }
 
 bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out, bool multi)
 {
-#ifdef __WIN32__
     using namespace std::string_literals;
 
     // TODO: implement multi-select
@@ -399,43 +352,10 @@ bool Dlg::OpenFile(const std::string& title, const fs::path& dflt, const std::li
     free(lpwTitle);
     free(lpwFilter);
     return res;
-#else
-    std::lock_guard<std::mutex> lock(_mutex);
-    const char* filename;
-    if (types.empty()) {
-        filename = tinyfd_openFileDialog(title.c_str(), dflt.c_str(), 0,
-                nullptr, nullptr, multi);
-    } else {
-        const auto& type = types.front(); // tinyfd only supports one
-        auto patterns = new const char*[type.patterns.size()];
-        int i=0;
-#ifdef __APPLE__
-        // macos uses types instead of patterns, fix up the difference here
-        for (const auto& pat: type.patterns) {
-            if (strcasestr(pat.c_str(), ".json"))
-                patterns[i++] = "*.public.json"; // UTType json is "public.json"
-            else if (strcasestr(pat.c_str(), ".zip"))
-                patterns[i++] = "*.public.zip"; // UTType zip is "public.zip"
-            else
-                patterns[i++] = pat.c_str();
-        }
-#else
-        for (const auto& pat: type.patterns)
-            patterns[i++] = pat.c_str();
-#endif
-        filename = tinyfd_openFileDialog(title.c_str(), dflt.c_str(), i,
-                patterns, type.name.c_str(), multi);
-        delete[] patterns;
-    }
-    if (!filename) return false;
-    out = filename;
-    return true;
-#endif
 }
 
 bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out)
 {
-#ifdef __WIN32__
     using namespace std::string_literals;
 
     // NOTE: unicode filename currently not supported since we use fopen (not CreateFileW)
@@ -481,67 +401,11 @@ bool Dlg::SaveFile(const std::string& title, const fs::path& dflt, const std::li
     free(lpwTitle);
     free(lpwFilter);
     return res;
-#else
-    std::lock_guard<std::mutex> lock(_mutex);
-    const char* filename;
-    if (types.empty()) {
-        filename = tinyfd_saveFileDialog(title.c_str(), dflt.c_str(), 0,
-                nullptr, nullptr);
-    } else {
-        const auto& type = types.front(); // tinyfd only supports one
-        auto patterns = new const char*[type.patterns.size()];
-        int i=0;
-#ifdef __APPLE__
-        // see Dlg::OpenFile
-        for (const auto& pat: type.patterns) {
-            if (strcasestr(pat.c_str(), ".json"))
-                patterns[i++] = "*.public.json";
-            else if (strcasestr(pat.c_str(), ".zip"))
-                patterns[i++] = "*.public.zip";
-            else
-                patterns[i++] = pat.c_str();
-        }
-#else
-        for (const auto& pat: type.patterns)
-            patterns[i++] = pat.c_str();
-#endif
-        filename = tinyfd_saveFileDialog(title.c_str(), dflt.c_str(), i,
-                patterns, type.name.c_str());
-        delete[] patterns;
-    }
-    if (!filename) return false;
-    out = filename;
-    return true;
-#endif
 }
 
-static int tryRun(const char* cmd)
-{
-    FILE *p = popen(cmd, "r");
-    if (!p)
-        return -1;
-    return pclose(p);
-}
-
-/// Returns true if running a dialog won't read from stdin
 bool Dlg::hasGUI()
 {
-    if (_hasGUISet)
-        return _hasGUI;
-#if defined __WIN32__ || defined __APPLE__
-    // assume yes for windows and mac
-    _hasGUI = true;
-#else
-    _hasGUI = tryRun("which zenity &>/dev/null") == 0 ||
-            tryRun("which kdialog &>/dev/null") == 0 ||
-            tryRun("which matedialog &>/dev/null") == 0 ||
-            tryRun("which qarma &>/dev/null") == 0 ||
-            tryRun("which xdialog &>/dev/null") == 0 ||
-            (tryRun("which python3 &>/dev/null") == 0 && tryRun("python3 -c \"import tkinter\" &>/dev/null") == 0) ||
-            (tryRun("which python2 &>/dev/null") == 0 && tryRun("python2 -c \"import Tkinter\" &>/dev/null") == 0);
-#endif
-    _hasGUISet = true;
-    return _hasGUI;
+    return true;
 }
 
 } // namespace Ui

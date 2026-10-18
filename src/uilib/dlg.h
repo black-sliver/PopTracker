@@ -1,10 +1,7 @@
-#ifndef _UILIB_DLG_H
-#define _UILIB_DLG_H
+#pragma once
 
-
-#include <string>
 #include <list>
-#include <mutex>
+#include <string>
 
 #include "../core/fs.h"
 
@@ -44,15 +41,8 @@ public:
     static bool OpenFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out, bool multi=false);
     static bool SaveFile(const std::string& title, const fs::path& dflt, const std::list<FileType>& types, fs::path& out);
 
+    /// Returns true if running a dialog won't read from stdin
     static bool hasGUI();
-
-private:
-    static std::mutex _mutex; // not all of tinyfd is thread safe
-    static bool _hasGUI;
-    static bool _hasGUISet;
 };
-    
+
 } // namespace
-
-#endif // _UILIB_DLG_H
-
