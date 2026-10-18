@@ -2,7 +2,7 @@ name: Fuzz
 on:
   workflow_dispatch:
   schedule:
-  - cron: "0 4 * * *"
+  - cron: "13 4 * * *"  # every day at 04:13
 
 permissions: {}
 

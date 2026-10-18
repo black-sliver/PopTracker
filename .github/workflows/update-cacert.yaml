@@ -2,7 +2,7 @@ name: Update cacert.pem
 
 on:
   schedule:
-    - cron: "0 12 * * 6"  # every Saturday at 12:00
+    - cron: "13 12 * * 6"  # every Saturday at 12:13
   workflow_dispatch:
 
 permissions:
