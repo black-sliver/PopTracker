@@ -11,8 +11,10 @@
 
 // NOTE: tinyfd_inputBox does not work in wine
 
-#ifdef __WIN32__
+#if defined __WIN32__
 #warning "Use dlg_win32 on Windows!!"
+#elif defined __APPLE__
+#warning "Use dlg_cocoa on macOS!!"
 #endif
 
 
@@ -26,7 +28,7 @@ bool Dlg::InputBox(const std::string& title, const std::string& message, const s
 {
     std::lock_guard lock(_mutex);
     // NOTE: some of tinyfd's UI providers do not like `'` and/or `\` in the default. The output is fine though.
-    // TODO: switch to a different dialog system for Linux and macOS
+    // TODO: switch to a different dialog system for Linux
     const bool defaultInvalid = dflt.find_first_of("'\\") != std::string::npos;
     const char* res = tinyfd_inputBox(title.c_str(), message.c_str(),
         password ? nullptr : defaultInvalid ? "" : dflt.c_str());
