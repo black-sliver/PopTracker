@@ -14,33 +14,85 @@
 
 namespace Ui {
 
-static std::string urlEncode(const std::string& in)
+static std::string fileUrlEncode(const std::string& in)
 {
     std::string out;
     out.reserve(in.size());
     for (unsigned char c : in) {
-        if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/')
+        if (isalnum(c) || c=='-' || c=='_' || c=='.' || c=='~' || c=='/' || c==':')
             out += (char)c;
         else
             out += fmt::format("%{:02X}", c);
+
     }
     return out;
 }
+
+static std::string fileUrlFromGenericString(std::string p)
+{
+#ifdef _WIN32
+    if (p.compare(0, 2, "//") == 0) {
+        return "file:" + fileUrlEncode(p);
+    }
+    return "file:///" + fileUrlEncode(p);
+#else
+    return "file://" + fileUrlEncode(p);
+#endif
+}
+
+static std::string pathToFileUrl(const fs::path& path)
+{
+    std::string p = path.u8string();
+#ifdef _WIN32
+    std::replace(p.begin(), p.end(), '\\', '/');
+#endif
+    return fileUrlFromGenericString(std::move(p));
+}
+
+static bool openDirectory(const fs::path& dir)
+{
+    fs::error_code ec;
+    if (!fs::is_directory(dir, ec) || ec)
+        return false;
+
+    std::string url;
+    if (dir.u8string().compare(0, 2, "\\\\") == 0) {
+        // Absolute UNC Path, see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99333
+        url = pathToFileUrl(dir);
+    } else {
+        url = pathToFileUrl(fs::absolute(dir, ec));
+        if (ec)
+            return false;
+    }
+
+    if (SDL_OpenURL(url.c_str()) != 0) {
+        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s): %s\n",
+            sanitize_print(dir).c_str(), sanitize_print(url).c_str(), SDL_GetError());
+        return false;
+    }
+
+    return true;
+}
+
 static void openPackDirectory()
 {
+    const fs::path defaultDir = Pack::getDefaultPackDir();
+    if (openDirectory(defaultDir))
+        return;
+
     for (const auto& searchPath : Pack::getSearchPaths()) {
-        fs::error_code ec;
-        if (!fs::is_directory(searchPath, ec))
-            continue;
-        fs::path dir = fs::absolute(searchPath, ec);
-        if (ec)
-            continue;
-        dir.make_preferred();
-        std::string url = "file://" + urlEncode(dir.u8string());
-        if (SDL_OpenURL(url.c_str()) == 0)
+        if (openDirectory(searchPath))
             return;
-        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s'\n", sanitize_print(searchPath).c_str());
     }
+
+    fs::error_code ec;
+    fs::create_directories(defaultDir, ec);
+    if (ec) {
+        fprintf(stderr, "LoadPackWidget: could not create pack directory '%s' (%s)\n",
+            sanitize_print(defaultDir).c_str(), ec.message().c_str());
+        return;
+    }
+    openDirectory(defaultDir);
 }
 
 LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore, Window *window)

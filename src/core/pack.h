@@ -75,6 +75,7 @@ public:
     static void addSearchPath(const fs::path& path);
     static bool isInSearchPath(const fs::path& path);
     static const std::vector<fs::path>& getSearchPaths();
+    static fs::path getDefaultPackDir();
 
     static void addOverrideSearchPath(const fs::path& path);
 
