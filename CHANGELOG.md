@@ -1,5 +1,27 @@
 # PopTracker Changelog
 
+## v0.36.0-rc1
+
+* App Features
+  * Search functionality in pack browser
+  * Open pack folder button
+  * Add option to use vsync:
+    change `"vsync": false` to `"vsync": true` in PopTracker.json
+  * Make opacity of map tooltip configurable in colors.json
+  * Make glow look nicer (map location highlight, if supported by the pack)
+  * When installed system-wide (on Linux), add `.../share/poptracker/*` to search paths
+  * Improved error messages in console
+* Pack Features
+  * Lua: added `Archipelago:HintItem` and `Archipelago:HintLocation`
+  * Add "triangle", "concave_kite" and add rotation for map locations
+* Fixes
+  * Fix some potential memory leaks
+  * Fix crash when PopTracker was built with hardened standard library
+* Other Changes
+  * Potable mode: prefer portable packs folder over home packs folder
+  * Switch build system to Meson, add .desktop file and "install" step
+  * Update dependencies and certificates
+
 ## v0.35.4
 
 * App Features
