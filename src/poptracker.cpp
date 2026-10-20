@@ -376,10 +376,10 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
 
     auto homePopTrackerPath = homePath / "PopTracker";
     _homePackDir = homePopTrackerPath / "packs";
-    _appPackDir = appPath / "packs";
+    auto appPackDir = appPath / "packs";
 
     if (!homePath.empty()) {
-        Pack::addSearchPath(_homePackDir); // default user packs
+        Pack::addSearchPath(_homePackDir); // default (normal) or fall-back (portable) user packs
         if (!_isPortable) {
             // default user overrides
             auto homeUserOverrides = homePopTrackerPath / "user-override";
@@ -404,9 +404,9 @@ PopTracker::PopTracker([[maybe_unused]] int argc, [[maybe_unused]] char** argv, 
     }
 
     if (!appPath.empty() && appPath != "." && appPath != cwdPath) {
-        Pack::addSearchPath(_appPackDir); // system packs
+        Pack::addSearchPath(appPackDir); // portable/system packs
         Pack::addOverrideSearchPath(appPath / "user-override"); // portable/system overrides
-        Assets::addSearchPath(appPath / "assets"); // system assets
+        Assets::addSearchPath(appPath / "assets"); // portable/system assets
     }
 
     if (appPath.filename().u8string() == "bin"
