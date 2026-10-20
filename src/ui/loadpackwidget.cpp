@@ -49,38 +49,50 @@ static std::string pathToFileUrl(const fs::path& path)
     return fileUrlFromGenericString(std::move(p));
 }
 
+static bool openDirectory(const fs::path& dir)
+{
+    fs::error_code ec;
+    if (!fs::is_directory(dir, ec) || ec)
+        return false;
+
+    std::string url;
+    if (dir.u8string().compare(0, 2, "\\\\") == 0) {
+        // Absolute UNC Path, see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99333
+        url = pathToFileUrl(dir);
+    } else {
+        url = pathToFileUrl(fs::absolute(dir, ec));
+        if (ec)
+            return false;
+    }
+
+    if (SDL_OpenURL(url.c_str()) != 0) {
+        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s): %s\n",
+            sanitize_print(dir).c_str(), sanitize_print(url).c_str(), SDL_GetError());
+        return false;
+    }
+
+    return true;
+}
+
 static void openPackDirectory()
 {
+    const fs::path defaultDir = Pack::getDefaultPackDir();
+    if (openDirectory(defaultDir))
+        return;
+
     for (const auto& searchPath : Pack::getSearchPaths()) {
-        fs::error_code ec;
-        if (!fs::is_directory(searchPath, ec))
-            continue;
-
-        fs::path dir = fs::absolute(searchPath, ec);
-        if (ec)
-            continue;
-
-        if (searchPath.u8string().compare(0, 2, "\\\\") == 0)  // Absolute UNC Path, restore search path, see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99333
-            dir = searchPath;
-
-        std::string url = pathToFileUrl(dir);
-        if (SDL_OpenURL(url.c_str()) == 0)
+        if (openDirectory(searchPath))
             return;
-
-        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(searchPath).c_str(), sanitize_print(url).c_str());
-
     }
 
-    fs::path dir = Pack::getDefaultPackDir();
     fs::error_code ec;
-    fs::create_directories(dir, ec);
+    fs::create_directories(defaultDir, ec);
     if (ec) {
-        fprintf(stderr, "LoadPackWidget: could not create pack directory '%s' (%s)\n", sanitize_print(dir).c_str(), ec.message().c_str());
+        fprintf(stderr, "LoadPackWidget: could not create pack directory '%s' (%s)\n",
+            sanitize_print(defaultDir).c_str(), ec.message().c_str());
         return;
     }
-    std::string url = pathToFileUrl(dir);
-    if (SDL_OpenURL(url.c_str()) != 0)
-        fprintf(stderr, "LoadPackWidget: could not open pack directory '%s' (%s)\n", sanitize_print(dir).c_str(), sanitize_print(url).c_str());
+    openDirectory(defaultDir);
 }
 
 LoadPackWidget::LoadPackWidget(int x, int y, int w, int h, FontStore *fontStore, Window *window)
