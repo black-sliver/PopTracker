@@ -23,6 +23,7 @@ public:
         PROGRESSIVE_TOGGLE,
         CUSTOM, // this indicates that most stuff below is useless because it's handled by lua, see TODO above
         UNKNOWN,
+        NESTED_TOGGLE,
     };
     enum class Action { // constants map 1:1 to mouse button
         Primary=1,
@@ -41,6 +42,7 @@ public:
         if (str == "composite_toggle") return Type::COMPOSITE_TOGGLE;
         if (str == "progressive_toggle") return Type::PROGRESSIVE_TOGGLE;
         if (str == "toggle_badged") return Type::TOGGLE_BADGED;
+        if (str == "nested_toggle") return Type::NESTED_TOGGLE;
         return Type::UNKNOWN;
     }
     static std::string Type2Str(Type t) {
@@ -52,6 +54,7 @@ public:
             case Type::PROGRESSIVE: return "progressive";
             case Type::COMPOSITE_TOGGLE:   return "composite_toggle";
             case Type::TOGGLE_BADGED:      return "toggle_badged";
+            case Type::NESTED_TOGGLE:      return "nested_toggle";
             case Type::PROGRESSIVE_TOGGLE: return "progressive_toggle";
             case Type::CUSTOM:      return "custom";
             default:                return "unknown";
@@ -89,7 +92,7 @@ protected:
     int _increment = 1; // for consumable
     int _decrement = 1; // for consumables
 
-    std::string _baseItem; // for toggle_badged
+    std::string _baseItem; // for toggle_badged and nested_toggle
     std::string _stableId;
     
 public:

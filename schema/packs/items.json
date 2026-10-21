@@ -19,7 +19,8 @@
                     "consumable",
                     "progressive_toggle",
                     "composite_toggle",
-                    "toggle_badged"
+                    "toggle_badged",
+                    "nested_toggle"
                 ]
             },
             "capturable": {
@@ -70,9 +71,42 @@
             },
             {
                 "$ref": "#/$defs/toggle_badged_type_if_block"
+            },
+            {
+                "$ref": "#/$defs/nested_toggle_type_if_block"
             }
         ]
     },
+        "nested_toggle_type_if_block": {
+            "if": {
+                "properties": { "type": { "const": "nested_toggle" } },
+                "required": ["type"]
+            },
+            "then": {
+                "properties": {
+                    "base_item": { "type": "string" },
+                    "sub_items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "item": { "type": "string" },
+                                "h_alignment": { "enum": ["left", "right", "center", "stretch"] },
+                                "v_alignment": { "enum": ["top", "bottom", "center", "stretch"] },
+                                "item_size": {
+                                    "anyOf": [
+                                        { "type": "string", "pattern": "^\\s*[0-9]+\\s*,\\s*[0-9]+\\s*$" },
+                                        { "type": "array", "prefixItems": [{ "type": "integer", "minimum": 1 }, { "type": "integer", "minimum": 1 }], "minItems": 2, "maxItems": 2 }
+                                    ]
+                                }
+                            },
+                            "required": ["item"]
+                        }
+                    }
+                },
+                "required": ["base_item", "sub_items"]
+            }
+        },
     "$defs": {
         "img": {
             "description": "Image to display.",
