@@ -18,7 +18,7 @@
   * Fix some potential memory leaks
   * Fix crash when PopTracker was built with hardened standard library
 * Other Changes
-  * Potable mode: prefer portable packs folder over home packs folder
+  * Portable mode: prefer portable packs folder over home packs folder
   * Switch build system to Meson, add .desktop file and "install" step
   * Update dependencies and certificates
 
@@ -501,7 +501,7 @@
 ## v0.24.1
 
 * Fixes
-  * Fix PopTracker sometimes selecting potable mode when it shouldn't
+  * Fix PopTracker sometimes selecting portable mode when it shouldn't
 
 ### Hotfix 1
 
