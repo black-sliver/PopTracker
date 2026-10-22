@@ -41,6 +41,7 @@ common_src += files(
     'ui/loadpackwidget.cpp',
     'ui/maptooltip.cpp',
     'ui/mapwidget.cpp',
+    'ui/remotelistswidget.cpp',
     'ui/settingswindow.cpp',
     'ui/trackerview.cpp',
     'ui/trackerwindow.cpp',

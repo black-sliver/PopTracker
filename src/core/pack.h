@@ -28,6 +28,7 @@ public:
         std::string packName;
         Version minPoptrackerVersion;
         std::vector<VariantInfo> variants;
+        std::string author;
     };
 
     explicit Pack(const fs::path& path);
@@ -46,6 +47,7 @@ public:
     const std::string& getVariant() const { return _variant; }
     const std::string& getName() const { return _name; }
     const std::string& getGameName() const { return _gameName; }
+    const std::string& getAuthor() const { return _author; }
     const std::string& getVariantName() const { return _variantName; }
     const std::string& getVersionsURL() const { return _versionsURL; }
     std::string getVariantTitle() const { return _variantName.empty() ? _gameName : (_gameName + "-" + _variantName); }
@@ -101,6 +103,7 @@ private:
     std::string _uid;
     std::string _name;
     std::string _gameName;
+    std::string _author;
     std::string _variantName;
     std::string _versionsURL;
     Version _minPopTrackerVersion;
