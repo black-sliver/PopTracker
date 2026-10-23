@@ -15,6 +15,10 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Update curl
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install --only-upgrade -y curl ca-certificates
       - uses: actions/checkout@v7.0.1
       - name: Check for cacert update
         env:
