@@ -1,6 +1,6 @@
 # PopTracker Changelog
 
-## v0.36.0-rc1
+## v0.36.0
 
 * App Features
   * Search functionality in pack browser
