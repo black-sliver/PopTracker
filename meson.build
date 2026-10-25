@@ -18,7 +18,7 @@
 project(
     'PopTracker',
     ['cpp', 'c'],
-    version : '0.36.0-rc1',
+    version : '0.36.0',
     default_options : [
         'warning_level=2',  # We don't want pedantic. We target specific compilers.
         'cpp_std=c++1z',
