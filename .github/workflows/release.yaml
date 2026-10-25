@@ -235,7 +235,7 @@ jobs:
     - name: Run tests
       run: |
         meson test -C build
-    - name: Build DIST # this builds the app bundle
+    - name: Build DIST # this builds the per-arch app bundle
       run: |
         meson compile -vC build package
     - name: Package app bundle for universal merge
@@ -377,8 +377,9 @@ jobs:
         wget -O updater.zip \
           "https://github.com/black-sliver/PopUpdater/releases/download/${UPDATER_VERSION}/PopUpdater_${UPDATER_VERSION}_${UPDATER_OS}-${UPDATER_ARCH}.zip"
         echo "${UPDATER_ZIP_HASH} updater.zip" | sha256sum -c
-        7z e -obuild/win64 updater.zip
-    - name: Build DIST # this builds the app bundle, zips it and maybe .dmg in the future
+        7z e -obuild/ updater.zip
+        sha256sum build/PopUpdater.exe
+    - name: Build DIST # this builds a release ZIP
       shell: msys2 {0}
       run: |
         export PATH="$PATH:$HOME/.local/bin"  # advzip
