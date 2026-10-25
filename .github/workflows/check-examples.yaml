@@ -2,15 +2,12 @@ name: Check examples
 
 on:
   push:
-    paths:
+    paths: &filter_paths
       - '.github/workflows/check-examples.yaml'
       - 'schema/packs/**'
       - 'examples/**'
   pull_request:
-    paths:
-      - '.github/workflows/check-examples.yaml'
-      - 'schema/packs/**'
-      - 'examples/**'
+    paths: *filter_paths
   workflow_dispatch:
 
 permissions: {}
@@ -27,49 +24,49 @@ jobs:
           submodules: recursive
 
       - name: Check ap-storage-example
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/ap-storage-example
           strict: true
 
       - name: Check classes-test
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/classes-test
           strict: true
 
       - name: Check hosted_item
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/hosted_item
           strict: true
 
       - name: Check luminosity-test
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/luminosity-test
           strict: true
 
       - name: Check margin-test
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/margin-test
           strict: true
 
       - name: Check template_pack
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/template_pack
           strict: true
 
       - name: Check uat-example
-        uses: PopTracker/pack-checker-action@v1
+        uses: PopTracker/pack-checker-action@v1.7.0  # immutable
         with:
           schema: schema/packs/
           pack: examples/uat-example
