@@ -139,6 +139,7 @@ Pack::Pack(const fs::path& path) : _path(path)
         _uid = to_string(_manifest,"package_uid","");
         _name = to_string(_manifest,"name", _uid);
         _gameName = to_string(_manifest,"game_name", _name);
+        _author = to_string(_manifest,"author", "");
         _versionsURL = to_string(_manifest,"versions_url", "");
         _minPopTrackerVersion = Version{to_string(_manifest, "min_poptracker_version", "")};
         _targetPopTrackerVersion = Version{to_string(_manifest, "target_poptracker_version", "")};
@@ -191,7 +192,8 @@ Pack::Info Pack::getInfo() const
         _gameName,
         _name,
         _minPopTrackerVersion,
-        variants
+        variants,
+        _author
     };
 
     return info;

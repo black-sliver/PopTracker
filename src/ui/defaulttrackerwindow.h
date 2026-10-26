@@ -3,8 +3,12 @@
 
 #include "trackerwindow.h"
 #include "loadpackwidget.h"
+#include "remotelistswidget.h"
+#include "../packmanager/packlist.h"
 #include "../uilib/progressbar.h"
 #include <vector>
+
+class PackManager;
 
 namespace Ui {
 
@@ -25,8 +29,15 @@ public:
     virtual void showProgress(const std::string& title, int progress, int max);
     virtual void hideProgress();
     virtual void setAlwaysOnTop(bool alwaysOnTop) override;
+    void setPackManager(PackManager* packManager);
+    void refreshPackList();
+    void setPackLists(const std::vector<PackListEntry>& lists);
+    void showPackLists();
     
     Signal<const fs::path&, const std::string&> onPackSelected;
+
+    Signal<const std::string&, const std::string&, const std::string&, const std::string&> onRemotePackVersionSelected;
+    Signal<const std::vector<PackListEntry>&> onPackListsChanged;
     
 protected:
     ImageButton *_btnLoad = nullptr;
@@ -41,6 +52,7 @@ protected:
     Label *_lblTooltip = nullptr;
     Label *_lblMessage = nullptr;
     LoadPackWidget *_loadPackWidget = nullptr;
+    RemoteListsWidget *_remoteListsWidget = nullptr;
     VBox *_vboxProgress = nullptr;
     HBox *_hboxProgressTexts = nullptr;
     Label *_lblProgressTitle = nullptr;
