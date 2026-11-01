@@ -11,6 +11,7 @@
 namespace Ui {
 
 //#define DEFAULT_SCALE_QUALITY_HINT "1"
+static constexpr bool FORCE_SET_SIZE = false; // resize event should trigger on all supported platforms
 
 Window::Window(const char *title, SDL_Surface* icon, const Position& pos, const Size& size, const WindowConfig& config)
     : Container(0,0,600,400)
@@ -162,7 +163,9 @@ void Window::setTitle(const std::string& title)
 void Window::resize(Size size)
 {
     SDL_SetWindowSize(_win, size.width, size.height);
-    setSize(size);
+    if constexpr (FORCE_SET_SIZE) {
+        setSize(size);
+    } // else wait for resize event
 }
 
 void Window::Raise()
