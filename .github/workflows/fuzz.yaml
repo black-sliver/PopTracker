@@ -1,4 +1,8 @@
+# Fuzz testing with latest clang.
+# This also acts as compiler test because it'll automatically pull latest minor.patch update
+# for a given clang version. Major version needs to be incremented manually.
 name: Fuzz
+
 on:
   workflow_dispatch:
   schedule:
@@ -12,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             shell: bash
             llvm-version: 23
 
@@ -24,6 +28,10 @@ jobs:
         shell: ${{ matrix.shell }}
 
     steps:
+      - uses: actions/checkout@v7.0.1
+        timeout-minutes: 5
+        with:
+          submodules: recursive
       - name: Install dependencies (apt)
         timeout-minutes: 5
         run: |
@@ -37,10 +45,17 @@ jobs:
           chmod +x ./llvm.sh
           sudo ./llvm.sh ${{ matrix.llvm-version }} all
           sudo apt install clang-tools-${{ matrix.llvm-version }}
-      - uses: actions/checkout@v7.0.1
+          # put version into .clang-version for cache key
+          clang-${{ matrix.llvm-version }} --version > .clang-version
+      - name: Cache/Restore fuzzer
+        id: cache-fuzzer
+        uses: actions/cache@v6.1.0
         with:
-          submodules: recursive
+          path: build/test/fuzzer
+          key: fuzz-${{ matrix.os }}-exe-v1-${{ hashFiles('./.clang-version', './meson.build', './src/**', './lib/**', './bench/**', './test/**') }}
+          # increment -v1- when Build fuzzer step or hashFiles() changes
       - name: Build fuzzer
+        if: steps.cache-fuzzer.outputs.cache-hit != 'true'
         run: |
           CC=clang-${{ matrix.llvm-version }} \
           CXX=clang++-${{ matrix.llvm-version }} \
