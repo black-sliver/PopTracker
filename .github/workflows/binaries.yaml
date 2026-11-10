@@ -297,9 +297,9 @@ jobs:
           mingw-w64-x86_64-toolchain
           autoconf-wrapper
           mingw-w64-x86_64-autotools
-          mingw64/mingw-w64-x86_64-SDL2
-          mingw64/mingw-w64-x86_64-SDL2_image
-          mingw64/mingw-w64-x86_64-SDL2_ttf
+          mingw-w64-x86_64-sdl2-compat
+          mingw-w64-x86_64-sdl2-image
+          mingw-w64-x86_64-sdl2-ttf
           mingw64/mingw-w64-x86_64-freetype
           mingw64/mingw-w64-x86_64-openssl
           mingw64/mingw-w64-x86_64-gtest
@@ -339,7 +339,7 @@ jobs:
     - name: Uninstall system libs
       shell: msys2 {0}
       run: |
-          pacman -R --noconfirm mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
+          pacman -R --noconfirm mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl2-compat mingw-w64-x86_64-sdl2-image mingw-w64-x86_64-sdl2-ttf
     - name: Build RELEASE
       shell: msys2 {0}
       run: |
