@@ -37,6 +37,7 @@ static std::list<ImageFilter> imageModsToFilters(const Tracker* tracker, const s
         } else {
             actualMods = {originalMod};
         }
+
         for (auto& mod: actualMods) {
             std::string name;
             std::vector<std::string> args;
@@ -89,6 +90,13 @@ static Label::HAlign str2itemHalign(const std::string& s, Label::HAlign dflt=Lab
     if (s == "right") return Label::HAlign::RIGHT;
     if (s == "left") return Label::HAlign::LEFT;
     return dflt;
+}
+
+static int nestedItemOffset(const std::string& alignment, int outer, int inner, bool horizontal)
+{
+    if (alignment == (horizontal ? "left" : "top")) return 0;
+    if (alignment == (horizontal ? "right" : "bottom")) return outer - inner;
+    return (outer - inner) / 2;
 }
 
 static Label::VAlign str2itemValign(const std::string& s, Label::VAlign dflt=Label::VAlign::TOP)
@@ -276,6 +284,40 @@ Item* TrackerView::makeItem(int x, int y, int width, int height, const ::BaseIte
     else
         w->setStage(origItem.getState(), item->getActiveStage());
     return w;
+}
+
+Container* TrackerView::makeNestedToggle(int x, int y, int width, int height, const JsonItem& nested)
+{
+    auto* nestedView = new SimpleContainer(x, y, width, height);
+    const auto& source = static_cast<const BaseItem&>(nested);
+    if (nested.getBaseItem().empty()) {
+        fprintf(stderr, "WARNING: nested_toggle '%s' has no base_item\n", sanitize_print(source.getName()).c_str());
+    } else {
+        auto base = _tracker->FindObjectForCode(nested.getBaseItem().c_str());
+        const BaseItem* baseItem = nullptr;
+        if (base.type == Tracker::Object::RT::JsonItem) baseItem = base.jsonItem;
+        else if (base.type == Tracker::Object::RT::LuaItem) baseItem = base.luaItem;
+        if (baseItem) {
+            auto* baseWidget = makeItem(0, 0, width, height, *baseItem);
+            baseWidget->setImageAlignment(Label::HAlign::CENTER, Label::VAlign::MIDDLE);
+            nestedView->addChild(baseWidget);
+        }
+    }
+    for (const auto& sub : nested.getNestedSubItems()) {
+        auto object = _tracker->FindObjectForCode(sub.item.c_str());
+        const BaseItem* subItem = nullptr;
+        if (object.type == Tracker::Object::RT::JsonItem) subItem = object.jsonItem;
+        else if (object.type == Tracker::Object::RT::LuaItem) subItem = object.luaItem;
+        if (!subItem) continue;
+        const int subWidth = sub.hAlignment == "stretch" ? width : (sub.width > 0 ? sub.width : width);
+        const int subHeight = sub.vAlignment == "stretch" ? height : (sub.height > 0 ? sub.height : height);
+        auto* subWidget = makeItem(nestedItemOffset(sub.hAlignment, width, subWidth, true),
+                nestedItemOffset(sub.vAlignment, height, subHeight, false), subWidth, subHeight, *subItem);
+        subWidget->setImageAlignment(str2itemHalign(sub.hAlignment, Label::HAlign::CENTER),
+                str2itemValign(sub.vAlignment, Label::VAlign::MIDDLE));
+        nestedView->addChild(subWidget);
+    }
+    return nestedView;
 }
 
 TrackerView::TrackerView(int x, int y, int w, int h, Tracker* tracker, const std::string& layoutRoot, FontStore *fontStore)
@@ -822,8 +864,25 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
             sz.x = layoutSz.x;
             sz.y = layoutSz.y;
         }
+
+        const auto& source = _tracker->getItemByCode(node.getItem());
+        const auto* nested = dynamic_cast<const JsonItem*>(&source);
+        if (nested && nested->getType() == ::BaseItem::Type::NESTED_TOGGLE) {
+            if (sz.x < 1 || sz.y < 1) {
+                fprintf(stderr, "WARNING: nested_toggle '%s' requires a positive item size\n",
+                        sanitize_print(source.getName()).c_str());
+                return false;
+            }
+            auto* nestedView = makeNestedToggle(node.getPosition().x, node.getPosition().y,
+                    sz.x, sz.y, *nested);
+            nestedView->setDropShaodw(node.getDropShadow(container->getDropShadow()));
+            auto m = node.getMargin({0,0,0,0});
+            nestedView->setMargin({m.left, m.top, m.right, m.bottom});
+            container->addChild(nestedView);
+            return true;
+        }
         Item *w = makeItem(node.getPosition().x, node.getPosition().y,
-                sz.x, sz.y, _tracker->getItemByCode(node.getItem()));
+                sz.x, sz.y, source);
         w->setDropShaodw(node.getDropShadow(container->getDropShadow()));
         w->setImageAlignment(str2itemHalign(node.getItemHAlignment()), str2itemValign(node.getItemVAlignment()));
         if (maxSz.x > 0) w->setMaxSize( {maxSz.x, w->getMaxWidth()} );
@@ -877,8 +936,18 @@ bool TrackerView::addLayoutNode(Container* container, const LayoutNode& node, si
                 if (halign == 0) offx /= 2;
             }
             for (const auto& item: row) {
-                Item *iw = makeItem(offx+x*sz.x+(x*2+1)*sp.x, y*sz.y+(y*2+1)*sp.y, sz.x, sz.y, _tracker->getItemByCode(item));
-                iw->setImageAlignment(itemHalign, itemValign);
+                const int itemX = offx+x*sz.x+(x*2+1)*sp.x;
+                const int itemY = y*sz.y+(y*2+1)*sp.y;
+                const auto& source = _tracker->getItemByCode(item);
+                const auto* nested = dynamic_cast<const JsonItem*>(&source);
+                Widget* iw;
+                if (nested && nested->getType() == ::BaseItem::Type::NESTED_TOGGLE) {
+                    iw = makeNestedToggle(itemX, itemY, sz.x, sz.y, *nested);
+                } else {
+                    auto* itemWidget = makeItem(itemX, itemY, sz.x, sz.y, source);
+                    itemWidget->setImageAlignment(itemHalign, itemValign);
+                    iw = itemWidget;
+                }
                 w->addChild(iw);
                 if (iw->getLeft() + iw->getWidth() > maxX) maxX = iw->getLeft() + iw->getWidth();
                 if (iw->getTop() + iw->getHeight() > maxY) maxY = iw->getTop() + iw->getHeight();

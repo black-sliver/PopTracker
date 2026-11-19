@@ -311,10 +311,18 @@ bool Tracker::AddItemsFromString(std::string& s)
             // fire event for toggle_badged when base item changed
             auto id = item.getID();
             auto o = FindObjectForCode(item.getBaseItem().c_str());
-            auto update = [this,id]() {
+            auto update = [this,id,baseCode=item.getBaseItem()]() {
                 for (auto& i : _jsonItems) {
                     if (i.getID() == id) {
-                        i.onChange.emit(&i);
+                        if (i.getType() == BaseItem::Type::NESTED_TOGGLE) {
+                            const auto base = FindObjectForCode(baseCode.c_str());
+                            const int state = base.type == Object::RT::JsonItem
+                                    ? base.jsonItem->getState()
+                                    : base.type == Object::RT::LuaItem ? base.luaItem->getState() : 0;
+                            i.setState(state);
+                        } else {
+                            i.onChange.emit(&i);
+                        }
                         break;
                     }
                 }
@@ -323,10 +331,14 @@ bool Tracker::AddItemsFromString(std::string& s)
                 o.jsonItem->onChange += {this, [update](void*) {
                     update();
                 }};
+                if (item.getType() == BaseItem::Type::NESTED_TOGGLE)
+                    update();
             } else if (o.type == Object::RT::LuaItem) {
                 o.luaItem->onChange += {this, [update](void*) {
                     update();
                 }};
+                if (item.getType() == BaseItem::Type::NESTED_TOGGLE)
+                    update();
             } else {
                 auto& connectionList = _missingBaseItemConnection[JsonItem::toLower(item.getBaseItem())];
                 connectionList.push_back(id);
@@ -349,14 +361,26 @@ bool Tracker::AddItemsFromString(std::string& s)
                 auto it = _missingBaseItemConnection.find(JsonItem::toLower(code));
                 if (it != _missingBaseItemConnection.end()) {
                     for (const auto& targetId: it->second) {
-                        item.onChange += {this, [this, targetId](void*) {
+                        item.onChange += {this, [this, targetId](void* sender) {
                             for (auto& i : _jsonItems) {
                                 if (i.getID() == targetId) {
-                                    i.onChange.emit(&i);
+                                    const auto* source = static_cast<const JsonItem*>(sender);
+                                    if (i.getType() == BaseItem::Type::NESTED_TOGGLE)
+                                        i.setState(source->getState());
+                                    else
+                                        i.onChange.emit(&i);
                                     break;
                                 }
                             }
                         }};
+                        if (item.getType() == BaseItem::Type::NESTED_TOGGLE) {
+                            for (auto& target : _jsonItems) {
+                                if (target.getID() == targetId) {
+                                    target.setState(item.getState());
+                                    break;
+                                }
+                            }
+                        }
                     }
                     _missingBaseItemConnection.erase(it);
                 }
