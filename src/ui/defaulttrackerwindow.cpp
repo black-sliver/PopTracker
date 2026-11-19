@@ -1,4 +1,5 @@
 #include "defaulttrackerwindow.h"
+#include "../packmanager/packmanager.h"
 #include "../uilib/dlg.h"
 #include "../uilib/hbox.h"
 #include "../core/assets.h"
@@ -62,7 +63,7 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
             onMenuPressed.emit(this, MENU_ALWAYS_ON_TOP, 0);
         }};
     }
-    
+
     _btnPackSettings = new ImageButton(32-4,0,32-4,32-4, asset("settings.png"));
     _btnPackSettings->setVisible(false);
     hbox->addChild(_btnPackSettings);
@@ -103,6 +104,28 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
         onPackSelected.emit(this,pack,variant);
     }};
     
+    _loadPackWidget->onRemoteVersionSelected += {this, [this](void*, const std::string& uid,
+        const std::string& version, const std::string& url, const std::string& sha256) {
+    onRemotePackVersionSelected.emit(this, uid, version, url, sha256);
+    }};
+    _loadPackWidget->onManageListsRequested += {this, [this](void*) {
+        showPackLists();
+    }};
+
+    _remoteListsWidget = new RemoteListsWidget(0,0,0,0,_fontStore);
+    _remoteListsWidget->setPosition({0,0});
+    _remoteListsWidget->setSize(_size);
+    _remoteListsWidget->setBackground({0,0,0});
+    _remoteListsWidget->setVisible(false);
+    addChild(_remoteListsWidget);
+
+    _remoteListsWidget->onChanged += {this, [this](void*, const std::vector<PackListEntry>& lists) {
+        onPackListsChanged.emit(this, lists);
+    }};
+    _remoteListsWidget->onClosed += {this, [this](void*) {
+        _loadPackWidget->reloadRemoteLists(); // enabled lists may have changed
+    }};
+
     for (const auto& pair : {
             std::pair{_btnLoad, "Load Pack"},
             std::pair{_btnReload, "Reload Pack"},
@@ -140,6 +163,28 @@ DefaultTrackerWindow::DefaultTrackerWindow(const char* title, SDL_Surface* icon,
             _lblTooltip->setText("");
         }};
     }
+}
+
+void DefaultTrackerWindow::setPackManager(PackManager* packManager)
+{
+    _loadPackWidget->setPackManager(packManager);
+    _remoteListsWidget->setPackManager(packManager);
+}
+
+void DefaultTrackerWindow::setPackLists(const std::vector<PackListEntry>& lists)
+{
+    _remoteListsWidget->setEntries(lists);
+}
+
+void DefaultTrackerWindow::showPackLists()
+{
+    raiseChild(_remoteListsWidget);
+    _remoteListsWidget->setVisible(true);
+}
+
+void DefaultTrackerWindow::refreshPackList()
+{
+    _loadPackWidget->updateInstalled();
 }
 
 DefaultTrackerWindow::~DefaultTrackerWindow()
@@ -215,6 +260,7 @@ void DefaultTrackerWindow::setTracker(Tracker* tracker, const std::string& layou
         if (_btnExport) _btnExport->setVisible(false);
     }
     raiseChild(_loadPackWidget);
+    raiseChild(_remoteListsWidget);
 }
 
 void DefaultTrackerWindow::showMessage(const std::string& message, bool error)
@@ -345,6 +391,7 @@ void DefaultTrackerWindow::setSize(Size size)
     TrackerWindow::setSize(size);
     _lblMessage->setWidth(size.width);
     _loadPackWidget->setSize(size);
+    _remoteListsWidget->setSize(size);
     if (_vboxProgress) {
         _vboxProgress->setPosition({
             (_size.width - _vboxProgress->getWidth())/2,

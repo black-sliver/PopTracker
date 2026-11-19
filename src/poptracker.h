@@ -16,6 +16,7 @@
 #include "ap/archipelago.h"
 #include "appupdater/appupdater.hpp"
 #include "packmanager/packmanager.h"
+#include "packmanager/packlist.h"
 #include "luasandbox/luapackio.h"
 #include <chrono>
 #include <nlohmann/json.hpp>
@@ -44,6 +45,7 @@ private:
     asio::io_service *_asio = nullptr;
     std::list<std::string> _httpDefaultHeaders;
     PackManager *_packManager = nullptr;
+    std::vector<PackListEntry> _packLists;
 #ifndef WITHOUT_UPDATE_CHECK
     std::unique_ptr<pop::AppUpdater> _appUpdater;
 #endif
@@ -83,6 +85,11 @@ private:
     static int global_index(lua_State* L);
     static int global_newindex(lua_State* L);
     static void global_wrap(lua_State* L, PopTracker* self);
+
+    void loadPackLists();
+    void savePackLists();
+    void applyPackLists();
+    void promptRemotePackLists();
 
 public:
     PopTracker(int argc, char** argv, bool cli=false, const json& args=nullptr);
