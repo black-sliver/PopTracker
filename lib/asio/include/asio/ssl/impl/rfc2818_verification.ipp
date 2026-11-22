@@ -19,6 +19,15 @@
 
 #if !defined(ASIO_NO_DEPRECATED)
 
+// NOTE: ASN1_STRING_length was deprecated in OpenSSL 4.1,
+//       however the replacement ASN1_STRING_get_length is not available in 3.x, which we still support.
+// TODO: update ASIO to get proper OpenSSL 4.x support?
+#ifndef OPENSSL_API_COMPAT
+#define OPENSSL_API_COMPAT
+#endif
+#ifndef OPENSSL_NO_DEPRECATED_4_1
+#define OPENSSL_NO_DEPRECATED_4_1
+#endif
 #include <cctype>
 #include <cstring>
 #include "asio/ip/address.hpp"
@@ -31,7 +40,7 @@ namespace asio {
 namespace ssl {
 
 bool rfc2818_verification::operator()(
-    bool preverified, verify_context& ctx) const
+    const bool preverified, verify_context& ctx) const
 {
   using namespace std; // For memcmp.
 
@@ -55,17 +64,17 @@ bool rfc2818_verification::operator()(
   // Go through the alternate names in the certificate looking for matching DNS
   // or IP address entries.
   GENERAL_NAMES* gens = static_cast<GENERAL_NAMES*>(
-      X509_get_ext_d2i(cert, NID_subject_alt_name, 0, 0));
+      X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, nullptr));
   for (int i = 0; i < sk_GENERAL_NAME_num(gens); ++i)
   {
     GENERAL_NAME* gen = sk_GENERAL_NAME_value(gens, i);
     if (gen->type == GEN_DNS && !is_address)
     {
       ASN1_IA5STRING* domain = gen->d.dNSName;
-      if (domain->type == V_ASN1_IA5STRING && domain->data && domain->length)
+      if (ASN1_STRING_type(domain) == V_ASN1_IA5STRING && ASN1_STRING_get0_data(domain) && ASN1_STRING_length(domain))
       {
-        const char* pattern = reinterpret_cast<const char*>(domain->data);
-        std::size_t pattern_length = domain->length;
+        const char* pattern = reinterpret_cast<const char*>(ASN1_STRING_get0_data(domain));
+        const std::size_t pattern_length = ASN1_STRING_length(domain);
         if (match_pattern(pattern, pattern_length, host_.c_str()))
         {
           GENERAL_NAMES_free(gens);
@@ -75,22 +84,22 @@ bool rfc2818_verification::operator()(
     }
     else if (gen->type == GEN_IPADD && is_address)
     {
-      ASN1_OCTET_STRING* ip_address = gen->d.iPAddress;
-      if (ip_address->type == V_ASN1_OCTET_STRING && ip_address->data)
+      const ASN1_OCTET_STRING* ip_address = gen->d.iPAddress;
+      if (ASN1_STRING_type(ip_address) == V_ASN1_OCTET_STRING && ASN1_STRING_get0_data(ip_address))
       {
-        if (address.is_v4() && ip_address->length == 4)
+        if (address.is_v4() && ASN1_STRING_length(ip_address) == 4)
         {
           ip::address_v4::bytes_type bytes = address.to_v4().to_bytes();
-          if (memcmp(bytes.data(), ip_address->data, 4) == 0)
+          if (memcmp(bytes.data(), ASN1_STRING_get0_data(ip_address), 4) == 0)
           {
             GENERAL_NAMES_free(gens);
             return true;
           }
         }
-        else if (address.is_v6() && ip_address->length == 16)
+        else if (address.is_v6() && ASN1_STRING_length(ip_address) == 16)
         {
           ip::address_v6::bytes_type bytes = address.to_v6().to_bytes();
-          if (memcmp(bytes.data(), ip_address->data, 16) == 0)
+          if (memcmp(bytes.data(), ASN1_STRING_get0_data(ip_address), 16) == 0)
           {
             GENERAL_NAMES_free(gens);
             return true;
@@ -103,18 +112,18 @@ bool rfc2818_verification::operator()(
 
   // No match in the alternate names, so try the common names. We should only
   // use the "most specific" common name, which is the last one in the list.
-  X509_NAME* name = X509_get_subject_name(cert);
+  const X509_NAME* name = X509_get_subject_name(cert);
   int i = -1;
-  ASN1_STRING* common_name = 0;
+  const ASN1_STRING* common_name = nullptr;
   while ((i = X509_NAME_get_index_by_NID(name, NID_commonName, i)) >= 0)
   {
-    X509_NAME_ENTRY* name_entry = X509_NAME_get_entry(name, i);
+    const X509_NAME_ENTRY* name_entry = X509_NAME_get_entry(name, i);
     common_name = X509_NAME_ENTRY_get_data(name_entry);
   }
-  if (common_name && common_name->data && common_name->length)
+  if (common_name && ASN1_STRING_get0_data(common_name) && ASN1_STRING_length(common_name))
   {
-    const char* pattern = reinterpret_cast<const char*>(common_name->data);
-    std::size_t pattern_length = common_name->length;
+    const char* pattern = reinterpret_cast<const char*>(ASN1_STRING_get0_data(common_name));
+    const std::size_t pattern_length = ASN1_STRING_length(common_name);
     if (match_pattern(pattern, pattern_length, host_.c_str()))
       return true;
   }
@@ -123,7 +132,7 @@ bool rfc2818_verification::operator()(
 }
 
 bool rfc2818_verification::match_pattern(const char* pattern,
-    std::size_t pattern_length, const char* host)
+    const std::size_t pattern_length, const char* host)
 {
   using namespace std; // For tolower.
 
