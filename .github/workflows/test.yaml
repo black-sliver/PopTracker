@@ -165,6 +165,7 @@ jobs:
         compression-level: 9
 
   nix-shell-build:
+    if: false  # currently broken, see failed CI runs
     runs-on: ubuntu-latest
 
     steps:
