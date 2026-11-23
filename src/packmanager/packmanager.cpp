@@ -190,6 +190,10 @@ void PackManager::checkForUpdateFrom(const std::string& uid, const std::string& 
                     break;
                 }
                 if (!hasUpdate) printf("Already up to date!\n");
+            } catch (const std::exception& ex) {
+                printf("Invalid json versions %s: %s\n",
+                    sanitize_print(url).c_str(),
+                    sanitize_print(ex.what()).c_str());
             } catch (...) {
                 printf("Invalid json versions %s\n", sanitize_print(url).c_str());
             }
