@@ -86,7 +86,7 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         release: false
-        update: false
+        update: true  # NOTE: usually not needed and faster without, disable again at some point
         install: >-
           base-devel
           coreutils
@@ -106,7 +106,7 @@ jobs:
       uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
       with:
         msystem: ${{ matrix.msystem }}
-        update: true
+        update: true  # NOTE: usually not needed and faster without, disable again at some point
         install: >-
           base-devel
           coreutils
